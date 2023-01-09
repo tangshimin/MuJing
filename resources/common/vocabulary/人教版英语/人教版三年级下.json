@@ -1,0 +1,1306 @@
+{
+    "name": "人教版三年级下",
+    "type": "DOCUMENT",
+    "language": "english",
+    "size": 72,
+    "relateVideoPath": "",
+    "subtitlesTrackId": 0,
+    "wordList": [
+        {
+            "value": "UK",
+            "usphone": "",
+            "ukphone": "",
+            "definition": "n a monarchy in northwestern Europe occupying most of the British Isles; divided into England and Scotland and Wales and Northern Ireland; `Great Britain' is often used loosely to refer to the United Kingdom",
+            "translation": "n. 联合王国",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 572,
+            "frq": 0,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "Canada",
+            "usphone": "'kænədə",
+            "ukphone": "'kænədə",
+            "definition": "n. a nation in northern North America; the French were the first Europeans to settle in mainland Canada",
+            "translation": "n. 加拿大",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 2754,
+            "frq": 0,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "USA",
+            "usphone": "",
+            "ukphone": "",
+            "definition": "n North American republic containing 50 states - 48 conterminous states in North America plus Alaska in northwest North America and the Hawaiian Islands in the Pacific Ocean; achieved independence in 1776\nn the army of the United States of America; the agency that organizes and trains soldiers for land warfare",
+            "translation": "美国, 美利坚合众国, 美国陆军",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 1800,
+            "frq": 0,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "China",
+            "usphone": "",
+            "ukphone": "ˈtʃaɪnə",
+            "definition": "n. a communist nation that covers a vast territory in eastern Asia; the most populous country in the world\nn. high quality porcelain originally made only in China",
+            "translation": "n. 中国, 瓷器\na. 中国的",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 1973,
+            "frq": 7946,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "she",
+            "usphone": "ʃi",
+            "ukphone": "ʃiː",
+            "definition": "obj. This or that female; the woman understood or referred to;\n   the animal of the female sex, or object personified as feminine, which\n   was spoken of.\nobj. A woman; a female; -- used substantively.",
+            "translation": "pron. 她",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 21,
+            "frq": 31,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "student",
+            "usphone": "'studnt",
+            "ukphone": "'stjuːd(ə)nt",
+            "definition": "n. a learner who is enrolled in an educational institution",
+            "translation": "n. 学生, 研究者, 学者",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 432,
+            "frq": 157,
+            "exchange": "s:students",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "pupil",
+            "usphone": "pjupl",
+            "ukphone": "'pjuːpɪl; -p(ə)l",
+            "definition": "n. the contractile aperture in the center of the iris of the eye; resembles a large black dot",
+            "translation": "n. 学生, 门生, 未成年人, 瞳孔\n[医] 瞳孔",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk toefl ielts",
+            "bnc": 952,
+            "frq": 5057,
+            "exchange": "s:pupils",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "he",
+            "usphone": "hi",
+            "ukphone": "hiː",
+            "definition": "n. the 5th letter of the Hebrew alphabet",
+            "translation": "pron. 他\nn. 男孩, 男人, 雄性动物",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 11,
+            "frq": 15,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "teacher",
+            "usphone": "'titʃɚ",
+            "ukphone": "'tiːtʃə",
+            "definition": "n. a person whose occupation is teaching\nn. a personified abstraction that teaches",
+            "translation": "n. 教师, 老师, 导师",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 486,
+            "frq": 371,
+            "exchange": "s:teachers",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "boy",
+            "usphone": "bɔɪ",
+            "ukphone": "bɒɪ",
+            "definition": "n. a friendly informal reference to a grown man\nn. (ethnic slur) offensive and disparaging term for Black man",
+            "translation": "n. 男孩\n[法] 男孩, 少年, 儿子",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 462,
+            "frq": 382,
+            "exchange": "s:boys",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "and",
+            "usphone": "ənd, ən,ænd",
+            "ukphone": "ənd; (ə)n; ænd",
+            "definition": "conj. A particle which expresses the relation of connection or\n   addition. It is used to conjoin a word with a word, a clause with a\n   clause, or a sentence with a sentence.\nconj. In order to; -- used instead of the infinitival to,\n   especially after try, come, go.\nconj. It is sometimes, in old songs, a mere expletive.\nconj. If; though. See An, conj.",
+            "translation": "conj. 和, 与\n[计] 与",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 4,
+            "frq": 3,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "girl",
+            "usphone": "ɡɝl",
+            "ukphone": "gɜːl",
+            "definition": "n. a young woman\nn. a friendly informal reference to a grown woman",
+            "translation": "n. 女孩, 少女, 女佣",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 362,
+            "frq": 363,
+            "exchange": "s:girls",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "new",
+            "usphone": "nu",
+            "ukphone": "njuː",
+            "definition": "a. not of long duration; having just (or relatively recently) come into being or been made or acquired or discovered\ns. having no previous example or precedent or parallel\ns. other than the former one(s); different\na. unaffected by use or exposure",
+            "translation": "a. 新的, 陌生的, 最近的, 不熟悉的\n[法] 新发现的, 新的, 重新开始的",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 81,
+            "frq": 88,
+            "exchange": "r:newer/t:newest",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "friend",
+            "usphone": "frɛnd",
+            "ukphone": "frend",
+            "definition": "n. a person you know well and regard with affection and trust\nn. a member of the Religious Society of Friends founded by George Fox (the Friends have never called themselves Quakers)",
+            "translation": "n. 朋友, 支持者, 赞助者\n[法] 朋友, 友人, 赞助者",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 281,
+            "frq": 265,
+            "exchange": "s:friends",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "today",
+            "usphone": "tə'de",
+            "ukphone": "tə'deɪ",
+            "definition": "n. the present time or age\nn. the day that includes the present moment (as opposed to yesterday or tomorrow)\nr. on this day as distinct from yesterday or tomorrow",
+            "translation": "n. 今天, 当今, 现在\nadv. 今天, 当今",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 350,
+            "frq": 214,
+            "exchange": "s:todays",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "father",
+            "usphone": "'fɑðɚ",
+            "ukphone": "'fɑːðə",
+            "definition": "n. a male parent (also used as a term of address to your father)\nn. `Father' is a term of address for priests in some churches (especially the Roman Catholic Church or the Orthodox Catholic Church); `Padre' is frequently used in the military\nn. a person who holds an important or distinguished position in some organization\nn. God when considered as the first person in the Trinity",
+            "translation": "n. 父亲, 祖先, 长辈, 神父, 创始者\nvt. 当...的父亲, 保护, 创作, 发明, 培养",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 364,
+            "frq": 267,
+            "exchange": "s:fathers/d:fathered/i:fathering/p:fathered/3:fathers",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "dad",
+            "usphone": "dæd",
+            "ukphone": "dæd",
+            "definition": "n. an informal term for a father; probably derived from baby talk",
+            "translation": "n. 爸爸, 爹爹",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk",
+            "bnc": 1311,
+            "frq": 1814,
+            "exchange": "s:dads",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "man",
+            "usphone": "mæn",
+            "ukphone": "mæn",
+            "definition": "n. an adult person who is male (as opposed to a woman)\nn. the generic use of the word to refer to any human being\nn. a male subordinate\nn. an adult male person who has a manly character (virile and courageous competent)",
+            "translation": "n. 男人, 人类, 人\nvt. 为...配备人手, 操纵, 使振奋\n[计] 城域网, 手册",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 91,
+            "frq": 94,
+            "exchange": "s:men/d:manned/i:manning/p:manned/3:mans",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "woman",
+            "usphone": "'wʊmən",
+            "ukphone": "'wʊmən",
+            "definition": "n. an adult female person (as opposed to a man)\nn. a female person who plays a significant role (wife or mistress or girlfriend) in the life of a particular man",
+            "translation": "n. 女人, 妇女, 女仆\na. 女用的, 女性的, 妇女的\nvt. 贬称...为女人, 使成女人腔",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 130,
+            "frq": 111,
+            "exchange": "s:women",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "mother",
+            "usphone": "'mʌðɚ",
+            "ukphone": "'mʌðə",
+            "definition": "n. a woman who has given birth to a child (also used as a term of address to your mother)\nn. a stringy slimy substance consisting of yeast cells and bacteria; forms during fermentation and is added to cider or wine to produce vinegar\nn. a term of address for an elderly woman\nn. a term of address for a mother superior",
+            "translation": "n. 母亲, 修女院长\nvt. 产生, 照看, 收养",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 306,
+            "frq": 229,
+            "exchange": "s:mothers/i:mothering/p:mothered/3:mothers/d:mothered",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "sister",
+            "usphone": "'sɪstɚ",
+            "ukphone": "'sɪstə",
+            "definition": "n. a female person who has the same parents as another person\nn. (Roman Catholic Church) a title given to a nun (and used as a form of address)\nn. a female person who is a fellow member of a sorority or labor union or other group",
+            "translation": "n. 姐妹, 姐, 妹, 护士, 修女\nvt. 姐妹般对待",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 1049,
+            "frq": 823,
+            "exchange": "s:sisters",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "brother",
+            "usphone": "'brʌðɚ",
+            "ukphone": "'brʌðə",
+            "definition": "n. a male with the same parents as someone else\nn. a male person who is a fellow member (of a fraternity or religion or other group)\nn. used as a term of address for those male persons engaged in the same movement\nn. (Roman Catholic Church) a title given to a monk and used as form of address",
+            "translation": "n. 兄弟",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 827,
+            "frq": 614,
+            "exchange": "s:brothers",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "grandmother",
+            "usphone": "'ɡrænmʌðɚ",
+            "ukphone": "'græn(d)mʌðə",
+            "definition": "n the mother of your father or mother",
+            "translation": "n. 祖母, 女祖先",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk cet4 cet6 ky",
+            "bnc": 4338,
+            "frq": 2495,
+            "exchange": "s:grandmothers",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "grandma",
+            "usphone": "ɡrænmɑ",
+            "ukphone": "'græn(d)mɑː",
+            "definition": "n. the mother of your father or mother",
+            "translation": "n. 奶奶, 外婆",
+            "pos": "",
+            "collins": 1,
+            "oxford": false,
+            "tag": "zk",
+            "bnc": 9295,
+            "frq": 9804,
+            "exchange": "s:grandmas",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "grandfather",
+            "usphone": "'græn'fɑðɚ",
+            "ukphone": "'græn(d)fɑːðə",
+            "definition": "n. the father of your father or mother",
+            "translation": "n. 祖父, 始祖\n[电] 原始资料组",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk cet4 cet6",
+            "bnc": 4184,
+            "frq": 2950,
+            "exchange": "s:grandfathers",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "grandpa",
+            "usphone": "grandpa",
+            "ukphone": "ˈgrænpɑ:",
+            "definition": "n the father of your father or mother",
+            "translation": "爷爷, 老太爷, 外公",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "zk",
+            "bnc": 17273,
+            "frq": 14478,
+            "exchange": "s:grandpas",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "family",
+            "usphone": "ˈfæməlɪ",
+            "ukphone": "ˈfæməlɪ",
+            "definition": "n. a social unit living together\nn. primary social group; parents and children\nn. people descended from a common ancestor\nn. (biology) a taxonomic group containing one or more genera",
+            "translation": "n. 家庭, 家人, 族\na. 家庭的",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 200,
+            "frq": 147,
+            "exchange": "s:families",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "thin",
+            "usphone": "θɪn",
+            "ukphone": "θɪn",
+            "definition": "v. lose thickness; become thin or thinner\nv. make thin or thinner\na. of relatively small extent from one surface to the opposite or in cross section\na. lacking excess flesh",
+            "translation": "a. 薄的, 细的, 瘦的, 稀疏的, 稀薄的, 淡的, 弱的, 空洞的\nvt. 使变薄, 使变细, 使稀少, 使淡\nvi. 变薄, 变细, 变少, 变淡\nadv. 薄地, 稀疏地, 微弱地\nn. 细小部分",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk toefl",
+            "bnc": 1670,
+            "frq": 1621,
+            "exchange": "r:thinner/i:thinning/t:thinnest/d:thinned/3:thins/p:thinned",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "fat",
+            "usphone": "fæt",
+            "ukphone": "fæt",
+            "definition": "n. a soft greasy substance occurring in organic tissue and consisting of a mixture of lipids (mostly triglycerides)\na. having an (over)abundance of flesh\ns. having a relatively large diameter\ns. lucrative",
+            "translation": "n. 脂肪, 脂油, 肥肉\na. 肥的, 胖的, 油腻的\nn. 文件分配表\n[计] 文件分配表",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ky",
+            "bnc": 2848,
+            "frq": 1575,
+            "exchange": "s:fats/r:fatter/t:fattest/i:fatting/p:fatted/3:fats/d:fatted",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "tall",
+            "usphone": "tɔl",
+            "ukphone": "tɔːl",
+            "definition": "n. a garment size for a tall person\na. great in vertical dimension; high in stature\ns. impressively difficult",
+            "translation": "a. 高的, 长的, 夸大的\nadv. 夸大地",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 1757,
+            "frq": 1524,
+            "exchange": "r:taller/t:tallest",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "short",
+            "usphone": "ʃɔrt",
+            "ukphone": "ʃɔːt",
+            "definition": "n. the location on a baseball field where the shortstop is stationed\na. primarily temporal sense; indicating or being or seeming to be limited in duration\na. (primarily spatial sense) having little length or lacking in length\na. low in stature; not tall",
+            "translation": "a. 短的, 近的, 矮的, 短期的, 简短的, 少量的\nadv. 简短地, 突然\nn. 扼要, 短片, 缺乏\nvt. 故意少给, 使短路",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 500,
+            "frq": 627,
+            "exchange": "r:shorter/t:shortest/i:shorting/p:shorted/3:shorts/d:shorted",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "long",
+            "usphone": "lɔŋ",
+            "ukphone": "lɒŋ",
+            "definition": "a. primarily temporal sense; being or indicating a relatively great or greater than average duration or passage of time or a duration as specified\na. primarily spatial sense; of relatively great or greater than average spatial extension or extension as specified\ns. of relatively great height\na. holding securities or commodities in expectation of a rise in prices",
+            "translation": "a. 长的, 长久的, 冗长的, 做多头的\nvi. 渴望, 热望, 极想\nadv. 长久, 始终\nn. 长时间, 长信号, 长整型\n[计] 长, 长整型",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk toefl",
+            "bnc": 217,
+            "frq": 254,
+            "exchange": "r:longer/t:longest/p:longed/i:longing/d:longed/3:longs",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "small",
+            "usphone": "smɔl",
+            "ukphone": "smɔːl",
+            "definition": "n. the slender part of the back\nn. a garment size for a small person\na. limited or below average in number or quantity or magnitude or extent\ns. slight or limited; especially in degree or intensity or scope",
+            "translation": "a. 小的, 少的, 小型的, 低微的, 小气的, 细微的\nadv. 些微地\nn. 狭小部分",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 168,
+            "frq": 203,
+            "exchange": "r:smaller/t:smallest",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "big",
+            "usphone": "bɪɡ",
+            "ukphone": "bɪg",
+            "definition": "s. significant\ns. loud and firm\ns. conspicuous in position or importance\ns. prodigious",
+            "translation": "a. 大的, 重要的\nadv. 大量地",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 260,
+            "frq": 162,
+            "exchange": "t:biggest/r:bigger",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "giraffe",
+            "usphone": "dʒəˈræf; dʒəˈræf",
+            "ukphone": "dʒɪˈrɑ:f",
+            "definition": "n. tallest living quadruped; having a spotted coat and small horns and very long neck and legs; of savannahs of tropical Africa",
+            "translation": "n. 长颈鹿, 鹿豹座",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 20489,
+            "frq": 15421,
+            "exchange": "s:giraffes",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "so",
+            "usphone": "so",
+            "ukphone": "səʊ",
+            "definition": "r. to a very great extent or degree\nr. in a manner that facilitates\nr. in such a condition or manner, especially as expressed or implied\nr. to a certain unspecified extent or degree",
+            "translation": "adv. 如此, 如是, 如...那样\nconj. 所以, 因此\npron. 这样",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 48,
+            "frq": 55,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "children",
+            "usphone": "'tʃɪldrən",
+            "ukphone": "'tʃɪldrən",
+            "definition": "n a young person of either sex\nn a human offspring (son or daughter) of any age\nn an immature childish person\nn a member of a clan or tribe",
+            "translation": "pl. 孩子, 孩子们",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "ielts",
+            "bnc": 23840,
+            "frq": 0,
+            "exchange": "0:child/1:s/s:childrens",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "child",
+            "usphone": "tʃaɪld",
+            "ukphone": "tʃaɪld",
+            "definition": "n. a young person of either sex\nn. a human offspring (son or daughter) of any age\nn. an immature childish person\nn. a member of a clan or tribe",
+            "translation": "n. 孩子, 产物, 追随者\n[医] 儿童",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 114,
+            "frq": 115,
+            "exchange": "s:children",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "tail",
+            "usphone": "tel",
+            "ukphone": "teɪl",
+            "definition": "n. the posterior part of the body of a vertebrate especially when elongated and extending beyond the trunk or main part of the body\nn. any projection that resembles the tail of an animal\nn. a spy employed to follow someone and report their movements\nn. (usually plural) the reverse side of a coin that does not bear the representation of a person's head",
+            "translation": "n. 尾部, 后部, 辫子, 随员, 特务, 燕尾服, 踪迹, 限定继承(权)\na. 在后面的, 从后面而来的, 限定继承的, 尾部的, 后部的\nvt. 为...装尾, 附于其后, 尾随, 使搭牢, 跟踪, 监视\nvi. 跟踪, 船尾搁浅",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky toefl",
+            "bnc": 2604,
+            "frq": 2985,
+            "exchange": "s:tails/p:tailed/i:tailing/d:tailed/3:tails/f:tails",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "on",
+            "usphone": "ɑn",
+            "ukphone": "ɒn",
+            "definition": "a. in operation or operational\na. (of events) planned or scheduled\nr. indicates continuity or persistence or concentration\nr. in a state required for something to function or be effective",
+            "translation": "prep. 在...之上\nadv. ...上去\na. 正起作用的\n[计] 打开",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 17,
+            "frq": 17,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "in",
+            "usphone": "ɪn",
+            "ukphone": "ɪn",
+            "definition": "s. holding office\ns. directed or bound inward\ns. currently fashionable\nr. to or toward the inside of",
+            "translation": "prep. 在...期间, 在...之内, 处于...之中, 从事于, 按照, 穿着\nadv. 进入, 朝里, 在里面, 在屋里\na. 在里面的, 在朝的\nn. 执政者, 交情",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 6,
+            "frq": 6,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "under",
+            "usphone": "'ʌndɚ",
+            "ukphone": "'ʌndə",
+            "definition": "s. lower in rank, power, or authority\nr. down to defeat, death, or ruin\nr. through a range downward\nr. into unconsciousness",
+            "translation": "prep. 在...之下, 低于\na. 下面的, 从属的\nadv. 在下面",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 158,
+            "frq": 225,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "chair",
+            "usphone": "tʃɛr",
+            "ukphone": "tʃeə",
+            "definition": "n. a seat for one person, with a support for the back\nn. a particular seat in an orchestra\nv. act or preside as chair, as of an academic department in a university",
+            "translation": "n. 椅子, 显要的席位, 主席\nvt. 使入座, 使就任要职",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 1029,
+            "frq": 946,
+            "exchange": "s:chairs/d:chaired/p:chaired/i:chairing/3:chairs",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "desk",
+            "usphone": "dɛsk",
+            "ukphone": "desk",
+            "definition": "n. a piece of furniture with a writing surface and usually drawers or other compartments",
+            "translation": "n. 书桌, 办公桌, 工作台",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 1862,
+            "frq": 1659,
+            "exchange": "s:desks",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "cap",
+            "usphone": "kæp",
+            "ukphone": "kæp",
+            "definition": "n. a tight-fitting headdress\nn. a top (as for a bottle)\nn. something serving as a cover or protection\nn. a fruiting structure resembling an umbrella or a cone that forms the top of a stalked fleshy fungus such as a mushroom",
+            "translation": "n. 盖子, 帽子\nvt. 戴帽子, 覆盖, 胜过\nvi. 脱帽致意\n[计] 调用程序分析, 容量, 代码分析程序, 计算机辅助生产, 计算机辅助印刷",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky toefl",
+            "bnc": 2955,
+            "frq": 2306,
+            "exchange": "s:caps/d:capped/i:capping/p:capped/3:caps",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "ball",
+            "usphone": "bɔl",
+            "ukphone": "bɔːl",
+            "definition": "n. round object that is hit or thrown or kicked in games\nn. an object with a spherical shape\nn. the people assembled at a lavish formal dance\nn. a spherical object used as a plaything",
+            "translation": "n. 球, 舞会, 球状物\nv. 捏成球形",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 1121,
+            "frq": 912,
+            "exchange": "s:balls/p:balled/i:balling/3:balls/d:balled",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "car",
+            "usphone": "kɑr",
+            "ukphone": "kɑː",
+            "definition": "n. a motor vehicle with four wheels; usually propelled by an internal combustion engine\nn. a wheeled vehicle adapted to the rails of railroad\nn. the compartment that is suspended from an airship and that carries personnel and the cargo and the power plant\nn. where passengers ride up and down",
+            "translation": "n. 汽车, 客车\n[机] 车",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 247,
+            "frq": 289,
+            "exchange": "s:cars",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "boat",
+            "usphone": "bot",
+            "ukphone": "bəʊt",
+            "definition": "n. a small vessel for travel on water\nv. ride in a boat on water",
+            "translation": "n. 船\nvi. 乘船\nvt. 以船运",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 1303,
+            "frq": 1231,
+            "exchange": "s:boats/i:boating/p:boated/3:boats/d:boated",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "map",
+            "usphone": "mæp",
+            "ukphone": "mæp",
+            "definition": "n. a diagrammatic representation of the earth's surface (or part of it)\nv. make a map of; show or establish the features of details of\nv. explore or survey for the purpose of making a map\nv. locate within a specific region of a chromosome in relation to known DNA or gene sequences",
+            "translation": "n. 地图, 天体图, 映像\nvt. 映射, 绘制...地图, 计划\n[计] 实用程序, 映射, 制造自动化协议",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk toefl ielts",
+            "bnc": 1681,
+            "frq": 1542,
+            "exchange": "s:maps/d:mapped/i:mapping/p:mapped/3:maps",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "toy",
+            "usphone": "tɔɪ",
+            "ukphone": "tɒɪ",
+            "definition": "n. a nonfunctional replica of something else (frequently used as a modifier)\nn. a device regarded as providing amusement\nv. manipulate manually or in one's mind or imagination",
+            "translation": "n. 玩具, 小玩艺儿, 小型的东西, 消遣\na. 供玩耍的, 作为玩具的\nvi. 玩弄, 戏弄, 调情",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky gre",
+            "bnc": 3412,
+            "frq": 2418,
+            "exchange": "s:toys/p:toyed/i:toying/d:toyed/3:toys/f:toys",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "box",
+            "usphone": "bɑks",
+            "ukphone": "bɒks",
+            "definition": "n. a (usually rectangular) container; may have a lid\nn. private area in a theater or grandstand where a small group can watch the performance\nn. the quantity contained in a box\nn. a rectangular drawing",
+            "translation": "n. 盒子, 箱, 方框, 一巴掌\nvt. 装...入盒中, 装箱, 打耳光\nvi. 拳击\n[计] 方框",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 874,
+            "frq": 795,
+            "exchange": "s:boxes/d:boxed/p:boxed/i:boxing/3:boxes",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "pear",
+            "usphone": "pɛr",
+            "ukphone": "peə",
+            "definition": "n. sweet juicy gritty-textured fruit available in many varieties\nn. Old World tree having sweet gritty-textured juicy fruit; widely cultivated in many varieties",
+            "translation": "n. 梨子, 梨树, 梨木\n[机] 梨木",
+            "pos": "",
+            "collins": 1,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky",
+            "bnc": 8976,
+            "frq": 6857,
+            "exchange": "s:pears",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "apple",
+            "usphone": "'æpl",
+            "ukphone": "'æp(ə)l",
+            "definition": "n. fruit with red or yellow or green skin and sweet to tart crisp whitish flesh\nn. native Eurasian tree widely cultivated in many varieties for its firm rounded edible fruits",
+            "translation": "n. 苹果, 家伙\n[医] 苹果",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 2446,
+            "frq": 2695,
+            "exchange": "s:apples",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "orange",
+            "usphone": "'ɔrɪndʒ",
+            "ukphone": "'ɒrɪn(d)ʒ",
+            "definition": "n. round yellow to orange fruit of any of several citrus trees\nn. orange color or pigment; any of a range of colors between red and yellow\nn. any citrus tree bearing oranges\nn. any pigment producing the orange color",
+            "translation": "n. 柑橘, 桔子, 橘色\na. 橘色的",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 3959,
+            "frq": 3145,
+            "exchange": "s:oranges",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "banana",
+            "usphone": "bə'nænə",
+            "ukphone": "bə'nɑːnə",
+            "definition": "n. any of several tropical and subtropical treelike herbs of the genus Musa having a terminal crown of large entire leaves and usually bearing hanging clusters of elongated fruits\nn. elongated crescent-shaped yellow fruit with soft sweet flesh",
+            "translation": "n. 香蕉",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 5663,
+            "frq": 4677,
+            "exchange": "s:bananas",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "watermelon",
+            "usphone": "'wɔtɚmɛlən",
+            "ukphone": "'wɔːtəmelən",
+            "definition": "n. an African melon\nn. large oblong or roundish melon with a hard green rind and sweet watery red or occasionally yellowish pulp",
+            "translation": "n. 西瓜",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 36234,
+            "frq": 10944,
+            "exchange": "s:watermelons",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "strawberry",
+            "usphone": "'strɔbɛri",
+            "ukphone": "'strɔːb(ə)rɪ",
+            "definition": "n. sweet fleshy red fruit\nn. any of various low perennial herbs with many runners and bearing white flowers followed by edible fruits having many small achenes scattered on the surface of an enlarged red pulpy berry\nn. a soft red birthmark",
+            "translation": "n. 草莓",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky",
+            "bnc": 7842,
+            "frq": 5437,
+            "exchange": "s:strawberries",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "grape",
+            "usphone": "ɡrep",
+            "ukphone": "greɪp",
+            "definition": "n. any of various juicy fruit of the genus Vitis with green or purple skins; grow in clusters\nn. any of numerous woody vines of genus Vitis bearing clusters of edible berries",
+            "translation": "n. 葡萄, 葡萄树\n[医] 葡萄",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky",
+            "bnc": 6533,
+            "frq": 4764,
+            "exchange": "s:grapes",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "buy",
+            "usphone": "baɪ",
+            "ukphone": "baɪ",
+            "definition": "v. obtain by purchase; acquire by means of a financial transaction\nv. be worth or be capable of buying\nv. acquire by trade or sacrifice or exchange\nv. accept as true",
+            "translation": "vt. 买, 获得\nvi. 买\nn. 购买, 买得的东西",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 351,
+            "frq": 397,
+            "exchange": "p:bought/i:buying/d:bought/3:buys/s:buys",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "fruit",
+            "usphone": "frut",
+            "ukphone": "fruːt",
+            "definition": "n. the ripened reproductive body of a seed plant\nn. the consequence of some effort or action\nv. cause to bear fruit\nv. bear fruit",
+            "translation": "n. 水果, 果类, 结果\n[医] 果实, 种实",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 1809,
+            "frq": 1662,
+            "exchange": "s:fruits/i:fruiting/p:fruited/3:fruits/d:fruited",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "eleven",
+            "usphone": "ɪ'lɛvn",
+            "ukphone": "ɪ'lev(ə)n",
+            "definition": "n. the cardinal number that is the sum of ten and one\ns. being one more than ten",
+            "translation": "num. 十一, 十一个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 2299,
+            "frq": 4273,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "twelve",
+            "usphone": "twɛlv",
+            "ukphone": "twelv",
+            "definition": "n. the cardinal number that is the sum of eleven and one\ns. denoting a quantity consisting of 12 items or units",
+            "translation": "num. 十二, 十二个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 1447,
+            "frq": 3218,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "thirteen",
+            "usphone": "'θɝ'tin",
+            "ukphone": "θɜː'tiːn; 'θɜːtiːn",
+            "definition": "n. the cardinal number that is the sum of twelve and one\ns. being one more than twelve",
+            "translation": "num. 十三, 十三个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 3309,
+            "frq": 5649,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "fourteen",
+            "usphone": ",fɔr'tin",
+            "ukphone": "fɔː'tiːn; 'fɔːtiːn",
+            "definition": "n. the cardinal number that is the sum of thirteen and one\ns. being one more than thirteen",
+            "translation": "num. 十四, 十四个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 2877,
+            "frq": 5498,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "fifteen",
+            "usphone": ",fɪf'tin",
+            "ukphone": "fɪf'tiːn; 'fɪftiːn",
+            "definition": "n. the cardinal number that is the sum of fourteen and one\ns. being one more than fourteen",
+            "translation": "num. 十五, 十五个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 1736,
+            "frq": 2995,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "sixteen",
+            "usphone": ",sɪks'tin",
+            "ukphone": "sɪks'tiːn; 'sɪkstiːn",
+            "definition": "n. the cardinal number that is the sum of fifteen and one\ns. being one more than fifteen",
+            "translation": "num. 十六, 十六个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 2889,
+            "frq": 5324,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "seventeen",
+            "usphone": ",sɛvn'tin",
+            "ukphone": "sev(ə)n'tiːn; 'sev(ə)ntiːn",
+            "definition": "n. the cardinal number that is the sum of sixteen and one\ns. being one more than sixteen",
+            "translation": "num. 十七, 十七个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6",
+            "bnc": 3783,
+            "frq": 6318,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "eighteen",
+            "usphone": ",e'tin",
+            "ukphone": "eɪ'tiːn; 'eɪtiːn",
+            "definition": "n. the cardinal number that is the sum of seventeen and one\ns. being one more than seventeen",
+            "translation": "num. 十八, 十八个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk cet4 ky",
+            "bnc": 2690,
+            "frq": 5480,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "nineteen",
+            "usphone": ",naɪn'tin",
+            "ukphone": "naɪn'tiːn; 'naɪntiːn",
+            "definition": "n. the cardinal number that is the sum of eighteen and one\ns. being one more than eighteen",
+            "translation": "num. 十九, 十九个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk cet4 ky",
+            "bnc": 1907,
+            "frq": 7818,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "twenty",
+            "usphone": "'twɛnti",
+            "ukphone": "'twentɪ",
+            "definition": "n. the cardinal number that is the sum of nineteen and one\ns. denoting a quantity consisting of 20 items or units",
+            "translation": "num. 二十, 二十个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 605,
+            "frq": 2086,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "kite",
+            "usphone": "kaɪt",
+            "ukphone": "kaɪt",
+            "definition": "n. a bank check that has been fraudulently altered to increase its face value\nn. a bank check drawn on insufficient funds at another bank in order to take advantage of the float\nn. plaything consisting of a light frame covered with tissue paper; flown in wind at end of a string\nn. any of several small graceful hawks of the family Accipitridae having long pointed wings and feeding on insects and small animals",
+            "translation": "n. 风筝, 筝帆, 空头支票, 骗子\nvi. 象风筝一样飞, 轻快地移动, 使用空头支票\nvt. 使上升, 骗钱",
+            "pos": "",
+            "collins": 1,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky",
+            "bnc": 5870,
+            "frq": 9509,
+            "exchange": "s:kites/i:kiting/p:kited/3:kites/d:kited",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "beautiful",
+            "usphone": "'bjʊtəfəl",
+            "ukphone": "ˈbju:tɪfl",
+            "definition": "a. delighting the senses or exciting intellectual or emotional admiration\ns. (of weather) highly enjoyable",
+            "translation": "a. 美丽的",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 1161,
+            "frq": 992,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        }
+    ]
+}

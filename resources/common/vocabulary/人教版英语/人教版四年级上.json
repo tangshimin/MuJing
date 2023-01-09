@@ -1,0 +1,1522 @@
+{
+    "name": "人教版四年级上",
+    "type": "DOCUMENT",
+    "language": "english",
+    "size": 84,
+    "relateVideoPath": "",
+    "subtitlesTrackId": 0,
+    "wordList": [
+        {
+            "value": "classroom",
+            "usphone": "'klæsrʊm",
+            "ukphone": "'klɑːsruːm; -rʊm",
+            "definition": "n. a room in a school where lessons take place",
+            "translation": "n. 教室",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 2842,
+            "frq": 1479,
+            "exchange": "s:classrooms",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "window",
+            "usphone": "'wɪndo",
+            "ukphone": "'wɪndəʊ",
+            "definition": "n. a framework of wood or metal that contains a glass windowpane and is built into a wall or roof to admit light or air\nn. a transparent opening in a vehicle that allow vision out of the sides or back; usually is capable of being opened\nn. a transparent panel (as of an envelope) inserted in an otherwise opaque material\nn. an opening that resembles a window in appearance or function",
+            "translation": "n. 窗户, 窗子, 窗口\nvt. 给...开窗\n[计] 窗口",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 517,
+            "frq": 607,
+            "exchange": "s:windows",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "blackboard",
+            "usphone": "'blækbɔrd",
+            "ukphone": "'blækbɔːd",
+            "definition": "n. sheet of slate; for writing with chalk",
+            "translation": "n. 黑板",
+            "pos": "",
+            "collins": 1,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 11944,
+            "frq": 13322,
+            "exchange": "s:blackboards",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "light",
+            "usphone": "laɪt",
+            "ukphone": "laɪt",
+            "definition": "n. (physics) electromagnetic radiation that can produce a visual sensation\nn. any device serving as a source of illumination\nn. a particular perspective or aspect of a situation\nn. an illuminated area",
+            "translation": "n. 光, 光亮, 灯, 日光, 发光体, 光源, 杰出人物, 火花, 眼光\na. 轻的, 少量的, 轻微的, 轻快的, 轻浮的, 明亮的, 淡色的, 容易的\nvt. 点燃, 照亮\nvi. 点着, 变亮, 突降, 偶然碰到\nadv. 轻地",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 529,
+            "frq": 464,
+            "exchange": "s:lights/p:lit/d:lit/r:lighter/i:lighting/t:lightest/3:lights",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "picture",
+            "usphone": "'pɪktʃɚ",
+            "ukphone": "'pɪktʃə",
+            "definition": "n. a visual representation (of an object or scene or person or abstraction) produced on a surface\nn. a situation treated as an observable object\nn. illustrations used to decorate or explain a text\nn. a typical example of some state or quality",
+            "translation": "n. 图画, 照片, 景色, 美丽如画的人(或物), 化身, 生动的描述, 想像, 形象思维\nvt. 画, 拍摄, 用图说明, 描写, 想像\n[计] 图象; 形象; 字形",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 626,
+            "frq": 562,
+            "exchange": "s:pictures/d:pictured/p:pictured/i:picturing/3:pictures",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "door",
+            "usphone": "dɔr",
+            "ukphone": "dɔː",
+            "definition": "n. a swinging or sliding barrier that will close the entrance to a room or building or vehicle\nn. anything providing a means of access (or escape)\nn. a structure where people live or work (usually ordered along a street or road)\nn. a room that is entered via a door",
+            "translation": "n. 门",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 300,
+            "frq": 343,
+            "exchange": "s:doors",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "teacher's desk",
+            "usphone": "",
+            "ukphone": "",
+            "definition": "",
+            "translation": "讲台",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 2147483647,
+            "frq": 2147483647,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "computer",
+            "usphone": "kəm'pjutɚ",
+            "ukphone": "kəm'pjuːtə",
+            "definition": "n. a machine for performing calculations automatically",
+            "translation": "n. 电脑, 电子计算机\n[计] 计算机",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 580,
+            "frq": 589,
+            "exchange": "s:computers",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "fan",
+            "usphone": "fæn",
+            "ukphone": "fæn",
+            "definition": "n. a device for creating a current of air by movement of a surface or surfaces\nn. an ardent follower and admirer\nv. strike out (a batter), (of a pitcher)\nv. make (an emotion) fiercer",
+            "translation": "n. 风扇, 迷, 狂热者, 爱好者\nvt. 煽动, 刺激, 吹拂\nvi. 飘动, 成扇形散开",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky",
+            "bnc": 1905,
+            "frq": 1208,
+            "exchange": "s:fans/i:fanning/p:fanned/d:fanned/3:fans",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "wall",
+            "usphone": "wɔl",
+            "ukphone": "wɔːl",
+            "definition": "n. an architectural partition with a height and length greater than its thickness; used to divide or enclose an area or to support another structure\nn. anything that suggests a wall in structure or function or effect\nn. (anatomy) a layer (a lining or membrane) that encloses a structure\nn. a difficult or awkward situation",
+            "translation": "n. 墙, 墙壁, 垣, 内壁, 分界物, 屏障\na. 墙的\nvt. 给...建墙, 禁闭, 用墙围住\n[计] 背景墙",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 577,
+            "frq": 571,
+            "exchange": "s:walls/d:walled/i:walling/p:walled/3:walls",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "floor",
+            "usphone": "flɔr",
+            "ukphone": "flɔː",
+            "definition": "n. the inside lower horizontal surface (as of a room, hallway, tent, or other structure)\nn. a structure consisting of a room or set of rooms at a single position along a vertical scale\nn. a lower limit\nn. the ground on which people and animals move about",
+            "translation": "n. 地板, 楼层, 底部, 底价\nvt. 铺地板, 打倒\nn. 地面, 地板, 基底\n[计] 基底",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 791,
+            "frq": 639,
+            "exchange": "s:floors/d:floored/p:floored/i:flooring/3:floors",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "really",
+            "usphone": "ˈriəˌli, ˈrili",
+            "ukphone": "'rɪəlɪ",
+            "definition": "r in accordance with truth or fact or reality\nr in actual fact\nr in fact (used as intensifiers or sentence modifiers)\nr used as intensifiers; `real' is sometimes used informally for `really'; `rattling' is informal",
+            "translation": "adv. 实际上, 真实地, 实在",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk",
+            "bnc": 179,
+            "frq": 143,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "near",
+            "usphone": "nɪr",
+            "ukphone": "nɪə",
+            "definition": "a. not far distant in time or space or degree or circumstances\ns. being on the left side\ns. closely resembling the genuine article\nr. near in time or place or relationship",
+            "translation": "a. 近的, 近亲的, 近似的\nadv. 接近, 亲近\nprep. 靠近, 近似于\nv. 接近, 走近",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 726,
+            "frq": 706,
+            "exchange": "t:nearest/r:nearer/i:nearing/p:neared/3:nears/d:neared",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "TV",
+            "usphone": "ˌti vi",
+            "ukphone": "ˌti: ˈvi:",
+            "definition": "n broadcasting visual images of stationary or moving objects\nn an electronic device that receives television signals and displays them on a screen",
+            "translation": "电视\n[计] 电视, 转移向量",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ky ielts",
+            "bnc": 1457,
+            "frq": 730,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "clean",
+            "usphone": "klin",
+            "ukphone": "kliːn",
+            "definition": "v. make clean by removing dirt, filth, or unwanted substances from\nv. remove unwanted substances from, such as feathers or pits\nv. be cleanable\nv. deprive wholly of money in a gambling game, robbery, etc.",
+            "translation": "a. 干净的, 清白的, 简洁的\nadv. 清洁地, 完全地\nvt. 清理, 使干净, 出空\nvi. 被搞干净\nn. 打扫",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk toefl ielts",
+            "bnc": 1780,
+            "frq": 1514,
+            "exchange": "i:cleaning/d:cleaned/r:cleaner/p:cleaned/3:cleans/t:cleanest",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "help",
+            "usphone": "hɛlp",
+            "ukphone": "help",
+            "definition": "v. give help or assistance; be of service\nv. improve the condition of\nv. be of use\nv. contribute to the furtherance of",
+            "translation": "n. 帮忙, 帮助者, 补救办法, 有益的东西\nvt. 帮助, 帮忙, 接济, 治疗, 款待\nvi. 有用, 救命, 招待\n[计] 帮助, 帮助程序; DOS外部命令: DOS命令的电子文件帮助程序",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 204,
+            "frq": 167,
+            "exchange": "d:helped/i:helping/p:helped/3:helps/s:helps",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "schoolbag",
+            "usphone": "ˈskulˌbæɡ",
+            "ukphone": "'skuːlbæɡ",
+            "definition": "n. a bag for carrying school books and supplies",
+            "translation": "n. 书包",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 0,
+            "frq": 0,
+            "exchange": "3:schoolbags/s:schoolbags",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "maths book",
+            "usphone": "",
+            "ukphone": "",
+            "definition": "",
+            "translation": "数学书",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 2147483647,
+            "frq": 2147483647,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "English book",
+            "usphone": "",
+            "ukphone": "",
+            "definition": "",
+            "translation": "英语书",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 2147483647,
+            "frq": 2147483647,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "Chinese book",
+            "usphone": "",
+            "ukphone": "",
+            "definition": "",
+            "translation": "语文书",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 2147483647,
+            "frq": 2147483647,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "storybook",
+            "usphone": "'stɔrɪ'bʊk",
+            "ukphone": "'stɔːrɪbʊk",
+            "definition": "n. a book containing a collection of stories (usually for children)",
+            "translation": "n. 故事书, 小说",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 39665,
+            "frq": 16265,
+            "exchange": "s:storybooks",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "candy",
+            "usphone": "ˈkændɪ",
+            "ukphone": "'kændɪ",
+            "definition": "n. a rich sweet made of flavored sugar and often combined with fruit or nuts",
+            "translation": "n. 糖果, 冰糖\nvt. 用糖煮, 使结晶为砂糖\nvi. 结晶为砂糖",
+            "pos": "",
+            "collins": 1,
+            "oxford": false,
+            "tag": "zk gk cet4 ky",
+            "bnc": 10657,
+            "frq": 3446,
+            "exchange": "p:candied/s:candies/d:candied/i:candying/3:candies",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "notebook",
+            "usphone": "'notbʊk",
+            "ukphone": "'nəʊtbʊk",
+            "definition": "n. a book with blank pages for recording notes or memoranda\nn. a small compact portable computer",
+            "translation": "n. 笔记本, 手册, 期票簿",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky ielts",
+            "bnc": 5410,
+            "frq": 4427,
+            "exchange": "s:notebooks",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "toy",
+            "usphone": "tɔɪ",
+            "ukphone": "tɒɪ",
+            "definition": "n. a nonfunctional replica of something else (frequently used as a modifier)\nn. a device regarded as providing amusement\nv. manipulate manually or in one's mind or imagination",
+            "translation": "n. 玩具, 小玩艺儿, 小型的东西, 消遣\na. 供玩耍的, 作为玩具的\nvi. 玩弄, 戏弄, 调情",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky gre",
+            "bnc": 3412,
+            "frq": 2418,
+            "exchange": "s:toys/p:toyed/i:toying/d:toyed/3:toys/f:toys",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "key",
+            "usphone": "",
+            "ukphone": "kiː",
+            "definition": "n. metal device shaped in such a way that when it is inserted into the appropriate lock the lock's mechanism can be rotated\nn. something crucial for explaining\nn. pitch of the voice\nn. any of 24 major or minor diatonic scales that provide the tonal framework for a piece of music",
+            "translation": "n. 钥匙, 键, 解答, 关键, 要害, 基调, 线索, 答案, 暗礁\nvt. 调音, 锁上, 提供线索\nvi. 使用钥匙\n[计] 键, 密钥",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 1267,
+            "frq": 1093,
+            "exchange": "s:keys/d:keyed/i:keying/p:keyed/3:keys",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "wow",
+            "usphone": "wou",
+            "ukphone": "waʊ",
+            "definition": "v. impress greatly",
+            "translation": "interj. (非正式)哇\nn. 巨大的成功, 轰动一时的成功, 十分有趣的事物\n[计] WIn32上的Windows",
+            "pos": "",
+            "collins": 1,
+            "oxford": false,
+            "tag": "",
+            "bnc": 9178,
+            "frq": 3774,
+            "exchange": "i:wowing/p:wowed/d:wowed/3:wows",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "lost",
+            "usphone": "lɔst",
+            "ukphone": "lɒst",
+            "definition": "a. no longer in your possession or control; unable to be found or recovered\na. spiritually or physically doomed or destroyed\na. not gained or won\ns. incapable of being recovered or regained",
+            "translation": "a. 失去的, 遗失的, 迷惑的\nlose的过去式和过去分词",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "",
+            "bnc": 3000,
+            "frq": 2675,
+            "exchange": "0:lose/1:dp/p:lost/d:lost",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "so much",
+            "usphone": "",
+            "ukphone": "",
+            "definition": "",
+            "translation": "那么多, 全是",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 0,
+            "frq": 0,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "cute",
+            "usphone": "kjʊt",
+            "ukphone": "kjuːt",
+            "definition": "s. obviously contrived to charm",
+            "translation": "a. 可爱的, 聪明的, 伶俐的\n[医] 品他病",
+            "pos": "",
+            "collins": 1,
+            "oxford": false,
+            "tag": "ielts",
+            "bnc": 11929,
+            "frq": 4345,
+            "exchange": "t:cutest/r:cuter",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "strong",
+            "usphone": "strɔŋ",
+            "ukphone": "strɒŋ",
+            "definition": "a. having strength or power greater than average or expected\ns. not faint or feeble\ns. of verbs not having standard (or regular) inflection\ns. freshly made or left",
+            "translation": "a. 强壮的, 坚固的, 坚强的, 强烈的, 有力的, 优良的\nadv. 强劲地, 有力地, 猛烈地",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 506,
+            "frq": 458,
+            "exchange": "r:stronger/t:strongest",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "friendly",
+            "usphone": "ˈfrɛndlɪ",
+            "ukphone": "ˈfrendlɪ",
+            "definition": "n. troops belonging to or allied with your own military forces\na. characteristic of or befitting a friend\ns. inclined to help or support; not antagonistic or hostile\na. easy to understand or use",
+            "translation": "a. 友好的, 亲切的, 互助的\nadv. 友善地, 温和地",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 2241,
+            "frq": 2760,
+            "exchange": "r:friendlier/s:friendlies/t:friendliest",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "quiet",
+            "usphone": "'kwaɪət",
+            "ukphone": "'kwaɪət",
+            "definition": "a. characterized by an absence or near absence of agitation or activity\na. free of noise or uproar; or making little if any sound\ns. not showy or obtrusive\na. of the sun characterized by a low level of surface phenomena like sunspots e.g.",
+            "translation": "n. 安静, 闲适, 平静\na. 安静的, 静止的, 寂静的, 朴素的, 从容的, 暗中的\nvi. 平静下来\nvt. 使平静, 使平息, 使安心, 安慰",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 1437,
+            "frq": 1435,
+            "exchange": "r:quieter/t:quietest/p:quieted/i:quieting/3:quiets/d:quieted",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "hair",
+            "usphone": "hɛr",
+            "ukphone": "heə",
+            "definition": "n. a covering for the body (or parts of it) consisting of a dense growth of threadlike structures (as on the human head); helps to prevent heat loss\nn. filamentous hairlike growth on a plant\nn. any of the cylindrical filaments characteristically growing from the epidermis of a mammal\nn. a filamentous projection or process on an organism",
+            "translation": "n. 头发, 毛发, 些微\n[医] 毛, 发",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 668,
+            "frq": 602,
+            "exchange": "s:hairs",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "shoe",
+            "usphone": "ʃu",
+            "ukphone": "ʃuː",
+            "definition": "n. footwear shaped to fit the foot (below the ankle) with a flexible upper of leather or plastic and a sole and heel of heavier material\nn. (card games) a case from which playing cards are dealt one at a time\nv. furnish with shoes",
+            "translation": "n. 鞋, 靴, 外胎\nvt. 给...穿鞋, 为马钉蹄铁",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 1885,
+            "frq": 1423,
+            "exchange": "s:shoes/d:shod/i:shoeing/p:shod/3:shoes",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "glasses",
+            "usphone": "'glæsɪz",
+            "ukphone": "'glɑːsɪz",
+            "definition": "n optical instrument consisting of a frame that holds a pair of lenses for correcting defective vision\nn a brittle transparent solid with irregular atomic structure\nn a container for holding liquids while drinking\nn the quantity a glass will hold\nn a small refracting telescope\nn an amphetamine derivative (trade name Methedrine) used in the form of a crystalline hydrochloride; used as a stimulant to the nervous system and as an appetite suppressant\nn a mirror; usually a ladies' dressing mirror\nn glassware collectively\nv furnish with glass\nv scan (game in the forest) with binoculars\nv enclose with glass\nv put in a glass container\nv become glassy or take on a glass-like appearance",
+            "translation": "n. 眼镜；双筒望远镜；玻璃（glass的复数形式）",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 0,
+            "frq": 0,
+            "exchange": "1:s3/0:glass",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "his",
+            "usphone": "hɪz",
+            "ukphone": "hɪz",
+            "definition": "pron. Belonging or pertaining to him; -- used as a pronominal\n   adjective or adjective pronoun; as, tell John his papers are ready;\n   formerly used also for its, but this use is now obsolete.\npron. The possessive of he; as, the book is his.",
+            "translation": "pron. 他的\n[化] 组氨酸",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 25,
+            "frq": 25,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "or",
+            "usphone": "ɔr",
+            "ukphone": "ɔː",
+            "definition": "n a state in northwestern United States on the Pacific\nn a room in a hospital equipped for the performance of surgical operations",
+            "translation": "conj. 或, 或者\n[计] 或",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 29,
+            "frq": 32,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "right",
+            "usphone": "raɪt",
+            "ukphone": "raɪt",
+            "definition": "n. an abstract idea of that which is due to a person or governmental body by law or tradition or nature; it is something that nobody can take away\"\nn. location near or direction toward the right side; i.e. the side to the south when a person or object faces east\nn. those who support political or social or economic conservatism; those who believe that things are better left unchanged\nn. the hand that is on the right side of the body",
+            "translation": "n. 权利, 右边, 正义, 右派, 公正\na. 正确的, 对的, 恰当的, 正常的, 正直的, 正面的, 右方的\nadv. 正确地, 以有利结果, 一直, 直接, 向右\nvt. 扶直, 整理, 纠正, 伸冤, 使昭雪\nvi. 恢复平衡\n[计] 右, 权利",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 244,
+            "frq": 193,
+            "exchange": "s:rights/i:righting/p:righted/3:rights/d:righted",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "hat",
+            "usphone": "hæt",
+            "ukphone": "hæt",
+            "definition": "n. headdress that protects the head from bad weather; has shaped crown and usually a brim\nn. an informal term for a person's role\nv. put on or wear a hat\nv. furnish with a hat",
+            "translation": "n. 帽子\nvt. 给...戴帽子",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 2209,
+            "frq": 2015,
+            "exchange": "s:hats/p:hatted/i:hatting/3:hats/d:hatted",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "her",
+            "usphone": "hɚ",
+            "ukphone": "hɜː",
+            "definition": "pron. & a. The form of the objective and the possessive case of\n   the personal pronoun she; as, I saw her with her purse out.\npron. pl. Alt. of Here",
+            "translation": "pron. 她的, 她",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 42,
+            "frq": 42,
+            "exchange": "i:hering",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "bedroom",
+            "usphone": "'bɛdrum",
+            "ukphone": "'bedruːm; -rʊm",
+            "definition": "n. a room used primarily for sleeping",
+            "translation": "n. 卧室",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 1570,
+            "frq": 1869,
+            "exchange": "s:bedrooms",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "living room",
+            "usphone": "'lɪvɪŋ rum",
+            "ukphone": "'lɪvɪŋ ru:m",
+            "definition": "",
+            "translation": "客厅, 起居室",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "",
+            "bnc": 0,
+            "frq": 0,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "study",
+            "usphone": "'stʌdi",
+            "ukphone": "'stʌdɪ",
+            "definition": "n. applying the mind to learning and understanding a subject (especially by reading)\nn. a state of deep mental absorption\nn. a room used for reading and writing and studying\nn. someone who memorizes quickly and easily (as the lines for a part in a play)",
+            "translation": "n. 学习, 研究, 学科, 论文, 求学, 书房, 试作\nvt. 学习, 读书, 研究, 考虑, 计划\nvi. 学习, 思索",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 270,
+            "frq": 240,
+            "exchange": "s:studies/i:studying/d:studied/p:studied/3:studies",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "kitchen",
+            "usphone": "'kɪtʃɪn",
+            "ukphone": "'kɪtʃɪn; -tʃ(ə)n",
+            "definition": "n. a room equipped for preparing meals",
+            "translation": "n. 厨房, 全套炊具\n[医] 厨房",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk toefl ielts",
+            "bnc": 1124,
+            "frq": 1051,
+            "exchange": "s:kitchens",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "bathroom",
+            "usphone": "'bæθrum",
+            "ukphone": "'bɑːθruːm; -rʊm",
+            "definition": "n. a room (as in a residence) containing a bathtub or shower and usually a washbasin and toilet",
+            "translation": "n. 浴室, 厕所",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk cet4 ky ielts",
+            "bnc": 2821,
+            "frq": 2404,
+            "exchange": "s:bathrooms",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "bed",
+            "usphone": "bɛd",
+            "ukphone": "bed",
+            "definition": "n. a piece of furniture that provides a place to sleep\nn. a plot of ground in which plants are growing\nn. a depression forming the ground under a body of water\nn. (geology) a stratum of rock (especially sedimentary rock)",
+            "translation": "n. 床, 睡眠处, 河床, 底座, 路基, 一层\nvt. 提供宿处, 栽种, 安装\nvi. 睡, 形成坚实的一层",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 563,
+            "frq": 683,
+            "exchange": "s:beds/d:bedded/i:bedding/p:bedded/3:beds",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "phone",
+            "usphone": "fon",
+            "ukphone": "fəʊn",
+            "definition": "n. (phonetics) an individual sound unit of speech without concern as to whether or not it is a phoneme of some language",
+            "translation": "n. 电话, 受话器, 耳机\nvt. 打电话给\nvi. 打电话",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk cet4 ky ielts",
+            "bnc": 1346,
+            "frq": 557,
+            "exchange": "p:phoned/s:phones/i:phoning/d:phoned/3:phones",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "table",
+            "usphone": "'tebl",
+            "ukphone": "'teɪb(ə)l",
+            "definition": "n. a set of data arranged in rows and columns\nn. a piece of furniture having a smooth flat top that is usually supported by one or more vertical legs\nn. a piece of furniture with tableware for a meal laid out on it\nn. a company of people assembled at a table for a meal or game",
+            "translation": "n. 桌子, 餐桌, 工作台, 铭文, 表格, 表, 高原, 平地层\nvt. 搁置, 嵌合, 制表, 把...列入议事日程\n[计] 表格, 模拟运算表",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ielts gre",
+            "bnc": 410,
+            "frq": 539,
+            "exchange": "s:tables/d:tabled/p:tabled/i:tabling/3:tables",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "sofa",
+            "usphone": "'sofə",
+            "ukphone": "'səʊfə",
+            "definition": "n. an upholstered seat for more than one person",
+            "translation": "n. 沙发",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk cet6 ky",
+            "bnc": 5140,
+            "frq": 4782,
+            "exchange": "s:sofas",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "fridge",
+            "usphone": "frɪdʒ",
+            "ukphone": "frɪdʒ",
+            "definition": "n a refrigerator in which the coolant is pumped around by an electric motor",
+            "translation": "n. 电冰箱",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk cet4 cet6 ky ielts",
+            "bnc": 5453,
+            "frq": 9318,
+            "exchange": "s:fridges",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "find",
+            "usphone": "faɪnd",
+            "ukphone": "faɪnd",
+            "definition": "v. come upon, as if by accident; meet with\nv. come upon after searching; find the location of something that was missed or lost\nv. come to believe on the basis of emotion, intuitions, or indefinite grounds\nv. obtain through effort or management",
+            "translation": "vt. 发现, 感到, 找到, 认为, 得到\nvi. 裁决\nn. 发现\n[计] 查找; DOS外部命令:在指定的文件或从键盘输入的文本行中\n寻找指定的字符串, 将符合条件的行或行数输出到标准输出设备上",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 92,
+            "frq": 95,
+            "exchange": "d:found/p:found/i:finding/3:finds/s:finds",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "them",
+            "usphone": "ðɛm; ðəm",
+            "ukphone": "ðem; ðəm",
+            "definition": "pron. The objective case of they. See They.",
+            "translation": "pron. 他们, 她们, 它们",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 46212,
+            "frq": 59,
+            "exchange": "s:thems",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "beef",
+            "usphone": "bif",
+            "ukphone": "biːf",
+            "definition": "n. cattle that are reared for their meat\nn. meat from an adult domestic bovine",
+            "translation": "n. 牛肉, 肌肉\nvt. 养(牛), 宰(牛)\nvi. 抱怨, 告发",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 4295,
+            "frq": 3505,
+            "exchange": "d:beefed/i:beefing/p:beefed/s:beefs/3:beefs",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "chicken",
+            "usphone": "ˈtʃɪkɪn",
+            "ukphone": "'tʃɪkɪn",
+            "definition": "n. the flesh of a chicken used for food\nn. a domestic fowl bred for flesh or eggs; believed to have been developed from the red jungle fowl\nn. a foolhardy competition; a dangerous activity that is continued until one competitor becomes afraid and stops\ns. easily frightened",
+            "translation": "n. 小鸡, 鸡肉",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky",
+            "bnc": 3030,
+            "frq": 1538,
+            "exchange": "s:chickens/p:chickened/d:chickened/i:chickening",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "noodles",
+            "usphone": "ˈnudlz",
+            "ukphone": "ˈnu:dlz",
+            "definition": "n a ribbonlike strip of pasta\nn informal terms for a human head",
+            "translation": "n. 面条, 挂面（noodle的复数形式）",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 0,
+            "frq": 0,
+            "exchange": "0:noodle/1:s3",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "soup",
+            "usphone": "sup",
+            "ukphone": "suːp",
+            "definition": "n. liquid food especially of meat or fish or vegetable stock often containing pieces of solid food\nn. any composition having a consistency suggestive of soup\nn. an unfortunate situation\nv. dope (a racehorse)",
+            "translation": "n. 汤, 马力\nvt. 加速, 增加马力",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky toefl",
+            "bnc": 4360,
+            "frq": 2997,
+            "exchange": "s:soups/p:souped/i:souping/3:soups/d:souped/f:soups",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "vegetable",
+            "usphone": "ˈvɛdʒtəbl",
+            "ukphone": "ˈvedʒtəbl",
+            "definition": "n. edible seeds or roots or stems or leaves or bulbs or tubers or nonsweet fruits of any of numerous herbaceous plant\nn. any of various herbaceous plants cultivated for an edible part such as the fruit or the root of the beet or the leaf of spinach or the seeds of bean plants or the flower buds of broccoli or cauliflower",
+            "translation": "n. 蔬菜, 植物, 无精打采之人\na. 蔬菜的, 植物的",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk toefl ielts",
+            "bnc": 2818,
+            "frq": 1934,
+            "exchange": "s:vegetables",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "chopsticks",
+            "usphone": "'tʃɑp,stɪks",
+            "ukphone": "'tʃɒpstɪks",
+            "definition": "n one of a pair of slender sticks used as oriental tableware to eat food with",
+            "translation": "n. 筷子",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 0,
+            "frq": 17509,
+            "exchange": "0:chopstick/1:s",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "bowl",
+            "usphone": "bol",
+            "ukphone": "bəʊl",
+            "definition": "n. a round vessel that is open at the top; used chiefly for holding food or liquids; \nn. a concave shape with an open top\nn. a dish that is round and open at the top for serving foods\nn. the quantity contained in a bowl",
+            "translation": "n. 碗, 木球, 大酒杯\nv. 滚木球, 快而稳地行驶",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk cet4 ky toefl",
+            "bnc": 2707,
+            "frq": 1829,
+            "exchange": "s:bowls/p:bowled/d:bowled/i:bowling/3:bowls",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "fork",
+            "usphone": "fɔrk",
+            "ukphone": "fɔːk",
+            "definition": "n. cutlery used for serving and eating food\nn. the region of the angle formed by the junction of two branches\nn. an agricultural tool used for lifting or digging; has a handle and metal prongs\nv. place under attack with one's own pieces, of two enemy pieces",
+            "translation": "n. 叉子, 叉状物, 分岔\nvi. 分支, 分歧\nvt. 做成叉形, 叉起\n[计] 派生指令",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky",
+            "bnc": 5592,
+            "frq": 3758,
+            "exchange": "s:forks/p:forked/i:forking/d:forked/3:forks",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "knife",
+            "usphone": "naɪf",
+            "ukphone": "naɪf",
+            "definition": "n. edge tool used as a cutting instrument; has a pointed blade with a sharp edge and a handle\nn. a weapon with a handle and blade with a sharp point\nv. use a knife on",
+            "translation": "n. 小刀, 匕首\nvt. 切割, 伤害, 切, 戳\nvi. 劈开, 穿过",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 2471,
+            "frq": 2240,
+            "exchange": "s:knives/d:knifed/i:knifing/p:knifed/3:knifes",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "spoon",
+            "usphone": "spun",
+            "ukphone": "spuːn",
+            "definition": "n. a piece of cutlery with a shallow bowl-shaped container and a handle; used to stir or serve or take up food\nn. as much as a spoon will hold\nn. formerly a golfing wood with an elevated face\nv. scoop up or take up with a spoon",
+            "translation": "n. 匙, 调羹, 匙形工具\nvt. 以匙舀起, 调情, 使成匙状",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky toefl",
+            "bnc": 6114,
+            "frq": 4339,
+            "exchange": "s:spoons/p:spooned/i:spooning/d:spooned/3:spoons",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "dinner",
+            "usphone": "'dɪnɚ",
+            "ukphone": "'dɪnə",
+            "definition": "n. the main meal of the day served in the evening or at midday\nn. a party of people assembled to have dinner together",
+            "translation": "n. 晚餐, 正餐, 宴会",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 1422,
+            "frq": 1076,
+            "exchange": "s:dinners",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "ready",
+            "usphone": "'rɛdi",
+            "ukphone": "'redɪ",
+            "definition": "n. poised for action\na. completely prepared or in condition for immediate action or use or progress\ns. (of especially money) immediately available\ns. mentally disposed",
+            "translation": "n. 预备好的状态, 现款\na. 准备好的, 备用的, 可以使用的\nadv. 预先, 迅速\nvt. 使准备好",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk toefl gre",
+            "bnc": 976,
+            "frq": 758,
+            "exchange": "s:readies/i:readying/r:readier/d:readied/p:readied/3:readies",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "help yourself",
+            "usphone": "",
+            "ukphone": "",
+            "definition": "",
+            "translation": "请自己动手用餐吧",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 0,
+            "frq": 0,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "pass",
+            "usphone": "pæs",
+            "ukphone": "pɑːs",
+            "definition": "n. (military) a written leave of absence\nn. (American football) a play that involves one player throwing the ball to a teammate\nn. the location in a range of mountains of a geological formation that is lower than the surrounding peaks\nn. any authorization to pass or go somewhere",
+            "translation": "n. 经过, 要隘, 途径, 通行, 护照, 及格\nvt. 经过, 越过, 通过, 批准, 度过, 传递, 忽略\nvi. 经过, 变化, 流通, 及格, 宣判, 终止, 消逝, 被忽略, 不叫牌, 传递\n[计] 遍",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 480,
+            "frq": 441,
+            "exchange": "d:passed/p:passed/i:passing/3:passes/s:passes",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "try",
+            "usphone": "traɪ",
+            "ukphone": "traɪ",
+            "definition": "v. make an effort or attempt\nv. give pain or trouble to\nv. test the limits of\nv. melt (fat or lard) in order to separate out impurities",
+            "translation": "n. 尝试, 试验, 审理, 审判\nvt. 试, 尝试, 试验, 考验, 审问, 提炼\nvi. 尝试, 试图",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 159,
+            "frq": 127,
+            "exchange": "i:trying/p:tried/d:tried/3:tries/s:tries",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "parents",
+            "usphone": "'pɛrənts",
+            "ukphone": "'peərənts",
+            "definition": "n a father or mother; one who begets or one who gives birth to or nurtures and raises a child; a relative who plays the role of guardian\nn an organism (plant or animal) from which younger ones are obtained\nv bring up",
+            "translation": "n. 父母；双亲（parent的复数）",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "ielts",
+            "bnc": 0,
+            "frq": 0,
+            "exchange": "0:parent/1:s",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "cousin",
+            "usphone": "'kʌzn",
+            "ukphone": "'kʌz(ə)n",
+            "definition": "n. the child of your aunt or uncle",
+            "translation": "n. 堂兄弟姊妹, 表兄弟姊妹\n[法] 同辈表亲或堂亲",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky",
+            "bnc": 3010,
+            "frq": 2714,
+            "exchange": "s:cousins",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "uncle",
+            "usphone": "'ʌŋkl",
+            "ukphone": "'ʌŋk(ə)l",
+            "definition": "n. the brother of your father or mother; the husband of your aunt\nn. a source of help and advice and encouragement",
+            "translation": "n. 叔父, 伯父, 姨丈",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 2301,
+            "frq": 3345,
+            "exchange": "s:uncles",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "aunt",
+            "usphone": "ænt",
+            "ukphone": "ɑːnt",
+            "definition": "n. the sister of your father or mother; the wife of your uncle",
+            "translation": "n. 阿姨, 姨妈, 舅妈, 姑妈, 伯母",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 2569,
+            "frq": 4166,
+            "exchange": "s:aunts",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "baby brother",
+            "usphone": "",
+            "ukphone": "",
+            "definition": "",
+            "translation": "小弟弟",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 2147483647,
+            "frq": 2147483647,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "doctor",
+            "usphone": "'dɑktɚ",
+            "ukphone": "'dɒktə",
+            "definition": "n. a licensed medical practitioner\nn. children take the roles of physician or patient or nurse and pretend they are at the physician's office\nn. a person who holds Ph.D. degree (or the equivalent) from an academic institution\nv. give medical treatment to",
+            "translation": "n. 医生, 博士\nvt. 授以博士学位, 诊断, 修改\nvi. 行医",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 665,
+            "frq": 570,
+            "exchange": "s:doctors/i:doctoring/p:doctored/3:doctors/d:doctored",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "cook",
+            "usphone": "kʊk",
+            "ukphone": "kʊk",
+            "definition": "n. someone who cooks food\nn. English navigator who claimed the east coast of Australia for Britain and discovered several Pacific islands (1728-1779)\nv. prepare a hot meal\nv. prepare for eating by applying heat",
+            "translation": "n. 厨子, 厨师\nvt. 烹调, 煮饭, 加热\nvi. 在煮着",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 2338,
+            "frq": 1419,
+            "exchange": "i:cooking/d:cooked/p:cooked/s:cooks/3:cooks",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "driver",
+            "usphone": "'draɪvɚ",
+            "ukphone": "'draɪvə",
+            "definition": "n. the operator of a motor vehicle\nn. someone who drives animals that pull a vehicle\nn. a golfer who hits the golf ball with a driver\nn. (computer science) a program that determines how a computer will communicate with a peripheral device",
+            "translation": "n. 驾驶员, 驱动器, 驱动程序\n[化] 驱动器",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 1225,
+            "frq": 1226,
+            "exchange": "s:drivers",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "farmer",
+            "usphone": "'fɑmɚ",
+            "ukphone": "'fɑːmə",
+            "definition": "n. a person who operates a farm\nn. United States civil rights leader who in 1942 founded the Congress of Racial Equality (born in 1920)\nn. an expert on cooking whose cookbook has undergone many editions (1857-1915)",
+            "translation": "n. 农夫, 农场主\n[法] 农民, 农场主, 承包者",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky",
+            "bnc": 1333,
+            "frq": 1589,
+            "exchange": "s:farmers",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "nurse",
+            "usphone": "nɝs",
+            "ukphone": "nɜːs",
+            "definition": "n. one skilled in caring for young children or the sick (usually under the supervision of a physician)\nv. try to cure by special care of treatment, of an illness or injury\nv. serve as a nurse; care for sick or handicapped people\nv. treat carefully",
+            "translation": "n. 护士, 保姆, 奶妈\nvt. 看护, 照顾, 培养\nvi. 喂奶, 看护病人",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk toefl ielts",
+            "bnc": 1650,
+            "frq": 1875,
+            "exchange": "s:nurses/i:nursing/p:nursed/d:nursed/3:nurses",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "people",
+            "usphone": "'pipl",
+            "ukphone": "'piːp(ə)l",
+            "definition": "n. (plural) any group of human beings (men or women or children) collectively\nn. members of a family line\nv. fill with people\nv. furnish with people",
+            "translation": "n. 人, 人民, 民族, 平民\nvt. 使住满人, 居住于",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 75,
+            "frq": 62,
+            "exchange": "s:peoples/i:peopling/p:peopled/3:peoples/d:peopled",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "but",
+            "usphone": "bʌt",
+            "ukphone": "bʌt; bət",
+            "definition": "r and nothing more",
+            "translation": "prep. 除了\nconj. 但是\nadv. 仅仅",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 24,
+            "frq": 23,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "little",
+            "usphone": "'lɪtl",
+            "ukphone": "'lɪt(ə)l",
+            "definition": "n. a small amount or duration\na. (quantifier used with mass nouns) small in quantity or degree; not much or almost none or (with `a') at least some\ns. (of children and animals) young, immature\ns. (of a voice) faint",
+            "translation": "n. 一点点, 少许, 一会儿, 短时间\na. 小的, 很少的, 幼小的, 琐碎的, 短暂的, 矮小的\nadv. 很少, 稍微, 完全不",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 291,
+            "frq": 256,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "puppy",
+            "usphone": "'pʌpi",
+            "ukphone": "'pʌpɪ",
+            "definition": "n. a young dog\nn. an inexperienced young person",
+            "translation": "n. 小狗, 小动物, 自负的年轻人",
+            "pos": "",
+            "collins": 1,
+            "oxford": false,
+            "tag": "cet6",
+            "bnc": 7310,
+            "frq": 6801,
+            "exchange": "s:puppies",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "football player",
+            "usphone": "",
+            "ukphone": "",
+            "definition": "",
+            "translation": " [体]足球运动员",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 0,
+            "frq": 0,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "job",
+            "usphone": "",
+            "ukphone": "dʒɒb",
+            "definition": "n. a specific piece of work required to be done as a duty or for a specific fee\nn. a workplace; as in the expression \"on the job\"; \nn. an object worked on; a result produced by working\nn. the responsibility to do something",
+            "translation": "n. 工作, 零活, 职业, 事情\nvi. 做零工, 打杂, 做股票经纪, 假公济私\nvt. 代客买卖, 批发, 承包, 欺骗\n[计] 作业",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 272,
+            "frq": 243,
+            "exchange": "s:jobs/i:jobbing/p:jobbed/3:jobs/d:jobbed",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "basketball",
+            "usphone": "'bæskɪtbɔl",
+            "ukphone": "'bɑːskɪtbɔːl",
+            "definition": "n. a game played on a court by two opposing teams of 5 players; points are scored by throwing the ball through an elevated horizontal hoop\nn. an inflated ball used in playing basketball",
+            "translation": "n. 篮球",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 16051,
+            "frq": 1799,
+            "exchange": "s:basketballs",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        }
+    ]
+}

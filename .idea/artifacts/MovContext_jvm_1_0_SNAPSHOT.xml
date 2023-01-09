@@ -1,0 +1,6 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="MovContext-jvm-1.0-SNAPSHOT">
+    <output-path>$PROJECT_DIR$/build/libs</output-path>
+    <root id="archive" name="MovContext-jvm-1.0-SNAPSHOT.jar" />
+  </artifact>
+</component>

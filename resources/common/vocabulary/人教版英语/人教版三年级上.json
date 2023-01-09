@@ -1,0 +1,1162 @@
+{
+    "name": "人教版三年级上",
+    "type": "DOCUMENT",
+    "language": "english",
+    "size": 64,
+    "relateVideoPath": "",
+    "subtitlesTrackId": 0,
+    "wordList": [
+        {
+            "value": "ruler",
+            "usphone": "'rulɚ",
+            "ukphone": "'ruːlə",
+            "definition": "n. a person who rules or commands",
+            "translation": "n. 统治者, 管理者, 尺, 直尺\nn. 划线板\n[计] 标尺",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky",
+            "bnc": 4145,
+            "frq": 5552,
+            "exchange": "s:rulers",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "pencil",
+            "usphone": "'pɛnsl",
+            "ukphone": "'pens(ə)l; -sɪl",
+            "definition": "n. a thin cylindrical pointed writing implement; a rod of marking substance encased in wood\nn. graphite (or a similar substance) used in such a way as to be a medium of communication\nn. a figure formed by a set of straight lines or light rays meeting at a point\nn. a cosmetic in a long thin stick; designed to be applied to a particular part of the face",
+            "translation": "n. 铅笔, 色笔, 眉笔, 画笔, 光线束\nvt. 用铅笔写或涂, 草拟",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 4530,
+            "frq": 4410,
+            "exchange": "s:pencils/d:pencilled/p:pencilled/i:pencilling/3:pencils",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "eraser",
+            "usphone": "ɪ'resɚ",
+            "ukphone": "ɪ'reɪzə",
+            "definition": "n. an implement used to erase something",
+            "translation": "n. 擦子",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 35588,
+            "frq": 16590,
+            "exchange": "s:erasers",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "crayon",
+            "usphone": "kreən",
+            "ukphone": "ˈkreɪən",
+            "definition": "n. writing implement consisting of a colored stick of composition wax used for writing and drawing\nv. write, draw, or trace with a crayon",
+            "translation": "n. 蜡笔, 蜡笔画\nvt. 以蜡笔作画",
+            "pos": "",
+            "collins": 1,
+            "oxford": false,
+            "tag": "zk gk toefl gre",
+            "bnc": 15597,
+            "frq": 12296,
+            "exchange": "s:crayons/i:crayoning/p:crayoned/3:crayons/d:crayoned",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "bag",
+            "usphone": "bæɡ",
+            "ukphone": "bæg",
+            "definition": "n. a flexible container with a single opening\nn. the quantity of game taken in a particular period (usually by one person)\nn. a container used for carrying money and small personal items or accessories (especially by women)\nn. the quantity that a bag will hold",
+            "translation": "n. 袋子, 袋状物\nvt. 使膨大, 装袋, 猎获",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 1292,
+            "frq": 1008,
+            "exchange": "s:bags/p:bagged/d:bagged/i:bagging/3:bags",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "pen",
+            "usphone": "pɛn",
+            "ukphone": "pen",
+            "definition": "n. a writing implement with a point from which ink flows\nn. an enclosure for confining livestock\nn. female swan",
+            "translation": "n. 钢笔, 笔, 笔调, 笔杆子, 作家, 围栏, 栅栏, 禽畜\nvt. 写, 关入栏中, 囚禁\nvi. 动笔, 写作",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk gre",
+            "bnc": 3020,
+            "frq": 3583,
+            "exchange": "s:pens/p:penned/d:penned/i:penning/3:pens",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "pencil box",
+            "usphone": "'pɛnsl bɑks",
+            "ukphone": "",
+            "definition": "",
+            "translation": " 铅笔盒",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 0,
+            "frq": 0,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "book",
+            "usphone": "bʊk",
+            "ukphone": "bʊk",
+            "definition": "n. a written work or composition that has been published (printed on pages bound together)\nn. physical objects consisting of a number of pages bound together\nn. a collection of playing cards satisfying the rules of a card game\nn. a collection of rules or prescribed standards on the basis of which decisions are made",
+            "translation": "n. 书, 书籍, 帐簿, 名册, 工作簿\nv. 登记, 预订\n[计] 工作簿",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 235,
+            "frq": 241,
+            "exchange": "s:books/d:booked/p:booked/i:booking/3:books",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "no",
+            "usphone": "no",
+            "ukphone": "nəʊ",
+            "definition": "n. a negative\na. quantifier; used with either mass nouns or plural count nouns for indicating a complete or almost complete lack or zero quantity of\nr. referring to the degree to which a certain quality is present\nr. not in any degree or manner; not at all",
+            "translation": "n. 不, 拒绝, 否决票\na. 没有, 不是, 绝非\nadv. 不",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 68,
+            "frq": 93,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "your",
+            "usphone": "jʊər; jʊr",
+            "ukphone": "jɔ:(r)",
+            "definition": "pron. & a. The form of the possessive case of the personal\n   pronoun you.",
+            "translation": "pron. 你的, 你们的",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 66,
+            "frq": 69,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "red",
+            "usphone": "rɛd",
+            "ukphone": "red",
+            "definition": "n. red color or pigment; the chromatic color resembling the hue of blood\nn. a tributary of the Mississippi River that flows eastward from Texas along the southern boundary of Oklahoma and through Louisiana\ns. of a color at the end of the color spectrum (next to orange); resembling the color of blood or cherries or tomatoes or rubies",
+            "translation": "a. 红的, 红色的, 红肿的, 流血的\nn. 红色, 红颜料, 赤字\n[计] 简化, 减少",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 796,
+            "frq": 598,
+            "exchange": "s:reds/r:redder",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "green",
+            "usphone": "ɡrin",
+            "ukphone": "griːn",
+            "definition": "n. green color or pigment; resembling the color of growing grass\nn. United States labor leader who was president of the American Federation of Labor from 1924 to 1952 and who led the struggle with the Congress of Industrial Organizations (1873-1952)\nn. an environmentalist who belongs to the Green Party\nn. a river that rises in western Wyoming and flows southward through Utah to become a tributary of the Colorado River",
+            "translation": "n. 绿色, 绿色颜料\na. 绿色的, 未成熟的, 新鲜的, 青春的, 无经验的, 脸色发青的",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts gre",
+            "bnc": 985,
+            "frq": 890,
+            "exchange": "s:greens/r:greener/t:greenest/b:greener/z:greenest/f:greens",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "yellow",
+            "usphone": "ˈjɛlo",
+            "ukphone": "'jeləʊ",
+            "definition": "n. yellow color or pigment; the chromatic color resembling the hue of sunflowers or ripe lemons\nv. turn yellow\ns. of the color intermediate between green and orange in the color spectrum; of something resembling the color of an egg yolk\ns. changed to a yellowish color by age",
+            "translation": "n. 黄色\na. 黄色的",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 2173,
+            "frq": 1665,
+            "exchange": "s:yellows/r:yellower/i:yellowing/p:yellowed/3:yellows/d:yellowed",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "blue",
+            "usphone": "blu",
+            "ukphone": "bluː",
+            "definition": "n. blue color or pigment; resembling the color of the clear sky in the daytime\nn. blue clothing\nn. any organization or party whose uniforms or badges are blue\nn. any of numerous small butterflies of the family Lycaenidae",
+            "translation": "n. 蓝色\na. 蓝色的, 下流的, 忧郁的\nvt. 染成蓝色\nvi. 变蓝",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "gk gre",
+            "bnc": 1083,
+            "frq": 842,
+            "exchange": "s:blues/i:bluing/p:blued/3:blues/d:blued",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "black",
+            "usphone": "blæk",
+            "ukphone": "blæk",
+            "definition": "n. the quality or state of the achromatic color of least lightness (bearing the least resemblance to white)\nn. British chemist who identified carbon dioxide and who formulated the concepts of specific heat and latent heat (1728-1799)\nn. popular child actress of the 1930's (born in 1928)\nn. a person with dark skin who comes from Africa (or whose ancestors came from Africa)",
+            "translation": "n. 黑色, 黑颜料\na. 黑色的",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 426,
+            "frq": 253,
+            "exchange": "s:blacks/p:blacked/r:blacker/t:blackest/d:blacked/i:blacking/3:blacks",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "brown",
+            "usphone": "braʊn",
+            "ukphone": "braʊn",
+            "definition": "n. an orange of low brightness and saturation\nn. Scottish botanist who first observed the movement of small particles in fluids now known a Brownian motion (1773-1858)\nn. abolitionist who was hanged after leading an unsuccessful raid at Harper's Ferry, Virginia (1800-1859)\nv. fry in a pan until it changes color",
+            "translation": "n. 褐色\na. 褐色的\nv. (使)变褐色",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk toefl",
+            "bnc": 2018,
+            "frq": 1769,
+            "exchange": "s:browns/p:browned/r:browner/d:browned/i:browning/3:browns",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "white",
+            "usphone": "hwaɪt",
+            "ukphone": "waɪt",
+            "definition": "n. a member of the Caucasoid race\nn. the quality or state of the achromatic color of greatest lightness (bearing the least resemblance to black)\nn. United States jurist appointed chief justice of the United States Supreme Court in 1910 by President Taft; noted for his work on antitrust legislation (1845-1921)\nn. Australian writer (1912-1990)",
+            "translation": "n. 白色, 洁白, 眼白, 白种人, 蛋白\na. 白色的, 纯洁的, 白种的, 苍白的, 空白的, 幸运的",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 475,
+            "frq": 301,
+            "exchange": "s:whites/r:whiter/i:whiting/p:whited/3:whites/d:whited",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "orange",
+            "usphone": "'ɔrɪndʒ",
+            "ukphone": "'ɒrɪn(d)ʒ",
+            "definition": "n. round yellow to orange fruit of any of several citrus trees\nn. orange color or pigment; any of a range of colors between red and yellow\nn. any citrus tree bearing oranges\nn. any pigment producing the orange color",
+            "translation": "n. 柑橘, 桔子, 橘色\na. 橘色的",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 3959,
+            "frq": 3145,
+            "exchange": "s:oranges",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "OK",
+            "usphone": "",
+            "ukphone": "",
+            "definition": "n a state in south central United States\nk an endorsement\ns being satisfactory or in satisfactory condition\nr an expression of agreement normally occurring at the beginning of a sentence",
+            "translation": "a. 好, 不错, 可以\nadv. 好, 不错, 可以\nn. 批准, 认可\n[计] 确定",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 3743,
+            "frq": 830,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "mum",
+            "usphone": "mʌm",
+            "ukphone": "mʌm",
+            "definition": "n. secrecy\ns. failing to speak or communicate etc when expected to",
+            "translation": "n. 菊花, 沉默\na. 沉默的\nvi. 演哑剧\ninterj. 别说话",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "",
+            "bnc": 1110,
+            "frq": 14080,
+            "exchange": "s:mums",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "face",
+            "usphone": "fes",
+            "ukphone": "feɪs",
+            "definition": "n. the front of the human head from the forehead to the chin and ear to ear\nn. the general outward appearance of something\nn. the striking or working surface of an implement\nn. a part of a person that is used to refer to a person",
+            "translation": "n. 脸, 面容, 正面, 外观\nvt. 面对, 朝, 正视, 面临\nvi. 朝, 向\n[计] 现场可改变的控制元件",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk toefl ielts",
+            "bnc": 282,
+            "frq": 330,
+            "exchange": "i:facing/s:faces/d:faced/p:faced/3:faces",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "ear",
+            "usphone": "ɪr",
+            "ukphone": "ɪə",
+            "definition": "n. the sense organ for hearing and equilibrium\nn. good hearing\nn. attention to what is said\nn. fruiting spike of a cereal plant especially corn",
+            "translation": "n. 耳朵, 倾听, 听觉, 穗\nvi. 抽穗",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 1599,
+            "frq": 1337,
+            "exchange": "s:ears",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "eye",
+            "usphone": "aɪ",
+            "ukphone": "aɪ",
+            "definition": "n. the organ of sight\nn. good discernment (either visually or as if visually)\nn. attention to what is seen\nn. a small hole or loop (as in a needle)",
+            "translation": "n. 眼睛, 视力, 看\nvt. 看, 注视",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 219,
+            "frq": 242,
+            "exchange": "s:eyes/p:eyed/i:eyeing/d:eyed/3:eyes",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "nose",
+            "usphone": "noz",
+            "ukphone": "nəʊz",
+            "definition": "n. the organ of smell and entrance to the respiratory tract; the prominent part of the face of man or other mammals\nn. a front that resembles a human nose (especially the front of an aircraft)\nn. the front or forward projection of a tool or weapon\nn. a small distance",
+            "translation": "n. 鼻子, 突出部分, 嗅觉\nvt. 嗅到, 探出, 用鼻子触\nvi. 闻, 嗅, 探听, 告密",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 1887,
+            "frq": 1735,
+            "exchange": "s:noses/i:nosing/p:nosed/d:nosed/3:noses",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "mouth",
+            "usphone": "maʊθ",
+            "ukphone": "maʊθ",
+            "definition": "n. the opening through which food is taken in and vocalizations emerge\nn. the externally visible part of the oral cavity on the face and the system of organs surrounding the opening\nn. an opening that resembles a mouth (as of a cave or a gorge)\nn. the point where a stream issues into a larger body of water",
+            "translation": "n. 嘴, 口, 口腔, 口状物\nvi. 装腔作势说话, 做鬼脸\nvt. 说出, 做作地说",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk toefl",
+            "bnc": 1011,
+            "frq": 1060,
+            "exchange": "s:mouths/p:mouthed/i:mouthing/d:mouthed/3:mouths",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "arm",
+            "usphone": "ɑrm",
+            "ukphone": "ɑːm",
+            "definition": "n. a human limb; technically the part of the superior limb between the shoulder and the elbow but commonly used to refer to the whole superior limb\nn. any projection that is thought to resemble a human arm\nn. the part of an armchair or sofa that supports the elbow and forearm of a seated person\nv. prepare oneself for a military confrontation",
+            "translation": "n. 手臂, 袖子, 狭长港湾, 武器\nvt. 武装, 装备\nvi. 武装起来\n[计] 异步应答方式; 自动货品销路管理",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 491,
+            "frq": 491,
+            "exchange": "s:arms/d:armed/i:arming/p:armed/3:arms",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "hand",
+            "usphone": "hænd",
+            "ukphone": "hænd",
+            "definition": "n. the (prehensile) extremity of the superior limb\nn. ability\nn. a position given by its location to the side of an object\nn. the cards held in a card game by a given player at any given time",
+            "translation": "n. 手, 爪, 指针, 掌握, 协助, 人手, 手艺, 手迹, 支配, 插手\nvt. 交给, 支持, 搀扶",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 163,
+            "frq": 174,
+            "exchange": "s:hands/p:handed/d:handed/i:handing/3:hands",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "head",
+            "usphone": "hɛd",
+            "ukphone": "hed",
+            "definition": "n. the upper part of the human body or the front part of the body in animals; contains the face and brains\nn. a single domestic animal\nn. a person who is in charge\nn. the front of a military formation or procession",
+            "translation": "n. 头, 头脑, 领袖, 脑袋, 最前的部分\nvt. 为首, 朝向, 前进, 用头顶\nvi. 朝特定方向行进, (作物)结穗\na. 头的, 在顶端的, 主要的\n[计] 磁头; 冲头",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk toefl",
+            "bnc": 209,
+            "frq": 251,
+            "exchange": "s:heads/i:heading/d:headed/p:headed/3:heads",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "body",
+            "usphone": "'bɑdi",
+            "ukphone": "'bɒdɪ",
+            "definition": "n. the entire structure of an organism (an animal, plant, or human being)\nn. a group of persons associated by some common tie or occupation and regarded as an entity\nn. a natural object consisting of a dead animal or person\nn. an individual 3-dimensional object that has mass and that is distinguishable from other objects",
+            "translation": "n. 身体, 人, 尸体, 主要部分, 团体\nvt. 赋以形体\n[计] 体",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk",
+            "bnc": 274,
+            "frq": 313,
+            "exchange": "s:bodies/i:bodying/p:bodied/3:bodies/d:bodied",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "leg",
+            "usphone": "lɛɡ",
+            "ukphone": "leg",
+            "definition": "n. a human limb; commonly used to refer to a whole limb but technically only the part of the limb between the knee and ankle\nn. a structure in animals that is similar to a human leg and used for locomotion\nn. one of the supports for a piece of furniture\nn. the limb of an animal used for food",
+            "translation": "n. 腿, 假腿, 路程\nvi. 走, 跑",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 851,
+            "frq": 856,
+            "exchange": "s:legs",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "foot",
+            "usphone": "fʊt",
+            "ukphone": "fʊt",
+            "definition": "n. the part of the leg of a human being below the ankle joint\nn. a linear unit of length equal to 12 inches or a third of a yard\nn. the lower part of anything\nn. any of various organs of locomotion or attachment in invertebrates",
+            "translation": "n. 脚, 步调, 英尺, 底部, 末尾, 步兵\nvt. 走在...上, 给...换底, 支付\nvi. 跳舞, 步行, 总计",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 459,
+            "frq": 380,
+            "exchange": "s:feet/i:footing/p:footed/3:foots/d:footed",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "school",
+            "usphone": "skul",
+            "ukphone": "skuːl",
+            "definition": "n. an educational institution\nn. a building where young people receive education\nn. the process of being formally educated at a school\nn. a body of creative artists or writers or thinkers linked by a similar style or by similar teachers",
+            "translation": "n. 学校, 鱼群, 门派, 学派\nvt. 教育, 训练, 培养\nvi. 成群地游",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts gre",
+            "bnc": 165,
+            "frq": 125,
+            "exchange": "s:schools/i:schooling/d:schooled/p:schooled/3:schools",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "duck",
+            "usphone": "dʌk",
+            "ukphone": "dʌk",
+            "definition": "n. small wild or domesticated web-footed broad-billed swimming bird usually having a depressed body and short legs\nn. (cricket) a score of nothing by a batsman\nn. flesh of a duck (domestic or wild)\nn. a heavy cotton fabric of plain weave; used for clothing and tents",
+            "translation": "n. 鸭子\nvi. 没入水中, 闪避\nvt. 猛按...入水, 躲避",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky",
+            "bnc": 3713,
+            "frq": 3521,
+            "exchange": "s:ducks/p:ducked/i:ducking/d:ducked/3:ducks",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "pig",
+            "usphone": "pɪɡ",
+            "ukphone": "pɪg",
+            "definition": "n. a crude block of metal (lead or iron) poured from a smelting furnace\nv. live like a pig, in squalor",
+            "translation": "n. 猪, 猪肉, 贪婪的人, 猪一样的人\nv. 生小猪, 象猪般地生活",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk cet4 ky",
+            "bnc": 3014,
+            "frq": 3488,
+            "exchange": "s:pigs/i:pigging/p:pigged/3:pigs/d:pigged",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "cat",
+            "usphone": "kæt",
+            "ukphone": "kæt",
+            "definition": "n. feline mammal usually having thick soft fur and no ability to roar: domestic cats; wildcats\nn. a spiteful woman gossip\nv. beat with a cat-o'-nine-tails",
+            "translation": "n. 猫, 恶妇\nvi. 呕吐\n计算机辅助教育, 计算机辅助测试, 计算机辅助翻译, 计算机辅助排版\n[计] 计算机辅助教学, 计算机辅助翻译, 计算机辅助排字, 计算机辅助测试",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 1712,
+            "frq": 1775,
+            "exchange": "s:cats/i:catting/p:catted/3:cats/d:catted",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "bear",
+            "usphone": "bɛr",
+            "ukphone": "beə",
+            "definition": "n. massive plantigrade carnivorous or omnivorous mammals with long shaggy coats and strong claws\nn. an investor with a pessimistic market outlook; an investor who expects prices to fall and so sells now in order to buy later at a lower price\nv. have\nv. move while holding up or supporting",
+            "translation": "n. 熊\nvt. 忍受, 支承, 产生, 怀有, 通过卖空使跌价\nvi. 忍受, 结果实, 压挤, 行进, 转向",
+            "pos": "",
+            "collins": 1,
+            "oxford": false,
+            "tag": "gk toefl ielts",
+            "bnc": 1065,
+            "frq": 1619,
+            "exchange": "d:born/i:bearing/p:bore/3:bears/s:bears",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "dog",
+            "usphone": "dɔɡ",
+            "ukphone": "dɒg",
+            "definition": "n. a member of the genus Canis (probably descended from the common wolf) that has been domesticated by man since prehistoric times; occurs in many breeds\nn. informal term for a man",
+            "translation": "n. 狗, 坏蛋\nvt. 跟踪, 尾随",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 819,
+            "frq": 753,
+            "exchange": "s:dogs/d:dogged/p:dogged/i:dogging/3:dogs",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "elephant",
+            "usphone": "ˈɛləfənt",
+            "ukphone": "'elɪf(ə)nt",
+            "definition": "n. five-toed pachyderm\nn. the symbol of the Republican Party; introduced in cartoons by Thomas Nast in 1874",
+            "translation": "n. 象",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky",
+            "bnc": 4323,
+            "frq": 4355,
+            "exchange": "s:elephants",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "monkey",
+            "usphone": "'mʌŋki",
+            "ukphone": "'mʌŋkɪ",
+            "definition": "n. any of various long-tailed primates (excluding the prosimians)",
+            "translation": "n. 猴子, 猿, 打桩锤\nvi. 淘气, 胡闹\nvt. 嘲弄",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk cet4 ky",
+            "bnc": 5405,
+            "frq": 4558,
+            "exchange": "s:monkeys/i:monkeying/p:monkeyed/3:monkeys/d:monkeyed/f:monkeys",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "bird",
+            "usphone": "bɝd",
+            "ukphone": "bɜːd",
+            "definition": "n. warm-blooded egg-laying vertebrates characterized by feathers and forelimbs modified as wings\nn. the flesh of a bird or fowl (wild or domestic) used as food\nv. watch and study birds in their natural habitat",
+            "translation": "n. 鸟, 羽毛球\nvi. 打鸟",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 1072,
+            "frq": 1122,
+            "exchange": "s:birds/i:birding/p:birded/3:birds/d:birded/f:birds",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "tiger",
+            "usphone": "'taɪɡɚ",
+            "ukphone": "'taɪgə",
+            "definition": "n. a fierce or audacious person\nn. large feline of forests in most of Asia having a tawny coat with black stripes; endangered",
+            "translation": "n. 老虎, 虎, 凶暴的人",
+            "pos": "",
+            "collins": 1,
+            "oxford": false,
+            "tag": "zk gk cet4 cet6 ky",
+            "bnc": 4773,
+            "frq": 5908,
+            "exchange": "s:tigers",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "panda",
+            "usphone": "'pændə",
+            "ukphone": "'pændə",
+            "definition": "n large black-and-white herbivorous mammal of bamboo forests of China and Tibet; in some classifications considered a member of the bear family or of a separate family Ailuropodidae\nn reddish-brown Old World raccoon-like carnivore; in some classifications considered unrelated to the giant pandas",
+            "translation": "n. 大熊猫, 小熊猫",
+            "pos": "",
+            "collins": 1,
+            "oxford": false,
+            "tag": "zk gk cet4 ky",
+            "bnc": 15519,
+            "frq": 14691,
+            "exchange": "s:pandas",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "zoo",
+            "usphone": "zu",
+            "ukphone": "zuː",
+            "definition": "n the facility where wild animals are housed for exhibition",
+            "translation": "n. 动物园",
+            "pos": "",
+            "collins": 2,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 6119,
+            "frq": 6286,
+            "exchange": "s:zoos",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "funny",
+            "usphone": "'fʌni",
+            "ukphone": "'fʌnɪ",
+            "definition": "s. experiencing odd bodily sensations",
+            "translation": "a. 好笑的, 有趣的, 滑稽的\nn. 滑稽人物",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk cet4 ky",
+            "bnc": 1942,
+            "frq": 1789,
+            "exchange": "t:funniest/r:funnier/s:funnies",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "bread",
+            "usphone": "brɛd",
+            "ukphone": "bred",
+            "definition": "n. food made from dough of flour or meal and usually raised with yeast or baking powder and then baked\nv. cover with bread crumbs",
+            "translation": "n. 面包, 生计, 食物\nvt. 裹以面包屑",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 2292,
+            "frq": 2113,
+            "exchange": "s:breads/i:breading/p:breaded/3:breads/d:breaded",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "juice",
+            "usphone": "dʒus",
+            "ukphone": "dʒuːs",
+            "definition": "n. the liquid part that can be extracted from plant or animal tissue by squeezing or cooking\nn. energetic vitality\nn. electric current\nn. any of several liquids of the body",
+            "translation": "n. 汁, 活力, 体液\nvt. 挤出汁来, 加汁",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk toefl ielts",
+            "bnc": 3724,
+            "frq": 2310,
+            "exchange": "s:juices",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "egg",
+            "usphone": "ɛɡ",
+            "ukphone": "eg",
+            "definition": "n. animal reproductive body consisting of an ovum or embryo together with nutritive and protective envelopes; especially the thin-shelled reproductive body laid by e.g. female birds\nn. oval reproductive body of a fowl (especially a hen) used as food\nv. throw eggs at\nv. coat with beaten egg",
+            "translation": "n. 蛋, 卵\nvt. 挑唆, 煽动, 调蛋黄",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 1532,
+            "frq": 1376,
+            "exchange": "s:eggs/p:egged/i:egging/3:eggs/d:egged",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "milk",
+            "usphone": "mɪlk",
+            "ukphone": "mɪlk",
+            "definition": "n. a white nutritious liquid secreted by mammals and used as food by human beings\nn. produced by mammary glands of female mammals for feeding their young\nn. a river that rises in the Rockies in northwestern Montana and flows eastward to become a tributary of the Missouri River\nn. any of several nutritive milklike liquids",
+            "translation": "n. 奶, 乳状物\nvt. 挤乳, 榨取\nvi. 产乳",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk ielts gre",
+            "bnc": 1881,
+            "frq": 2033,
+            "exchange": "d:milked/i:milking/s:milks/p:milked/3:milks",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "water",
+            "usphone": "ˈwɔtɚ",
+            "ukphone": "'wɔːtə",
+            "definition": "n. binary compound that occurs at room temperature as a clear colorless odorless tasteless liquid; freezes into ice below 0 degrees centigrade and boils above 100 degrees centigrade; widely used as a solvent\nn. once thought to be one of four elements composing the universe (Empedocles)\nn. a liquid necessary for the life of most animals and plants\nv. supply with water, as with channels or ditches or streams",
+            "translation": "n. 水, 雨水, 海水, 水位, 水面, 流水\nvt. 给...浇水, 供以水, 注入水, 使湿\nvi. 流泪, 流口水, 加水\na. 水的, 水上的, 水生的, 含水的",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 236,
+            "frq": 226,
+            "exchange": "s:waters/d:watered/i:watering/3:waters/p:watered",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "cake",
+            "usphone": "kek",
+            "ukphone": "keɪk",
+            "definition": "n. a block of solid substance (such as soap or wax)\nn. baked goods made from or based on a mixture of flour, sugar, eggs, and fat",
+            "translation": "n. 蛋糕, 块, 饼\nvt. 使结块, 加块状物于\nvi. 结块",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk cet4 ky",
+            "bnc": 2309,
+            "frq": 2540,
+            "exchange": "s:cakes/d:caked/i:caking/p:caked/3:cakes",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "fish",
+            "usphone": "fɪʃ",
+            "ukphone": "fɪʃ",
+            "definition": "n. any of various mostly cold-blooded aquatic vertebrates usually having scales and breathing through gills\nn. the flesh of fish used as food\nv. seek indirectly\nv. catch or try to catch fish or shellfish",
+            "translation": "n. 鱼, 鱼肉, 鱼类, 接合板\nvt. 钓, 钓鱼, 查出, 用接合板连接\nvi. 捕鱼, 钓鱼, 用钩捞取, 摸索寻找",
+            "pos": "",
+            "collins": 4,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 954,
+            "frq": 947,
+            "exchange": "s:fishes/p:fished/i:fishing/d:fished/3:fishes/f:fishes",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "rice",
+            "usphone": "raɪs",
+            "ukphone": "raɪs",
+            "definition": "n. grains used as food either unpolished or more often polished\nn. annual or perennial rhizomatous marsh grasses; seed used for food; straw used for paper\nn. English lyricist who frequently worked with Andrew Lloyd Webber (born in 1944)\nn. United States playwright (1892-1967)",
+            "translation": "n. 米, 米饭, 稻\nvt. 将...压成米粒状",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 4143,
+            "frq": 2740,
+            "exchange": "s:rices/i:ricing/p:riced/3:rices/d:riced",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "one",
+            "usphone": "wʌn",
+            "ukphone": "wʌn",
+            "definition": "n. the smallest whole number or a numeral representing this number\nn. a single person or thing\ns. used of a single unit or thing; not two or more\ns. having the indivisible character of a unit",
+            "translation": "n. 一(个)\npron. 一, 任何人\nnum. 一, 一个\na. 一致的, 完整的",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk ielts",
+            "bnc": 46,
+            "frq": 51,
+            "exchange": "s:ones",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "two",
+            "usphone": "tu",
+            "ukphone": "tuː",
+            "definition": "n. the cardinal number that is the sum of one and one or a numeral representing this number\ns. being one more than one",
+            "translation": "num. 二, 二个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 60,
+            "frq": 80,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "three",
+            "usphone": "θri",
+            "ukphone": "θriː",
+            "definition": "n. the cardinal number that is the sum of one and one and one\ns. being one more than two",
+            "translation": "num. 三, 三个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 104,
+            "frq": 135,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "four",
+            "usphone": "fɔr",
+            "ukphone": "fɔː",
+            "definition": "n. the cardinal number that is the sum of three and one\ns. being one more than three",
+            "translation": "num. 四, 四个\n[机] 四冲程循环",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 184,
+            "frq": 247,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "five",
+            "usphone": "faɪv",
+            "ukphone": "faɪv",
+            "definition": "n. the cardinal number that is the sum of four and one\ns. being one more than four",
+            "translation": "num. 五, 五个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 207,
+            "frq": 299,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "six",
+            "usphone": "sɪks",
+            "ukphone": "sɪks",
+            "definition": "n. the cardinal number that is the sum of five and one\ns. denoting a quantity consisting of six items or units",
+            "translation": "num. 六, 六个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 293,
+            "frq": 424,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "seven",
+            "usphone": "'sɛvn",
+            "ukphone": "'sev(ə)n",
+            "definition": "n. the cardinal number that is the sum of six and one\ns. being one more than six",
+            "translation": "num. 七, 七个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 575,
+            "frq": 734,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "eight",
+            "usphone": "et",
+            "ukphone": "eɪt",
+            "definition": "n. the cardinal number that is the sum of seven and one\ns. being one more than seven",
+            "translation": "num. 八, 八个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 579,
+            "frq": 739,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "nine",
+            "usphone": "naɪn",
+            "ukphone": "naɪn",
+            "definition": "n. the cardinal number that is the sum of eight and one\ns. denoting a quantity consisting of one more than eight and one less than ten",
+            "translation": "num. 九, 九个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 737,
+            "frq": 1154,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "ten",
+            "usphone": "tɛn",
+            "ukphone": "ten",
+            "definition": "n. the cardinal number that is the sum of nine and one; the base of the decimal system\ns. being one more than nine",
+            "translation": "num. 十, 十个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 469,
+            "frq": 838,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "brother",
+            "usphone": "'brʌðɚ",
+            "ukphone": "'brʌðə",
+            "definition": "n. a male with the same parents as someone else\nn. a male person who is a fellow member (of a fraternity or religion or other group)\nn. used as a term of address for those male persons engaged in the same movement\nn. (Roman Catholic Church) a title given to a monk and used as form of address",
+            "translation": "n. 兄弟",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 827,
+            "frq": 614,
+            "exchange": "s:brothers",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "plate",
+            "usphone": "pleɪt",
+            "ukphone": "pleɪt",
+            "definition": "n. a sheet of metal or wood or glass or plastic\nn. a full-page illustration (usually on slick paper)\nn. dish on which food is served or from which food is eaten\nn. the quantity contained in a plate",
+            "translation": "n. 碟, 盘子, 盆中物, 金属板, 图版, 金银餐具, 印版, 金属牌(照)\nvt. 镀金, 电镀, 用金属板固定, 给...装钢板, 为...制印版",
+            "pos": "",
+            "collins": 3,
+            "oxford": false,
+            "tag": "zk gk toefl",
+            "bnc": 1494,
+            "frq": 1525,
+            "exchange": "s:plates/d:plated/i:plating/p:plated/3:plates",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        }
+    ]
+}
