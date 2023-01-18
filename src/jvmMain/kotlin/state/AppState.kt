@@ -234,22 +234,25 @@ class AppState {
     fun saveToRecentList(name: String, path: String,index: Int) {
         runBlocking {
             launch {
-                val item = RecentItem(LocalDateTime.now().toString(), name, path,index)
-                if (!recentList.contains(item)) {
-                    if (recentList.size == 1000) {
-                        recentList.removeAt(999)
+                if(name.isNotEmpty()){
+                    val item = RecentItem(LocalDateTime.now().toString(), name, path,index)
+                    if (!recentList.contains(item)) {
+                        if (recentList.size == 1000) {
+                            recentList.removeAt(999)
+                        }
+                        recentList.add(0, item)
+                    } else {
+                        recentList.remove(item)
+                        recentList.add(0, item)
                     }
-                    recentList.add(0, item)
-                } else {
-                    recentList.remove(item)
-                    recentList.add(0, item)
-                }
-                val serializeList = mutableListOf<RecentItem>()
-                serializeList.addAll(recentList)
+                    val serializeList = mutableListOf<RecentItem>()
+                    serializeList.addAll(recentList)
 
-                val json = encodeBuilder.encodeToString(serializeList)
-                val recentListFile = getRecentListFile()
-                recentListFile.writeText(json)
+                    val json = encodeBuilder.encodeToString(serializeList)
+                    val recentListFile = getRecentListFile()
+                    recentListFile.writeText(json)
+                }
+
             }
         }
 
