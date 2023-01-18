@@ -190,16 +190,6 @@ fun App() {
                         .launchIn(this)
                 }
 
-
-                /** 启动应用后，自动检查更新 */
-
-
-                /** 启动应用后，自动检查更新 */
-
-
-                /** 启动应用后，自动检查更新 */
-
-
                 /** 启动应用后，自动检查更新 */
                 LaunchedEffect(Unit){
                     if( appState.global.autoUpdate){
