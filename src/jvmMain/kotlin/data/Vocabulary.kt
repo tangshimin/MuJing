@@ -124,7 +124,20 @@ data class ExternalCaption(
 
 fun loadMutableVocabulary(path: String): MutableVocabulary {
     val file = getResourcesFile(path)
-    return if (file.exists()) {
+    // 如果当前词库被删除，重启之后又没有选择新的词库，再次重启时才会调用，
+    // 主要是为了避免再次重启是出现”找不到词库"对话框
+    return if(path.isEmpty()){
+        val vocabulary = Vocabulary(
+            name = "",
+            type = VocabularyType.DOCUMENT,
+            language = "",
+            size = 0,
+            relateVideoPath = "",
+            subtitlesTrackId = 0,
+            wordList = mutableListOf()
+        )
+        MutableVocabulary(vocabulary)
+    }else if (file.exists()) {
 
         try {
             val vocabulary = Json.decodeFromString<Vocabulary>(file.readText())

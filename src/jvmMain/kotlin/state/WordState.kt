@@ -327,7 +327,16 @@ private fun loadWordState(): WordState {
         try {
             val decodeFormat = Json { ignoreUnknownKeys = true }
             val dataWordState = decodeFormat.decodeFromString<DataWordState>(typingWordSettings.readText())
-            WordState(dataWordState)
+            val wordState = WordState(dataWordState)
+            // 主要是为了避免再次重启是出现”找不到词库"对话框
+            if(wordState.vocabulary.name.isEmpty() &&
+                wordState.vocabulary.relateVideoPath.isEmpty() &&
+                wordState.vocabulary.wordList.isEmpty()){
+                wordState.vocabularyName = ""
+                wordState.vocabularyPath = ""
+                wordState.saveTypingWordState()
+            }
+            wordState
         } catch (exception: Exception) {
             FlatLightLaf.setup()
             JOptionPane.showMessageDialog(null, "设置信息解析错误，将使用默认设置。\n地址：$typingWordSettings")

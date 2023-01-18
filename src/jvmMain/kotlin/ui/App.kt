@@ -108,7 +108,7 @@ fun App() {
                     }
                     when (appState.global.type) {
                         TypingType.WORD -> {
-                            title = computeTitle(wordState)
+                            title = computeTitle(wordState.vocabularyName,wordState.vocabulary.wordList.isNotEmpty())
 
                             // 显示器缩放
                             val density = LocalDensity.current.density
@@ -239,16 +239,19 @@ private fun onWindowPlacement(placement: WindowPlacement, state: AppState){
 }
 
 
-private fun computeTitle(typingWord: WordState) :String{
-    return if (typingWord.vocabulary.wordList.isNotEmpty()) {
-        when (typingWord.vocabularyName) {
+private fun computeTitle(
+    name:String,
+    isNotEmpty:Boolean
+) :String{
+    return if (isNotEmpty) {
+        when (name) {
             "FamiliarVocabulary" -> {
                 "熟悉词库"
             }
             "HardVocabulary" -> {
                 "困难词库"
             }
-            else -> typingWord.vocabularyName
+            else -> name
         }
     } else {
         "请选择词库"
