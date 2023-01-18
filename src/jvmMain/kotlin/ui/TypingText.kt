@@ -324,7 +324,6 @@ fun TypingText(
                             }
                             /** 检查输入的回调函数 */
                             val checkTyping: (String) -> Unit = { input ->
-                                scope.launch {
                                     if (input.length > line.length) {
                                         if(nextRowFull){
                                             nextRowFull = false
@@ -361,7 +360,6 @@ fun TypingText(
                                         }
 
                                     }
-                                }
                             }
 
                             val textFieldKeyEvent: (KeyEvent) -> Boolean = { it: KeyEvent ->

@@ -1961,9 +1961,7 @@ fun Caption(
                 BasicTextField(
                     value = textFieldValue,
                     onValueChange = { input ->
-                        scope.launch {
                             checkTyping(index, input, captionContent)
-                        }
                     },
                     singleLine = true,
                     cursorBrush = SolidColor(MaterialTheme.colors.primary),

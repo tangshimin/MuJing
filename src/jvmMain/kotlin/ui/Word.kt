@@ -100,9 +100,7 @@ fun Word(
                 BasicTextField(
                     value = textFieldValue,
                     onValueChange = { input ->
-                        scope.launch {
                             checkTyping(input)
-                        }
                     },
                     singleLine = true,
                     cursorBrush = SolidColor(MaterialTheme.colors.primary),

@@ -99,7 +99,6 @@ fun Search(
         val familiarVocabulary = remember{ loadMutableVocabularyByName("FamiliarVocabulary") }
 
         val search:(String) -> Unit = {
-            scope.launch {
                 input = it
                 if(searchResult != null) {
                     searchResult!!.value = ""
@@ -129,7 +128,6 @@ fun Search(
                     }
                 }
 
-            }
         }
         Surface(
             elevation = 5.dp,

@@ -597,7 +597,6 @@ fun TypingSubtitles(
                             }
                             /** 检查输入的回调函数 */
                             val checkTyping: (String) -> Unit = { input ->
-                                scope.launch {
                                     if (textFieldValue.length > captionContent.length) {
                                         typingResult.clear()
                                         textFieldValue = ""
@@ -630,7 +629,6 @@ fun TypingSubtitles(
                                         }
 
                                     }
-                                }
                             }
 
                             val textFieldKeyEvent: (KeyEvent) -> Boolean = { it: KeyEvent ->
