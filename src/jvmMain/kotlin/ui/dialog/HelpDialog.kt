@@ -28,22 +28,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
-import ui.LocalCtrl
-import player.isMacOS
 import player.isWindows
-import state.getAudioDirectory
-import state.getResourcesFile
-import state.getSettingsDirectory
-import java.awt.Desktop
-import java.io.File
-import java.net.URI
 import java.util.*
 import kotlin.concurrent.schedule
 
 @Composable
-fun HelpDialog(close: () -> Unit) {
+fun TutorialDialog(close: () -> Unit) {
     Dialog(
-        title = "帮助文档",
+        title = "教程",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },
         resizable = true,
@@ -122,30 +114,6 @@ fun HelpDialog(close: () -> Unit) {
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
                             }
                         }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                                .clickable { currentPage = "shortcutKey" }) {
-                            Text("快捷键", modifier = Modifier.padding(start = 16.dp))
-                            if(currentPage == "shortcutKey"){
-                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
-                            }
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                                .clickable { currentPage = "specialDirectory" }) {
-                            Text("特殊文件夹", modifier = Modifier.padding(start = 16.dp))
-                            if(currentPage == "specialDirectory"){
-                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
-                            }
-                        }
                     }
                     Divider(Modifier.width(1.dp).fillMaxHeight())
 
@@ -164,12 +132,6 @@ fun HelpDialog(close: () -> Unit) {
                         }
                         "linkVocabulary" -> {
                             LinkVocabularyPage()
-                        }
-                        "shortcutKey" -> {
-                            ShortcutKeyPage()
-                        }
-                        "specialDirectory" -> {
-                            SpecialDirectory()
                         }
                     }
                 }
@@ -603,233 +565,5 @@ fun LinkVocabularyPage(){
             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
             adapter = rememberScrollbarAdapter(stateVertical)
         )
-    }
-}
-@Composable
-fun ShortcutKeyPage() {
-    Column(Modifier.fillMaxSize()) {
-
-        val ctrl = LocalCtrl.current
-        val shift = if (isMacOS()) "⇧" else "Shift"
-
-        SelectionContainer {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.padding(start = 16.dp,top = 16.dp,bottom = 10.dp)
-            ) {
-                Text("激活复制", modifier = Modifier.padding(end = 20.dp))
-                val annotatedString = buildAnnotatedString {
-
-                    val background = if (MaterialTheme.colors.isLight) Color.LightGray else Color(35, 35, 35)
-                    withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                        append("如果想复制正在抄写的字幕或文本可以先抄写到要复制的词，然后使用")
-                    }
-
-                    withStyle(
-                        style = SpanStyle(
-                            color = MaterialTheme.colors.primary,
-                            background = background
-                        )
-                    ) {
-                        append("  $shift + ← ")
-                    }
-                    withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                        append("  选择要复制的单词\n或者使用快捷键")
-                    }
-                    withStyle(
-                        style = SpanStyle(
-                            color = MaterialTheme.colors.primary,
-                            background = background
-                        )
-                    ) {
-                        append("  $ctrl + B ")
-                    }
-                    withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                        append("  激活复制功能，激活后，不用先抄写就可以自由的复制，可用用 Ctrl + A 全选。")
-                    }
-
-                }
-                Text(annotatedString)
-            }
-        }
-
-        SelectionContainer {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.padding(start = 16.dp,bottom = 10.dp)
-            ) {
-                Text("切换单词", modifier = Modifier.padding(end = 20.dp))
-                val annotatedString = buildAnnotatedString {
-
-                    val background = if (MaterialTheme.colors.isLight) Color.LightGray else Color(35, 35, 35)
-                    withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                        append("切换到下一个单词用")
-                    }
-
-                    withStyle(
-                        style = SpanStyle(
-                            color = MaterialTheme.colors.primary,
-                            background = background
-                        )
-                    ) {
-                        append("  Enter 或 PgDn ")
-                    }
-                    withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                        append("  切换到上一个单词用")
-                    }
-                    withStyle(
-                        style = SpanStyle(
-                            color = MaterialTheme.colors.primary,
-                            background = background
-                        )
-                    ) {
-                        append("  PgUp ")
-                    }
-                    withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                        append("  在听写模式下，不能切换到上一个单词。")
-                    }
-
-                }
-                Text(annotatedString)
-            }
-        }
-        SelectionContainer {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.padding(start = 16.dp,bottom = 10.dp)
-            ) {
-                Text("切换光标", modifier = Modifier.padding(end = 20.dp))
-                val annotatedString = buildAnnotatedString {
-
-                    val background = if (MaterialTheme.colors.isLight) Color.LightGray else Color(35, 35, 35)
-                    withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                        append("记忆单词界面的光标切换\n把光标从字幕切换到单词")
-                    }
-
-                    withStyle(
-                        style = SpanStyle(
-                            color = MaterialTheme.colors.primary,
-                            background = background
-                        )
-                    ) {
-                        append("  $ctrl + $shift + A ")
-                    }
-                    withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                        append("\n向上移动光标")
-                    }
-                    withStyle(
-                        style = SpanStyle(
-                            color = MaterialTheme.colors.primary,
-                            background = background
-                        )
-                    ) {
-                        append("  $ctrl + $shift + I ")
-                    }
-                    withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                        append("\n向下移动光标")
-                    }
-                    withStyle(
-                        style = SpanStyle(
-                            color = MaterialTheme.colors.primary,
-                            background = background
-                        )
-                    ) {
-                        append("  $ctrl + $shift + K ")
-                    }
-                }
-                Text(annotatedString)
-            }
-        }
-        SelectionContainer {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier.padding(start = 16.dp,bottom = 10.dp)
-            ) {
-                Text("搜索      ", modifier = Modifier.padding(end = 20.dp))
-                val annotatedString = buildAnnotatedString {
-
-                    val background = if (MaterialTheme.colors.isLight) Color.LightGray else Color(35, 35, 35)
-                    withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                        append("打开搜索")
-                    }
-
-                    withStyle(
-                        style = SpanStyle(
-                            color = MaterialTheme.colors.primary,
-                            background = background
-                        )
-                    ) {
-                        append("  $ctrl + F ")
-                    }
-                    withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                        append("  会优先搜索当前词库，如果当前词库没有查到，再搜索内置词典。")
-                    }
-                }
-                Text(annotatedString)
-            }
-        }
-
-    }
-}
-
-@Composable
-fun SpecialDirectory() {
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        OutlinedButton(onClick = {
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop()
-                    .isSupported(Desktop.Action.OPEN)
-            ) {
-                Desktop.getDesktop().open(getSettingsDirectory())
-            }
-        },
-            modifier = Modifier.width(140.dp)){
-            Text("配置文件夹")
-        }
-        OutlinedButton(onClick = {
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop()
-                    .isSupported(Desktop.Action.OPEN)
-            ) {
-                Desktop.getDesktop().open(getAudioDirectory())
-            }
-        },
-            modifier = Modifier.width(140.dp)){
-            Text("单词发音文件夹")
-        }
-
-        OutlinedButton(onClick = {
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop()
-                    .isSupported(Desktop.Action.OPEN)
-            ) {
-                Desktop.getDesktop().open(getResourcesFile("vocabulary"))
-            }
-        },
-            modifier = Modifier.width(140.dp)){
-            Text("内置词库文件夹")
-        }
-
-        if (!isMacOS()) {
-            OutlinedButton(
-                onClick = {
-                    if (Desktop.isDesktopSupported() && Desktop.getDesktop()
-                            .isSupported(Desktop.Action.OPEN)
-                    ) {
-                        Desktop.getDesktop().open(File("."))
-                    }
-                },
-                modifier = Modifier.width(140.dp)
-            ) {
-                Text("安装目录")
-            }
-        }
-
-
     }
 }

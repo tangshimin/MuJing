@@ -489,25 +489,35 @@ private fun FrameWindowScope.WindowMenuBar(
     var aboutDialogVisible by remember { mutableStateOf(false) }
     var donateDialogVisible by remember { mutableStateOf(false) }
     var helpDialogVisible by remember { mutableStateOf(false) }
+    var shortcutKeyDialogVisible by remember { mutableStateOf(false) }
+    var directoryDialogVisible by remember { mutableStateOf(false) }
     Menu("帮助(H)", mnemonic = 'H') {
 
 
-        Item("帮助文档(H)", mnemonic = 'H', onClick = { helpDialogVisible = true})
+        Item("教程(T)", mnemonic = 'T', onClick = { helpDialogVisible = true})
         if(helpDialogVisible){
-            HelpDialog(
+            TutorialDialog(
                 close = {helpDialogVisible = false}
             )
         }
-        Item("检查更新(U)", mnemonic = 'U', onClick = {
-            appState.showUpdateDialog = true
-            appState.latestVersion = ""
-        })
+        Item("快捷键(K)", mnemonic = 'K', onClick = {shortcutKeyDialogVisible = true})
+        if(shortcutKeyDialogVisible){
+            ShortcutKeyDialog(close ={shortcutKeyDialogVisible = false} )
+        }
+        Item("特殊文件夹(F)",mnemonic = 'F', onClick = {directoryDialogVisible = true})
+        if(directoryDialogVisible){
+            SpecialDirectoryDialog(close ={directoryDialogVisible = false})
+        }
         Item("捐赠", onClick = { donateDialogVisible = true })
         if(donateDialogVisible){
             DonateDialog (
                 close = {donateDialogVisible = false}
             )
         }
+        Item("检查更新(U)", mnemonic = 'U', onClick = {
+            appState.showUpdateDialog = true
+            appState.latestVersion = ""
+        })
         Item("关于(A)", mnemonic = 'A', onClick = { aboutDialogVisible = true })
         if (aboutDialogVisible) {
             AboutDialog(
