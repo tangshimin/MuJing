@@ -237,28 +237,6 @@ class WordState(dataWordState: DataWordState) {
 
     }
 
-//    /** 改变词库 */
-//    fun changeVocabulary(file: File,index: Int,state: AppState) {
-//        val newVocabulary = loadMutableVocabulary(file.absolutePath)
-//        if(newVocabulary.wordList.size>0){
-//
-//            // 把困难词库的索引保存在 typingWord.
-//            if(vocabulary.name == "HardVocabulary"){
-//                hardVocabularyIndex = index
-//            }else{
-//                // 保存当前词库的索引到最近列表,
-//                state.saveToRecentList(vocabulary.name, vocabularyPath,index)
-//            }
-//
-//            vocabulary = newVocabulary
-//            vocabularyName = file.nameWithoutExtension
-//            vocabularyPath = file.absolutePath
-//            chapter = (index / 20) + 1
-//            this.index = index
-//            state.vocabularyChanged = true
-//            saveTypingWordState()
-//        }
-//    }
 
     /** 保存当前的词库 */
     fun saveCurrentVocabulary() {
