@@ -226,6 +226,9 @@ fun MainContent(
         /** 当前单词的错误次数 */
         var wordWrongTime by remember {mutableStateOf(0)}
 
+        /** 单词输入错误*/
+        var isWrong by remember { mutableStateOf(false) }
+
         /** 单词输入框里的字符串*/
         var wordTextFieldValue by remember { mutableStateOf("") }
 
@@ -769,66 +772,71 @@ fun MainContent(
 
             /** 检查输入的单词 */
             val checkWordInput: (String) -> Unit = { input ->
-                wordTextFieldValue = input
-                wordTypingResult.clear()
-                var done = true
-                /**
-                 *  防止用户粘贴内容过长，如果粘贴的内容超过 word.value 的长度，
-                 * 会改变 BasicTextField 宽度，和 Text 的宽度不匹配
-                 */
-                if (input.length > currentWord.value.length) {
+                if(!isWrong){
+                    wordTextFieldValue = input
                     wordTypingResult.clear()
-                    wordTextFieldValue = ""
-                } else {
-                    val inputChars = input.toList()
-                    for (i in inputChars.indices) {
-                        val inputChar = inputChars[i]
-                        val wordChar = currentWord.value[i]
-                        if (inputChar == wordChar) {
-                            wordTypingResult.add(Pair(inputChar, true))
-                        } else {
-                            // 字母输入错误
-                            wordTypingResult.add(Pair(wordChar, false))
-                            done = false
-                            playBeepSound()
-                            wordWrongTime++
-                            // 如果是听写测试，或听写复习，需要汇总错误单词
-                            if (typingWord.memoryStrategy == Dictation || typingWord.memoryStrategy == Review) {
-                                chapterWrongTime++
-                                val dictationWrongTime = dictationWrongWords[currentWord]
-                                if (dictationWrongTime != null) {
-                                    dictationWrongWords[currentWord] = dictationWrongTime + 1
-                                } else {
-                                    dictationWrongWords[currentWord] = 1
+                    var done = true
+                    /**
+                     *  防止用户粘贴内容过长，如果粘贴的内容超过 word.value 的长度，
+                     * 会改变 BasicTextField 宽度，和 Text 的宽度不匹配
+                     */
+                    if (input.length > currentWord.value.length) {
+                        wordTypingResult.clear()
+                        wordTextFieldValue = ""
+                    } else {
+                        val inputChars = input.toList()
+                        for (i in inputChars.indices) {
+                            val inputChar = inputChars[i]
+                            val wordChar = currentWord.value[i]
+                            if (inputChar == wordChar) {
+                                wordTypingResult.add(Pair(inputChar, true))
+                            } else {
+                                // 字母输入错误
+                                wordTypingResult.add(Pair(wordChar, false))
+                                done = false
+                                playBeepSound()
+                                isWrong = true
+                                wordWrongTime++
+                                // 如果是听写测试，或听写复习，需要汇总错误单词
+                                if (typingWord.memoryStrategy == Dictation || typingWord.memoryStrategy == Review) {
+                                    chapterWrongTime++
+                                    val dictationWrongTime = dictationWrongWords[currentWord]
+                                    if (dictationWrongTime != null) {
+                                        dictationWrongWords[currentWord] = dictationWrongTime + 1
+                                    } else {
+                                        dictationWrongWords[currentWord] = 1
+                                    }
+                                }
+
+                                Timer("input wrong cleanInputChar", false).schedule(500) {
+                                    wordTextFieldValue = ""
+                                    wordTypingResult.clear()
+                                    isWrong = false
                                 }
                             }
-
-                            Timer("input wrong cleanInputChar", false).schedule(50) {
-                                wordTextFieldValue = ""
-                                wordTypingResult.clear()
-                            }
                         }
-                    }
-                    // 用户输入的单词完全正确
-                    if (wordTypingResult.size == currentWord.value.length && done) {
-                        // 输入完全正确
-                        playSuccessSound()
-                        if (typingWord.memoryStrategy == Dictation || typingWord.memoryStrategy == Review) chapterCorrectTime++
-                        if (typingWord.isAuto) {
+                        // 用户输入的单词完全正确
+                        if (wordTypingResult.size == currentWord.value.length && done) {
+                            // 输入完全正确
+                            playSuccessSound()
+                            if (typingWord.memoryStrategy == Dictation || typingWord.memoryStrategy == Review) chapterCorrectTime++
+                            if (typingWord.isAuto) {
 
-                            Timer("input correct to next", false).schedule(50) {
-                                toNext()
-                            }
-                        } else {
-                            wordCorrectTime++
+                                Timer("input correct to next", false).schedule(50) {
+                                    toNext()
+                                }
+                            } else {
+                                wordCorrectTime++
 
-                            Timer("input correct clean InputChar", false).schedule(50){
-                                wordTypingResult.clear()
-                                wordTextFieldValue = ""
+                                Timer("input correct clean InputChar", false).schedule(50){
+                                    wordTypingResult.clear()
+                                    wordTextFieldValue = ""
+                                }
                             }
                         }
                     }
                 }
+
             }
 
 
