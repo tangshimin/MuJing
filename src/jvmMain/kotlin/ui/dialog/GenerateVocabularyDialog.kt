@@ -2937,7 +2937,7 @@ fun replaceSpecialCharacter(captionContent: String): String {
         content = content.replace("</i>", "")
     }
     if (content.contains("<br />")) {
-        content = content.replace("<br />", "")
+        content = content.replace("<br />", " ")
     }
     content = removeLocationInfo(content)
     return content
