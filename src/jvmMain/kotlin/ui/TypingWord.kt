@@ -1390,7 +1390,7 @@ fun VocabularyEmpty() {
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxSize()
         ) {
-            Text("请重新选择词库,可以拖放词库到这里", style = MaterialTheme.typography.h6)
+            Text("请选择词库,也可以拖放词库到这里", style = MaterialTheme.typography.h6)
         }
     }
 }

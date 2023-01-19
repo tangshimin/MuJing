@@ -1715,8 +1715,16 @@ fun SelectedList(
                     modifier = Modifier.clickable {}
                         .fillMaxWidth()
                 ) {
+                    var name = file.nameWithoutExtension
+                    if(file.parentFile.nameWithoutExtension == "人教版英语" ||
+                        file.parentFile.nameWithoutExtension == "外研版英语"||
+                        file.parentFile.nameWithoutExtension == "北师大版高中英语"){
+                        if(name.contains(" ")){
+                            name = name.split(" ")[1]
+                        }
+                    }
                     Text(
-                        text = file.nameWithoutExtension,
+                        text = name,
                         color = MaterialTheme.colors.onBackground,
                         modifier = Modifier.align(Alignment.CenterStart).width(225.dp).padding(10.dp)
                     )
@@ -1749,7 +1757,16 @@ fun searchPaths(dir: File): MutableMap<String, String> {
             pathNameMap.putAll(searchPaths(file))
         }
         if (!file.isDirectory) {
-            pathNameMap.put(file.nameWithoutExtension, file.absolutePath)
+            var name = file.nameWithoutExtension
+            if(file.parentFile.nameWithoutExtension == "人教版英语" ||
+                file.parentFile.nameWithoutExtension == "外研版英语"||
+                file.parentFile.nameWithoutExtension == "北师大版高中英语"){
+                if(name.contains(" ")){
+                    name = name.split(" ")[1]
+                }
+
+            }
+            pathNameMap.put(name, file.absolutePath)
         }
     }
     return pathNameMap
@@ -1760,18 +1777,37 @@ fun addNodes(curTop: DefaultMutableTreeNode?, dir: File): DefaultMutableTreeNode
     curTop?.add(curDir)
     val ol = Vector<File>()
     dir.listFiles().forEach { ol.addElement(it) }
-    ol.sort()
+    if(dir.nameWithoutExtension.contains("人教版英语")||
+        dir.nameWithoutExtension.contains("外研版英语")||
+        dir.nameWithoutExtension.contains("北师大版高中英语")
+        ){
+        ol.sortBy{it.nameWithoutExtension.split(" ")[0].toFloat()}
+    }else{
+        ol.sort()
+    }
+
     val files = Vector<String>()
 
     ol.forEach { file ->
         if (file.isDirectory)
             addNodes(curDir, file);
-        else
-            files.addElement(file.nameWithoutExtension);
+        else{
+            var name = file.nameWithoutExtension
+            if(file.parentFile.nameWithoutExtension == "人教版英语" ||
+                file.parentFile.nameWithoutExtension == "外研版英语"||
+                file.parentFile.nameWithoutExtension == "北师大版高中英语"){
+                if(name.contains(" ")){
+                    name = name.split(" ")[1]
+                }
+
+            }
+            files.addElement(name);
+        }
+
     }
 
-    val cmp = Collator.getInstance(Locale.SIMPLIFIED_CHINESE)
-    Collections.sort(files, cmp)
+//    val cmp = Collator.getInstance(Locale.SIMPLIFIED_CHINESE)
+//    Collections.sort(files, cmp)
     files.forEach {
         curDir.add(DefaultMutableTreeNode(it))
     }

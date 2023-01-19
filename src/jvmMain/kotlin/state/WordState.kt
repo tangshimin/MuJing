@@ -30,8 +30,8 @@ data class DataWordState(
     val isAuto: Boolean = false,
     val index: Int = 0,
     val hardVocabularyIndex: Int = 0,
-    var vocabularyName: String = "四级",
-    var vocabularyPath: String = "vocabulary/大学英语/四级.json",
+    var vocabularyName: String = "",
+    var vocabularyPath: String = "",
     var externalSubtitlesVisible: Boolean = true,
 )
 

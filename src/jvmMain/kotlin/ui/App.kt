@@ -23,8 +23,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
-import ui.flatlaf.setupFileChooser
-import ui.flatlaf.updateFlatLaf
+import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import data.VocabularyType
 import data.getHardVocabularyFile
 import kotlinx.coroutines.flow.launchIn
@@ -33,14 +32,13 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
 import state.*
 import ui.dialog.*
+import ui.flatlaf.setupFileChooser
+import ui.flatlaf.updateFlatLaf
 import java.awt.Rectangle
 import java.io.File
 import java.util.*
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileSystemView
 import kotlin.concurrent.schedule
-
 
 
 // build.gradle.kts 的版本也需要更改
@@ -288,34 +286,35 @@ private fun FrameWindowScope.WindowMenuBar(
     close: () -> Unit,
 ) = MenuBar {
     Menu("词库(V)", mnemonic = 'V') {
+        var showFilePicker by remember {mutableStateOf(false)}
         Item("打开词库(O)", mnemonic = 'O', onClick = {
-            if(isWindows()) {
-                appState.loadingFileChooserVisible = true
-            }
-            Thread(Runnable {
-                val fileChooser = appState.futureFileChooser.get()
-                fileChooser.dialogTitle = "选择词库"
-                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                fileChooser.currentDirectory = getResourcesFile("vocabulary")
-                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                fileChooser.selectedFile = null
-                if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
-                    val file = fileChooser.selectedFile
-                    val index = appState.findVocabularyIndex(file)
-                    appState.changeVocabulary(
-                        vocabularyFile = file,
-                        typingState,
-                        index
-                    )
-                    appState.global.type = TypingType.WORD
-                    appState.saveGlobalState()
-                    appState.loadingFileChooserVisible = false
-                } else {
-                    appState.loadingFileChooserVisible = false
-                }
-            }).start()
+            showFilePicker = true
         })
+        FilePicker(
+            show = showFilePicker,
+            fileExtension = "json",
+            initialDirectory = ""){path ->
+            if(!path.isNullOrEmpty()){
+                val file = File(path)
+                val index = appState.findVocabularyIndex(file)
+                appState.changeVocabulary(
+                    vocabularyFile = file,
+                    typingState,
+                    index
+                )
+                appState.global.type = TypingType.WORD
+                appState.saveGlobalState()
+            }
+            showFilePicker = false
+        }
+        var showBuiltInVocabulary by remember{mutableStateOf(false)}
+        Item("内置词库(B)", mnemonic = 'B', onClick = {showBuiltInVocabulary = true})
 
+        BuiltInVocabularyDialog(
+            show = showBuiltInVocabulary,
+            close = {showBuiltInVocabulary = false},
+            futureFileChooser = appState.futureFileChooser
+        )
         Item("困难词库(K)", enabled = appState.hardVocabulary.wordList.isNotEmpty(), mnemonic = 'K',onClick = {
             val file = getHardVocabularyFile()
             appState.changeVocabulary(file, typingState,typingState.hardVocabularyIndex)
