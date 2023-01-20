@@ -323,7 +323,7 @@ fun TypingSubtitles(
             }
 
         } else {
-            JOptionPane.showMessageDialog(null,"视频地址错误\n" +
+            JOptionPane.showMessageDialog(null,"视频地址错误:${file.absolutePath}\n" +
                     "可能原视频被移动、删除或者重命名了。")
         }
 
@@ -406,7 +406,7 @@ fun TypingSubtitles(
 
             }
         }else if(!videoFile.exists()){
-            JOptionPane.showMessageDialog(null,"视频地址错误\n" +
+            JOptionPane.showMessageDialog(null,"视频地址错误:${videoFile.absolutePath}\n" +
                     "可能原视频被移动、删除或者重命名了。")
         }
     }
