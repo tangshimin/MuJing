@@ -323,7 +323,8 @@ fun TypingSubtitles(
             }
 
         } else {
-            JOptionPane.showMessageDialog(window, "视频地址错误")
+            JOptionPane.showMessageDialog(null,"视频地址错误\n" +
+                    "可能原视频被移动、删除或者重命名了。")
         }
 
     }
@@ -384,16 +385,17 @@ fun TypingSubtitles(
 
     /** 选择字幕轨道 */
     val selectTypingSubTitles:() -> Unit = {
-        if (trackList.isEmpty()) {
+        val videoFile = File(subtitlesState.mediaPath)
+        if (trackList.isEmpty() && videoFile.exists()) {
             loading = true
             scope.launch {
                 showSelectTrack = true
                 Thread(Runnable{
                     parseTrackList(
-                        mediaPlayerComponent,
-                        window,
-                        playerWindow,
-                        subtitlesState.mediaPath,
+                        mediaPlayerComponent = mediaPlayerComponent,
+                        parentComponent = window,
+                        playerWindow = playerWindow,
+                        videoPath = subtitlesState.mediaPath,
                         setTrackList = {
                             setTrackList(it)
                         },
@@ -403,7 +405,9 @@ fun TypingSubtitles(
                 }).start()
 
             }
-
+        }else if(!videoFile.exists()){
+            JOptionPane.showMessageDialog(null,"视频地址错误\n" +
+                    "可能原视频被移动、删除或者重命名了。")
         }
     }
 
