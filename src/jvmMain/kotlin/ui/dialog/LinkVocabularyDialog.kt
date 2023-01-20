@@ -43,6 +43,7 @@ import java.io.File
 import java.util.*
 import javax.swing.JFileChooser
 import javax.swing.JOptionPane
+import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.filechooser.FileSystemView
 
 /**
@@ -246,9 +247,20 @@ fun LinkVocabularyDialog(
      * 处理输入的文件
      */
     val handleInputFile:(File) -> Unit = {file ->
+        // 选择文档词库或内置词库
         if(vocabulary == null){
-            vocabulary =  MutableVocabulary(loadVocabulary(file.absolutePath))
+            val newVocabulary =  MutableVocabulary(loadVocabulary(file.absolutePath))
+            if(newVocabulary.type != VocabularyType.DOCUMENT){
+                JOptionPane.showMessageDialog(null,
+                    "词库的类型不对。\n" +
+                        "不能选择用字幕或MKV视频生成的词库。\n" +
+                        "如果要链接两个有字幕的词库，请选择合并词库。"
+                )
+            }else{
+                vocabulary = newVocabulary
+            }
             directoryPath = file.parentFile.absolutePath
+            // 选择字幕词库
         }else{
             extractCaption(file)
         }
@@ -321,7 +333,7 @@ fun LinkVocabularyDialog(
             }).start()
         }
 
-        /** 选择内置词库*/
+        /** 选择词库*/
         val openVocabulary:(String) -> Unit = {title ->
             vocabularyWrong = false
             state.loadingFileChooserVisible = true
@@ -329,13 +341,10 @@ fun LinkVocabularyDialog(
                 val fileChooser = state.futureFileChooser.get()
                 fileChooser.dialogTitle = title
                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                if(title =="选择内置词库"){
-                    fileChooser.currentDirectory = getResourcesFile("vocabulary")
-                }else{
-                    fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
-                }
+                fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
                 fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
                 fileChooser.selectedFile = null
+                fileChooser.fileFilter = FileNameExtensionFilter("词库","json")
                 if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
                     val file = fileChooser.selectedFile
                     handleInputFile(file)
@@ -452,14 +461,7 @@ fun LinkVocabularyDialog(
                                     Text(
                                         text = extractCaptionResultInfo,
                                         color = Color.Red,
-                                        modifier = Modifier.width(360.dp).padding(top = 20.dp, bottom = 20.dp)
-                                    )
-                                }
-                                if (vocabularyType == VocabularyType.DOCUMENT) {
-                                    Text(
-                                        "词库的类型错误，请选择从 SRT 或 MKV 生成的词库文件",
-                                        color = Color.Red,
-                                        modifier = Modifier.width(360.dp).padding(top = 20.dp, bottom = 20.dp)
+                                        modifier = Modifier.padding(top = 20.dp, bottom = 20.dp)
                                     )
                                 }
 
@@ -469,16 +471,20 @@ fun LinkVocabularyDialog(
                                 horizontalArrangement = Arrangement.Center,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                OutlinedButton(onClick = {
+                                OutlinedButton(
+                                    enabled = Objects.isNull(vocabulary),
+                                    onClick = {
                                     openVocabulary("选择词库")
                                 }) {
-                                    Text("选择词库")
+                                    Text("1 选择词库")
                                 }
                                 Spacer(Modifier.width(20.dp))
-                                OutlinedButton(onClick = {
-                                    openVocabulary("选择内置词库")
+                                OutlinedButton(
+                                    enabled = !Objects.isNull(vocabulary),
+                                    onClick = {
+                                    openVocabulary("选择字幕词库")
                                 }) {
-                                    Text("选择内置词库")
+                                    Text("2 选择字幕词库")
                                 }
                                 Spacer(Modifier.width(20.dp))
                                 OutlinedButton(onClick = { save() }, enabled = saveEnable) {
