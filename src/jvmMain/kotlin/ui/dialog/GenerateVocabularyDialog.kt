@@ -1511,7 +1511,7 @@ fun VocabularyFilter(
                         modifier = Modifier
                             .align(Alignment.Center)
                     ) {
-                        Text(text = "最近生成的词库")
+                        Text(text = "最近使用的词库")
                     }
                     val dropdownMenuHeight = if (recentList.size <= 10) (recentList.size * 40 + 20).dp else 420.dp
 
