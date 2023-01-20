@@ -493,9 +493,9 @@ private fun FrameWindowScope.WindowMenuBar(
     Menu("帮助(H)", mnemonic = 'H') {
 
 
-        Item("教程(T)", mnemonic = 'T', onClick = { helpDialogVisible = true})
+        Item("文档D)", mnemonic = 'D', onClick = { helpDialogVisible = true})
         if(helpDialogVisible){
-            TutorialDialog(
+            DocumentDialog(
                 close = {helpDialogVisible = false}
             )
         }

@@ -33,9 +33,9 @@ import java.util.*
 import kotlin.concurrent.schedule
 
 @Composable
-fun TutorialDialog(close: () -> Unit) {
+fun DocumentDialog(close: () -> Unit) {
     Dialog(
-        title = "教程",
+        title = "文档",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },
         resizable = true,
