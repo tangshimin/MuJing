@@ -35,6 +35,7 @@ import data.*
 import player.play
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
+import player.isMacOS
 import player.isWindows
 import state.AppState
 import state.getResourcesFile
@@ -333,7 +334,27 @@ fun LinkVocabularyDialog(
                 clear()
             }).start()
         }
-
+        /** 选择词库*/
+        val openVocabulary:(String) -> Unit = {title ->
+            vocabularyWrong = false
+            state.loadingFileChooserVisible = true
+            Thread(Runnable {
+                val fileChooser = state.futureFileChooser.get()
+                fileChooser.dialogTitle = title
+                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
+                fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
+                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+                fileChooser.selectedFile = null
+                fileChooser.fileFilter = FileNameExtensionFilter("词库","json")
+                if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
+                    val file = fileChooser.selectedFile
+                    handleInputFile(file)
+                    state.loadingFileChooserVisible = false
+                } else {
+                    state.loadingFileChooserVisible = false
+                }
+            }).start()
+        }
         WindowDraggableArea {
             Surface(
                 elevation = 5.dp,
@@ -453,8 +474,13 @@ fun LinkVocabularyDialog(
                                 OutlinedButton(
                                     enabled = Objects.isNull(vocabulary),
                                     onClick = {
-                                        showFilePicker = true
-                                        vocabularyWrong = false
+                                        if(isMacOS()){
+                                            openVocabulary("选择词库")
+                                        }else{
+                                            showFilePicker = true
+                                            vocabularyWrong = false
+                                        }
+
                                 }) {
                                     Text("1 选择词库")
                                 }
@@ -462,8 +488,13 @@ fun LinkVocabularyDialog(
                                 OutlinedButton(
                                     enabled = !Objects.isNull(vocabulary),
                                     onClick = {
-                                        showFilePicker = true
-                                        vocabularyWrong = false
+                                        if(isMacOS()){
+                                            openVocabulary("选择字幕词库")
+                                        }else{
+                                            showFilePicker = true
+                                            vocabularyWrong = false
+                                        }
+
                                 }) {
                                     Text("2 选择字幕词库")
                                 }

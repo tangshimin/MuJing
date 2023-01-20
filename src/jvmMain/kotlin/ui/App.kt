@@ -37,7 +37,9 @@ import ui.flatlaf.updateFlatLaf
 import java.awt.Rectangle
 import java.io.File
 import java.util.*
+import javax.swing.JFileChooser
 import javax.swing.JOptionPane
+import javax.swing.filechooser.FileSystemView
 import kotlin.concurrent.schedule
 
 
@@ -288,7 +290,35 @@ private fun FrameWindowScope.WindowMenuBar(
     Menu("词库(V)", mnemonic = 'V') {
         var showFilePicker by remember {mutableStateOf(false)}
         Item("打开词库(O)", mnemonic = 'O', onClick = {
-            showFilePicker = true
+
+            if(isWindows()) {
+                appState.loadingFileChooserVisible = true
+                Thread(Runnable {
+                    val fileChooser = appState.futureFileChooser.get()
+                    fileChooser.dialogTitle = "选择词库"
+                    fileChooser.fileSystemView = FileSystemView.getFileSystemView()
+                    fileChooser.currentDirectory = getResourcesFile("vocabulary")
+                    fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+                    fileChooser.selectedFile = null
+                    if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
+                        val file = fileChooser.selectedFile
+                        val index = appState.findVocabularyIndex(file)
+                        appState.changeVocabulary(
+                            vocabularyFile = file,
+                            typingState,
+                            index
+                        )
+                        appState.global.type = TypingType.WORD
+                        appState.saveGlobalState()
+                        appState.loadingFileChooserVisible = false
+                    } else {
+                        appState.loadingFileChooserVisible = false
+                    }
+                }).start()
+            }else if(isMacOS()){
+                showFilePicker = true
+            }
+
         })
         FilePicker(
             show = showFilePicker,
@@ -309,7 +339,6 @@ private fun FrameWindowScope.WindowMenuBar(
         }
         var showBuiltInVocabulary by remember{mutableStateOf(false)}
         Item("内置词库(B)", mnemonic = 'B', onClick = {showBuiltInVocabulary = true})
-
         BuiltInVocabularyDialog(
             show = showBuiltInVocabulary,
             close = {showBuiltInVocabulary = false},
