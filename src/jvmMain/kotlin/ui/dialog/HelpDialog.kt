@@ -61,7 +61,7 @@ fun DocumentDialog(close: () -> Unit) {
                                 .fillMaxWidth()
                                 .height(48.dp)
                                 .clickable { currentPage = "document" }) {
-                            Text("从文档生成词库", modifier = Modifier.padding(start = 16.dp))
+                            Text("用文档生成词库", modifier = Modifier.padding(start = 16.dp))
                             if(currentPage == "document"){
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
                             }
@@ -73,7 +73,7 @@ fun DocumentDialog(close: () -> Unit) {
                                 .fillMaxWidth()
                                 .height(48.dp)
                                 .clickable {  currentPage = "subtitles" }) {
-                            Text("从字幕生成词库", modifier = Modifier.padding(start = 16.dp))
+                            Text("用字幕生成词库", modifier = Modifier.padding(start = 16.dp))
                             if(currentPage == "subtitles"){
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
                             }
@@ -85,7 +85,7 @@ fun DocumentDialog(close: () -> Unit) {
                                 .fillMaxWidth()
                                 .height(48.dp)
                                 .clickable {  currentPage = "matroska"}) {
-                            Text("从 MKV 视频生成词库", modifier = Modifier.padding(start = 16.dp))
+                            Text("用 MKV 视频生成词库", modifier = Modifier.padding(start = 16.dp))
                             if( currentPage == "matroska"){
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
                             }

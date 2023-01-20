@@ -134,17 +134,17 @@ fun GenerateVocabularyDialog(
                 "词库",
                 "json",
             )
-            "从文档生成词库" -> FileNameExtensionFilter(
+            "用文档生成词库" -> FileNameExtensionFilter(
                 "支持的文件扩展(*.pdf、*.txt)",
                 "pdf",
                 "txt",
             )
-            "从字幕生成词库" -> FileNameExtensionFilter(
+            "用字幕生成词库" -> FileNameExtensionFilter(
                 "SRT 格式的字幕文件",
                 "srt",
             )
 
-            "从 MKV 视频生成词库" -> FileNameExtensionFilter(
+            "用 MKV 视频生成词库" -> FileNameExtensionFilter(
                 "mkv 格式的视频文件",
                 "mkv",
             )
@@ -208,7 +208,7 @@ fun GenerateVocabularyDialog(
         val previewList = remember { mutableStateListOf<Word>() }
 
         /**
-         * 从字幕生成单词 -> 相关视频的地址
+         * 用字幕生成单词 -> 相关视频的地址
          */
         var relateVideoPath by remember { mutableStateOf("") }
 
@@ -292,9 +292,9 @@ fun GenerateVocabularyDialog(
         /** 文件选择器的标题 */
         val chooseText = when (title) {
             "过滤词库" -> "选择词库"
-            "从文档生成词库" -> "选择文档"
-            "从字幕生成词库" -> "选择字幕"
-            "从 MKV 视频生成词库" -> "选择 MKV 文件"
+            "用文档生成词库" -> "选择文档"
+            "用字幕生成词库" -> "选择字幕"
+            "用 MKV 视频生成词库" -> "选择 MKV 文件"
             else -> ""
         }
 
@@ -312,7 +312,7 @@ fun GenerateVocabularyDialog(
                                 } else {
                                     JOptionPane.showMessageDialog(
                                         window,
-                                        "如果你想从 ${file.nameWithoutExtension} 文档生成词库，\n请重新选择：词库 -> 从文档生成词库，再拖放文件到这里。"
+                                        "如果你想用 ${file.nameWithoutExtension} 文档生成词库，\n请重新选择：词库 -> 用文档生成词库，再拖放文件到这里。"
                                     )
                                 }
                             }
@@ -323,7 +323,7 @@ fun GenerateVocabularyDialog(
                                 } else {
                                     JOptionPane.showMessageDialog(
                                         window,
-                                        "如果你想从 ${file.nameWithoutExtension} 字幕生成词库，\n请重新选择：词库 -> 从字幕生成词库，再拖放文件到这里。"
+                                        "如果你想用 ${file.nameWithoutExtension} 字幕生成词库，\n请重新选择：词库 -> 用字幕生成词库，再拖放文件到这里。"
                                     )
                                 }
                             }
@@ -379,7 +379,7 @@ fun GenerateVocabularyDialog(
                                     else -> {
                                         JOptionPane.showMessageDialog(
                                             window,
-                                            "如果你想从 ${file.nameWithoutExtension} 视频生成词库，\n请重新选择：词库 -> 从 MKV 视频生成词库，再拖放文件到这里。"
+                                            "如果你想用 ${file.nameWithoutExtension} 视频生成词库，\n请重新选择：词库 -> 用 MKV 视频生成词库，再拖放文件到这里。"
                                         )
                                     }
                                 }
@@ -632,7 +632,7 @@ fun GenerateVocabularyDialog(
             if (state.filterVocabulary && File(selectedFilePath).nameWithoutExtension == "FamiliarVocabulary") {
                 familiarVocabulary.wordList.remove(it)
             }else{
-                // 从字幕生成的词库和从 MKV 生成的词库，需要把内部字幕转换为外部字幕
+                // 用字幕生成的词库和用 MKV 生成的词库，需要把内部字幕转换为外部字幕
                 if (it.captions.isNotEmpty()) {
                     it.captions.forEach { caption ->
                         val externalCaption = ExternalCaption(
@@ -1008,9 +1008,9 @@ enum class FilterState {
 private fun onCloseRequest(state: AppState, title: String) {
     when (title) {
         "过滤词库" -> state.filterVocabulary = false
-        "从文档生成词库" -> state.generateVocabularyFromDocument = false
-        "从字幕生成词库" -> state.generateVocabularyFromSubtitles = false
-        "从 MKV 视频生成词库" -> state.generateVocabularyFromMKV = false
+        "用文档生成词库" -> state.generateVocabularyFromDocument = false
+        "用字幕生成词库" -> state.generateVocabularyFromSubtitles = false
+        "用 MKV 视频生成词库" -> state.generateVocabularyFromMKV = false
     }
 
 }
@@ -2096,7 +2096,7 @@ fun filterDocumentWords(
         val lemma = getWordLemma(word)
         if (replaceToLemma && !lemma.isNullOrEmpty()) {
             lemmaMap[word] = lemma
-            // 处理内部字幕，批量的从 MKV 生成词库时，字幕保存在外部字幕列表
+            // 处理内部字幕，批量的用 MKV 生成词库时，字幕保存在外部字幕列表
             if(!isBatchMKV){
                 if (captionsMap[lemma].isNullOrEmpty()) {
                     captionsMap[lemma] = word.captions
@@ -2111,7 +2111,7 @@ fun filterDocumentWords(
                     }
                     captionsMap[lemma] = list
                 }
-            // 处理外部字幕，批量的从 MKV 生成词库时，字幕保存在外部字幕列表
+            // 处理外部字幕，批量的用 MKV 生成词库时，字幕保存在外部字幕列表
             }else{
                 if (externalCaptionsMap[lemma].isNullOrEmpty()) {
                     externalCaptionsMap[lemma] = word.externalCaptions

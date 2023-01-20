@@ -366,13 +366,13 @@ private fun FrameWindowScope.WindowMenuBar(
                 close = {showWordFrequency = false}
             )
         }
-        Item("从文档生成词库(D)", mnemonic = 'D', onClick = {
+        Item("用文档生成词库(D)", mnemonic = 'D', onClick = {
             appState.generateVocabularyFromDocument = true
         })
-        Item("从字幕生成词库(Z)", mnemonic = 'Z', onClick = {
+        Item("用字幕生成词库(Z)", mnemonic = 'Z', onClick = {
             appState.generateVocabularyFromSubtitles = true
         })
-        Item("从 MKV 视频生成词库(V)", mnemonic = 'V', onClick = {
+        Item("用 MKV 视频生成词库(V)", mnemonic = 'V', onClick = {
             appState.generateVocabularyFromMKV = true
         })
         Separator()
@@ -647,14 +647,14 @@ fun MenuDialogs(state: AppState) {
     if (state.generateVocabularyFromDocument) {
         GenerateVocabularyDialog(
             state = state,
-            title = "从文档生成词库",
+            title = "用文档生成词库",
             type = VocabularyType.DOCUMENT
         )
     }
     if (state.generateVocabularyFromSubtitles) {
         GenerateVocabularyDialog(
             state = state,
-            title = "从字幕生成词库",
+            title = "用字幕生成词库",
             type = VocabularyType.SUBTITLES
         )
     }
@@ -662,7 +662,7 @@ fun MenuDialogs(state: AppState) {
     if (state.generateVocabularyFromMKV) {
         GenerateVocabularyDialog(
             state = state,
-            title = "从 MKV 视频生成词库",
+            title = "用 MKV 视频生成词库",
             type = VocabularyType.MKV
         )
     }
