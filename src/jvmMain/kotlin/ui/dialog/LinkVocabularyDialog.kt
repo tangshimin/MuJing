@@ -337,7 +337,6 @@ fun LinkVocabularyDialog(
         /** 选择词库*/
         val openVocabulary:(String) -> Unit = {title ->
             vocabularyWrong = false
-            state.loadingFileChooserVisible = true
             Thread(Runnable {
                 val fileChooser = state.futureFileChooser.get()
                 fileChooser.dialogTitle = title
@@ -349,9 +348,6 @@ fun LinkVocabularyDialog(
                 if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
                     val file = fileChooser.selectedFile
                     handleInputFile(file)
-                    state.loadingFileChooserVisible = false
-                } else {
-                    state.loadingFileChooserVisible = false
                 }
             }).start()
         }

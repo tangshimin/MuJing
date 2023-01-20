@@ -294,7 +294,6 @@ private fun FrameWindowScope.WindowMenuBar(
             if(isWindows()) {
                 showFilePicker = true
             }else if(isMacOS()){
-                appState.loadingFileChooserVisible = true
                 Thread(Runnable {
                     val fileChooser = appState.futureFileChooser.get()
                     fileChooser.dialogTitle = "选择词库"
@@ -312,9 +311,6 @@ private fun FrameWindowScope.WindowMenuBar(
                         )
                         appState.global.type = TypingType.WORD
                         appState.saveGlobalState()
-                        appState.loadingFileChooserVisible = false
-                    } else {
-                        appState.loadingFileChooserVisible = false
                     }
                 }).start()
             }
