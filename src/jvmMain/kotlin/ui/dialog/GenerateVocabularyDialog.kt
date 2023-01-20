@@ -1535,7 +1535,6 @@ fun VocabularyFilter(
                                                     val recentFile = File(recentItem.path)
                                                     if(recentFile.exists()){
                                                         vocabularyFilterListAdd(recentFile)
-                                                        expanded = false
                                                     }else{
                                                         // 文件可能被删除了
                                                         removeInvalidRecentItem(recentItem)
