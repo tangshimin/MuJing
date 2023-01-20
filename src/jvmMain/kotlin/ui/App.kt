@@ -423,11 +423,9 @@ private fun FrameWindowScope.WindowMenuBar(
                 }
             )
         }
-        //如果当前词库类型为文档就启用
-        val enableLinkVocabulary = (typingState.vocabulary.type == VocabularyType.DOCUMENT && appState.global.type == TypingType.WORD)
+
         Item(
             "链接字幕词库(L)", mnemonic = 'L',
-            enabled = enableLinkVocabulary,
             onClick = { showLinkVocabulary = true },
         )
         var showLyricDialog by remember{ mutableStateOf(false) }
