@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
+import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import ui.createTransferHandler
 import data.*
 import player.play
@@ -87,11 +88,11 @@ fun LinkVocabularyDialog(
      */
     var subtitlesName by remember { mutableStateOf("") }
 
-
     var vocabularyType by remember { mutableStateOf(VocabularyType.DOCUMENT) }
     var vocabularyWrong by remember { mutableStateOf(false) }
     var extractCaptionResultInfo by remember { mutableStateOf("") }
     var saveEnable by remember { mutableStateOf(false) }
+    var showFilePicker by remember { mutableStateOf(false) }
 
     /**
      * 点击【链接】后执行的回调函数
@@ -333,28 +334,6 @@ fun LinkVocabularyDialog(
             }).start()
         }
 
-        /** 选择词库*/
-        val openVocabulary:(String) -> Unit = {title ->
-            vocabularyWrong = false
-            state.loadingFileChooserVisible = true
-            Thread(Runnable {
-                val fileChooser = state.futureFileChooser.get()
-                fileChooser.dialogTitle = title
-                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
-                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                fileChooser.selectedFile = null
-                fileChooser.fileFilter = FileNameExtensionFilter("词库","json")
-                if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
-                    val file = fileChooser.selectedFile
-                    handleInputFile(file)
-                    state.loadingFileChooserVisible = false
-                } else {
-                    state.loadingFileChooserVisible = false
-                }
-            }).start()
-        }
-
         WindowDraggableArea {
             Surface(
                 elevation = 5.dp,
@@ -474,7 +453,8 @@ fun LinkVocabularyDialog(
                                 OutlinedButton(
                                     enabled = Objects.isNull(vocabulary),
                                     onClick = {
-                                    openVocabulary("选择词库")
+                                        showFilePicker = true
+                                        vocabularyWrong = false
                                 }) {
                                     Text("1 选择词库")
                                 }
@@ -482,7 +462,8 @@ fun LinkVocabularyDialog(
                                 OutlinedButton(
                                     enabled = !Objects.isNull(vocabulary),
                                     onClick = {
-                                    openVocabulary("选择字幕词库")
+                                        showFilePicker = true
+                                        vocabularyWrong = false
                                 }) {
                                     Text("2 选择字幕词库")
                                 }
@@ -497,6 +478,18 @@ fun LinkVocabularyDialog(
                                 }) {
                                     Text("取消")
                                 }
+                            }
+
+                            FilePicker(
+                                show = showFilePicker,
+                                fileExtension = "json",
+                                initialDirectory = ""
+                            ){path ->
+                                if(!path.isNullOrEmpty()){
+                                    val file = File(path)
+                                    handleInputFile(file)
+                                }
+                                showFilePicker = false
                             }
                         }
 
