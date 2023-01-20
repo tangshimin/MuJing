@@ -292,6 +292,8 @@ private fun FrameWindowScope.WindowMenuBar(
         Item("打开词库(O)", mnemonic = 'O', onClick = {
 
             if(isWindows()) {
+                showFilePicker = true
+            }else if(isMacOS()){
                 appState.loadingFileChooserVisible = true
                 Thread(Runnable {
                     val fileChooser = appState.futureFileChooser.get()
@@ -315,8 +317,6 @@ private fun FrameWindowScope.WindowMenuBar(
                         appState.loadingFileChooserVisible = false
                     }
                 }).start()
-            }else if(isMacOS()){
-                showFilePicker = true
             }
 
         })
