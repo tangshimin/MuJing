@@ -533,17 +533,17 @@ fun LinkVocabularyPage(){
         Column (Modifier.padding(start = 16.dp, top = 16.dp,end = 16.dp).verticalScroll(stateVertical)){
             val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
             Text("提示：不要把链接后的词库保存到应用程序的安装目录\n")
-            Text("1. 打开链接字幕对话框")
+            Text("1. 字幕 > 链接字幕词库(L) 打开链接字幕对话框，然后选择一个词库，也可以拖放一个词库到窗口。")
             Image(
                 painter = painterResource("screenshot/link-vocabulary-$theme/Link-Vocabulary-1.png"),
                 contentDescription = "mkv-1",
                 modifier = Modifier.width(590.dp).height(436.dp).padding(start = 20.dp)
             )
-            Text("\n2. 选择一个要链接的词库，如果是四级词库就从选择内置词库打开，也可以直接拖拽一个词库到窗口。")
+            Text("\n2. 这里以四级词库作为例。")
             Image(
                 painter = painterResource("screenshot/link-vocabulary-$theme/Link-Vocabulary-2.png"),
                 contentDescription = "mkv-2",
-                modifier = Modifier.width(590.dp).height(435.dp).padding(start = 20.dp)
+                modifier = Modifier.width(590.dp).height(436.dp).padding(start = 20.dp)
             )
             Text("\n3. 再选择一个有字幕的词库。选择后可以预览视频片段，然后点击链接，有字幕的词库就链接到了没有字幕的词库。")
             Image(
@@ -555,7 +555,7 @@ fun LinkVocabularyPage(){
             Image(
                 painter = painterResource("screenshot/link-vocabulary-$theme/Link-Vocabulary-4.png"),
                 contentDescription = "mkv-4",
-                modifier = Modifier.width(590.dp).height(440.dp).padding(start = 20.dp)
+                modifier = Modifier.width(580.dp).height(436.dp).padding(start = 20.dp)
             )
 
         }
