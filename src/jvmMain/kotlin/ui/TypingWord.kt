@@ -127,6 +127,14 @@ fun TypingWord(
                     window = window,
                     modifier = Modifier.align(Alignment.TopCenter)
                 )
+                if(appState.showBulletScreenPlayer){
+                    Player(
+                        close = {appState.showBulletScreenPlayer = false},
+                        videoPath = appState.bulletScreenPlayerPath,
+                        vocabulary = typingWord.vocabulary,
+                    )
+                }
+
             }
         }
         Settings(
@@ -2455,26 +2463,27 @@ fun getPayTriple(currentWord: Word, index: Int): Triple<Caption, String, Int>? {
 fun setWindowTransferHandler(
     window: ComposeWindow,
     state: AppState,
-    typingState: WordState,
+    wordState: WordState,
 ){
     window.transferHandler = createTransferHandler(
         showWrongMessage = { message ->
             JOptionPane.showMessageDialog(window, message)
         },
         parseImportFile = {files ->
-            val vocabularyFile = files.first()
-            if (vocabularyFile.extension == "json") {
-                if (typingState.vocabularyPath != vocabularyFile.absolutePath) {
-                    val index = state.findVocabularyIndex(vocabularyFile)
-                    state.changeVocabulary(vocabularyFile,typingState,index)
+            val file = files.first()
+            if (file.extension == "json") {
+                if (wordState.vocabularyPath != file.absolutePath) {
+                    val index = state.findVocabularyIndex(file)
+                    state.changeVocabulary(file,wordState,index)
                 } else {
                     JOptionPane.showMessageDialog(window, "词库已打开")
                 }
 
-            } else if (vocabularyFile.extension == "mkv") {
-                JOptionPane.showMessageDialog(window, "如果想打开 MKV 视频文件抄写字幕，\n需要先切换到抄写字幕界面，\n如果想生成词库需要先打开生成词库界面。")
+            } else if (file.extension == "mkv" || file.extension == "mp4") {
+                state.showBulletScreenPlayer = true
+                state.bulletScreenPlayerPath = file.absolutePath
             } else {
-                JOptionPane.showMessageDialog(window, "只能读取 json 格式的词库")
+                JOptionPane.showMessageDialog(window, "文件格式不支持")
             }
         }
     )

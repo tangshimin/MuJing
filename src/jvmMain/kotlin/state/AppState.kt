@@ -96,6 +96,8 @@ class AppState {
     /** 视频播放器的位置、大小是否改变了 */
     var isChangeVideoBounds by mutableStateOf(false)
 
+    var showBulletScreenPlayer by mutableStateOf(false)
+    var bulletScreenPlayerPath by mutableStateOf("")
     /** 加载全局的设置信息 */
     private fun loadGlobalState(): GlobalState {
         val globalSettings = getGlobalSettingsFile()
