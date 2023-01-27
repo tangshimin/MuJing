@@ -29,6 +29,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.platform.Font
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -90,6 +91,10 @@ fun Player(
     var isPlaying by remember { mutableStateOf(false) }
     /** 手动触发的暂停，比如空格键，双击视频触发的暂停。区别于鼠标移动到弹幕触发的自动暂停。*/
     var isManualPause by remember { mutableStateOf(false) }
+    /** 播放器控制区的可见性 */
+    var controlBoxVisible by remember { mutableStateOf(false) }
+    /** 展开设置菜单 */
+    var settingsExpanded by remember{ mutableStateOf(false) }
 
     /** 弹幕从右到左需要的时间，单位为毫秒 */
     var widthDuration by remember{ mutableStateOf(windowState.size.width.value.div(3).times(30).toInt()) }
@@ -217,7 +222,16 @@ fun Player(
             color =Color.Transparent,
             modifier = Modifier.fillMaxSize()
                 .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
-
+                .onPointerEvent(PointerEventType.Enter){
+                    if(!controlBoxVisible) {
+                        controlBoxVisible = true
+                    }
+                }
+                .onPointerEvent(PointerEventType.Exit){
+                    if(isPlaying && !settingsExpanded){
+                        controlBoxVisible = false
+                    }
+                }
 
 
         ) {
@@ -268,139 +282,150 @@ fun Player(
                     Box(Modifier.fillMaxSize()){
                         DanmakuBox(quicklyLocate,showingDanmaku,isManualPause,play)
                         Column(
-                            verticalArrangement = Arrangement.Top,
+                            verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally,
                             modifier = Modifier.align(Alignment.BottomCenter)
                         ){
-                            // 进度条
-                            var sliderVisible by remember{ mutableStateOf(false) }
-                            Box(
-                                Modifier
-                                    .fillMaxWidth().padding(start = 5.dp,end = 5.dp)
-                                    .onPointerEvent(PointerEventType.Enter) { sliderVisible = true }
-                                    .onPointerEvent(PointerEventType.Exit) { sliderVisible = false }
-                            ) {
-
-                                val animatedPosition by animateFloatAsState(
-                                    targetValue = timeProgress,
-                                    animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
-                                )
-                                if(sliderVisible){
-                                    Slider(
-                                        value = timeProgress,
-                                        modifier = Modifier.align(Alignment.Center)
-                                            .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
-                                        onValueChange = {
-                                            timeProgress = it
-                                            cleanDanmaku()
-                                            videoPlayerComponent.mediaPlayer().controls().setPosition(timeProgress)
-                                        })
-                                }else{
-                                    LinearProgressIndicator(progress = animatedPosition,
-                                        modifier = Modifier.align(Alignment.Center).fillMaxWidth().offset(x=0.dp,y= (-20).dp).padding(top = 20.dp))
-                                }
-                            }
-                            // 暂停、音量、时间、弹幕、设置
-                            Row(verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Start,
-                                modifier = Modifier.width(400.dp)){
-
-                                IconButton(onClick = {
-                                    play()
-                                    manualPause()
-                                }){
-                                    Icon(
-                                        if(isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                                        contentDescription = "Localized description",
-                                        tint = Color.White,
+                            if(controlBoxVisible){
+                                // 进度条
+                                var sliderVisible by remember{ mutableStateOf(false) }
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth().padding(start = 5.dp,end = 5.dp).offset(x = 0.dp,y = 20.dp)
+                                        .onPointerEvent(PointerEventType.Enter) { sliderVisible = true }
+                                        .onPointerEvent(PointerEventType.Exit) { sliderVisible = false }
+                                ) {
+                                    val animatedPosition by animateFloatAsState(
+                                        targetValue = timeProgress,
+                                        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
                                     )
+                                    if(sliderVisible){
+                                        Slider(
+                                            value = timeProgress,
+                                            modifier = Modifier.align(Alignment.Center)
+                                                .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
+                                            onValueChange = {
+                                                timeProgress = it
+                                                cleanDanmaku()
+                                                videoPlayerComponent.mediaPlayer().controls().setPosition(timeProgress)
+                                            })
+                                    }else{
+                                        LinearProgressIndicator(progress = animatedPosition,
+                                            modifier = Modifier.align(Alignment.Center).fillMaxWidth().offset(x=0.dp,y= (-20).dp).padding(top = 20.dp))
+                                    }
                                 }
-                                var volumeOff by remember{ mutableStateOf(false) }
-                                var volumeSliderVisible by remember{ mutableStateOf(false) }
-                                Row(
-                                    modifier = Modifier
-                                        .onPointerEvent(PointerEventType.Enter){volumeSliderVisible = true}
-                                        .onPointerEvent(PointerEventType.Exit){volumeSliderVisible = false}
-                                ){
+                                // 暂停、音量、时间、弹幕、设置
+                                Row(verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Start,
+                                    modifier = Modifier.width(400.dp)){
                                     IconButton(onClick = {
-                                        volumeOff = !volumeOff
-                                        videoPlayerComponent.mediaPlayer().audio().isMute = volumeOff
+                                        play()
+                                        manualPause()
                                     }){
                                         Icon(
-                                            if(volumeOff) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+                                            if(isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                                             contentDescription = "Localized description",
                                             tint = Color.White,
                                         )
                                     }
-                                    if(volumeSliderVisible){
-                                        Slider(
-                                            value = volumeProgress,
-                                            valueRange = 1f..100f,
-                                            onValueChange = {
-                                                volumeProgress = it
-                                                videoPlayerComponent.mediaPlayer().audio().setVolume(volumeProgress.toInt())
-                                            },
-                                            modifier = Modifier
-                                                .width(60.dp)
-                                                .onPointerEvent(PointerEventType.Enter){volumeSliderVisible = true}
-                                                .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
+                                    var volumeOff by remember{ mutableStateOf(false) }
+                                    var volumeSliderVisible by remember{ mutableStateOf(false) }
+                                    Row(
+                                        modifier = Modifier
+                                            .onPointerEvent(PointerEventType.Enter){volumeSliderVisible = true}
+                                            .onPointerEvent(PointerEventType.Exit){volumeSliderVisible = false}
+                                    ){
+                                        IconButton(onClick = {
+                                            volumeOff = !volumeOff
+                                            videoPlayerComponent.mediaPlayer().audio().isMute = volumeOff
+                                        }){
+                                            Icon(
+                                                if(volumeOff) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+                                                contentDescription = "Localized description",
+                                                tint = Color.White,
                                             )
+                                        }
+                                        if(volumeSliderVisible){
+                                            Slider(
+                                                value = volumeProgress,
+                                                valueRange = 1f..100f,
+                                                onValueChange = {
+                                                    volumeProgress = it
+                                                    videoPlayerComponent.mediaPlayer().audio().setVolume(volumeProgress.toInt())
+                                                },
+                                                modifier = Modifier
+                                                    .width(60.dp)
+                                                    .onPointerEvent(PointerEventType.Enter){volumeSliderVisible = true}
+                                                    .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
+                                            )
+                                        }
                                     }
-                                }
 
 
-                                Text(" $timeText ",color = Color.White)
-                                Box{
-                                    var expanded by remember{ mutableStateOf(false) }
-                                    IconButton(onClick = {expanded = true }){
-                                        Icon(
-                                            Icons.Filled.Settings,
-                                            contentDescription = "Localized description",
-                                            tint = Color.White,
-                                        )
-                                    }
-                                    DropdownMenu(
-                                        expanded = expanded,
-                                        onDismissRequest = { expanded = false }
-                                    ) {
-                                        // 这个功能还没有写完，暂时把这个功能关闭
-                                        val disable by remember{ mutableStateOf(true) }
-                                        if(!disable){
+                                    Text(" $timeText ",color = Color.White)
+                                    Box{
+
+                                        IconButton(onClick = {settingsExpanded = true }){
+                                            Icon(
+                                                Icons.Filled.Settings,
+                                                contentDescription = "Localized description",
+                                                tint = Color.White,
+                                            )
+                                        }
+                                        DropdownMenu(
+                                            expanded = settingsExpanded,
+                                            offset = DpOffset(x = 0.dp,y = (-20).dp),
+                                            onDismissRequest = {
+                                                settingsExpanded = false
+                                                controlBoxVisible = true},
+                                            modifier = Modifier
+                                                .onPointerEvent(PointerEventType.Enter){
+                                                   controlBoxVisible = true
+                                                }
+                                                .onPointerEvent(PointerEventType.Exit) {
+                                                    controlBoxVisible = true
+                                                }
+                                        ) {
+                                            // 这个功能还没有写完，暂时把这个功能关闭
+                                            val disable by remember{ mutableStateOf(true) }
+                                            if(!disable){
+                                                DropdownMenuItem(onClick = {  }) {
+
+                                                    Row(verticalAlignment = Alignment.CenterVertically,
+                                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                                        modifier = Modifier.fillMaxWidth()){
+                                                        Text("快速定位弹幕")
+                                                        Switch(checked = quicklyLocate, onCheckedChange = {
+                                                            quicklyLocate = it
+                                                        })
+                                                    }
+                                                }
+                                            }
                                             DropdownMenuItem(onClick = {  }) {
-
                                                 Row(verticalAlignment = Alignment.CenterVertically,
                                                     horizontalArrangement = Arrangement.SpaceBetween,
                                                     modifier = Modifier.fillMaxWidth()){
-                                                    Text("快速定位弹幕")
-                                                    Switch(checked = quicklyLocate, onCheckedChange = {
-                                                        quicklyLocate = it
+                                                    Text("弹幕")
+                                                    Switch(checked = danmakuVisible, onCheckedChange = {
+                                                        if(danmakuVisible){
+                                                            danmakuVisible = false
+                                                            shouldAddDanmaku.clear()
+                                                            showingDanmaku.clear()
+                                                            danmakuTimer.stop()
+                                                        }else{
+                                                            danmakuVisible = true
+                                                            danmakuTimer.restart()
+                                                        }
                                                     })
                                                 }
                                             }
                                         }
-                                        DropdownMenuItem(onClick = {  }) {
-                                            Row(verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                modifier = Modifier.fillMaxWidth()){
-                                                Text("弹幕")
-                                                Switch(checked = danmakuVisible, onCheckedChange = {
-                                                    if(danmakuVisible){
-                                                        danmakuVisible = false
-                                                        shouldAddDanmaku.clear()
-                                                        showingDanmaku.clear()
-                                                        danmakuTimer.stop()
-                                                    }else{
-                                                        danmakuVisible = true
-                                                        danmakuTimer.restart()
-                                                    }
-                                                })
-                                            }
-                                        }
+
                                     }
 
                                 }
-
                             }
+
                         }
 
                         MessageDialog(
