@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -16,10 +17,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -83,6 +82,8 @@ fun Player(
     var danmakuVisible by remember{mutableStateOf(false)}
     /** 快速定位弹幕 */
     var quicklyLocate by remember{mutableStateOf(false)}
+    /** 用户输入的弹幕编号 */
+    var danmakuNum by remember{mutableStateOf("")}
     /** 弹幕计数器，用于快速定位弹幕 */
     var counter by remember { mutableStateOf(0) }
     val showingDanmaku = remember{ mutableStateMapOf<Int,DanmakuItem>()}
@@ -286,14 +287,14 @@ fun Player(
                         Column(
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.align(Alignment.BottomCenter)
+                            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom =5.dp )
                         ){
                             if(controlBoxVisible){
                                 // 进度条
                                 var sliderVisible by remember{ mutableStateOf(false) }
                                 Box(
                                     Modifier
-                                        .fillMaxWidth().padding(start = 5.dp,end = 5.dp).offset(x = 0.dp,y = 20.dp)
+                                        .fillMaxWidth().padding(start = 5.dp,end = 5.dp,bottom = 10.dp).offset(x = 0.dp,y = 20.dp)
                                         .onPointerEvent(PointerEventType.Enter) { sliderVisible = true }
                                         .onPointerEvent(PointerEventType.Exit) { sliderVisible = false }
                                 ) {
@@ -319,7 +320,7 @@ fun Player(
                                 // 暂停、音量、时间、弹幕、设置
                                 Row(verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.Start,
-                                    modifier = Modifier.width(400.dp)){
+                                    modifier = Modifier.width(600.dp)){
                                     IconButton(onClick = {
                                         play()
                                         manualPause()
@@ -388,19 +389,16 @@ fun Player(
                                                     controlBoxVisible = true
                                                 }
                                         ) {
-                                            // 这个功能还没有写完，暂时把这个功能关闭
-                                            val disable by remember{ mutableStateOf(true) }
-                                            if(!disable){
-                                                DropdownMenuItem(onClick = {  }) {
 
-                                                    Row(verticalAlignment = Alignment.CenterVertically,
-                                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                                        modifier = Modifier.fillMaxWidth()){
-                                                        Text("快速定位弹幕")
-                                                        Switch(checked = quicklyLocate, onCheckedChange = {
-                                                            quicklyLocate = it
-                                                        })
-                                                    }
+                                            DropdownMenuItem(onClick = {  }) {
+
+                                                Row(verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth()){
+                                                    Text("快速定位弹幕")
+                                                    Switch(checked = quicklyLocate, onCheckedChange = {
+                                                        quicklyLocate = it
+                                                    })
                                                 }
                                             }
                                             DropdownMenuItem(onClick = {  }) {
@@ -424,7 +422,57 @@ fun Player(
                                         }
 
                                     }
+                                    if(quicklyLocate && danmakuVisible){
 
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .border(border = BorderStroke(1.dp, Color.White.copy(alpha = 0.4f)))){
+                                            fun searchNum(){
+                                                if(danmakuNum.isNotEmpty()){
+                                                    val num = danmakuNum.toIntOrNull()
+                                                    if(num != null){
+                                                        val danmakuItem =  showingDanmaku.get(num)
+                                                        if(danmakuItem != null){
+                                                            danmakuItem.isPause = true
+                                                            if(!isManualPause){
+                                                                play()
+                                                            }
+                                                        }
+                                                    }
+
+                                                }
+                                            }
+                                            Box(modifier = Modifier.width(110.dp).padding(start = 5.dp)){
+                                                BasicTextField(
+                                                    value = danmakuNum,
+                                                    singleLine = true,
+                                                    onValueChange = {danmakuNum = it},
+                                                    cursorBrush = SolidColor(MaterialTheme.colors.primary),
+                                                    textStyle = MaterialTheme.typography.h5.copy(
+                                                        color = Color.White,
+                                                    ),
+                                                    modifier = Modifier.onKeyEvent { keyEvent ->
+                                                        if((keyEvent.key == Key.Enter || keyEvent.key == Key.NumPadEnter) && keyEvent.type == KeyEventType.KeyUp){
+                                                            searchNum()
+                                                            true
+                                                        }else false
+                                                    }
+                                                )
+                                                if(danmakuNum.isEmpty()){
+                                                    Text("输入弹幕编号",color = Color.White)
+                                                }
+                                            }
+                                            IconButton(onClick = { searchNum() },modifier = Modifier.size(40.dp,40.dp)){
+                                                Icon(
+                                                    Icons.Filled.Navigation,
+                                                    contentDescription = "Localized description",
+                                                    tint = Color.White,
+                                                )
+                                            }
+                                        }
+
+                                    }
                                 }
                             }
 

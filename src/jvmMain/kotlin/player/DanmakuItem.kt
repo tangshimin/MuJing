@@ -11,6 +11,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontFamily
@@ -98,9 +99,20 @@ fun Danmaku(
 ) {
     if(danmakuItem.show){
         val text = if(showSequence) {
-            "${danmakuItem.sequence}  ${danmakuItem.content}"
+            "${danmakuItem.sequence} ${danmakuItem.content}"
         }else{
             danmakuItem.content
+        }
+        fun enter(){
+            // 如果已经由⌈快速定位弹幕⌋暂停，就不执行。
+            if(!danmakuItem.isPause){
+                danmakuItem.isPause =  true
+                playEvent()
+            }
+        }
+        fun exit(){
+            danmakuItem.isPause = false
+            playEvent()
         }
         Text(
             text = text,
@@ -108,29 +120,26 @@ fun Danmaku(
             fontFamily = fontFamily,
             color = Color.White,
             modifier = Modifier.offset { danmakuItem.position }
-                .onPointerEvent(PointerEventType.Enter){
-                    danmakuItem.isPause =  true
-                    playEvent()
-                }
-                .onPointerEvent(PointerEventType.Exit) {
-                    danmakuItem.isPause = false
-                    playEvent()
-                }
+                .onPointerEvent(PointerEventType.Enter){ enter() }
+                .onPointerEvent(PointerEventType.Exit) { exit() }
         )
         var offsetX = (danmakuItem.position.x - 200 + (danmakuItem.content.length * 10).div(2)).dp
         if(offsetX<0.dp) offsetX = 0.dp
         DropdownMenu(
             expanded =danmakuItem.isPause,
-            onDismissRequest = {  },
+            onDismissRequest = {
+                danmakuItem.isPause = false
+                playEvent()
+            },
             offset = DpOffset(offsetX,(danmakuItem.position.y).dp),
             modifier = Modifier
-                .onPointerEvent(PointerEventType.Enter){
-                    danmakuItem.isPause =  true
-                    playEvent()
-                }
-                .onPointerEvent(PointerEventType.Exit) {
-                    danmakuItem.isPause = false
-                    playEvent()
+                .onPointerEvent(PointerEventType.Enter){ enter() }
+                .onPointerEvent(PointerEventType.Exit) { exit() }
+                .onKeyEvent { keyEvent ->
+                    if(keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyUp){
+                        exit()
+                        true
+                    }else false
                 }
         ) {
             Surface(
