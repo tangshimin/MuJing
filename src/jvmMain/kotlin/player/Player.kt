@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
+import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberWindowState
 import data.MutableVocabulary
 import kotlinx.coroutines.flow.launchIn
@@ -63,7 +64,8 @@ fun Player(
 ){
     val windowState = rememberWindowState(
         size = DpSize(1289.dp,854.dp),
-        placement = WindowPlacement.Floating
+        placement = WindowPlacement.Floating,
+        position = WindowPosition(Alignment.Center)
     )
 
     val title  by remember { mutableStateOf(File(videoPath).name) }
