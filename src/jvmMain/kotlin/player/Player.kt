@@ -36,9 +36,18 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberWindowState
-import data.MutableVocabulary
+import data.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import state.WordState
+import state.getSettingsDirectory
 import ui.dialog.MessageDialog
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
@@ -59,7 +68,7 @@ import kotlin.time.Duration.Companion.milliseconds
 fun Player(
     close:()->Unit,
     videoPath:String,
-    vocabulary: MutableVocabulary
+    wordState: WordState
 ){
     val windowState = rememberWindowState(
         size = DpSize(1289.dp,854.dp),
@@ -67,6 +76,7 @@ fun Player(
         position = WindowPosition(Alignment.Center)
     )
 
+    val playerState by rememberPlayerState()
     val title  by remember { mutableStateOf(File(videoPath).name) }
     val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent()) }
     var timeProgress by remember { mutableStateOf(0f) }
@@ -79,16 +89,13 @@ fun Player(
     }
     var playerWindow by remember { mutableStateOf<ComposeWindow?>(null) }
     var controlWindow by remember { mutableStateOf<ComposeWindow?>(null) }
-    var danmakuVisible by remember{mutableStateOf(false)}
-    /** 快速定位弹幕 */
-    var quicklyLocate by remember{mutableStateOf(false)}
     /** 用户输入的弹幕编号 */
     var danmakuNum by remember{mutableStateOf("")}
     /** 弹幕计数器，用于快速定位弹幕 */
     var counter by remember { mutableStateOf(0) }
     val showingDanmaku = remember{ mutableStateMapOf<Int,DanmakuItem>()}
     val shouldAddDanmaku = remember{ mutableStateMapOf<Int,DanmakuItem>()}
-    val danmakuMap = rememberDanmakuMap(videoPath,vocabulary)
+    val danmakuMap = rememberDanmakuMap(videoPath,wordState.vocabulary)
     var showMessageDialog by remember{mutableStateOf(false)}
     var message by remember { mutableStateOf("") }
     var isPlaying by remember { mutableStateOf(false) }
@@ -127,8 +134,8 @@ fun Player(
     ) }
 
     val closeWindow: () -> Unit = {
-        close()
         videoPlayerComponent.mediaPlayer().release()
+        close()
     }
 
     val play: () -> Unit = {
@@ -283,7 +290,7 @@ fun Player(
                     }
 
                     Box(Modifier.fillMaxSize()){
-                        DanmakuBox(quicklyLocate,showingDanmaku,isManualPause,play)
+                        DanmakuBox(wordState,playerState,showingDanmaku,isManualPause,play,windowState.size.height.value.toInt())
                         Column(
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally,
@@ -396,8 +403,9 @@ fun Player(
                                                     horizontalArrangement = Arrangement.SpaceBetween,
                                                     modifier = Modifier.fillMaxWidth()){
                                                     Text("快速定位弹幕")
-                                                    Switch(checked = quicklyLocate, onCheckedChange = {
-                                                        quicklyLocate = it
+                                                    Switch(checked = playerState.showSequence, onCheckedChange = {
+                                                        playerState.showSequence = it
+                                                        playerState.savePlayerState()
                                                     })
                                                 }
                                             }
@@ -406,23 +414,24 @@ fun Player(
                                                     horizontalArrangement = Arrangement.SpaceBetween,
                                                     modifier = Modifier.fillMaxWidth()){
                                                     Text("弹幕")
-                                                    Switch(checked = danmakuVisible, onCheckedChange = {
-                                                        if(danmakuVisible){
-                                                            danmakuVisible = false
+                                                    Switch(checked = playerState.danmakuVisible, onCheckedChange = {
+                                                        if(playerState.danmakuVisible){
+                                                            playerState.danmakuVisible = false
                                                             shouldAddDanmaku.clear()
                                                             showingDanmaku.clear()
                                                             danmakuTimer.stop()
                                                         }else{
-                                                            danmakuVisible = true
+                                                            playerState.danmakuVisible = true
                                                             danmakuTimer.restart()
                                                         }
+                                                        playerState.savePlayerState()
                                                     })
                                                 }
                                             }
                                         }
 
                                     }
-                                    if(quicklyLocate && danmakuVisible){
+                                    if(playerState.showSequence && playerState.danmakuVisible){
 
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
@@ -512,16 +521,16 @@ fun Player(
                     // 单位为秒
                     val startTime = (newTime.milliseconds.inWholeSeconds + widthDuration.div(3000)).toInt()
                     // 每秒执行一次
-                    if(danmakuVisible && startTime != lastTime){
+                    if(playerState.danmakuVisible && startTime != lastTime){
                         val danmakuList = danmakuMap.get(startTime)
                         var offsetY = 20
-                        val sequenceWidth = if(quicklyLocate) counter.toString().length * 12 else 0
+                        val sequenceWidth = if(playerState.showSequence) counter.toString().length * 12 else 0
                         val offsetX = sequenceWidth + lastMaxLength * 12 + 30
                         var maxLength = 0
                         danmakuList?.forEach { danmakuItem ->
-                            if(offsetY > 620) offsetY = 20
+                            if(offsetY > 395) offsetY = 10
                             danmakuItem.position = IntOffset(window.size.width+offsetX,offsetY)
-                            offsetY += 40
+                            offsetY += 35
                             if(danmakuItem.content.length > maxLength) {
                                 maxLength =  danmakuItem.content.length
                             }
@@ -588,10 +597,12 @@ fun Player(
 
 @Composable
 fun DanmakuBox(
-    showSequence:Boolean,
+    wordState: WordState,
+    playerState: PlayerState,
     showingDanmaku: SnapshotStateMap<Int, DanmakuItem>,
     isManualPause:Boolean,
-    play:()-> Unit
+    play:()-> Unit,
+    windowHeight:Int
 ){
     /** 如果手动触发了暂停，就不处理播放函数 */
     val playEvent:()-> Unit = {
@@ -600,13 +611,128 @@ fun DanmakuBox(
         }
     }
 
+    /** 删除单词 */
+    val deleteWord:(DanmakuItem) -> Unit = { danmakuItem ->
+        if(danmakuItem.word != null){
+            val word = danmakuItem.word
+            wordState.vocabulary.wordList.remove(word)
+            wordState.vocabulary.size = wordState.vocabulary.wordList.size
+            wordState.saveCurrentVocabulary()
+        }
+        showingDanmaku.remove(danmakuItem.sequence)
+        playEvent()
+    }
+
+    /** 把单词加入到熟悉词库 */
+    val addToFamiliar:(DanmakuItem) -> Unit = { danmakuItem ->
+        val word = danmakuItem.word
+        if(word != null){
+
+            val file = getFamiliarVocabularyFile()
+            val familiar =  loadVocabulary(file.absolutePath)
+            // 如果当前词库是 MKV 或 SUBTITLES 类型的词库，需要把内置词库转换成外部词库。
+            if (wordState.vocabulary.type == VocabularyType.MKV ||
+                wordState.vocabulary.type == VocabularyType.SUBTITLES
+            ) {
+                word.captions.forEach{caption ->
+                    val externalCaption = ExternalCaption(
+                        relateVideoPath = wordState.vocabulary.relateVideoPath,
+                        subtitlesTrackId = wordState.vocabulary.subtitlesTrackId,
+                        subtitlesName = wordState.vocabulary.name,
+                        start = caption.start,
+                        end = caption.end,
+                        content = caption.content
+                    )
+                    word.externalCaptions.add(externalCaption)
+                }
+                word.captions.clear()
+
+            }
+            if(!familiar.wordList.contains(word)){
+                familiar.wordList.add(word)
+                familiar.size = familiar.wordList.size
+            }
+            saveVocabulary(familiar,file.absolutePath)
+            deleteWord(danmakuItem)
+        }
+
+    }
+
     /** 等宽字体*/
     val monospace by remember { mutableStateOf(FontFamily(Font("font/Inconsolata-Regular.ttf", FontWeight.Normal, FontStyle.Normal))) }
 
     // 在这个 Box 使用 Modifier.fillMaxSize() 可能会导致 DropdownMenu 显示的位置不准。
     Box{
         showingDanmaku.forEach { (_, danmakuItem) ->
-            Danmaku(showSequence,danmakuItem,playEvent,monospace)
+            Danmaku(
+                playerState,
+                danmakuItem,
+                playEvent,
+                monospace,
+                windowHeight,
+                deleteWord = {deleteWord(it)},
+                addToFamiliar = {addToFamiliar(it)}
+            )
         }
     }
+}
+
+
+@OptIn(ExperimentalSerializationApi::class)
+@Composable
+fun rememberPlayerState() = remember{
+    val playerSettings = getPlayerSettingsFile()
+    if(playerSettings.exists()){
+        try{
+            val decodeFormat = Json { ignoreUnknownKeys }
+            val playerData = decodeFormat.decodeFromString<PlayerData>(playerSettings.readText())
+            mutableStateOf(PlayerState(playerData))
+        }catch (exception:Exception){
+            println("解析视频播放器的设置失败，将使用默认值")
+            val playerState = PlayerState(PlayerData())
+            mutableStateOf(playerState)
+        }
+    }else{
+        val playerState = PlayerState(PlayerData())
+        mutableStateOf(playerState)
+    }
+}
+@ExperimentalSerializationApi
+@Serializable
+data class PlayerData(
+    var showSequence: Boolean = false,
+    var danmakuVisible: Boolean = false,
+    var autoCopy:Boolean = false,
+    var autoSpeak:Boolean = true,
+    var preferredChinese:Boolean = true
+)
+@OptIn(ExperimentalSerializationApi::class)
+class PlayerState(playerData: PlayerData){
+    var showSequence by mutableStateOf(playerData.showSequence)
+    var danmakuVisible by mutableStateOf(playerData.danmakuVisible)
+    var autoCopy by mutableStateOf(playerData.autoCopy)
+    var autoSpeak by mutableStateOf(playerData.autoSpeak)
+    var preferredChinese by mutableStateOf(playerData.preferredChinese)
+
+    fun savePlayerState(){
+        val encodeBuilder = Json{
+            prettyPrint = true
+            encodeDefaults = true
+        }
+        runBlocking {
+            launch {
+                val playerData = PlayerData(
+                    showSequence, danmakuVisible, autoCopy, autoSpeak, preferredChinese
+                )
+                val json = encodeBuilder.encodeToString(playerData)
+                val playerSettings = getPlayerSettingsFile()
+                playerSettings.writeText(json)
+            }
+        }
+    }
+}
+
+private fun getPlayerSettingsFile():File{
+    val settingsDir = getSettingsDirectory()
+    return File(settingsDir, "PlayerSettings.json")
 }

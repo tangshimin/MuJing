@@ -131,7 +131,7 @@ fun TypingWord(
                     Player(
                         close = {appState.showBulletScreenPlayer = false},
                         videoPath = appState.bulletScreenPlayerPath,
-                        vocabulary = typingWord.vocabulary,
+                        wordState = typingWord,
                     )
                 }
 
@@ -2138,7 +2138,7 @@ fun Caption(
 
 /** 删除按钮*/
 @Composable
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 fun DeleteButton(onClick:()->Unit){
     TooltipArea(
         tooltip = {
@@ -2166,7 +2166,12 @@ fun DeleteButton(onClick:()->Unit){
             offset = DpOffset.Zero
         )
     ) {
-        IconButton(onClick = { onClick() }) {
+        IconButton(onClick = { onClick() },modifier = Modifier.onKeyEvent { keyEvent ->
+            if(keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp){
+                onClick()
+                true
+            }else false
+        }) {
             Icon(
                 Icons.Filled.Delete,
                 contentDescription = "Localized description",
@@ -2258,7 +2263,7 @@ fun HardButton(
 
 /** 熟悉单词按钮 */
 @Composable
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 fun FamiliarButton(
     onClick: () -> Unit,
 ){
@@ -2288,7 +2293,12 @@ fun FamiliarButton(
             offset = DpOffset.Zero
         )
     ) {
-        IconButton(onClick = { onClick() }) {
+        IconButton(onClick = { onClick() },modifier = Modifier.onKeyEvent { keyEvent ->
+            if(keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp){
+                onClick()
+                true
+            }else false
+        }) {
             Icon(
                 Icons.Outlined.StarOutline,
                 contentDescription = "Localized description",
@@ -2323,7 +2333,7 @@ fun BookmarkButton(
 
 /** 复制按钮 */
 @Composable
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 fun CopyButton(wordValue:String){
     TooltipArea(
         tooltip = {
@@ -2355,6 +2365,11 @@ fun CopyButton(wordValue:String){
         val clipboardManager = LocalClipboardManager.current
         IconButton(onClick = {
             clipboardManager.setText(AnnotatedString(wordValue))
+        },modifier = Modifier.onKeyEvent { keyEvent ->
+            if(keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp){
+                clipboardManager.setText(AnnotatedString(wordValue))
+                true
+            }else false
         }) {
             Icon(
                 Icons.Filled.ContentCopy,
