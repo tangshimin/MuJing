@@ -67,89 +67,110 @@ import kotlin.time.Duration.Companion.milliseconds
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun Player(
-    close:()->Unit,
-    videoPath:String,
+    close: () -> Unit,
+    videoPath: String,
     wordState: WordState
-){
+) {
     val windowState = rememberWindowState(
-        size = DpSize(1289.dp,854.dp),
+        size = DpSize(1289.dp, 854.dp),
         placement = WindowPlacement.Floating,
         position = WindowPosition(Alignment.Center)
     )
+
     /** 播放器的设置 */
     val playerState by rememberPlayerState()
+
     /** 标题 */
-    val title  by remember { mutableStateOf(File(videoPath).name) }
+    val title by remember { mutableStateOf(File(videoPath).name) }
+
     /** 显示视频的窗口 */
     var playerWindow by remember { mutableStateOf<ComposeWindow?>(null) }
+
     /** 控制视频显示的窗口，弹幕显示到这个窗口 */
     var controlWindow by remember { mutableStateOf<ComposeWindow?>(null) }
+
     /** 显示消息对话框 */
-    var showMessageDialog by remember{mutableStateOf(false)}
+    var showMessageDialog by remember { mutableStateOf(false) }
+
     /** 要显示到消息对话框的消息 */
     var message by remember { mutableStateOf("") }
+
     /** VLC 是播放组件 */
     val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent()) }
+
     /** 是否正在播放视频 */
     var isPlaying by remember { mutableStateOf(false) }
+
     /** 时间进度条 */
     var timeProgress by remember { mutableStateOf(0f) }
+
     /** 音量进度条 */
     var volumeProgress by remember { mutableStateOf(100f) }
+
     /** 当前时间 */
     var timeText by remember { mutableStateOf("") }
+
     /** 弹幕从右到左需要的时间 */
-    val videoDuration by remember(videoPath){
+    val videoDuration by remember(videoPath) {
         videoPlayerComponent.mediaPlayer().media().prepare(videoPath)
-        derivedStateOf{videoPlayerComponent.mediaPlayer().media().info().duration()}
+        derivedStateOf { videoPlayerComponent.mediaPlayer().media().info().duration() }
     }
 
-
     /** 用户输入的弹幕编号 */
-    var danmakuNum by remember{mutableStateOf("")}
+    var danmakuNum by remember { mutableStateOf("") }
+
     /** 弹幕计数器，用于快速定位弹幕 */
     var counter by remember { mutableStateOf(0) }
+
     /** 这个视频的所有弹幕 */
-    val danmakuMap = rememberDanmakuMap(videoPath,wordState.vocabulary)
+    val danmakuMap = rememberDanmakuMap(videoPath, wordState.vocabulary)
+
     /** 正在显示的弹幕列表 */
-    val showingDanmaku = remember{ mutableStateMapOf<Int,DanmakuItem>()}
+    val showingDanmaku = remember { mutableStateMapOf<Int, DanmakuItem>() }
+
     /** 需要添加到正在显示的弹幕列表的弹幕 */
-    val shouldAddDanmaku = remember{ mutableStateMapOf<Int,DanmakuItem>()}
+    val shouldAddDanmaku = remember { mutableStateMapOf<Int, DanmakuItem>() }
+
     /** 手动触发的暂停，比如空格键，双击视频触发的暂停。区别于鼠标移动到弹幕触发的自动暂停。*/
     var isManualPause by remember { mutableStateOf(false) }
+
     /** 播放器控制区的可见性 */
     var controlBoxVisible by remember { mutableStateOf(false) }
+
     /** 展开设置菜单 */
-    var settingsExpanded by remember{ mutableStateOf(false) }
+    var settingsExpanded by remember { mutableStateOf(false) }
 
     /** 弹幕从右到左需要的时间，单位为毫秒 */
-    var widthDuration by remember{ mutableStateOf(windowState.size.width.value.div(3).times(30).toInt()) }
+    var widthDuration by remember { mutableStateOf(windowState.size.width.value.div(3).times(30).toInt()) }
 
     /** 动作监听器每次需要删除的弹幕列表 */
-    val removedList = remember{ mutableStateListOf<DanmakuItem>()}
+    val removedList = remember { mutableStateListOf<DanmakuItem>() }
+
     /** 使弹幕从右往左移动的定时器 */
-    val danmakuTimer by remember{ mutableStateOf(
-        Timer(30) {
-            val showingList = showingDanmaku.values.toList()
-            for(i in showingList.indices){
-                val danmakuItem = showingList.getOrNull(i)
-                if((danmakuItem != null) && !danmakuItem.isPause){
-                        if(danmakuItem.position.x > -30){
-                            danmakuItem.position = danmakuItem.position.copy(x = danmakuItem.position.x -3)
-                        }else{
+    val danmakuTimer by remember {
+        mutableStateOf(
+            Timer(30) {
+                val showingList = showingDanmaku.values.toList()
+                for (i in showingList.indices) {
+                    val danmakuItem = showingList.getOrNull(i)
+                    if ((danmakuItem != null) && !danmakuItem.isPause) {
+                        if (danmakuItem.position.x > -30) {
+                            danmakuItem.position = danmakuItem.position.copy(x = danmakuItem.position.x - 3)
+                        } else {
                             danmakuItem.show = false
                             removedList.add(danmakuItem)
                         }
+                    }
                 }
+                removedList.forEach { danmakuItem ->
+                    showingDanmaku.remove(danmakuItem.sequence)
+                }
+                removedList.clear()
+                showingDanmaku.putAll(shouldAddDanmaku)
+                shouldAddDanmaku.clear()
             }
-            removedList.forEach { danmakuItem ->
-                showingDanmaku.remove(danmakuItem.sequence)
-            }
-            removedList.clear()
-            showingDanmaku.putAll(shouldAddDanmaku)
-            shouldAddDanmaku.clear()
-        }
-    ) }
+        )
+    }
 
     /** 关闭窗口 */
     val closeWindow: () -> Unit = {
@@ -159,23 +180,24 @@ fun Player(
 
     /** 播放 */
     val play: () -> Unit = {
-        if(isPlaying){
+        if (isPlaying) {
             danmakuTimer.stop()
             isPlaying = false
             videoPlayerComponent.mediaPlayer().controls().pause()
-        }else {
+        } else {
             danmakuTimer.restart()
             isPlaying = true
             videoPlayerComponent.mediaPlayer().controls().play()
         }
     }
+
     /** 手动触发暂停，与之对应的是，用鼠标移动弹幕触发的自动暂停和用快速定位触发的自动自动暂停。*/
-    val manualPause:() -> Unit = {
+    val manualPause: () -> Unit = {
         isManualPause = !isManualPause
     }
 
     /** 清理弹幕 */
-    val cleanDanmaku:() -> Unit = {
+    val cleanDanmaku: () -> Unit = {
         showingDanmaku.clear()
         removedList.clear()
         shouldAddDanmaku.clear()
@@ -191,13 +213,14 @@ fun Player(
         onCloseRequest = { closeWindow() },
     ) {
         playerWindow = window
-        Column (Modifier.fillMaxSize()){
-            Box(Modifier.fillMaxWidth().height(40.dp)
-                .background(if(MaterialTheme.colors.isLight) Color.White else Color(48, 50, 52))
+        Column(Modifier.fillMaxSize()) {
+            Box(
+                Modifier.fillMaxWidth().height(40.dp)
+                    .background(if (MaterialTheme.colors.isLight) Color.White else Color(48, 50, 52))
             )
-            Box(Modifier.fillMaxSize()){
-                val videoSize by remember(windowState.size){
-                    derivedStateOf { Dimension(window.size.width,window.size.height - 40) }
+            Box(Modifier.fillMaxSize()) {
+                val videoSize by remember(windowState.size) {
+                    derivedStateOf { Dimension(window.size.width, window.size.height - 40) }
                 }
                 videoPlayerComponent.size = videoSize
                 SwingPanel(
@@ -207,11 +230,12 @@ fun Player(
                     update = {}
                 )
 
-                LaunchedEffect(Unit){
-                    window.addWindowListener(object:WindowListener{
+                LaunchedEffect(Unit) {
+                    window.addWindowListener(object : WindowListener {
                         override fun windowActivated(e: WindowEvent?) {
                             controlWindow?.requestFocus()
                         }
+
                         override fun windowOpened(e: WindowEvent?) {}
                         override fun windowClosing(e: WindowEvent?) {}
                         override fun windowClosed(e: WindowEvent?) {}
@@ -233,35 +257,35 @@ fun Player(
         alwaysOnTop = true,
         state = windowState,
         icon = painterResource("logo/logo.png"),
-        onKeyEvent = {keyEvent ->
-            if(keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp){
+        onKeyEvent = { keyEvent ->
+            if (keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp) {
                 play()
                 manualPause()
                 true
-            }else if(keyEvent.key == Key.DirectionRight && keyEvent.type == KeyEventType.KeyUp){
+            } else if (keyEvent.key == Key.DirectionRight && keyEvent.type == KeyEventType.KeyUp) {
                 videoPlayerComponent.mediaPlayer().controls().skipTime(+5000L)
                 cleanDanmaku()
                 true
-            }else if(keyEvent.key == Key.DirectionLeft && keyEvent.type == KeyEventType.KeyUp){
+            } else if (keyEvent.key == Key.DirectionLeft && keyEvent.type == KeyEventType.KeyUp) {
                 videoPlayerComponent.mediaPlayer().controls().skipTime(-5000L)
                 cleanDanmaku()
                 true
-            }else false
+            } else false
 
         }
     ) {
         controlWindow = window
         Surface(
-            color =Color.Transparent,
+            color = Color.Transparent,
             modifier = Modifier.fillMaxSize()
                 .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
-                .onPointerEvent(PointerEventType.Enter){
-                    if(!controlBoxVisible) {
+                .onPointerEvent(PointerEventType.Enter) {
+                    if (!controlBoxVisible) {
                         controlBoxVisible = true
                     }
                 }
-                .onPointerEvent(PointerEventType.Exit){
-                    if(isPlaying && !settingsExpanded){
+                .onPointerEvent(PointerEventType.Exit) {
+                    if (isPlaying && !settingsExpanded) {
                         controlBoxVisible = false
                     }
                 }
@@ -269,38 +293,44 @@ fun Player(
 
         ) {
 
-            WindowDraggableArea (
+            WindowDraggableArea(
                 Modifier
                     .combinedClickable(
                         interactionSource = remember(::MutableInteractionSource),
                         indication = null,
-                onDoubleClick = {
-                    play()
-                    manualPause()
-                                },
-                onClick = {},
-                onLongClick = {}
-            )
-            ){
+                        onDoubleClick = {
+                            play()
+                            manualPause()
+                        },
+                        onClick = {},
+                        onLongClick = {}
+                    )
+            ) {
                 Column {
-                    Box(Modifier.fillMaxWidth()
-                        .height(40.dp)
-                        .background(if(MaterialTheme.colors.isLight) Color.White else Color(48, 50, 52))
-                    ){
-                        Text(title, modifier = Modifier.align(Alignment.Center),color = MaterialTheme.colors.onBackground)
-                        Row(Modifier.align(Alignment.CenterEnd)){
+                    Box(
+                        Modifier.fillMaxWidth()
+                            .height(40.dp)
+                            .background(if (MaterialTheme.colors.isLight) Color.White else Color(48, 50, 52))
+                    ) {
+                        Text(
+                            title,
+                            modifier = Modifier.align(Alignment.Center),
+                            color = MaterialTheme.colors.onBackground
+                        )
+                        Row(Modifier.align(Alignment.CenterEnd)) {
                             IconButton(onClick = {
                                 windowState.isMinimized = true
-                            },modifier = Modifier.size(40.dp)){
+                            }, modifier = Modifier.size(40.dp)) {
                                 Icon(
                                     Icons.Filled.Remove,
                                     contentDescription = "Localized description",
                                     tint = Color(140, 140, 140),
                                 )
                             }
-                            IconButton(onClick = { closeWindow()},
+                            IconButton(
+                                onClick = { closeWindow() },
                                 modifier = Modifier.size(40.dp)
-                            ){
+                            ) {
                                 Icon(
                                     Icons.Filled.Close,
                                     contentDescription = "Localized description",
@@ -312,19 +342,27 @@ fun Player(
 
                     }
 
-                    Box(Modifier.fillMaxSize()){
-                        DanmakuBox(wordState,playerState,showingDanmaku,isManualPause,play,windowState.size.height.value.toInt())
+                    Box(Modifier.fillMaxSize()) {
+                        DanmakuBox(
+                            wordState,
+                            playerState,
+                            showingDanmaku,
+                            isManualPause,
+                            play,
+                            windowState.size.height.value.toInt()
+                        )
                         Column(
                             verticalArrangement = Arrangement.Center,
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom =5.dp )
-                        ){
-                            if(controlBoxVisible){
+                            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp)
+                        ) {
+                            if (controlBoxVisible) {
                                 // 进度条
-                                var sliderVisible by remember{ mutableStateOf(false) }
+                                var sliderVisible by remember { mutableStateOf(false) }
                                 Box(
                                     Modifier
-                                        .fillMaxWidth().padding(start = 5.dp,end = 5.dp,bottom = 10.dp).offset(x = 0.dp,y = 20.dp)
+                                        .fillMaxWidth().padding(start = 5.dp, end = 5.dp, bottom = 10.dp)
+                                        .offset(x = 0.dp, y = 20.dp)
                                         .onPointerEvent(PointerEventType.Enter) { sliderVisible = true }
                                         .onPointerEvent(PointerEventType.Exit) { sliderVisible = false }
                                 ) {
@@ -332,7 +370,7 @@ fun Player(
                                         targetValue = timeProgress,
                                         animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
                                     )
-                                    if(sliderVisible){
+                                    if (sliderVisible) {
                                         Slider(
                                             value = timeProgress,
                                             modifier = Modifier.align(Alignment.Center)
@@ -342,63 +380,71 @@ fun Player(
                                                 cleanDanmaku()
                                                 videoPlayerComponent.mediaPlayer().controls().setPosition(timeProgress)
                                             })
-                                    }else{
-                                        LinearProgressIndicator(progress = animatedPosition,
-                                            modifier = Modifier.align(Alignment.Center).fillMaxWidth().offset(x=0.dp,y= (-20).dp).padding(top = 20.dp))
+                                    } else {
+                                        LinearProgressIndicator(
+                                            progress = animatedPosition,
+                                            modifier = Modifier.align(Alignment.Center).fillMaxWidth()
+                                                .offset(x = 0.dp, y = (-20).dp).padding(top = 20.dp)
+                                        )
                                     }
                                 }
                                 // 暂停、音量、时间、弹幕、设置
-                                Row(verticalAlignment = Alignment.CenterVertically,
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.Start,
-                                    modifier = Modifier.width(600.dp)){
+                                    modifier = Modifier.width(600.dp)
+                                ) {
                                     IconButton(onClick = {
                                         play()
                                         manualPause()
-                                    }){
+                                    }) {
                                         Icon(
-                                            if(isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                                            if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                                             contentDescription = "Localized description",
                                             tint = Color.White,
                                         )
                                     }
-                                    var volumeOff by remember{ mutableStateOf(false) }
-                                    var volumeSliderVisible by remember{ mutableStateOf(false) }
+                                    var volumeOff by remember { mutableStateOf(false) }
+                                    var volumeSliderVisible by remember { mutableStateOf(false) }
                                     Row(
                                         modifier = Modifier
-                                            .onPointerEvent(PointerEventType.Enter){volumeSliderVisible = true}
-                                            .onPointerEvent(PointerEventType.Exit){volumeSliderVisible = false}
-                                    ){
+                                            .onPointerEvent(PointerEventType.Enter) { volumeSliderVisible = true }
+                                            .onPointerEvent(PointerEventType.Exit) { volumeSliderVisible = false }
+                                    ) {
                                         IconButton(onClick = {
                                             volumeOff = !volumeOff
                                             videoPlayerComponent.mediaPlayer().audio().isMute = volumeOff
-                                        }){
+                                        }) {
                                             Icon(
-                                                if(volumeOff) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+                                                if (volumeOff) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
                                                 contentDescription = "Localized description",
                                                 tint = Color.White,
                                             )
                                         }
-                                        if(volumeSliderVisible){
+                                        if (volumeSliderVisible) {
                                             Slider(
                                                 value = volumeProgress,
                                                 valueRange = 1f..100f,
                                                 onValueChange = {
                                                     volumeProgress = it
-                                                    videoPlayerComponent.mediaPlayer().audio().setVolume(volumeProgress.toInt())
+                                                    videoPlayerComponent.mediaPlayer().audio()
+                                                        .setVolume(volumeProgress.toInt())
                                                 },
                                                 modifier = Modifier
                                                     .width(60.dp)
-                                                    .onPointerEvent(PointerEventType.Enter){volumeSliderVisible = true}
+                                                    .onPointerEvent(PointerEventType.Enter) {
+                                                        volumeSliderVisible = true
+                                                    }
                                                     .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
                                             )
                                         }
                                     }
 
 
-                                    Text(" $timeText ",color = Color.White)
-                                    Box{
+                                    Text(" $timeText ", color = Color.White)
+                                    Box {
 
-                                        IconButton(onClick = {settingsExpanded = true }){
+                                        IconButton(onClick = { settingsExpanded = true }) {
                                             Icon(
                                                 Icons.Filled.Settings,
                                                 contentDescription = "Localized description",
@@ -407,24 +453,27 @@ fun Player(
                                         }
                                         DropdownMenu(
                                             expanded = settingsExpanded,
-                                            offset = DpOffset(x = 0.dp,y = (-20).dp),
+                                            offset = DpOffset(x = 0.dp, y = (-20).dp),
                                             onDismissRequest = {
                                                 settingsExpanded = false
-                                                controlBoxVisible = true},
+                                                controlBoxVisible = true
+                                            },
                                             modifier = Modifier
-                                                .onPointerEvent(PointerEventType.Enter){
-                                                   controlBoxVisible = true
+                                                .onPointerEvent(PointerEventType.Enter) {
+                                                    controlBoxVisible = true
                                                 }
                                                 .onPointerEvent(PointerEventType.Exit) {
                                                     controlBoxVisible = true
                                                 }
                                         ) {
 
-                                            DropdownMenuItem(onClick = {  }) {
+                                            DropdownMenuItem(onClick = { }) {
 
-                                                Row(verticalAlignment = Alignment.CenterVertically,
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
                                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                                    modifier = Modifier.fillMaxWidth()){
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
                                                     Text("快速定位弹幕")
                                                     Switch(checked = playerState.showSequence, onCheckedChange = {
                                                         playerState.showSequence = it
@@ -432,18 +481,20 @@ fun Player(
                                                     })
                                                 }
                                             }
-                                            DropdownMenuItem(onClick = {  }) {
-                                                Row(verticalAlignment = Alignment.CenterVertically,
+                                            DropdownMenuItem(onClick = { }) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
                                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                                    modifier = Modifier.fillMaxWidth()){
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
                                                     Text("弹幕")
                                                     Switch(checked = playerState.danmakuVisible, onCheckedChange = {
-                                                        if(playerState.danmakuVisible){
+                                                        if (playerState.danmakuVisible) {
                                                             playerState.danmakuVisible = false
                                                             shouldAddDanmaku.clear()
                                                             showingDanmaku.clear()
                                                             danmakuTimer.stop()
-                                                        }else{
+                                                        } else {
                                                             playerState.danmakuVisible = true
                                                             danmakuTimer.restart()
                                                         }
@@ -454,20 +505,21 @@ fun Player(
                                         }
 
                                     }
-                                    if(playerState.showSequence && playerState.danmakuVisible){
+                                    if (playerState.showSequence && playerState.danmakuVisible) {
 
                                         Row(
                                             verticalAlignment = Alignment.CenterVertically,
                                             modifier = Modifier
-                                                .border(border = BorderStroke(1.dp, Color.White.copy(alpha = 0.4f)))){
-                                            fun searchNum(){
-                                                if(danmakuNum.isNotEmpty()){
+                                                .border(border = BorderStroke(1.dp, Color.White.copy(alpha = 0.4f)))
+                                        ) {
+                                            fun searchNum() {
+                                                if (danmakuNum.isNotEmpty()) {
                                                     val num = danmakuNum.toIntOrNull()
-                                                    if(num != null){
-                                                        val danmakuItem =  showingDanmaku.get(num)
-                                                        if(danmakuItem != null){
+                                                    if (num != null) {
+                                                        val danmakuItem = showingDanmaku.get(num)
+                                                        if (danmakuItem != null) {
                                                             danmakuItem.isPause = true
-                                                            if(!isManualPause){
+                                                            if (!isManualPause) {
                                                                 play()
                                                             }
                                                         }
@@ -475,27 +527,30 @@ fun Player(
 
                                                 }
                                             }
-                                            Box(modifier = Modifier.width(110.dp).padding(start = 5.dp)){
+                                            Box(modifier = Modifier.width(110.dp).padding(start = 5.dp)) {
                                                 BasicTextField(
                                                     value = danmakuNum,
                                                     singleLine = true,
-                                                    onValueChange = {danmakuNum = it},
+                                                    onValueChange = { danmakuNum = it },
                                                     cursorBrush = SolidColor(MaterialTheme.colors.primary),
                                                     textStyle = MaterialTheme.typography.h5.copy(
                                                         color = Color.White,
                                                     ),
                                                     modifier = Modifier.onKeyEvent { keyEvent ->
-                                                        if((keyEvent.key == Key.Enter || keyEvent.key == Key.NumPadEnter) && keyEvent.type == KeyEventType.KeyUp){
+                                                        if ((keyEvent.key == Key.Enter || keyEvent.key == Key.NumPadEnter) && keyEvent.type == KeyEventType.KeyUp) {
                                                             searchNum()
                                                             true
-                                                        }else false
+                                                        } else false
                                                     }
                                                 )
-                                                if(danmakuNum.isEmpty()){
-                                                    Text("输入弹幕编号",color = Color.White)
+                                                if (danmakuNum.isEmpty()) {
+                                                    Text("输入弹幕编号", color = Color.White)
                                                 }
                                             }
-                                            IconButton(onClick = { searchNum() },modifier = Modifier.size(40.dp,40.dp)){
+                                            IconButton(
+                                                onClick = { searchNum() },
+                                                modifier = Modifier.size(40.dp, 40.dp)
+                                            ) {
                                                 Icon(
                                                     Icons.Filled.Navigation,
                                                     contentDescription = "Localized description",
@@ -512,10 +567,10 @@ fun Player(
 
                         MessageDialog(
                             show = showMessageDialog,
-                            close = {showMessageDialog = false},
+                            close = { showMessageDialog = false },
                             message = message
                         )
-                        LaunchedEffect(Unit){
+                        LaunchedEffect(Unit) {
                             danmakuTimer.start()
                         }
                     }
@@ -525,16 +580,16 @@ fun Player(
         }
 
         // 设置播放器、播放视频
-        LaunchedEffect(Unit){
+        LaunchedEffect(Unit) {
             var lastTime = -1
             var lastMaxLength = 0
-            videoPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(object :MediaPlayerEventAdapter(){
+            videoPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(object : MediaPlayerEventAdapter() {
                 override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
 
                     timeProgress = (newTime.toFloat()).div(videoDuration)
                     var startText: String
                     timeProgress.times(videoDuration).toInt().milliseconds.toComponents { hours, minutes, seconds, _ ->
-                        startText =  timeFormat(hours, minutes, seconds)
+                        startText = timeFormat(hours, minutes, seconds)
                     }
                     videoDuration.milliseconds.toComponents { hours, minutes, seconds, _ ->
                         val durationText = timeFormat(hours, minutes, seconds)
@@ -544,23 +599,23 @@ fun Player(
                     // 单位为秒
                     val startTime = (newTime.milliseconds.inWholeSeconds + widthDuration.div(3000)).toInt()
                     // 每秒执行一次
-                    if(playerState.danmakuVisible && startTime != lastTime){
+                    if (playerState.danmakuVisible && startTime != lastTime) {
                         val danmakuList = danmakuMap.get(startTime)
                         var offsetY = 20
-                        val sequenceWidth = if(playerState.showSequence) counter.toString().length * 12 else 0
+                        val sequenceWidth = if (playerState.showSequence) counter.toString().length * 12 else 0
                         val offsetX = sequenceWidth + lastMaxLength * 12 + 30
                         var maxLength = 0
                         danmakuList?.forEach { danmakuItem ->
-                            if(offsetY > 395) offsetY = 10
-                            danmakuItem.position = IntOffset(window.size.width+offsetX,offsetY)
+                            if (offsetY > 395) offsetY = 10
+                            danmakuItem.position = IntOffset(window.size.width + offsetX, offsetY)
                             offsetY += 35
-                            if(danmakuItem.content.length > maxLength) {
-                                maxLength =  danmakuItem.content.length
+                            if (danmakuItem.content.length > maxLength) {
+                                maxLength = danmakuItem.content.length
                             }
 
                             // TODO 这里还是有多线程问题，可能会出现：这里刚刚添加，在另一个控制动画的 Timer 里面马上就删除了。
                             danmakuItem.sequence = counter
-                            shouldAddDanmaku.put(counter,danmakuItem)
+                            shouldAddDanmaku.put(counter, danmakuItem)
                             counter++
                         }
                         lastMaxLength = maxLength
@@ -592,20 +647,21 @@ fun Player(
         // 同步窗口尺寸
         LaunchedEffect(windowState) {
             snapshotFlow { windowState.size }
-                .onEach{
-                    videoPlayerComponent.size = Dimension(windowState.size.width.value.toInt(),windowState.size.height.value.toInt() - 40)
+                .onEach {
+                    videoPlayerComponent.size =
+                        Dimension(windowState.size.width.value.toInt(), windowState.size.height.value.toInt() - 40)
                     widthDuration = windowState.size.width.value.div(3).times(30).toInt()
                 }
                 .launchIn(this)
             snapshotFlow { windowState.placement }
-                .onEach{
-                    if(windowState.placement == WindowPlacement.Maximized){
+                .onEach {
+                    if (windowState.placement == WindowPlacement.Maximized) {
                         playerWindow!!.placement = WindowPlacement.Floating
                         controlWindow!!.placement = WindowPlacement.Floating
                         showMessageDialog = true
                         message = "暂时不支持通过快捷键最大化窗口，\n但是可以手动调整窗口到最大。"
                         controlWindow?.requestFocus()
-                    }else if(windowState.placement == WindowPlacement.Fullscreen){
+                    } else if (windowState.placement == WindowPlacement.Fullscreen) {
                         playerWindow!!.placement = WindowPlacement.Floating
                         controlWindow!!.placement = WindowPlacement.Floating
                         showMessageDialog = true
@@ -623,20 +679,20 @@ fun DanmakuBox(
     wordState: WordState,
     playerState: PlayerState,
     showingDanmaku: SnapshotStateMap<Int, DanmakuItem>,
-    isManualPause:Boolean,
-    play:()-> Unit,
-    windowHeight:Int
-){
+    isManualPause: Boolean,
+    play: () -> Unit,
+    windowHeight: Int
+) {
     /** 如果手动触发了暂停，就不处理播放函数 */
-    val playEvent:()-> Unit = {
-        if(!isManualPause){
+    val playEvent: () -> Unit = {
+        if (!isManualPause) {
             play()
         }
     }
 
     /** 删除单词 */
-    val deleteWord:(DanmakuItem) -> Unit = { danmakuItem ->
-        if(danmakuItem.word != null){
+    val deleteWord: (DanmakuItem) -> Unit = { danmakuItem ->
+        if (danmakuItem.word != null) {
             val word = danmakuItem.word
             wordState.vocabulary.wordList.remove(word)
             wordState.vocabulary.size = wordState.vocabulary.wordList.size
@@ -647,17 +703,17 @@ fun DanmakuBox(
     }
 
     /** 把单词加入到熟悉词库 */
-    val addToFamiliar:(DanmakuItem) -> Unit = { danmakuItem ->
+    val addToFamiliar: (DanmakuItem) -> Unit = { danmakuItem ->
         val word = danmakuItem.word
-        if(word != null){
+        if (word != null) {
 
             val file = getFamiliarVocabularyFile()
-            val familiar =  loadVocabulary(file.absolutePath)
+            val familiar = loadVocabulary(file.absolutePath)
             // 如果当前词库是 MKV 或 SUBTITLES 类型的词库，需要把内置词库转换成外部词库。
             if (wordState.vocabulary.type == VocabularyType.MKV ||
                 wordState.vocabulary.type == VocabularyType.SUBTITLES
             ) {
-                word.captions.forEach{caption ->
+                word.captions.forEach { caption ->
                     val externalCaption = ExternalCaption(
                         relateVideoPath = wordState.vocabulary.relateVideoPath,
                         subtitlesTrackId = wordState.vocabulary.subtitlesTrackId,
@@ -671,21 +727,31 @@ fun DanmakuBox(
                 word.captions.clear()
 
             }
-            if(!familiar.wordList.contains(word)){
+            if (!familiar.wordList.contains(word)) {
                 familiar.wordList.add(word)
                 familiar.size = familiar.wordList.size
             }
-            saveVocabulary(familiar,file.absolutePath)
+            saveVocabulary(familiar, file.absolutePath)
             deleteWord(danmakuItem)
         }
 
     }
 
     /** 等宽字体*/
-    val monospace by remember { mutableStateOf(FontFamily(Font("font/Inconsolata-Regular.ttf", FontWeight.Normal, FontStyle.Normal))) }
+    val monospace by remember {
+        mutableStateOf(
+            FontFamily(
+                Font(
+                    "font/Inconsolata-Regular.ttf",
+                    FontWeight.Normal,
+                    FontStyle.Normal
+                )
+            )
+        )
+    }
 
     // 在这个 Box 使用 Modifier.fillMaxSize() 可能会导致 DropdownMenu 显示的位置不准。
-    Box{
+    Box {
         showingDanmaku.forEach { (_, danmakuItem) ->
             Danmaku(
                 playerState,
@@ -693,8 +759,8 @@ fun DanmakuBox(
                 playEvent,
                 monospace,
                 windowHeight,
-                deleteWord = {deleteWord(it)},
-                addToFamiliar = {addToFamiliar(it)}
+                deleteWord = { deleteWord(it) },
+                addToFamiliar = { addToFamiliar(it) }
             )
         }
     }
@@ -702,35 +768,35 @@ fun DanmakuBox(
 
 @Composable
 fun rememberDanmakuMap(
-    videoPath:String,
+    videoPath: String,
     vocabulary: MutableVocabulary
-) = remember{
+) = remember {
     // Key 为秒 > 这一秒出现的单词列表
-    val timeMap = mutableMapOf<Int,MutableList<DanmakuItem>>()
-    if(vocabulary.relateVideoPath == videoPath){
+    val timeMap = mutableMapOf<Int, MutableList<DanmakuItem>>()
+    if (vocabulary.relateVideoPath == videoPath) {
         vocabulary.wordList.forEach { word ->
-            if(word.captions.isNotEmpty()){
+            if (word.captions.isNotEmpty()) {
                 word.captions.forEach { caption ->
 
                     val startTime = Math.floor(parseTime(caption.start)).toInt()
                     val dList = timeMap.get(startTime)
-                    val item = DanmakuItem(word.value, true, startTime, 0,false, IntOffset(0, 0), word)
-                    if(dList == null){
+                    val item = DanmakuItem(word.value, true, startTime, 0, false, IntOffset(0, 0), word)
+                    if (dList == null) {
                         val newList = mutableListOf(item)
-                        timeMap.put(startTime,newList)
-                    }else{
+                        timeMap.put(startTime, newList)
+                    } else {
                         dList.add(item)
                     }
                 }
-            }else{
+            } else {
                 word.externalCaptions.forEach { externalCaption ->
                     val startTime = Math.floor(parseTime(externalCaption.start)).toInt()
                     val dList = timeMap.get(startTime)
-                    val item = DanmakuItem(word.value, true, startTime, 0,false, IntOffset(0, 0), word)
-                    if(dList == null){
+                    val item = DanmakuItem(word.value, true, startTime, 0, false, IntOffset(0, 0), word)
+                    if (dList == null) {
                         val newList = mutableListOf(item)
-                        timeMap.put(startTime,newList)
-                    }else{
+                        timeMap.put(startTime, newList)
+                    } else {
                         dList.add(item)
                     }
                 }
@@ -742,42 +808,44 @@ fun rememberDanmakuMap(
 
 @OptIn(ExperimentalSerializationApi::class)
 @Composable
-fun rememberPlayerState() = remember{
+fun rememberPlayerState() = remember {
     val playerSettings = getPlayerSettingsFile()
-    if(playerSettings.exists()){
-        try{
+    if (playerSettings.exists()) {
+        try {
             val decodeFormat = Json { ignoreUnknownKeys }
             val playerData = decodeFormat.decodeFromString<PlayerData>(playerSettings.readText())
             mutableStateOf(PlayerState(playerData))
-        }catch (exception:Exception){
+        } catch (exception: Exception) {
             println("解析视频播放器的设置失败，将使用默认值")
             val playerState = PlayerState(PlayerData())
             mutableStateOf(playerState)
         }
-    }else{
+    } else {
         val playerState = PlayerState(PlayerData())
         mutableStateOf(playerState)
     }
 }
+
 @ExperimentalSerializationApi
 @Serializable
 data class PlayerData(
     var showSequence: Boolean = false,
     var danmakuVisible: Boolean = false,
-    var autoCopy:Boolean = false,
-    var autoSpeak:Boolean = true,
-    var preferredChinese:Boolean = true
+    var autoCopy: Boolean = false,
+    var autoSpeak: Boolean = true,
+    var preferredChinese: Boolean = true
 )
+
 @OptIn(ExperimentalSerializationApi::class)
-class PlayerState(playerData: PlayerData){
+class PlayerState(playerData: PlayerData) {
     var showSequence by mutableStateOf(playerData.showSequence)
     var danmakuVisible by mutableStateOf(playerData.danmakuVisible)
     var autoCopy by mutableStateOf(playerData.autoCopy)
     var autoSpeak by mutableStateOf(playerData.autoSpeak)
     var preferredChinese by mutableStateOf(playerData.preferredChinese)
 
-    fun savePlayerState(){
-        val encodeBuilder = Json{
+    fun savePlayerState() {
+        val encodeBuilder = Json {
             prettyPrint = true
             encodeDefaults = true
         }
@@ -794,7 +862,7 @@ class PlayerState(playerData: PlayerData){
     }
 }
 
-private fun getPlayerSettingsFile():File{
+private fun getPlayerSettingsFile(): File {
     val settingsDir = getSettingsDirectory()
     return File(settingsDir, "PlayerSettings.json")
 }

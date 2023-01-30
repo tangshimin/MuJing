@@ -37,13 +37,13 @@ import ui.FamiliarButton
 
 class DanmakuItem(
     content: String,
-    show:Boolean,
-    sequence:Int = 0,
-    startTime:Int,
+    show: Boolean,
+    sequence: Int = 0,
+    startTime: Int,
     isPause: Boolean = false,
     position: IntOffset,
-    word:Word? = null,
-){
+    word: Word? = null,
+) {
     val content by mutableStateOf(content)
     var show by mutableStateOf(show)
     val startTime by mutableStateOf(startTime)
@@ -55,12 +55,11 @@ class DanmakuItem(
         val otherItem = other as DanmakuItem
         return (this.content == otherItem.content && this.sequence == otherItem.sequence)
     }
+
     override fun hashCode(): Int {
         return content.hashCode() + sequence.hashCode()
     }
 }
-
-
 
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -69,14 +68,13 @@ fun Danmaku(
     playerState: PlayerState,
     danmakuItem: DanmakuItem,
     playEvent: () -> Unit,
-    fontFamily:FontFamily,
-    windowHeight:Int,
-    deleteWord:(DanmakuItem) -> Unit,
-    addToFamiliar:(DanmakuItem) -> Unit
+    fontFamily: FontFamily,
+    windowHeight: Int,
+    deleteWord: (DanmakuItem) -> Unit,
+    addToFamiliar: (DanmakuItem) -> Unit
 ) {
-    if(danmakuItem.show){
-        val text = if(playerState.showSequence) {
-
+    if (danmakuItem.show) {
+        val text = if (playerState.showSequence) {
             buildAnnotatedString {
                 withStyle(
                     style = SpanStyle(
@@ -86,7 +84,7 @@ fun Danmaku(
                     append("${danmakuItem.sequence} ${danmakuItem.content}")
                 }
             }
-        }else{
+        } else {
             buildAnnotatedString {
                 withStyle(
                     style = SpanStyle(
@@ -105,14 +103,15 @@ fun Danmaku(
             }
         }
         val focusRequester = remember { FocusRequester() }
-        fun enter(){
+        fun enter() {
             // 如果已经由⌈快速定位弹幕⌋暂停，就不执行。
-            if(!danmakuItem.isPause){
-                danmakuItem.isPause =  true
+            if (!danmakuItem.isPause) {
+                danmakuItem.isPause = true
                 playEvent()
             }
         }
-        fun exit(){
+
+        fun exit() {
             danmakuItem.isPause = false
             playEvent()
         }
@@ -123,28 +122,29 @@ fun Danmaku(
             color = Color.White,
             modifier = Modifier
                 .offset { danmakuItem.position }
-                .onPointerEvent(PointerEventType.Enter){ enter() }
+                .onPointerEvent(PointerEventType.Enter) { enter() }
                 .onPointerEvent(PointerEventType.Exit) { exit() }
         )
 
-        var offsetX = (danmakuItem.position.x - 200 + ((danmakuItem.sequence.toString().length + danmakuItem.content.length + 1) * 12).div(2)).dp
-        if(offsetX<0.dp) offsetX = 0.dp
+        var offsetX =
+            (danmakuItem.position.x - 200 + ((danmakuItem.sequence.toString().length + danmakuItem.content.length + 1) * 12).div(2)).dp
+        if (offsetX < 0.dp) offsetX = 0.dp
         val offsetY = danmakuItem.position.y.dp
-       val height = if(danmakuItem.position.y + 360< windowHeight-40){
+        val height = if (danmakuItem.position.y + 360 < windowHeight - 40) {
             350.dp
-        }else{
-           (windowHeight - 40 - danmakuItem.position.y).dp
+        } else {
+            (windowHeight - 40 - danmakuItem.position.y).dp
         }
         val clipboardManager = LocalClipboardManager.current
         DropdownMenu(
-            expanded =danmakuItem.isPause,
+            expanded = danmakuItem.isPause,
             onDismissRequest = {
                 danmakuItem.isPause = false
                 playEvent()
             },
-            offset = DpOffset(offsetX,offsetY),
+            offset = DpOffset(offsetX, offsetY),
             modifier = Modifier
-                .onPointerEvent(PointerEventType.Enter){ enter() }
+                .onPointerEvent(PointerEventType.Enter) { enter() }
                 .onPointerEvent(PointerEventType.Exit) {}
 
         ) {
@@ -158,35 +158,39 @@ fun Danmaku(
                     .focusable(true)
                     .focusRequester(focusRequester)
                     .onKeyEvent { keyEvent ->
-                        if(keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyUp){
+                        if (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyUp) {
                             exit()
                             true
-                        }else if(keyEvent.key == Key.Delete && keyEvent.isShiftPressed && keyEvent.type == KeyEventType.KeyUp){
+                        } else if (keyEvent.key == Key.Delete && keyEvent.isShiftPressed && keyEvent.type == KeyEventType.KeyUp) {
                             deleteWord(danmakuItem)
                             true
-                        }else if(keyEvent.key == Key.Y  && keyEvent.isCtrlPressed && keyEvent.type == KeyEventType.KeyUp){
+                        } else if (keyEvent.key == Key.Y && keyEvent.isCtrlPressed && keyEvent.type == KeyEventType.KeyUp) {
                             addToFamiliar(danmakuItem)
                             true
-                        }else if(keyEvent.key == Key.C  && keyEvent.isCtrlPressed && keyEvent.type == KeyEventType.KeyUp){
+                        } else if (keyEvent.key == Key.C && keyEvent.isCtrlPressed && keyEvent.type == KeyEventType.KeyUp) {
                             clipboardManager.setText(AnnotatedString(danmakuItem.content))
                             true
-                        }else false
+                        } else false
                     }
-                ){
-                    var settingsExpanded by remember{ mutableStateOf(false) }
-                    Box(Modifier.fillMaxWidth()){
-                        Row(verticalAlignment = Alignment.Top,
+                ) {
+                    var settingsExpanded by remember { mutableStateOf(false) }
+                    Box(Modifier.fillMaxWidth()) {
+                        Row(
+                            verticalAlignment = Alignment.Top,
                             horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth().align(Alignment.Center)){
+                            modifier = Modifier.fillMaxWidth().align(Alignment.Center)
+                        ) {
                             CopyButton(wordValue = danmakuItem.content)
                             FamiliarButton(onClick = { addToFamiliar(danmakuItem) })
                             DeleteButton(onClick = { deleteWord(danmakuItem) })
                         }
 
-                        IconButton(onClick = {settingsExpanded = !settingsExpanded},
-                            modifier = Modifier.align(Alignment.CenterEnd)){
+                        IconButton(
+                            onClick = { settingsExpanded = !settingsExpanded },
+                            modifier = Modifier.align(Alignment.CenterEnd)
+                        ) {
                             Icon(
-                                if(settingsExpanded)  Icons.Filled.Close else Icons.Filled.Settings,
+                                if (settingsExpanded) Icons.Filled.Close else Icons.Filled.Settings,
                                 contentDescription = "Localized description",
                                 tint = MaterialTheme.colors.primary
                             )
@@ -195,16 +199,18 @@ fun Danmaku(
                     }
 
 
-                    Box{
-                        var tabState by remember { mutableStateOf(if(playerState.preferredChinese) 0 else 1) }
-                        Column (Modifier.align(Alignment.Center)){
-                            Row(verticalAlignment = Alignment.CenterVertically,
+                    Box {
+                        var tabState by remember { mutableStateOf(if (playerState.preferredChinese) 0 else 1) }
+                        Column(Modifier.align(Alignment.Center)) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Center,
-                                modifier = Modifier.fillMaxWidth()){
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 Text("英 ${danmakuItem.word?.ukphone}  美 ${danmakuItem.word?.usphone}")
                                 IconButton(onClick = {
                                     // TODO 实现单词发音
-                                }){
+                                }) {
                                     Icon(
                                         Icons.Filled.VolumeUp,
                                         contentDescription = "Localized description",
@@ -233,49 +239,58 @@ fun Danmaku(
                                 0 -> {
                                     TextBox(text = danmakuItem.word?.translation ?: "")
                                 }
+
                                 1 -> {
                                     TextBox(text = danmakuItem.word?.definition ?: "")
                                 }
                             }
                         }
-                        if(settingsExpanded){
-                            Column (Modifier.fillMaxSize().background(MaterialTheme.colors.background)){
-                                val modifier = Modifier.width(300.dp).padding(start = 90.dp).clickable {  }
-                                Row(verticalAlignment = Alignment.CenterVertically,
+                        if (settingsExpanded) {
+                            Column(Modifier.fillMaxSize().background(MaterialTheme.colors.background)) {
+                                val modifier = Modifier.width(300.dp).padding(start = 90.dp).clickable { }
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    modifier = modifier){
-                                    Text("自动发音",modifier = Modifier.padding(start =10.dp))
+                                    modifier = modifier
+                                ) {
+                                    Text("自动发音", modifier = Modifier.padding(start = 10.dp))
                                     Switch(checked = playerState.autoSpeak, onCheckedChange = {
                                         playerState.autoSpeak = it
                                         playerState.savePlayerState()
                                     })
                                 }
-                                Row(verticalAlignment = Alignment.CenterVertically,
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    modifier = modifier){
-                                    Text("自动复制",modifier = Modifier.padding(start =10.dp))
+                                    modifier = modifier
+                                ) {
+                                    Text("自动复制", modifier = Modifier.padding(start = 10.dp))
                                     Switch(checked = playerState.autoCopy, onCheckedChange = {
                                         playerState.autoCopy = it
                                         playerState.savePlayerState()
                                     })
                                 }
-                                Row(verticalAlignment = Alignment.CenterVertically,
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    modifier = modifier){
-                                    Text("优先显示中文",modifier = Modifier.padding(start =10.dp))
+                                    modifier = modifier
+                                ) {
+                                    Text("优先显示中文", modifier = Modifier.padding(start = 10.dp))
                                     Switch(checked = playerState.preferredChinese, onCheckedChange = {
                                         playerState.preferredChinese = it
-                                        if(it && tabState == 1) tabState =0
+                                        if (it && tabState == 1) tabState = 0
                                         playerState.savePlayerState()
                                     })
                                 }
-                                Row(verticalAlignment = Alignment.CenterVertically,
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.SpaceBetween,
-                                    modifier = modifier){
-                                    Text("优先显示英文",modifier = Modifier.padding(start =10.dp))
+                                    modifier = modifier
+                                ) {
+                                    Text("优先显示英文", modifier = Modifier.padding(start = 10.dp))
                                     Switch(checked = !playerState.preferredChinese, onCheckedChange = {
                                         playerState.preferredChinese = !it
-                                        if(it && tabState == 0) tabState =1
+                                        if (it && tabState == 0) tabState = 1
                                         playerState.savePlayerState()
                                     })
                                 }
@@ -285,9 +300,9 @@ fun Danmaku(
 
                 }
 
-                LaunchedEffect(Unit){
+                LaunchedEffect(Unit) {
                     focusRequester.requestFocus()
-                    if(playerState.autoCopy){
+                    if (playerState.autoCopy) {
                         clipboardManager.setText(AnnotatedString(danmakuItem.content))
                     }
                 }
@@ -299,10 +314,10 @@ fun Danmaku(
 }
 
 @Composable
-fun TextBox(text:String){
-    Box (Modifier.fillMaxSize()){
+fun TextBox(text: String) {
+    Box(Modifier.fillMaxSize()) {
         val stateVertical = rememberScrollState(0)
-        Box(Modifier.verticalScroll(stateVertical)){
+        Box(Modifier.verticalScroll(stateVertical)) {
             SelectionContainer {
                 Text(
                     text = text,
@@ -313,7 +328,7 @@ fun TextBox(text:String){
             }
         }
         VerticalScrollbar(
-            style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
+            style = LocalScrollbarStyle.current.copy(shape = if (isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
             modifier = Modifier.align(Alignment.CenterEnd)
                 .fillMaxHeight(),
             adapter = rememberScrollbarAdapter(stateVertical)
