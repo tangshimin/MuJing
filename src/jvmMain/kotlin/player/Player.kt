@@ -233,6 +233,7 @@ fun Player(
         icon = painterResource("logo/logo.png"),
         state = windowState,
         undecorated = true,
+        resizable = false,
         alwaysOnTop = true,
         onCloseRequest = { closeWindow() },
     ) {
@@ -424,7 +425,6 @@ fun Player(
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.Start,
-                                    modifier = Modifier.width(600.dp)
                                 ) {
                                     IconButton(onClick = {
                                         play()
@@ -671,9 +671,10 @@ fun Player(
                     isPlaying = false
                 }
             })
-            videoPlayerComponent.mediaPlayer().media()
-                .play(videoPath)
+            videoPlayerComponent.mediaPlayer().media().play(videoPath)
             isPlaying = true
+
+            window.minimumSize = Dimension(900,854)
         }
 
         // 同步窗口尺寸
