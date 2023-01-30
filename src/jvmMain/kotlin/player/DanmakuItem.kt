@@ -140,8 +140,11 @@ fun Danmaku(
         DropdownMenu(
             expanded = danmakuItem.isPause,
             onDismissRequest = {
-                danmakuItem.isPause = false
-                playEvent()
+                if(danmakuItem.isPause){
+                    danmakuItem.isPause = false
+                    playEvent()
+                }
+
             },
             offset = DpOffset(offsetX, offsetY),
             modifier = Modifier

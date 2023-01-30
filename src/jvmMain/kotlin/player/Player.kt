@@ -136,8 +136,9 @@ fun Player(
     /** 需要添加到正在显示的弹幕列表的弹幕 */
     val shouldAddDanmaku = remember { mutableStateMapOf<Int, DanmakuItem>() }
 
-    /** 手动触发的暂停，比如空格键，双击视频触发的暂停。区别于鼠标移动到弹幕触发的自动暂停。*/
-    var isManualPause by remember { mutableStateOf(false) }
+    /** 通用的暂停操作，比如空格键，双击视频触发的暂停。
+     * 使用这种方式触发暂停后，可以查看多个弹幕的解释，不会触发播放函数 */
+    var isNormalPause by remember { mutableStateOf(false) }
 
     /** 播放器控制区的可见性 */
     var controlBoxVisible by remember { mutableStateOf(false) }
@@ -197,8 +198,8 @@ fun Player(
     }
 
     /** 手动触发暂停，与之对应的是，用鼠标移动弹幕触发的自动暂停和用快速定位触发的自动自动暂停。*/
-    val manualPause: () -> Unit = {
-        isManualPause = !isManualPause
+    val normalPause: () -> Unit = {
+        isNormalPause = !isNormalPause
     }
 
     /** 清理弹幕 */
@@ -283,7 +284,7 @@ fun Player(
         onKeyEvent = { keyEvent ->
             if (keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp) {
                 play()
-                manualPause()
+                normalPause()
                 true
             } else if (keyEvent.key == Key.DirectionRight && keyEvent.type == KeyEventType.KeyUp) {
                 videoPlayerComponent.mediaPlayer().controls().skipTime(+5000L)
@@ -322,9 +323,8 @@ fun Player(
                         interactionSource = remember(::MutableInteractionSource),
                         indication = null,
                         onDoubleClick = {
-                            // TODO 如果暂停是自动触发的，双击播放视频，会出现bug.
                             play()
-                            manualPause()
+                            normalPause()
                         },
                         onClick = {},
                         onLongClick = {}
@@ -367,12 +367,19 @@ fun Player(
                     }
 
                     Box(Modifier.fillMaxSize()) {
+
+                        /** 如果手动触发了暂停，就不处理播放函数 */
+                        val playEvent: () -> Unit = {
+                            if (!isNormalPause) {
+                                play()
+                            }
+                        }
+
                         DanmakuBox(
                             wordState,
                             playerState,
                             showingDanmaku,
-                            isManualPause,
-                            play,
+                            playEvent,
                             playAudio,
                             windowState.size.height.value.toInt()
                         )
@@ -421,7 +428,7 @@ fun Player(
                                 ) {
                                     IconButton(onClick = {
                                         play()
-                                        manualPause()
+                                        normalPause()
                                     }) {
                                         Icon(
                                             if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
@@ -544,7 +551,7 @@ fun Player(
                                                         val danmakuItem = showingDanmaku.get(num)
                                                         if (danmakuItem != null) {
                                                             danmakuItem.isPause = true
-                                                            if (!isManualPause) {
+                                                            if (!isNormalPause) {
                                                                 play()
                                                             }
                                                         }
@@ -704,17 +711,10 @@ fun DanmakuBox(
     wordState: WordState,
     playerState: PlayerState,
     showingDanmaku: SnapshotStateMap<Int, DanmakuItem>,
-    isManualPause: Boolean,
-    play: () -> Unit,
+    playEvent: () -> Unit,
     playAudio: (String) -> Unit,
     windowHeight: Int
 ) {
-    /** 如果手动触发了暂停，就不处理播放函数 */
-    val playEvent: () -> Unit = {
-        if (!isManualPause) {
-            play()
-        }
-    }
 
     /** 删除单词 */
     val deleteWord: (DanmakuItem) -> Unit = { danmakuItem ->
