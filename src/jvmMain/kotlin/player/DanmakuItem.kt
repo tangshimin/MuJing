@@ -30,7 +30,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import data.MutableVocabulary
 import data.Word
 import ui.CopyButton
 import ui.DeleteButton
@@ -62,45 +61,7 @@ class DanmakuItem(
 }
 
 
-@Composable
-fun rememberDanmakuMap(
-    videoPath:String,
-    vocabulary: MutableVocabulary
-) = remember{
-    // Key 为秒 > 这一秒出现的单词列表
-    val timeMap = mutableMapOf<Int,MutableList<DanmakuItem>>()
-    if(vocabulary.relateVideoPath == videoPath){
-       vocabulary.wordList.forEach { word ->
-            if(word.captions.isNotEmpty()){
-                word.captions.forEach { caption ->
 
-                    val startTime = Math.floor(parseTime(caption.start)).toInt()
-                    val dList = timeMap.get(startTime)
-                    val item = DanmakuItem(word.value, true, startTime, 0,false, IntOffset(0, 0), word)
-                    if(dList == null){
-                        val newList = mutableListOf(item)
-                        timeMap.put(startTime,newList)
-                    }else{
-                        dList.add(item)
-                    }
-                }
-            }else{
-                word.externalCaptions.forEach { externalCaption ->
-                    val startTime = Math.floor(parseTime(externalCaption.start)).toInt()
-                    val dList = timeMap.get(startTime)
-                    val item = DanmakuItem(word.value, true, startTime, 0,false, IntOffset(0, 0), word)
-                    if(dList == null){
-                        val newList = mutableListOf(item)
-                        timeMap.put(startTime,newList)
-                    }else{
-                        dList.add(item)
-                    }
-                }
-            }
-        }
-    }
-    timeMap
-}
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -183,13 +144,8 @@ fun Danmaku(
             },
             offset = DpOffset(offsetX,offsetY),
             modifier = Modifier
-
-                .onPointerEvent(PointerEventType.Enter){
-                    enter()
-                }
-                .onPointerEvent(PointerEventType.Exit) {
-//                    exit()
-                }
+                .onPointerEvent(PointerEventType.Enter){ enter() }
+                .onPointerEvent(PointerEventType.Exit) {}
 
         ) {
             Surface(
@@ -207,14 +163,11 @@ fun Danmaku(
                             true
                         }else if(keyEvent.key == Key.Delete && keyEvent.isShiftPressed && keyEvent.type == KeyEventType.KeyUp){
                             deleteWord(danmakuItem)
-                            println("Shift + Delete")
                             true
                         }else if(keyEvent.key == Key.Y  && keyEvent.isCtrlPressed && keyEvent.type == KeyEventType.KeyUp){
                             addToFamiliar(danmakuItem)
-                            println("Ctrl + Y")
                             true
                         }else if(keyEvent.key == Key.C  && keyEvent.isCtrlPressed && keyEvent.type == KeyEventType.KeyUp){
-                            println("Ctrl + C")
                             clipboardManager.setText(AnnotatedString(danmakuItem.content))
                             true
                         }else false

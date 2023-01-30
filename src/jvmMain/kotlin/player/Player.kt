@@ -62,6 +62,7 @@ import kotlin.time.Duration.Companion.milliseconds
 /**
  * 视频播放器，可以显示单词弹幕
  * 等 Jetbrains 修复了 https://github.com/JetBrains/compose-jb/issues/1800，要执行一次重构。
+ * 如果 SwingPanel 不再显示到屏幕最前面之后，也需要重构一次。
  */
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -75,30 +76,45 @@ fun Player(
         placement = WindowPlacement.Floating,
         position = WindowPosition(Alignment.Center)
     )
-
+    /** 播放器的设置 */
     val playerState by rememberPlayerState()
+    /** 标题 */
     val title  by remember { mutableStateOf(File(videoPath).name) }
+    /** 显示视频的窗口 */
+    var playerWindow by remember { mutableStateOf<ComposeWindow?>(null) }
+    /** 控制视频显示的窗口，弹幕显示到这个窗口 */
+    var controlWindow by remember { mutableStateOf<ComposeWindow?>(null) }
+    /** 显示消息对话框 */
+    var showMessageDialog by remember{mutableStateOf(false)}
+    /** 要显示到消息对话框的消息 */
+    var message by remember { mutableStateOf("") }
+    /** VLC 是播放组件 */
     val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent()) }
+    /** 是否正在播放视频 */
+    var isPlaying by remember { mutableStateOf(false) }
+    /** 时间进度条 */
     var timeProgress by remember { mutableStateOf(0f) }
-
+    /** 音量进度条 */
     var volumeProgress by remember { mutableStateOf(100f) }
+    /** 当前时间 */
     var timeText by remember { mutableStateOf("") }
+    /** 弹幕从右到左需要的时间 */
     val videoDuration by remember(videoPath){
         videoPlayerComponent.mediaPlayer().media().prepare(videoPath)
         derivedStateOf{videoPlayerComponent.mediaPlayer().media().info().duration()}
     }
-    var playerWindow by remember { mutableStateOf<ComposeWindow?>(null) }
-    var controlWindow by remember { mutableStateOf<ComposeWindow?>(null) }
+
+
     /** 用户输入的弹幕编号 */
     var danmakuNum by remember{mutableStateOf("")}
     /** 弹幕计数器，用于快速定位弹幕 */
     var counter by remember { mutableStateOf(0) }
-    val showingDanmaku = remember{ mutableStateMapOf<Int,DanmakuItem>()}
-    val shouldAddDanmaku = remember{ mutableStateMapOf<Int,DanmakuItem>()}
+    /** 这个视频的所有弹幕 */
     val danmakuMap = rememberDanmakuMap(videoPath,wordState.vocabulary)
-    var showMessageDialog by remember{mutableStateOf(false)}
-    var message by remember { mutableStateOf("") }
-    var isPlaying by remember { mutableStateOf(false) }
+    /** 正在显示的弹幕列表 */
+    val showingDanmaku = remember{ mutableStateMapOf<Int,DanmakuItem>()}
+    /** 需要添加到正在显示的弹幕列表的弹幕 */
+    val shouldAddDanmaku = remember{ mutableStateMapOf<Int,DanmakuItem>()}
     /** 手动触发的暂停，比如空格键，双击视频触发的暂停。区别于鼠标移动到弹幕触发的自动暂停。*/
     var isManualPause by remember { mutableStateOf(false) }
     /** 播放器控制区的可见性 */
@@ -109,13 +125,14 @@ fun Player(
     /** 弹幕从右到左需要的时间，单位为毫秒 */
     var widthDuration by remember{ mutableStateOf(windowState.size.width.value.div(3).times(30).toInt()) }
 
+    /** 动作监听器每次需要删除的弹幕列表 */
     val removedList = remember{ mutableStateListOf<DanmakuItem>()}
     /** 使弹幕从右往左移动的定时器 */
     val danmakuTimer by remember{ mutableStateOf(
         Timer(30) {
-            val danmakuList = showingDanmaku.values.toList()
-            for(i in danmakuList.indices){
-                val danmakuItem = danmakuList.getOrNull(i)
+            val showingList = showingDanmaku.values.toList()
+            for(i in showingList.indices){
+                val danmakuItem = showingList.getOrNull(i)
                 if((danmakuItem != null) && !danmakuItem.isPause){
                         if(danmakuItem.position.x > -30){
                             danmakuItem.position = danmakuItem.position.copy(x = danmakuItem.position.x -3)
@@ -128,16 +145,19 @@ fun Player(
             removedList.forEach { danmakuItem ->
                 showingDanmaku.remove(danmakuItem.sequence)
             }
+            removedList.clear()
             showingDanmaku.putAll(shouldAddDanmaku)
             shouldAddDanmaku.clear()
         }
     ) }
 
+    /** 关闭窗口 */
     val closeWindow: () -> Unit = {
         videoPlayerComponent.mediaPlayer().release()
         close()
     }
 
+    /** 播放 */
     val play: () -> Unit = {
         if(isPlaying){
             danmakuTimer.stop()
@@ -149,12 +169,15 @@ fun Player(
             videoPlayerComponent.mediaPlayer().controls().play()
         }
     }
+    /** 手动触发暂停，与之对应的是，用鼠标移动弹幕触发的自动暂停和用快速定位触发的自动自动暂停。*/
     val manualPause:() -> Unit = {
         isManualPause = !isManualPause
     }
 
+    /** 清理弹幕 */
     val cleanDanmaku:() -> Unit = {
         showingDanmaku.clear()
+        removedList.clear()
         shouldAddDanmaku.clear()
     }
 
@@ -535,7 +558,7 @@ fun Player(
                                 maxLength =  danmakuItem.content.length
                             }
 
-                            // todo 这里还是有多线程问题，可能会出现：这里刚刚添加，在另一个控制动画的 Timer 里面马上就删除了。
+                            // TODO 这里还是有多线程问题，可能会出现：这里刚刚添加，在另一个控制动画的 Timer 里面马上就删除了。
                             danmakuItem.sequence = counter
                             shouldAddDanmaku.put(counter,danmakuItem)
                             counter++
@@ -677,6 +700,45 @@ fun DanmakuBox(
     }
 }
 
+@Composable
+fun rememberDanmakuMap(
+    videoPath:String,
+    vocabulary: MutableVocabulary
+) = remember{
+    // Key 为秒 > 这一秒出现的单词列表
+    val timeMap = mutableMapOf<Int,MutableList<DanmakuItem>>()
+    if(vocabulary.relateVideoPath == videoPath){
+        vocabulary.wordList.forEach { word ->
+            if(word.captions.isNotEmpty()){
+                word.captions.forEach { caption ->
+
+                    val startTime = Math.floor(parseTime(caption.start)).toInt()
+                    val dList = timeMap.get(startTime)
+                    val item = DanmakuItem(word.value, true, startTime, 0,false, IntOffset(0, 0), word)
+                    if(dList == null){
+                        val newList = mutableListOf(item)
+                        timeMap.put(startTime,newList)
+                    }else{
+                        dList.add(item)
+                    }
+                }
+            }else{
+                word.externalCaptions.forEach { externalCaption ->
+                    val startTime = Math.floor(parseTime(externalCaption.start)).toInt()
+                    val dList = timeMap.get(startTime)
+                    val item = DanmakuItem(word.value, true, startTime, 0,false, IntOffset(0, 0), word)
+                    if(dList == null){
+                        val newList = mutableListOf(item)
+                        timeMap.put(startTime,newList)
+                    }else{
+                        dList.add(item)
+                    }
+                }
+            }
+        }
+    }
+    timeMap
+}
 
 @OptIn(ExperimentalSerializationApi::class)
 @Composable
