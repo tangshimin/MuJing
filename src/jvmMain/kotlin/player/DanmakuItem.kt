@@ -22,8 +22,11 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -49,13 +52,12 @@ class DanmakuItem(
     var isPause by mutableStateOf(isPause)
     var position by mutableStateOf(position)
     val word by mutableStateOf(word)
-
     override fun equals(other: Any?): Boolean {
         val otherItem = other as DanmakuItem
-        return (this.content == otherItem.content && this.startTime == otherItem.startTime)
+        return (this.content == otherItem.content && this.sequence == otherItem.sequence)
     }
     override fun hashCode(): Int {
-        return content.hashCode() + startTime.hashCode()
+        return content.hashCode() + sequence.hashCode()
     }
 }
 
@@ -113,9 +115,33 @@ fun Danmaku(
 ) {
     if(danmakuItem.show){
         val text = if(playerState.showSequence) {
-            "${danmakuItem.sequence} ${danmakuItem.content}"
+
+            buildAnnotatedString {
+                withStyle(
+                    style = SpanStyle(
+                        color = Color.White
+                    )
+                ) {
+                    append("${danmakuItem.sequence} ${danmakuItem.content}")
+                }
+            }
         }else{
-            danmakuItem.content
+            buildAnnotatedString {
+                withStyle(
+                    style = SpanStyle(
+                        color = Color.Transparent
+                    )
+                ) {
+                    append(danmakuItem.sequence.toString())
+                }
+                withStyle(
+                    style = SpanStyle(
+                        color = Color.White
+                    )
+                ) {
+                    append(" ${danmakuItem.content}")
+                }
+            }
         }
         val focusRequester = remember { FocusRequester() }
         fun enter(){
@@ -223,7 +249,9 @@ fun Danmaku(
                                 horizontalArrangement = Arrangement.Center,
                                 modifier = Modifier.fillMaxWidth()){
                                 Text("英 ${danmakuItem.word?.ukphone}  美 ${danmakuItem.word?.usphone}")
-                                IconButton(onClick = {}){
+                                IconButton(onClick = {
+                                    // TODO 实现单词发音
+                                }){
                                     Icon(
                                         Icons.Filled.VolumeUp,
                                         contentDescription = "Localized description",
