@@ -132,6 +132,8 @@ fun TypingWord(
                         close = {appState.showBulletScreenPlayer = false},
                         videoPath = appState.bulletScreenPlayerPath,
                         wordState = typingWord,
+                        audioSet = appState.audioSet,
+                        audioVolume = appState.global.audioVolume
                     )
                 }
 

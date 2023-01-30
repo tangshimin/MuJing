@@ -68,6 +68,7 @@ fun Danmaku(
     playerState: PlayerState,
     danmakuItem: DanmakuItem,
     playEvent: () -> Unit,
+    playAudio: (String) -> Unit,
     fontFamily: FontFamily,
     windowHeight: Int,
     deleteWord: (DanmakuItem) -> Unit,
@@ -209,7 +210,7 @@ fun Danmaku(
                             ) {
                                 Text("英 ${danmakuItem.word?.ukphone}  美 ${danmakuItem.word?.usphone}")
                                 IconButton(onClick = {
-                                    // TODO 实现单词发音
+                                    playAudio(danmakuItem.content)
                                 }) {
                                     Icon(
                                         Icons.Filled.VolumeUp,
@@ -304,6 +305,9 @@ fun Danmaku(
                     focusRequester.requestFocus()
                     if (playerState.autoCopy) {
                         clipboardManager.setText(AnnotatedString(danmakuItem.content))
+                    }
+                    if(playerState.autoSpeak){
+                        playAudio(danmakuItem.content)
                     }
                 }
             }

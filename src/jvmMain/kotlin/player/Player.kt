@@ -69,7 +69,9 @@ import kotlin.time.Duration.Companion.milliseconds
 fun Player(
     close: () -> Unit,
     videoPath: String,
-    wordState: WordState
+    wordState: WordState,
+    audioSet: MutableSet<String>,
+    audioVolume: Float,
 ) {
     val windowState = rememberWindowState(
         size = DpSize(1289.dp, 854.dp),
@@ -95,8 +97,11 @@ fun Player(
     /** 要显示到消息对话框的消息 */
     var message by remember { mutableStateOf("") }
 
-    /** VLC 是播放组件 */
+    /** VLC 是视频播放组件 */
     val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent()) }
+
+    /** VLC 是音频播放组件 */
+    val audioPlayerComponent = LocalAudioPlayerComponent.current
 
     /** 是否正在播放视频 */
     var isPlaying by remember { mutableStateOf(false) }
@@ -203,6 +208,24 @@ fun Player(
         shouldAddDanmaku.clear()
     }
 
+    /** 播放单词发音 */
+    val playAudio:(String) -> Unit = { word ->
+        val audioPath = getAudioPath(
+            word = word,
+            audioSet = audioSet,
+            addToAudioSet = {audioSet.add(it)},
+            pronunciation = wordState.pronunciation
+        )
+        playAudio(
+            word,
+            audioPath,
+            pronunciation =  wordState.pronunciation,
+            audioVolume,
+            audioPlayerComponent,
+            changePlayerState = { },
+            setIsAutoPlay = { })
+    }
+
 
     Window(
         title = title,
@@ -299,6 +322,7 @@ fun Player(
                         interactionSource = remember(::MutableInteractionSource),
                         indication = null,
                         onDoubleClick = {
+                            // TODO 如果暂停是自动触发的，双击播放视频，会出现bug.
                             play()
                             manualPause()
                         },
@@ -349,6 +373,7 @@ fun Player(
                             showingDanmaku,
                             isManualPause,
                             play,
+                            playAudio,
                             windowState.size.height.value.toInt()
                         )
                         Column(
@@ -681,6 +706,7 @@ fun DanmakuBox(
     showingDanmaku: SnapshotStateMap<Int, DanmakuItem>,
     isManualPause: Boolean,
     play: () -> Unit,
+    playAudio: (String) -> Unit,
     windowHeight: Int
 ) {
     /** 如果手动触发了暂停，就不处理播放函数 */
@@ -757,10 +783,11 @@ fun DanmakuBox(
                 playerState,
                 danmakuItem,
                 playEvent,
+                playAudio,
                 monospace,
                 windowHeight,
-                deleteWord = { deleteWord(it) },
-                addToFamiliar = { addToFamiliar(it) }
+                deleteWord,
+                addToFamiliar
             )
         }
     }
