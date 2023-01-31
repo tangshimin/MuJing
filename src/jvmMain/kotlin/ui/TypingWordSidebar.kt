@@ -7,7 +7,6 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Subtitles
-import androidx.compose.material.icons.filled.Title
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -61,46 +60,10 @@ fun TypingWordSidebar(
 
                     }.padding(start = 16.dp, end = 8.dp)
                 ) {
-                    Row {
-                        Text("抄写字幕", color = MaterialTheme.colors.onBackground)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = "$ctrl+U",
-                            color = MaterialTheme.colors.onBackground
-                        )
-                    }
-
+                    Text("抄写字幕", color = MaterialTheme.colors.onBackground)
                     Spacer(Modifier.width(15.dp))
                     Icon(
                         Icons.Filled.Subtitles,
-                        contentDescription = "Localized description",
-                        tint = tint,
-                        modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
-                    )
-                }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable {
-                        scope.launch {
-                            state.global.type = TypingType.TEXT
-                            state.saveGlobalState()
-                        }
-
-                    }.padding(start = 16.dp, end = 8.dp)
-                ) {
-                    Row {
-                        Text("抄写文本", color = MaterialTheme.colors.onBackground)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = "$ctrl+T",
-                            color = MaterialTheme.colors.onBackground
-                        )
-                    }
-
-                    Spacer(Modifier.width(15.dp))
-                    Icon(
-                        Icons.Filled.Title,
                         contentDescription = "Localized description",
                         tint = tint,
                         modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)

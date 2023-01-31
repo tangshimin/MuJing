@@ -38,19 +38,18 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import data.*
-import ui.dialog.ChapterFinishedDialog
-import ui.dialog.ConfirmDialog
-import ui.dialog.EditWordDialog
-import ui.dialog.SelectChapterDialog
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
 import state.AppState
 import state.MemoryStrategy.*
-import state.TypingType
 import state.WordState
 import state.getResourcesFile
 import theme.createColors
+import ui.dialog.ChapterFinishedDialog
+import ui.dialog.ConfirmDialog
+import ui.dialog.EditWordDialog
+import ui.dialog.SelectChapterDialog
 import java.awt.Component
 import java.awt.Rectangle
 import java.io.File
@@ -425,21 +424,6 @@ fun MainContent(
         /** 处理全局快捷键的回调函数 */
         val globalKeyEvent: (KeyEvent) -> Boolean = {
             when {
-                (it.isCtrlPressed && it.key == Key.U && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        appState.global.type = TypingType.SUBTITLES
-                        appState.saveGlobalState()
-                    }
-                    true
-                }
-                (it.isCtrlPressed && it.key == Key.T && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        appState.global.type = TypingType.TEXT
-                        appState.saveGlobalState()
-                    }
-                    true
-                }
-
                 (it.isCtrlPressed && it.isShiftPressed && it.key == Key.A && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         wordFocusRequester.requestFocus()
