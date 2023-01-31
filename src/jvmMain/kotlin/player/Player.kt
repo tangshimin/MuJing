@@ -492,8 +492,15 @@ fun Player(
                                             valueRange = 1f..100f,
                                             onValueChange = {
                                                 volumeProgress = it
-                                                videoPlayerComponent.mediaPlayer().audio()
-                                                    .setVolume(volumeProgress.toInt())
+                                                if(it > 1f){
+                                                    volumeOff = false
+                                                    videoPlayerComponent.mediaPlayer().audio().isMute = false
+                                                    videoPlayerComponent.mediaPlayer().audio()
+                                                        .setVolume(volumeProgress.toInt())
+                                                }else{
+                                                    volumeOff = true
+                                                    videoPlayerComponent.mediaPlayer().audio().isMute = volumeOff
+                                                }
                                             },
                                             modifier = Modifier
                                                 .width(60.dp)
