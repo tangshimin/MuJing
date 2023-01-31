@@ -657,7 +657,7 @@ fun Player(
                     // 每秒执行一次
                     if (playerState.danmakuVisible && startTime != lastTime) {
                         val danmakuList = danmakuMap.get(startTime)
-                        var offsetY = 20
+                        var offsetY = if(isFullscreen) 50 else 20
                         val sequenceWidth = if (playerState.showSequence) counter.toString().length * 12 else 0
                         val offsetX = sequenceWidth + lastMaxLength * 12 + 30
                         var maxLength = 0
