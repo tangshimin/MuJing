@@ -1,5 +1,6 @@
 package player
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -391,14 +392,14 @@ fun Player(
                     )
                     if(isFullscreen){
                         var titleBarVisible by remember{ mutableStateOf(false) }
-                        Box(modifier = Modifier
+                        Column(modifier = Modifier
                             .fillMaxWidth()
                             .height(40.dp)
                             .align(Alignment.TopCenter)
                             .onPointerEvent(PointerEventType.Enter){titleBarVisible = true}
                             .onPointerEvent(PointerEventType.Exit){titleBarVisible = false}
                         ){
-                            if(titleBarVisible){
+                            AnimatedVisibility(titleBarVisible){
                                 TitleBar(title, windowState, closeWindow,isFullscreen,fullscreen)
                             }
                         }
@@ -472,7 +473,7 @@ fun Player(
                                             tint = Color.White,
                                         )
                                     }
-                                    if (volumeSliderVisible) {
+                                    AnimatedVisibility (visible = volumeSliderVisible) {
                                         Slider(
                                             value = volumeProgress,
                                             valueRange = 1f..100f,
