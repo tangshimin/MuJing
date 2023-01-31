@@ -319,7 +319,12 @@ fun Player(
                 play()
                 normalPause()
                 true
-            } else if (keyEvent.key == Key.DirectionRight && keyEvent.type == KeyEventType.KeyUp) {
+            } else if (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyUp) {
+               if(isFullscreen){
+                   fullscreen()
+                   true
+               }else false
+            }  else if (keyEvent.key == Key.DirectionRight && keyEvent.type == KeyEventType.KeyUp) {
                 videoPlayerComponent.mediaPlayer().controls().skipTime(+5000L)
                 cleanDanmaku()
                 true
