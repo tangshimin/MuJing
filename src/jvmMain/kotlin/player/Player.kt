@@ -160,6 +160,9 @@ fun Player(
     /** 动作监听器每次需要删除的弹幕列表 */
     val removedList = remember { mutableStateListOf<DanmakuItem>() }
 
+    /** 正在显示单词详情 */
+    var showingDetail by remember { mutableStateOf(false) }
+
     /** 使弹幕从右往左移动的定时器 */
     val danmakuTimer by remember {
         mutableStateOf(
@@ -235,6 +238,7 @@ fun Player(
             setIsAutoPlay = { })
     }
 
+    /** 全屏*/
     val fullscreen:()-> Unit = {
         if(isFullscreen){
             isFullscreen = false
@@ -252,7 +256,6 @@ fun Player(
             controlWindow?.isResizable = false
             playerWindow?.requestFocus()
         }
-
     }
 
     Window(
@@ -319,7 +322,7 @@ fun Player(
                 play()
                 normalPause()
                 true
-            } else if (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyUp) {
+            } else if (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyDown) {
                if(isFullscreen){
                    fullscreen()
                    true
@@ -345,8 +348,11 @@ fun Player(
                     interactionSource = remember(::MutableInteractionSource),
                     indication = null,
                     onDoubleClick = {
-                        play()
-                        normalPause()
+                        if (showingDetail) {
+                            showingDetail = false
+                        } else {
+                            fullscreen()
+                        }
                     },
                     onClick = {},
                     onLongClick = {}
@@ -355,15 +361,12 @@ fun Player(
                     if (!controlBoxVisible) {
                         controlBoxVisible = true
                     }
-
                 }
                 .onPointerEvent(PointerEventType.Exit) {
                     if (isPlaying && !settingsExpanded) {
                         controlBoxVisible = false
                     }
                 }
-
-
         ) {
 
 
@@ -386,6 +389,9 @@ fun Player(
                             play()
                         }
                     }
+                    val showingDetailChanged:(Boolean) -> Unit = {
+                        showingDetail = it
+                    }
 
                     DanmakuBox(
                         wordState,
@@ -393,7 +399,9 @@ fun Player(
                         showingDanmaku,
                         playEvent,
                         playAudio,
-                        windowState.size.height.value.toInt()
+                        windowState.size.height.value.toInt(),
+                        showingDetail,
+                        showingDetailChanged
                     )
                     if(isFullscreen){
                         var titleBarVisible by remember{ mutableStateOf(false) }
@@ -569,13 +577,14 @@ fun Player(
                                         modifier = Modifier
                                             .border(border = BorderStroke(1.dp, Color.White.copy(alpha = 0.4f)))
                                     ) {
-                                        fun searchNum() {
+                                        fun pauseDanmakuNum() {
                                             if (danmakuNum.isNotEmpty()) {
                                                 val num = danmakuNum.toIntOrNull()
                                                 if (num != null) {
                                                     val danmakuItem = showingDanmaku.get(num)
                                                     if (danmakuItem != null) {
                                                         danmakuItem.isPause = true
+                                                        showingDetail = true
                                                         if (!isNormalPause) {
                                                             play()
                                                         }
@@ -595,7 +604,7 @@ fun Player(
                                                 ),
                                                 modifier = Modifier.onKeyEvent { keyEvent ->
                                                     if ((keyEvent.key == Key.Enter || keyEvent.key == Key.NumPadEnter) && keyEvent.type == KeyEventType.KeyUp) {
-                                                        searchNum()
+                                                        pauseDanmakuNum()
                                                         true
                                                     } else false
                                                 }
@@ -605,7 +614,7 @@ fun Player(
                                             }
                                         }
                                         IconButton(
-                                            onClick = { searchNum() },
+                                            onClick = { pauseDanmakuNum() },
                                             modifier = Modifier.size(40.dp, 40.dp)
                                         ) {
                                             Icon(
@@ -739,7 +748,7 @@ fun TitleBar(
     windowState: WindowState,
     closeWindow: () -> Unit,
     isFullscreen:Boolean,
-    fullscreen:() -> Unit
+    fullscreen:() -> Unit,
 ) {
     Box(
         Modifier.fillMaxWidth()
@@ -794,7 +803,9 @@ fun DanmakuBox(
     showingDanmaku: SnapshotStateMap<Int, DanmakuItem>,
     playEvent: () -> Unit,
     playAudio: (String) -> Unit,
-    windowHeight: Int
+    windowHeight: Int,
+    showingDetail:Boolean,
+    showingDetailChanged:(Boolean) -> Unit
 ) {
 
     /** 删除单词 */
@@ -806,6 +817,7 @@ fun DanmakuBox(
             wordState.saveCurrentVocabulary()
         }
         showingDanmaku.remove(danmakuItem.sequence)
+        showingDetailChanged(false)
         playEvent()
     }
 
@@ -868,7 +880,9 @@ fun DanmakuBox(
                 monospace,
                 windowHeight,
                 deleteWord,
-                addToFamiliar
+                addToFamiliar,
+                showingDetail,
+                showingDetailChanged
             )
         }
     }

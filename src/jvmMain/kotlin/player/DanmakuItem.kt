@@ -72,7 +72,9 @@ fun Danmaku(
     fontFamily: FontFamily,
     windowHeight: Int,
     deleteWord: (DanmakuItem) -> Unit,
-    addToFamiliar: (DanmakuItem) -> Unit
+    addToFamiliar: (DanmakuItem) -> Unit,
+    showingDetail:Boolean,
+    showingDetailChanged:(Boolean) -> Unit
 ) {
     if (danmakuItem.show) {
         val text = if (playerState.showSequence) {
@@ -105,16 +107,21 @@ fun Danmaku(
         }
         val focusRequester = remember { FocusRequester() }
         fun enter() {
-            // 如果已经由⌈快速定位弹幕⌋暂停，就不执行。
-            if (!danmakuItem.isPause) {
-                danmakuItem.isPause = true
-                playEvent()
+            if(!showingDetail){
+                // 如果已经由⌈快速定位弹幕⌋暂停，就不执行。
+                if (!danmakuItem.isPause) {
+                    danmakuItem.isPause = true
+                    showingDetailChanged(true)
+                    playEvent()
+                }
+
             }
         }
 
         fun exit() {
             danmakuItem.isPause = false
             playEvent()
+            showingDetailChanged(false)
         }
         Text(
             text = text,
@@ -124,7 +131,6 @@ fun Danmaku(
             modifier = Modifier
                 .offset { danmakuItem.position }
                 .onPointerEvent(PointerEventType.Enter) { enter() }
-                .onPointerEvent(PointerEventType.Exit) { exit() }
         )
 
         var offsetX =
@@ -140,17 +146,17 @@ fun Danmaku(
         DropdownMenu(
             expanded = danmakuItem.isPause,
             onDismissRequest = {
-                if(danmakuItem.isPause){
-                    danmakuItem.isPause = false
-                    playEvent()
-                }
-
+                exit()
             },
             offset = DpOffset(offsetX, offsetY),
             modifier = Modifier
                 .onPointerEvent(PointerEventType.Enter) { enter() }
-                .onPointerEvent(PointerEventType.Exit) {}
-
+                .onPreviewKeyEvent { keyEvent ->
+                    if (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyDown) {
+                        exit()
+                        true
+                    } else false
+                }
         ) {
             Surface(
                 elevation = 4.dp,
@@ -162,7 +168,7 @@ fun Danmaku(
                     .focusable(true)
                     .focusRequester(focusRequester)
                     .onKeyEvent { keyEvent ->
-                            if (keyEvent.key == Key.Delete && keyEvent.isShiftPressed && keyEvent.type == KeyEventType.KeyUp) {
+                        if (keyEvent.key == Key.Delete && keyEvent.isShiftPressed && keyEvent.type == KeyEventType.KeyUp) {
                             deleteWord(danmakuItem)
                             true
                         } else if (keyEvent.key == Key.Y && keyEvent.isCtrlPressed && keyEvent.type == KeyEventType.KeyUp) {
