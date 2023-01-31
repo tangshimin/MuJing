@@ -77,34 +77,31 @@ fun Danmaku(
     showingDetailChanged:(Boolean) -> Unit
 ) {
     if (danmakuItem.show) {
-        val text = if (playerState.showSequence) {
+        val text = if(danmakuItem.isPause){
             buildAnnotatedString {
-                withStyle(
-                    style = SpanStyle(
-                        color = Color.White
-                    )
-                ) {
+                withStyle(style = SpanStyle(color = Color.LightGray)) {
                     append("${danmakuItem.sequence} ${danmakuItem.content}")
                 }
             }
-        } else {
-            buildAnnotatedString {
-                withStyle(
-                    style = SpanStyle(
-                        color = Color.Transparent
-                    )
-                ) {
-                    append(danmakuItem.sequence.toString())
+        }else{
+            if (playerState.showSequence) {
+                buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = Color.White)) {
+                        append("${danmakuItem.sequence} ${danmakuItem.content}")
+                    }
                 }
-                withStyle(
-                    style = SpanStyle(
-                        color = Color.White
-                    )
-                ) {
-                    append(" ${danmakuItem.content}")
+            } else {
+                buildAnnotatedString {
+                    withStyle(style = SpanStyle(color = Color.Transparent)) {
+                        append(danmakuItem.sequence.toString())
+                    }
+                    withStyle(style = SpanStyle(color = Color.White)) {
+                        append(" ${danmakuItem.content}")
+                    }
                 }
             }
         }
+
         val focusRequester = remember { FocusRequester() }
         fun enter() {
             if(!showingDetail){
@@ -214,6 +211,18 @@ fun Danmaku(
                                 horizontalArrangement = Arrangement.Center,
                                 modifier = Modifier.fillMaxWidth()
                             ) {
+                                Text(
+                                    text = danmakuItem.content,
+                                    style = MaterialTheme.typography.h5,
+                                    color = Color.White,
+                                )
+                            }
+
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 Text("英 ${danmakuItem.word?.ukphone}  美 ${danmakuItem.word?.usphone}")
                                 IconButton(onClick = {
                                     playAudio(danmakuItem.content)
@@ -221,7 +230,7 @@ fun Danmaku(
                                     Icon(
                                         Icons.Filled.VolumeUp,
                                         contentDescription = "Localized description",
-                                        tint = if (MaterialTheme.colors.isLight) Color.DarkGray else Color.LightGray,
+                                        tint = MaterialTheme.colors.primary,
                                     )
                                 }
                             }
