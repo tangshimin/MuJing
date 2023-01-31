@@ -162,10 +162,7 @@ fun Danmaku(
                     .focusable(true)
                     .focusRequester(focusRequester)
                     .onKeyEvent { keyEvent ->
-                        if (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyUp) {
-                            exit()
-                            true
-                        } else if (keyEvent.key == Key.Delete && keyEvent.isShiftPressed && keyEvent.type == KeyEventType.KeyUp) {
+                            if (keyEvent.key == Key.Delete && keyEvent.isShiftPressed && keyEvent.type == KeyEventType.KeyUp) {
                             deleteWord(danmakuItem)
                             true
                         } else if (keyEvent.key == Key.Y && keyEvent.isCtrlPressed && keyEvent.type == KeyEventType.KeyUp) {
