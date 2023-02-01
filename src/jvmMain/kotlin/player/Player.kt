@@ -524,13 +524,12 @@ fun Player(
                                     ) {
 
                                         DropdownMenuItem(onClick = { }) {
-
                                             Row(
                                                 verticalAlignment = Alignment.CenterVertically,
                                                 horizontalArrangement = Arrangement.SpaceBetween,
                                                 modifier = Modifier.fillMaxWidth()
                                             ) {
-                                                Text("快速定位弹幕")
+                                                Text("显示弹幕编号")
                                                 Switch(checked = playerState.showSequence, onCheckedChange = {
                                                     playerState.showSequence = it
                                                     playerState.savePlayerState()
