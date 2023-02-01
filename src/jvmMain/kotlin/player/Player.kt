@@ -131,7 +131,7 @@ fun Player(
     var danmakuNum by remember { mutableStateOf("") }
 
     /** 弹幕计数器，用于快速定位弹幕 */
-    var counter by remember { mutableStateOf(0) }
+    var counter by remember { mutableStateOf(1) }
 
     /** 这个视频的所有弹幕 */
     val danmakuMap = rememberDanmakuMap(videoPath, wordState.vocabulary)
