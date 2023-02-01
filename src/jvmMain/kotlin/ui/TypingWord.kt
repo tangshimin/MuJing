@@ -73,7 +73,7 @@ import kotlin.concurrent.schedule
 @OptIn(
     ExperimentalComposeUiApi::class,
     ExperimentalAnimationApi::class,
-    ExperimentalSerializationApi::class, ExperimentalFoundationApi::class, ExperimentalFoundationApi::class
+    ExperimentalSerializationApi::class
 )
 @ExperimentalAnimationApi
 @ExperimentalComposeUiApi
@@ -129,10 +129,16 @@ fun TypingWord(
                 if(appState.showBulletScreenPlayer){
                     Player(
                         close = {appState.showBulletScreenPlayer = false},
+                        minimized = {window.isMinimized = true},
                         videoPath = appState.bulletScreenPlayerPath,
                         wordState = typingWord,
                         audioSet = appState.audioSet,
-                        audioVolume = appState.global.audioVolume
+                        audioVolume = appState.global.audioVolume,
+                        videoVolume = appState.global.videoVolume,
+                        videoVolumeChanged = {
+                            appState.global.videoVolume = it
+                            appState.saveGlobalState()
+                        }
                     )
                 }
 

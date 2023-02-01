@@ -380,7 +380,10 @@ fun TypingWordSidebar(
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("视频播放")
-                                    Slider(value = state.global.videoVolume, onValueChange = {
+                                    Slider(
+                                        value = state.global.videoVolume,
+                                        valueRange = 1f..100f,
+                                        onValueChange = {
                                         Thread(Runnable {
                                             state.global.videoVolume = it
                                             state.saveGlobalState()

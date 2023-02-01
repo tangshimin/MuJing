@@ -15,7 +15,7 @@ import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.awt.ComposeDialog
 import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
@@ -52,8 +52,6 @@ import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Toolkit
-import java.awt.event.WindowEvent
-import java.awt.event.WindowListener
 import java.io.File
 import javax.swing.Timer
 import kotlin.time.Duration.Companion.milliseconds
@@ -67,14 +65,17 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun Player(
     close: () -> Unit,
+    minimized:() -> Unit,
     videoPath: String,
     wordState: WordState,
     audioSet: MutableSet<String>,
     audioVolume: Float,
+    videoVolume: Float,
+    videoVolumeChanged: (Float) -> Unit,
 ) {
-    val windowState = rememberWindowState(
-        size = DpSize(1289.dp, 854.dp),
-        placement = WindowPlacement.Floating,
+    val windowState = rememberDialogState(
+        width = 1289.dp,
+        height = 854.dp,
         position = WindowPosition(Alignment.Center)
     )
 
@@ -85,10 +86,10 @@ fun Player(
     val title by remember { mutableStateOf(File(videoPath).name) }
 
     /** 显示视频的窗口 */
-    var playerWindow by remember { mutableStateOf<ComposeWindow?>(null) }
+    var playerWindow by remember { mutableStateOf<ComposeDialog?>(null) }
 
     /** 控制视频显示的窗口，弹幕显示到这个窗口 */
-    var controlWindow by remember { mutableStateOf<ComposeWindow?>(null) }
+    var controlWindow by remember { mutableStateOf<ComposeDialog?>(null) }
 
     /** 是否全屏，如果使用系统的全屏，播放器窗口会黑屏 */
     var isFullscreen by remember { mutableStateOf(false) }
@@ -116,9 +117,6 @@ fun Player(
 
     /** 时间进度条 */
     var timeProgress by remember { mutableStateOf(0f) }
-
-    /** 音量进度条 */
-    var volumeProgress by remember { mutableStateOf(100f) }
 
     /** 当前时间 */
     var timeText by remember { mutableStateOf("") }
@@ -258,13 +256,12 @@ fun Player(
         }
     }
 
-    Window(
+    Dialog(
         title = title,
         icon = painterResource("logo/logo.png"),
         state = windowState,
         undecorated = true,
         resizable = false,
-        alwaysOnTop = true,
         onCloseRequest = { closeWindow() },
     ) {
         playerWindow = window
@@ -290,31 +287,15 @@ fun Player(
                     update = {}
                 )
 
-                LaunchedEffect(Unit) {
-                    window.addWindowListener(object : WindowListener {
-                        override fun windowActivated(e: WindowEvent?) {
-                            controlWindow?.requestFocus()
-                        }
-
-                        override fun windowOpened(e: WindowEvent?) {}
-                        override fun windowClosing(e: WindowEvent?) {}
-                        override fun windowClosed(e: WindowEvent?) {}
-                        override fun windowIconified(e: WindowEvent?) {}
-                        override fun windowDeiconified(e: WindowEvent?) {}
-                        override fun windowDeactivated(e: WindowEvent?) {}
-                    })
-                }
-
             }
         }
     }
 
-    Window(
+    Dialog(
         onCloseRequest = { closeWindow() },
         title = title,
         transparent = true,
         undecorated = true,
-        alwaysOnTop = true,
         state = windowState,
         icon = painterResource("logo/logo.png"),
         onKeyEvent = { keyEvent ->
@@ -376,7 +357,7 @@ fun Player(
                     Divider(color = Color(0xFF121212),modifier = Modifier.height(1.dp))
                 }else{
                     WindowDraggableArea {
-                        TitleBar(title, windowState, closeWindow,isFullscreen,fullscreen)
+                        TitleBar(title, closeWindow,isFullscreen,fullscreen,minimized)
                     }
                 }
 
@@ -413,7 +394,7 @@ fun Player(
                             .onPointerEvent(PointerEventType.Exit){titleBarVisible = false}
                         ){
                             AnimatedVisibility(titleBarVisible){
-                                TitleBar(title, windowState, closeWindow,isFullscreen,fullscreen)
+                                TitleBar(title, closeWindow,isFullscreen,fullscreen,minimized)
                             }
                         }
                     }
@@ -478,7 +459,10 @@ fun Player(
                                 ) {
                                     IconButton(onClick = {
                                         volumeOff = !volumeOff
-                                        videoPlayerComponent.mediaPlayer().audio().isMute = volumeOff
+                                        if(volumeOff){
+                                            videoPlayerComponent.mediaPlayer().audio()
+                                                .setVolume(0)
+                                        }
                                     }) {
                                         Icon(
                                             if (volumeOff) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
@@ -488,18 +472,18 @@ fun Player(
                                     }
                                     AnimatedVisibility (visible = volumeSliderVisible) {
                                         Slider(
-                                            value = volumeProgress,
+                                            value = videoVolume,
                                             valueRange = 1f..100f,
                                             onValueChange = {
-                                                volumeProgress = it
+                                                videoVolumeChanged (it)
                                                 if(it > 1f){
                                                     volumeOff = false
-                                                    videoPlayerComponent.mediaPlayer().audio().isMute = false
                                                     videoPlayerComponent.mediaPlayer().audio()
-                                                        .setVolume(volumeProgress.toInt())
+                                                        .setVolume(videoVolume.toInt())
                                                 }else{
                                                     volumeOff = true
-                                                    videoPlayerComponent.mediaPlayer().audio().isMute = volumeOff
+                                                    videoPlayerComponent.mediaPlayer().audio()
+                                                        .setVolume(0)
                                                 }
                                             },
                                             modifier = Modifier
@@ -704,7 +688,7 @@ fun Player(
                 }
 
                 override fun mediaPlayerReady(mediaPlayer: MediaPlayer?) {
-                    mediaPlayer?.audio()?.setVolume(volumeProgress.toInt())
+                    mediaPlayer?.audio()?.setVolume(videoVolume.toInt())
                 }
 
                 override fun finished(mediaPlayer: MediaPlayer?) {
@@ -729,33 +713,16 @@ fun Player(
                     cleanDanmaku()
                 }
                 .launchIn(this)
-            snapshotFlow { windowState.placement }
-                .onEach {
-                    if (windowState.placement == WindowPlacement.Maximized) {
-                        playerWindow!!.placement = WindowPlacement.Floating
-                        controlWindow!!.placement = WindowPlacement.Floating
-                        showMessageDialog = true
-                        message = "暂时不支持通过快捷键最大化窗口，\n但是可以手动调整窗口到最大。"
-                        controlWindow?.requestFocus()
-                    } else if (windowState.placement == WindowPlacement.Fullscreen) {
-                        playerWindow!!.placement = WindowPlacement.Floating
-                        controlWindow!!.placement = WindowPlacement.Floating
-                        showMessageDialog = true
-                        message = "暂时不支持通过系统的快捷键全屏"
-                        controlWindow?.requestFocus()
-                    }
-                }
-                .launchIn(this)
         }
     }
 }
 @Composable
 fun TitleBar(
     title: String,
-    windowState: WindowState,
     closeWindow: () -> Unit,
     isFullscreen:Boolean,
     fullscreen:() -> Unit,
+    minimized:() -> Unit,
 ) {
     Box(
         Modifier.fillMaxWidth()
@@ -768,8 +735,7 @@ fun TitleBar(
             color = MaterialTheme.colors.onBackground
         )
         Row(Modifier.align(Alignment.CenterEnd)) {
-            IconButton(onClick = {
-                windowState.isMinimized = true
+            IconButton(onClick = { minimized()
             }, modifier = Modifier.size(40.dp)) {
                 Icon(
                     Icons.Filled.Remove,

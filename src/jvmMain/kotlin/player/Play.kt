@@ -345,7 +345,7 @@ fun play(
     val mediaPlayerEventListener = object:MediaPlayerEventAdapter(){
         override fun mediaPlayerReady(mediaPlayer: MediaPlayer) {
             videoPlayerComponent.requestFocusInWindow()
-            mediaPlayer.audio().setVolume((volume * 100).toInt())
+            mediaPlayer.audio().setVolume((volume).toInt())
         }
         override fun finished(mediaPlayer: MediaPlayer) {
             closeFunc()

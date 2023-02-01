@@ -19,7 +19,7 @@ data class GlobalData(
     val type: TypingType = TypingType.WORD,
     val isDarkTheme: Boolean = true,
     val audioVolume: Float = 0.8F,
-    val videoVolume: Float = 0.8F,
+    val videoVolume: Float = 80F,
     val keystrokeVolume: Float = 0.75F,
     val isPlayKeystrokeSound: Boolean = false,
     val primaryColorValue: ULong = 18377412168996880384UL,
