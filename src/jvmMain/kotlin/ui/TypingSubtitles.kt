@@ -72,7 +72,6 @@ fun TypingSubtitles(
     saveSubtitlesState: () -> Unit,
     saveGlobalState: () -> Unit,
     setIsDarkTheme: (Boolean) -> Unit,
-    backToHome: () -> Unit,
     isOpenSettings: Boolean,
     setIsOpenSettings: (Boolean) -> Unit,
     window: ComposeWindow,
@@ -438,10 +437,6 @@ fun TypingSubtitles(
     /** 当前界面的快捷键 */
     val boxKeyEvent: (KeyEvent) -> Boolean = { keyEvent ->
         when {
-            (keyEvent.isCtrlPressed && keyEvent.key == Key.W && keyEvent.type == KeyEventType.KeyUp) -> {
-                backToHome()
-                true
-            }
             (keyEvent.isCtrlPressed && keyEvent.key == Key.O && keyEvent.type == KeyEventType.KeyUp) -> {
                 openFileChooser()
                 showOpenFile = true
@@ -518,7 +513,6 @@ fun TypingSubtitles(
                 setNotWroteCaptionVisible = {setNotWroteCaptionVisible(it)},
                 externalSubtitlesVisible = subtitlesState.externalSubtitlesVisible,
                 setExternalSubtitlesVisible = {setExternalSubtitlesVisible(it)},
-                backToHome = { backToHome() },
                 trackSize = subtitlesState.trackSize,
                 openFile = { showOpenFile = true },
                 openFileChooser = { openFileChooser() },
@@ -1174,10 +1168,12 @@ fun TypingSubtitles(
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = 5.dp)
             )
         }
-        Settings(
+        Toolbar(
             isOpen = isOpenSettings,
             setIsOpen = { setIsOpenSettings(it) },
-            modifier = Modifier.align(Alignment.TopStart)
+            modifier = Modifier.align(Alignment.TopStart),
+            globalState = globalState,
+            saveGlobalState = saveGlobalState
         )
 
     }
@@ -1387,7 +1383,6 @@ fun SubtitlesSidebar(
     isPlayKeystrokeSound: Boolean,
     setIsPlayKeystrokeSound: (Boolean) -> Unit,
     trackSize: Int,
-    backToHome: () -> Unit,
     openFile: () -> Unit,
     openFileChooser: () -> Unit,
     selectTrack: () -> Unit,
@@ -1404,28 +1399,6 @@ fun SubtitlesSidebar(
             Divider()
             val ctrl = LocalCtrl.current
             val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().height(48.dp).clickable { backToHome() }.padding(start = 16.dp, end = 8.dp)
-            ) {
-                Row {
-                    Text("记忆单词", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = "$ctrl+W",
-                        color = MaterialTheme.colors.onBackground
-                    )
-                }
-                Spacer(Modifier.width(15.dp))
-                Icon(
-                    imageVector = Icons.Filled.Translate,
-                    contentDescription = "Localized description",
-                    tint = tint,
-                    modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
-                )
-            }
-
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,

@@ -11,7 +11,6 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.North
-import androidx.compose.material.icons.filled.Translate
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -39,12 +38,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import ui.dialog.FormatDialog
 import kotlinx.coroutines.launch
 import player.isMacOS
 import player.isWindows
 import state.GlobalState
 import state.TextState
+import ui.dialog.FormatDialog
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -60,9 +59,9 @@ fun TypingText(
     title: String,
     window: ComposeWindow,
     globalState: GlobalState,
+    saveGlobalState: () -> Unit,
     textState: TextState,
     saveTextState: () -> Unit,
-    backToHome: () -> Unit,
     isOpenSettings: Boolean,
     setIsOpenSettings: (Boolean) -> Unit,
     setIsDarkTheme: (Boolean) -> Unit,
@@ -178,10 +177,6 @@ fun TypingText(
     /** 当前界面的快捷键 */
     val boxKeyEvent: (KeyEvent) -> Boolean = { keyEvent ->
         when {
-            (keyEvent.isCtrlPressed && keyEvent.key == Key.W && keyEvent.type == KeyEventType.KeyUp) -> {
-                backToHome()
-                true
-            }
             (keyEvent.isCtrlPressed && keyEvent.key == Key.O && keyEvent.type == KeyEventType.KeyUp) -> {
                 openFileChooser()
                 true
@@ -225,7 +220,6 @@ fun TypingText(
                 isOpen = isOpenSettings,
                 isDarkTheme = globalState.isDarkTheme,
                 setIsDarkTheme = {setIsDarkTheme(it)},
-                backToHome = {backToHome()},
                 openFileChooser = { openFileChooser() },
             )
             val topPadding = if (isMacOS()) 30.dp else 0.dp
@@ -614,10 +608,12 @@ fun TypingText(
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = 5.dp)
             )
         }
-        Settings(
+        Toolbar(
             isOpen = isOpenSettings,
-            setIsOpen = { setIsOpenSettings(it)},
-            modifier = Modifier.align(Alignment.TopStart)
+            setIsOpen = { setIsOpenSettings(it) },
+            modifier = Modifier.align(Alignment.TopStart),
+            globalState = globalState,
+            saveGlobalState = saveGlobalState
         )
     }
 
@@ -640,7 +636,6 @@ fun TypingTextSidebar(
     isOpen:Boolean,
     isDarkTheme:Boolean,
     setIsDarkTheme:(Boolean) -> Unit,
-    backToHome: () -> Unit,
     openFileChooser: () -> Unit,
 ){
     if(isOpen){
@@ -655,29 +650,6 @@ fun TypingTextSidebar(
             Divider()
             val ctrl = LocalCtrl.current
             val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
-
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().height(48.dp).clickable { backToHome() }.padding(start = 16.dp, end = 8.dp)
-            ) {
-                Row {
-                    Text("记忆单词", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = "$ctrl+W",
-                        color = MaterialTheme.colors.onBackground
-                    )
-                }
-                Spacer(Modifier.width(15.dp))
-                Icon(
-                    imageVector = Icons.Filled.Translate,
-                    contentDescription = "Localized description",
-                    tint = tint,
-                    modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
-                )
-            }
-
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,

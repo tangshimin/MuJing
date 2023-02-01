@@ -6,7 +6,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,7 +17,6 @@ import kotlinx.coroutines.launch
 import player.isMacOS
 import player.isWindows
 import state.AppState
-import state.TypingType
 import state.WordState
 import theme.createColors
 
@@ -48,28 +46,6 @@ fun TypingWordSidebar(
                 Spacer(Modifier.fillMaxWidth().height(if (isMacOS()) 78.dp else 48.dp))
                 Divider()
                 val ctrl = LocalCtrl.current
-                val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable {
-                        scope.launch {
-                            state.global.type = TypingType.SUBTITLES
-                            state.saveGlobalState()
-                        }
-
-                    }.padding(start = 16.dp, end = 8.dp)
-                ) {
-                    Text("抄写字幕", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(15.dp))
-                    Icon(
-                        Icons.Filled.Subtitles,
-                        contentDescription = "Localized description",
-                        tint = tint,
-                        modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
-                    )
-                }
-                Divider()
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,

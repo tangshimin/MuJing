@@ -8,8 +8,8 @@ import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -28,6 +30,7 @@ import data.VocabularyType
 import data.getHardVocabularyFile
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
 import state.*
@@ -138,7 +141,6 @@ fun App() {
                                 saveSubtitlesState = { subtitlesState.saveTypingSubtitlesState() },
                                 saveGlobalState = { appState.saveGlobalState() },
                                 setIsDarkTheme = { appState.changeTheme(it) },
-                                backToHome = { appState.backToHome() },
                                 isOpenSettings = appState.openSettings,
                                 setIsOpenSettings = { appState.openSettings = it },
                                 window = window,
@@ -160,9 +162,9 @@ fun App() {
                                 title = title,
                                 window = window,
                                 globalState = appState.global,
+                                saveGlobalState = { appState.saveGlobalState() },
                                 textState = textState,
                                 saveTextState = { textState.saveTypingTextState() },
-                                backToHome = { appState.backToHome() },
                                 isOpenSettings = appState.openSettings,
                                 setIsOpenSettings = {appState.openSettings = it},
                                 setIsDarkTheme = { appState.changeTheme(it) },
@@ -254,11 +256,11 @@ private fun computeTitle(subtitlesState:SubtitlesState) :String{
             val fileName = File(mediaPath).nameWithoutExtension
             fileName + " - " + subtitlesState.trackDescription
         }catch (exception:Exception){
-            "抄写字幕"
+            "字幕浏览器"
         }
 
     }else{
-        "抄写字幕"
+        "字幕浏览器"
     }
 }
 
@@ -432,7 +434,7 @@ private fun FrameWindowScope.WindowMenuBar(
     Menu("字幕(S)", mnemonic = 'S') {
         val enableTypingSubtitles = (appState.global.type != TypingType.SUBTITLES)
         Item(
-            "抄写字幕(T)", mnemonic = 'T',
+            "字幕浏览器(T)", mnemonic = 'T',
             enabled = enableTypingSubtitles,
             onClick = {
                 appState.global.type = TypingType.SUBTITLES
@@ -552,6 +554,168 @@ private fun FrameWindowScope.WindowMenuBar(
 }
 
 /**
+ * 工具栏
+ */
+@OptIn(ExperimentalFoundationApi::class, ExperimentalFoundationApi::class)
+@Composable
+fun Toolbar(
+    isOpen: Boolean,
+    setIsOpen: (Boolean) -> Unit,
+    modifier: Modifier,
+    globalState: GlobalState,
+    saveGlobalState:() -> Unit
+) {
+    Row (modifier = modifier){
+        val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
+        val scope = rememberCoroutineScope()
+        Settings(
+            isOpen = isOpen,
+            setIsOpen = setIsOpen,
+            modifier = Modifier
+        )
+
+        TooltipArea(
+            tooltip = {
+                Surface(
+                    elevation = 4.dp,
+                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                    shape = RectangleShape
+                ) {
+                    Text(text = "记忆单词", modifier = Modifier.padding(10.dp))
+                }
+            },
+            delayMillis = 100,
+            tooltipPlacement = TooltipPlacement.ComponentRect(
+                anchor = Alignment.BottomCenter,
+                alignment = Alignment.BottomCenter,
+                offset = DpOffset.Zero
+            )
+        ) {
+            IconButton(onClick = {
+                scope.launch {
+                    globalState.type = TypingType.WORD
+                    saveGlobalState()
+                }
+            }) {
+                Text(
+                    text = "W",
+                    style = MaterialTheme.typography.h6,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    color = if (globalState.type == TypingType.WORD) MaterialTheme.colors.primary else tint,
+                    modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
+                )
+            }
+
+        }
+
+
+
+
+
+        TooltipArea(
+            tooltip = {
+                Surface(
+                    elevation = 4.dp,
+                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                    shape = RectangleShape
+                ) {
+                    Text(text = "字幕浏览器", modifier = Modifier.padding(10.dp))
+                }
+            },
+            delayMillis = 100,
+            tooltipPlacement = TooltipPlacement.ComponentRect(
+                anchor = Alignment.BottomCenter,
+                alignment = Alignment.BottomCenter,
+                offset = DpOffset.Zero
+            )
+        ) {
+
+            IconButton(onClick = {
+                scope.launch {
+                    globalState.type = TypingType.SUBTITLES
+                    saveGlobalState()
+                }
+            }) {
+                Icon(
+                    Icons.Filled.Subtitles,
+                    contentDescription = "Localized description",
+                    tint = if (globalState.type == TypingType.SUBTITLES) MaterialTheme.colors.primary else tint,
+                    modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
+                )
+            }
+        }
+
+
+
+
+
+        TooltipArea(
+            tooltip = {
+                Surface(
+                    elevation = 4.dp,
+                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                    shape = RectangleShape
+                ) {
+                    Text(text = "抄写文本", modifier = Modifier.padding(10.dp))
+                }
+            },
+            delayMillis = 100,
+            tooltipPlacement = TooltipPlacement.ComponentRect(
+                anchor = Alignment.BottomCenter,
+                alignment = Alignment.BottomCenter,
+                offset = DpOffset.Zero
+            )
+        ) {
+            IconButton(onClick = {
+                scope.launch {
+                    globalState.type = TypingType.TEXT
+                    saveGlobalState()
+                }
+            }) {
+                Icon(
+                    Icons.Filled.Title,
+                    contentDescription = "Localized description",
+                    tint = if (globalState.type == TypingType.TEXT) MaterialTheme.colors.primary else tint,
+                    modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
+                )
+            }
+
+        }
+
+
+
+
+        TooltipArea(
+            tooltip = {
+                Surface(
+                    elevation = 4.dp,
+                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                    shape = RectangleShape
+                ) {
+                    Text(text = "播放器", modifier = Modifier.padding(10.dp))
+                }
+            },
+            delayMillis = 100,
+            tooltipPlacement = TooltipPlacement.ComponentRect(
+                anchor = Alignment.BottomCenter,
+                alignment = Alignment.BottomCenter,
+                offset = DpOffset.Zero
+            )
+        ) {
+            IconButton(onClick = {}) {
+                Icon(
+                    Icons.Outlined.PlayCircle,
+                    contentDescription = "Localized description",
+                    tint = tint,
+                    modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
+                )
+            }
+
+        }
+    }
+}
+/**
  * 设置
  */
 @OptIn(
@@ -587,21 +751,21 @@ fun Settings(
                             shape = RectangleShape
                         ) {
                             val ctrl = LocalCtrl.current
-                            Text(text = "侧边栏 $ctrl+1", modifier = Modifier.padding(10.dp))
+                            Text(text = "设置 $ctrl+1", modifier = Modifier.padding(10.dp))
                         }
                     },
-                    delayMillis = 300,
+                    delayMillis = 100,
                     tooltipPlacement = TooltipPlacement.ComponentRect(
-                        anchor = Alignment.BottomEnd,
-                        alignment = Alignment.BottomEnd,
-                        offset = DpOffset.Zero
+                        anchor = Alignment.BottomCenter,
+                        alignment = Alignment.BottomCenter,
+                        offset = DpOffset(30.dp,0.dp)
                     )
                 ) {
-
+                    val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
                     Icon(
                         if (isOpen) Icons.Filled.ArrowBack else Icons.Filled.Tune,
                         contentDescription = "Localized description",
-                        tint = MaterialTheme.colors.primary,
+                        tint = tint,
                         modifier = Modifier.clickable { setIsOpen(!isOpen) }
                             .size(48.dp, 48.dp).padding(13.dp)
                     )

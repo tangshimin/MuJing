@@ -294,14 +294,6 @@ class AppState {
 
     }
 
-    val backToHome: () -> Unit = {
-        runBlocking {
-            launch {
-                global.type = TypingType.WORD
-                saveGlobalState()
-            }
-        }
-    }
 
     /** 搜索 */
     var searching by  mutableStateOf(false)

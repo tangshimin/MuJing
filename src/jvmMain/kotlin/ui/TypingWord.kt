@@ -73,7 +73,7 @@ import kotlin.concurrent.schedule
 @OptIn(
     ExperimentalComposeUiApi::class,
     ExperimentalAnimationApi::class,
-    ExperimentalSerializationApi::class
+    ExperimentalSerializationApi::class, ExperimentalFoundationApi::class, ExperimentalFoundationApi::class
 )
 @ExperimentalAnimationApi
 @ExperimentalComposeUiApi
@@ -138,14 +138,18 @@ fun TypingWord(
 
             }
         }
-        Settings(
+
+        Toolbar(
             isOpen = appState.openSettings,
-            setIsOpen = { appState.openSettings = it },
-            modifier = Modifier.align(Alignment.TopStart)
+            setIsOpen ={ appState.openSettings = it },
+            modifier = Modifier.align(Alignment.TopStart),
+            globalState = appState.global,
+            saveGlobalState = {appState.saveGlobalState()}
         )
     }
 
 }
+
 
 @ExperimentalAnimationApi
 @ExperimentalComposeUiApi
@@ -182,8 +186,10 @@ fun Header(
                 DictationReviewWrong -> { "听写复习 - 复习错误单词   ${wordState.dictationIndex + 1}/${wordState.wrongWords.size}"}
             }
 
-            val top = if(wordState.memoryStrategy == Review || wordState.memoryStrategy == DictationReviewWrong) 0.dp else 10.dp
-            Text(text = text,
+            val top = if(wordState.memoryStrategy == Review || wordState.memoryStrategy == DictationReviewWrong) 0.dp else 12.dp
+            Text(
+                text = text,
+                style = MaterialTheme.typography.h6,
                 color = MaterialTheme.colors.onBackground,
                 modifier = Modifier.padding(top = top )
             )
