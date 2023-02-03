@@ -84,12 +84,24 @@ fun TypingWord(
     appState: AppState,
     typingWord: WordState,
     videoBounds: Rectangle,
-    resetVideoBounds :() -> Rectangle
+    resetVideoBounds :() -> Rectangle,
+    showEmptyPlayer :() -> Unit
 ) {
+
+    /** 拖放一个视频到记忆单词界面后 showPlayer 为真。*/
+    var showPlayer by remember { mutableStateOf(false) }
+    /** 拖放的视频的地址 */
+    var dragVideoPath by remember{ mutableStateOf("") }
 
     //设置窗口的拖放处理函数
     LaunchedEffect(Unit){
-        setWindowTransferHandler(window,appState,typingWord)
+        setWindowTransferHandler(
+            window = window,
+            state = appState,
+            wordState = typingWord,
+            showPlayerChanged = {showPlayer = it},
+            setVideoPath = {dragVideoPath = it}
+        )
     }
 
     Box(Modifier.background(MaterialTheme.colors.background)) {
@@ -126,19 +138,25 @@ fun TypingWord(
                     window = window,
                     modifier = Modifier.align(Alignment.TopCenter)
                 )
-                if(appState.showBulletScreenPlayer){
+                if(showPlayer){
                     Player(
-                        close = {appState.showBulletScreenPlayer = false},
+                        close = {showPlayer = false},
                         minimized = {window.isMinimized = true},
-                        videoPath = appState.bulletScreenPlayerPath,
-                        wordState = typingWord,
+                        videoPath = dragVideoPath,
+                        videoPathChanged = {},
+                        vocabulary = typingWord.vocabulary,
+                        vocabularyChanged = {},
+                        vocabularyPath = typingWord.vocabularyPath,
+                        vocabularyPathChanged = {},
                         audioSet = appState.audioSet,
+                        pronunciation = typingWord.pronunciation,
                         audioVolume = appState.global.audioVolume,
                         videoVolume = appState.global.videoVolume,
                         videoVolumeChanged = {
                             appState.global.videoVolume = it
                             appState.saveGlobalState()
-                        }
+                        },
+                        futureFileChooser = appState.futureFileChooser,
                     )
                 }
 
@@ -150,7 +168,8 @@ fun TypingWord(
             setIsOpen ={ appState.openSettings = it },
             modifier = Modifier.align(Alignment.TopStart),
             globalState = appState.global,
-            saveGlobalState = {appState.saveGlobalState()}
+            saveGlobalState = {appState.saveGlobalState()},
+            showEmptyPlayer = showEmptyPlayer
         )
     }
 
@@ -2477,6 +2496,8 @@ fun setWindowTransferHandler(
     window: ComposeWindow,
     state: AppState,
     wordState: WordState,
+    showPlayerChanged:(Boolean) -> Unit,
+    setVideoPath:(String) -> Unit,
 ){
     window.transferHandler = createTransferHandler(
         showWrongMessage = { message ->
@@ -2493,8 +2514,10 @@ fun setWindowTransferHandler(
                 }
 
             } else if (file.extension == "mkv" || file.extension == "mp4") {
-                state.showBulletScreenPlayer = true
-                state.bulletScreenPlayerPath = file.absolutePath
+//                state.showPlayer = true
+                showPlayerChanged(true)
+//                state.playerPath = file.absolutePath
+                setVideoPath(file.absolutePath)
             } else {
                 JOptionPane.showMessageDialog(window, "文件格式不支持")
             }

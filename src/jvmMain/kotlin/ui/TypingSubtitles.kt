@@ -82,7 +82,8 @@ fun TypingSubtitles(
     futureFileChooser: FutureTask<JFileChooser>,
     openLoadingDialog: () -> Unit,
     closeLoadingDialog: () -> Unit,
-    openSearch: () -> Unit
+    openSearch: () -> Unit,
+    showEmptyPlayer :() -> Unit
 ) {
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
@@ -1170,10 +1171,11 @@ fun TypingSubtitles(
         }
         Toolbar(
             isOpen = isOpenSettings,
-            setIsOpen = { setIsOpenSettings(it) },
+            setIsOpen = setIsOpenSettings,
             modifier = Modifier.align(Alignment.TopStart),
             globalState = globalState,
-            saveGlobalState = saveGlobalState
+            saveGlobalState = saveGlobalState,
+            showEmptyPlayer = showEmptyPlayer
         )
 
     }

@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
+import data.MutableVocabulary
 import data.VocabularyType
 import data.getHardVocabularyFile
 import kotlinx.coroutines.flow.launchIn
@@ -105,7 +106,8 @@ fun App() {
                         close = {close()}
                     )
                     MenuDialogs(appState)
-
+                    /** 显示视频播放器 */
+                    var showEmptyPlayer by remember { mutableStateOf(false) }
                     if(appState.searching){
                         Search(appState = appState,typingWordState = wordState)
                     }
@@ -129,7 +131,8 @@ fun App() {
                                 appState = appState,
                                 typingWord = wordState,
                                 videoBounds = videoBounds,
-                                resetVideoBounds =resetVideoBounds
+                                resetVideoBounds =resetVideoBounds,
+                                showEmptyPlayer = {showEmptyPlayer = true}
                             )
                         }
                         TypingType.SUBTITLES -> {
@@ -152,6 +155,7 @@ fun App() {
                                 openLoadingDialog = { appState.openLoadingDialog()},
                                 closeLoadingDialog = { appState.loadingFileChooserVisible = false },
                                 openSearch = {appState.openSearch()},
+                                showEmptyPlayer = {showEmptyPlayer = true}
                             )
                         }
 
@@ -172,9 +176,35 @@ fun App() {
                                 openLoadingDialog = { appState.openLoadingDialog()},
                                 closeLoadingDialog = { appState.loadingFileChooserVisible = false },
                                 openSearch = {appState.openSearch()},
+                                showEmptyPlayer = {showEmptyPlayer = true}
                             )
                         }
                     }
+                if(showEmptyPlayer){
+                    var videoPath by remember{ mutableStateOf("") }
+                    var vocabulary by remember{ mutableStateOf<MutableVocabulary?>(null) }
+                    var vocabularyPath by remember{ mutableStateOf("") }
+                    Player(
+                        close = {showEmptyPlayer = false},
+                        minimized = {window.isMinimized = true},
+                        videoPath = videoPath,
+                        videoPathChanged = {videoPath = it},
+                        vocabulary = vocabulary,
+                        vocabularyChanged = {vocabulary = it},
+                        vocabularyPath = vocabularyPath,
+                        vocabularyPathChanged = {vocabularyPath = it},
+                        audioSet = appState.audioSet,
+                        pronunciation = wordState.pronunciation,
+                        audioVolume = appState.global.audioVolume,
+                        videoVolume = appState.global.videoVolume,
+                        videoVolumeChanged = {
+                            appState.global.videoVolume = it
+                            appState.saveGlobalState()
+                        },
+                        futureFileChooser = appState.futureFileChooser,
+                    )
+                }
+
                 }
 
                 //移动，或改变窗口后保存状态到磁盘
@@ -563,7 +593,8 @@ fun Toolbar(
     setIsOpen: (Boolean) -> Unit,
     modifier: Modifier,
     globalState: GlobalState,
-    saveGlobalState:() -> Unit
+    saveGlobalState:() -> Unit,
+    showEmptyPlayer :() -> Unit
 ) {
     Row (modifier = modifier){
         val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
@@ -685,7 +716,6 @@ fun Toolbar(
 
 
 
-
         TooltipArea(
             tooltip = {
                 Surface(
@@ -703,7 +733,7 @@ fun Toolbar(
                 offset = DpOffset.Zero
             )
         ) {
-            IconButton(onClick = {}) {
+            IconButton(onClick = {showEmptyPlayer()}) {
                 Icon(
                     Icons.Outlined.PlayCircle,
                     contentDescription = "Localized description",

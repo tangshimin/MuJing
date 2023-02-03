@@ -20,10 +20,7 @@ import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -34,6 +31,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
+import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import data.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -44,7 +42,6 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import state.WordState
 import state.getSettingsDirectory
 import ui.dialog.MessageDialog
 import uk.co.caprica.vlcj.player.base.MediaPlayer
@@ -53,7 +50,10 @@ import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Toolkit
 import java.io.File
+import java.util.concurrent.FutureTask
+import javax.swing.JFileChooser
 import javax.swing.Timer
+import javax.swing.filechooser.FileSystemView
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -66,12 +66,18 @@ import kotlin.time.Duration.Companion.milliseconds
 fun Player(
     close: () -> Unit,
     minimized:() -> Unit,
-    videoPath: String,
-    wordState: WordState,
+    videoPath: String = "",
+    videoPathChanged:(String) -> Unit,
+    vocabulary: MutableVocabulary? = null,
+    vocabularyChanged:(MutableVocabulary?) -> Unit,
+    vocabularyPath:String = "",
+    vocabularyPathChanged:(String) -> Unit,
     audioSet: MutableSet<String>,
+    pronunciation:String,
     audioVolume: Float,
     videoVolume: Float,
     videoVolumeChanged: (Float) -> Unit,
+    futureFileChooser: FutureTask<JFileChooser>,
 ) {
     val windowState = rememberDialogState(
         width = 1289.dp,
@@ -83,7 +89,15 @@ fun Player(
     val playerState by rememberPlayerState()
 
     /** 标题 */
-    val title by remember { mutableStateOf(File(videoPath).name) }
+    val title by remember (videoPath){
+        derivedStateOf {
+            if(videoPath.isEmpty()){
+                "视频播放器"
+            }else{
+                File(videoPath).name
+            }
+        }
+    }
 
     /** 显示视频的窗口 */
     var playerWindow by remember { mutableStateOf<ComposeDialog?>(null) }
@@ -100,12 +114,6 @@ fun Player(
     /** 全屏之前的尺寸 */
     var fullscreenBeforeSize by remember{ mutableStateOf(DpSize(1289.dp, 854.dp)) }
 
-    /** 显示消息对话框 */
-    var showMessageDialog by remember { mutableStateOf(false) }
-
-    /** 要显示到消息对话框的消息 */
-    var message by remember { mutableStateOf("") }
-
     /** VLC 是视频播放组件 */
     val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent()) }
 
@@ -121,12 +129,6 @@ fun Player(
     /** 当前时间 */
     var timeText by remember { mutableStateOf("") }
 
-    /** 弹幕从右到左需要的时间 */
-    val videoDuration by remember(videoPath) {
-        videoPlayerComponent.mediaPlayer().media().prepare(videoPath)
-        derivedStateOf { videoPlayerComponent.mediaPlayer().media().info().duration() }
-    }
-
     /** 用户输入的弹幕编号 */
     var danmakuNum by remember { mutableStateOf("") }
 
@@ -134,7 +136,7 @@ fun Player(
     var counter by remember { mutableStateOf(1) }
 
     /** 这个视频的所有弹幕 */
-    val danmakuMap = rememberDanmakuMap(videoPath, wordState.vocabulary)
+    val danmakuMap = rememberDanmakuMap(videoPath, vocabulary)
 
     /** 正在显示的弹幕列表 */
     val showingDanmaku = remember { mutableStateMapOf<Int, DanmakuItem>() }
@@ -161,28 +163,40 @@ fun Player(
     /** 正在显示单词详情 */
     var showingDetail by remember { mutableStateOf(false) }
 
+    /** 显示右键菜单 */
+    var showDropdownMenu by remember { mutableStateOf(false) }
+
+    /** 显示视频文件选择器 */
+    var showFilePicker by remember {mutableStateOf(false)}
+
+    /** 显示词库文件选择器 */
+    var showVocabularyPicker by remember {mutableStateOf(false)}
+
     /** 使弹幕从右往左移动的定时器 */
     val danmakuTimer by remember {
         mutableStateOf(
             Timer(30) {
-                val showingList = showingDanmaku.values.toList()
-                for (i in showingList.indices) {
-                    val danmakuItem = showingList.getOrNull(i)
-                    if ((danmakuItem != null) && !danmakuItem.isPause) {
-                        if (danmakuItem.position.x > -30) {
-                            danmakuItem.position = danmakuItem.position.copy(x = danmakuItem.position.x - 3)
-                        } else {
-                            danmakuItem.show = false
-                            removedList.add(danmakuItem)
+                if(playerState.danmakuVisible){
+                    val showingList = showingDanmaku.values.toList()
+                    for (i in showingList.indices) {
+                        val danmakuItem = showingList.getOrNull(i)
+                        if ((danmakuItem != null) && !danmakuItem.isPause) {
+                            if (danmakuItem.position.x > -30) {
+                                danmakuItem.position = danmakuItem.position.copy(x = danmakuItem.position.x - 3)
+                            } else {
+                                danmakuItem.show = false
+                                removedList.add(danmakuItem)
+                            }
                         }
                     }
+                    removedList.forEach { danmakuItem ->
+                        showingDanmaku.remove(danmakuItem.sequence)
+                    }
+                    removedList.clear()
+                    showingDanmaku.putAll(shouldAddDanmaku)
+                    shouldAddDanmaku.clear()
                 }
-                removedList.forEach { danmakuItem ->
-                    showingDanmaku.remove(danmakuItem.sequence)
-                }
-                removedList.clear()
-                showingDanmaku.putAll(shouldAddDanmaku)
-                shouldAddDanmaku.clear()
+
             }
         )
     }
@@ -190,6 +204,7 @@ fun Player(
     /** 关闭窗口 */
     val closeWindow: () -> Unit = {
         videoPlayerComponent.mediaPlayer().release()
+        danmakuTimer.stop()
         close()
     }
 
@@ -224,12 +239,12 @@ fun Player(
             word = word,
             audioSet = audioSet,
             addToAudioSet = {audioSet.add(it)},
-            pronunciation = wordState.pronunciation
+            pronunciation = pronunciation
         )
         playAudio(
             word,
             audioPath,
-            pronunciation =  wordState.pronunciation,
+            pronunciation =  pronunciation,
             audioVolume,
             audioPlayerComponent,
             changePlayerState = { },
@@ -256,6 +271,44 @@ fun Player(
         }
     }
 
+    /** 打开视频 */
+    val openVideo:() -> Unit = {
+        if(isWindows()) {
+            showFilePicker = true
+        }else if(isMacOS()){
+            Thread(Runnable {
+                val fileChooser = futureFileChooser.get()
+                fileChooser.dialogTitle = "打开视频"
+                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
+//                                        fileChooser.currentDirectory = getResourcesFile("vocabulary")
+                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+                fileChooser.selectedFile = null
+                if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                    val file = fileChooser.selectedFile
+
+                }
+            }).start()
+        }
+    }
+
+    val addVocabulary:() -> Unit = {
+        if(isWindows()) {
+            showVocabularyPicker = true
+        }else if(isMacOS()){
+            Thread(Runnable {
+                val fileChooser = futureFileChooser.get()
+                fileChooser.dialogTitle = "添加词库"
+                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
+//                                        fileChooser.currentDirectory = getResourcesFile("vocabulary")
+                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+                fileChooser.selectedFile = null
+                if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                    val file = fileChooser.selectedFile
+
+                }
+            }).start()
+        }
+    }
     Dialog(
         title = title,
         icon = painterResource("logo/logo.png"),
@@ -321,6 +374,11 @@ fun Player(
         }
     ) {
         controlWindow = window
+
+
+
+
+
         Surface(
             color = Color.Transparent,
             modifier = Modifier.fillMaxSize()
@@ -362,7 +420,13 @@ fun Player(
                 }
 
 
-                Box(Modifier.fillMaxSize()) {
+                Box(Modifier
+                    .fillMaxSize()
+                    .onClick(
+                    matcher = PointerMatcher.mouse(PointerButton.Secondary), // add onClick for every required PointerButton
+                    keyboardModifiers = { true }, // e.g { isCtrlPressed }; Remove it to ignore keyboardModifiers
+                    onClick = { showDropdownMenu = true}
+                )) {
 
                     /** 如果手动触发了暂停，就不处理播放函数 */
                     val playEvent: () -> Unit = {
@@ -375,7 +439,8 @@ fun Player(
                     }
 
                     DanmakuBox(
-                        wordState,
+                        vocabulary,
+                        vocabularyPath,
                         playerState,
                         showingDanmaku,
                         playEvent,
@@ -620,27 +685,75 @@ fun Player(
                         }
 
                     }
-
-                    MessageDialog(
-                        show = showMessageDialog,
-                        close = { showMessageDialog = false },
-                        message = message
-                    )
-                    LaunchedEffect(Unit) {
-                        danmakuTimer.start()
+                    if(videoPath.isEmpty()){
+                        Row( modifier = Modifier.align(Alignment.Center)){
+                            OutlinedButton(onClick = { openVideo() }){
+                                Text("打开视频")
+                            }
+                        }
                     }
+                    // 视频文件选择器
+                    FilePicker(
+                        show = showFilePicker,
+                        initialDirectory = ""
+                    ){path ->
+                        if(!path.isNullOrEmpty()){
+                            videoPathChanged(path)
+                            // 打开一个新的视频，重置与旧视频想关联的词库。
+                            if(vocabulary != null){
+                                vocabularyChanged(null)
+                                vocabularyPathChanged("")
+                            }
+                        }
+                        showFilePicker = false
+                    }
+                    // 词库文件选择器
+                    FilePicker(
+                        show = showVocabularyPicker,
+                        initialDirectory = ""
+                    ){path ->
+                        if(!path.isNullOrEmpty()){
+                            vocabularyPathChanged(path)
+                            val vocabulary = loadMutableVocabulary(path)
+                            vocabularyChanged(vocabulary)
+                        }
+                        showVocabularyPicker = false
+                    }
+                    // 右键菜单
+                    CursorDropdownMenu(
+                        expanded = showDropdownMenu,
+                        onDismissRequest = {showDropdownMenu = false},
+                    ){
+                        DropdownMenuItem(onClick = {
+                            openVideo()
+                            showDropdownMenu = false
+                        }) {
+                            Text("打开视频")
+                        }
+                        DropdownMenuItem(onClick = {
+                            addVocabulary()
+                            showDropdownMenu = false
+                        }) {
+                            Text("添加词库")
+                        }
+                    }
+
+
                 }
             }
 
         }
 
-        // 设置播放器、播放视频
-        LaunchedEffect(Unit) {
-            var lastTime = -1
-            var lastMaxLength = 0
-            videoPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(object : MediaPlayerEventAdapter() {
-                override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
 
+        /** 播放器显示后只执行一次，设置最小尺寸，绑定时间进度条，和时间 */
+        LaunchedEffect(Unit) {
+            if(playerState.danmakuVisible && videoPath.isNotEmpty() && danmakuMap.isNotEmpty()){
+                danmakuTimer.start()
+            }
+            window.minimumSize = Dimension(900,854)
+            val eventListener = object:MediaPlayerEventAdapter() {
+                override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
+                    val videoDuration = videoPlayerComponent.mediaPlayer().media().info().duration()
                     timeProgress = (newTime.toFloat()).div(videoDuration)
                     var startText: String
                     timeProgress.times(videoDuration).toInt().milliseconds.toComponents { hours, minutes, seconds, _ ->
@@ -651,10 +764,39 @@ fun Player(
                         timeText = "$startText / $durationText"
                     }
 
+                }
+
+                private fun timeFormat(hours: Long, minutes: Int, seconds: Int): String {
+                    val h = if (hours < 10) "0$hours" else "$hours"
+                    val m = if (minutes < 10) "0$minutes" else "$minutes"
+                    val s = if (seconds < 10) "0$seconds" else "$seconds"
+                    return "$h:$m:$s"
+                }
+                override fun mediaPlayerReady(mediaPlayer: MediaPlayer?) {
+                    mediaPlayer?.audio()?.setVolume(videoVolume.toInt())
+                }
+
+                override fun finished(mediaPlayer: MediaPlayer?) {
+                    isPlaying = false
+                }
+            }
+            videoPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(eventListener)
+        }
+        /** 保存 mediaPlayerEventListener 的引用，用于删除。*/
+        var mediaPlayerEventListener by remember{ mutableStateOf<MediaPlayerEventAdapter?>(null) }
+        /** 启动的时候执行一次，每次添加词库后再执行一次 */
+        LaunchedEffect(vocabularyPath) {
+            if(mediaPlayerEventListener != null){
+                videoPlayerComponent.mediaPlayer().events().removeMediaPlayerEventListener(mediaPlayerEventListener)
+            }
+            var lastTime = -1
+            var lastMaxLength = 0
+            val eventListener = object:MediaPlayerEventAdapter() {
+                override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
                     // 单位为秒
                     val startTime = (newTime.milliseconds.inWholeSeconds + widthDuration.div(3000)).toInt()
                     // 每秒执行一次
-                    if (playerState.danmakuVisible && startTime != lastTime) {
+                    if (playerState.danmakuVisible && danmakuMap.isNotEmpty() && startTime != lastTime) {
                         val danmakuList = danmakuMap.get(startTime)
                         var offsetY = if(isFullscreen) 50 else 20
                         val sequenceWidth = if (playerState.showSequence) counter.toString().length * 12 else 0
@@ -676,31 +818,25 @@ fun Player(
                         lastMaxLength = maxLength
                         lastTime = startTime
                     }
-
                 }
-
-                private fun timeFormat(hours: Long, minutes: Int, seconds: Int): String {
-                    val h = if (hours < 10) "0$hours" else "$hours"
-                    val m = if (minutes < 10) "0$minutes" else "$minutes"
-                    val s = if (seconds < 10) "0$seconds" else "$seconds"
-                    return "$h:$m:$s"
-                }
-
-                override fun mediaPlayerReady(mediaPlayer: MediaPlayer?) {
-                    mediaPlayer?.audio()?.setVolume(videoVolume.toInt())
-                }
-
-                override fun finished(mediaPlayer: MediaPlayer?) {
-                    isPlaying = false
-                }
-            })
-            videoPlayerComponent.mediaPlayer().media().play(videoPath)
-            isPlaying = true
-
-            window.minimumSize = Dimension(900,854)
+            }
+            videoPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(eventListener)
+            mediaPlayerEventListener = eventListener
         }
 
-        // 同步窗口尺寸
+        /** 打开视频后自动播放 */
+        LaunchedEffect(videoPath) {
+            if(videoPath.isNotEmpty()){
+                videoPlayerComponent.mediaPlayer().media().play(videoPath)
+                isPlaying = true
+                if(playerState.danmakuVisible && !danmakuTimer.isRunning){
+                    danmakuTimer.restart()
+                }
+
+            }
+        }
+
+        /** 同步窗口尺寸 */
         LaunchedEffect(windowState) {
             snapshotFlow { windowState.size }
                 .onEach {
@@ -770,7 +906,9 @@ private fun Dimension.toComposeSize(): DpSize = DpSize(width.dp, height.dp)
 
 @Composable
 fun DanmakuBox(
-    wordState: WordState,
+//    wordState: WordState,
+    vocabulary: MutableVocabulary?,
+    vocabularyPath:String,
     playerState: PlayerState,
     showingDanmaku: SnapshotStateMap<Int, DanmakuItem>,
     playEvent: () -> Unit,
@@ -784,9 +922,9 @@ fun DanmakuBox(
     val deleteWord: (DanmakuItem) -> Unit = { danmakuItem ->
         if (danmakuItem.word != null) {
             val word = danmakuItem.word
-            wordState.vocabulary.wordList.remove(word)
-            wordState.vocabulary.size = wordState.vocabulary.wordList.size
-            wordState.saveCurrentVocabulary()
+            vocabulary!!.wordList.remove(word)
+            vocabulary.size = vocabulary.wordList.size
+            saveVocabulary(vocabulary.serializeVocabulary,vocabularyPath)
         }
         showingDanmaku.remove(danmakuItem.sequence)
         showingDetailChanged(false)
@@ -801,14 +939,14 @@ fun DanmakuBox(
             val file = getFamiliarVocabularyFile()
             val familiar = loadVocabulary(file.absolutePath)
             // 如果当前词库是 MKV 或 SUBTITLES 类型的词库，需要把内置词库转换成外部词库。
-            if (wordState.vocabulary.type == VocabularyType.MKV ||
-                wordState.vocabulary.type == VocabularyType.SUBTITLES
+            if (vocabulary!!.type == VocabularyType.MKV ||
+                vocabulary.type == VocabularyType.SUBTITLES
             ) {
                 word.captions.forEach { caption ->
                     val externalCaption = ExternalCaption(
-                        relateVideoPath = wordState.vocabulary.relateVideoPath,
-                        subtitlesTrackId = wordState.vocabulary.subtitlesTrackId,
-                        subtitlesName = wordState.vocabulary.name,
+                        relateVideoPath = vocabulary.relateVideoPath,
+                        subtitlesTrackId = vocabulary.subtitlesTrackId,
+                        subtitlesName = vocabulary.name,
                         start = caption.start,
                         end = caption.end,
                         content = caption.content
@@ -863,35 +1001,37 @@ fun DanmakuBox(
 @Composable
 fun rememberDanmakuMap(
     videoPath: String,
-    vocabulary: MutableVocabulary
-) = remember {
+    vocabulary: MutableVocabulary?
+) = remember(videoPath, vocabulary){
     // Key 为秒 > 这一秒出现的单词列表
     val timeMap = mutableMapOf<Int, MutableList<DanmakuItem>>()
-    if (vocabulary.relateVideoPath == videoPath) {
-        vocabulary.wordList.forEach { word ->
-            if (word.captions.isNotEmpty()) {
-                word.captions.forEach { caption ->
+    if (vocabulary != null) {
+        if (vocabulary.relateVideoPath == videoPath) {
+            vocabulary.wordList.forEach { word ->
+                if (word.captions.isNotEmpty()) {
+                    word.captions.forEach { caption ->
 
-                    val startTime = Math.floor(parseTime(caption.start)).toInt()
-                    val dList = timeMap.get(startTime)
-                    val item = DanmakuItem(word.value, true, startTime, 0, false, IntOffset(0, 0), word)
-                    if (dList == null) {
-                        val newList = mutableListOf(item)
-                        timeMap.put(startTime, newList)
-                    } else {
-                        dList.add(item)
+                        val startTime = Math.floor(parseTime(caption.start)).toInt()
+                        val dList = timeMap.get(startTime)
+                        val item = DanmakuItem(word.value, true, startTime, 0, false, IntOffset(0, 0), word)
+                        if (dList == null) {
+                            val newList = mutableListOf(item)
+                            timeMap.put(startTime, newList)
+                        } else {
+                            dList.add(item)
+                        }
                     }
-                }
-            } else {
-                word.externalCaptions.forEach { externalCaption ->
-                    val startTime = Math.floor(parseTime(externalCaption.start)).toInt()
-                    val dList = timeMap.get(startTime)
-                    val item = DanmakuItem(word.value, true, startTime, 0, false, IntOffset(0, 0), word)
-                    if (dList == null) {
-                        val newList = mutableListOf(item)
-                        timeMap.put(startTime, newList)
-                    } else {
-                        dList.add(item)
+                } else {
+                    word.externalCaptions.forEach { externalCaption ->
+                        val startTime = Math.floor(parseTime(externalCaption.start)).toInt()
+                        val dList = timeMap.get(startTime)
+                        val item = DanmakuItem(word.value, true, startTime, 0, false, IntOffset(0, 0), word)
+                        if (dList == null) {
+                            val newList = mutableListOf(item)
+                            timeMap.put(startTime, newList)
+                        } else {
+                            dList.add(item)
+                        }
                     }
                 }
             }
