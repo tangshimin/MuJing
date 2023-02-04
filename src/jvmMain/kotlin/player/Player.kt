@@ -43,6 +43,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import state.getSettingsDirectory
+import ui.createTransferHandler
 import ui.dialog.MessageDialog
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
@@ -52,6 +53,7 @@ import java.awt.Toolkit
 import java.io.File
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
+import javax.swing.JOptionPane
 import javax.swing.Timer
 import javax.swing.filechooser.FileSystemView
 import kotlin.time.Duration.Companion.milliseconds
@@ -69,7 +71,6 @@ fun Player(
     videoPath: String = "",
     videoPathChanged:(String) -> Unit,
     vocabulary: MutableVocabulary? = null,
-    vocabularyChanged:(MutableVocabulary?) -> Unit,
     vocabularyPath:String = "",
     vocabularyPathChanged:(String) -> Unit,
     audioSet: MutableSet<String>,
@@ -113,6 +114,12 @@ fun Player(
 
     /** 全屏之前的尺寸 */
     var fullscreenBeforeSize by remember{ mutableStateOf(DpSize(1289.dp, 854.dp)) }
+
+    /** 显示消息对话框 */
+    var showMessageDialog by remember { mutableStateOf(false) }
+
+    /** 要显示到消息对话框的消息 */
+    var message by remember { mutableStateOf("") }
 
     /** VLC 是视频播放组件 */
     val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent()) }
@@ -171,6 +178,9 @@ fun Player(
 
     /** 显示词库文件选择器 */
     var showVocabularyPicker by remember {mutableStateOf(false)}
+
+    /** 支持的视频类型 */
+    val videoFormatList = remember{ mutableStateListOf("mp4","mkv") }
 
     /** 使弹幕从右往左移动的定时器 */
     val danmakuTimer by remember {
@@ -280,12 +290,13 @@ fun Player(
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogTitle = "打开视频"
                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-//                                        fileChooser.currentDirectory = getResourcesFile("vocabulary")
                 fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
                 fileChooser.selectedFile = null
                 if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                    val file = fileChooser.selectedFile
-
+                    val path = fileChooser.selectedFile.absolutePath
+                    if(!path.isNullOrEmpty()){
+                        videoPathChanged(path)
+                    }
                 }
             }).start()
         }
@@ -299,16 +310,55 @@ fun Player(
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogTitle = "添加词库"
                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-//                                        fileChooser.currentDirectory = getResourcesFile("vocabulary")
                 fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
                 fileChooser.selectedFile = null
                 if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                    val file = fileChooser.selectedFile
-
+                    val path = fileChooser.selectedFile.absolutePath
+                    if(!path.isNullOrEmpty()){
+                        vocabularyPathChanged(path)
+                    }
                 }
             }).start()
         }
     }
+
+    /** 使用这个函数处理拖放的文件 */
+    val parseImportFile: (List<File>) -> Unit = { files ->
+        if(files.size == 1){
+            val file = files.first()
+            /** 拖放的是视频。*/
+            if(videoFormatList.contains(file.extension)){
+                videoPathChanged(file.absolutePath)
+            /** 拖放的可能是词库。*/
+            }else if(file.extension == "json"){
+                if(videoPath.isNotEmpty()){
+                    vocabularyPathChanged(file.absolutePath)
+                }else{
+                    message = "先打开视频，再拖放词库。"
+                    showMessageDialog = true
+                }
+            }
+        }else if(files.size == 2){
+            val first = files.first()
+            val last = files.last()
+            /** 第一个文件为视频文件，第二个文件为词库。*/
+            if(videoFormatList.contains(first.extension) && last.extension == "json"){
+                videoPathChanged(first.absolutePath)
+                vocabularyPathChanged(last.absolutePath)
+            /** 第一个文件为词库，第二个文件为视频。*/
+            }else if(first.extension == "json" && videoFormatList.contains(last.extension)){
+                vocabularyPathChanged(first.absolutePath)
+                videoPathChanged(last.absolutePath)
+             /** 拖放了两个视频，只处理第一个视频。*/
+            }else if(videoFormatList.contains(first.extension) && videoFormatList.contains(last.extension)){
+                videoPathChanged(first.absolutePath)
+            /** 拖放了两个词库，只处理第一个词库。 */
+            }else if(first.extension == "json" && last.extension == "json"){
+                vocabularyPathChanged(first.absolutePath)
+            }
+        }
+    }
+
     Dialog(
         title = title,
         icon = painterResource("logo/logo.png"),
@@ -625,7 +675,7 @@ fun Player(
                                     }
 
                                 }
-                                if (playerState.showSequence && playerState.danmakuVisible) {
+                                if (playerState.showSequence && playerState.danmakuVisible && vocabularyPath.isNotEmpty()) {
 
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
@@ -699,23 +749,17 @@ fun Player(
                     ){path ->
                         if(!path.isNullOrEmpty()){
                             videoPathChanged(path)
-                            // 打开一个新的视频，重置与旧视频想关联的词库。
-                            if(vocabulary != null){
-                                vocabularyChanged(null)
-                                vocabularyPathChanged("")
-                            }
                         }
                         showFilePicker = false
                     }
                     // 词库文件选择器
                     FilePicker(
                         show = showVocabularyPicker,
+                        fileExtension = "json",
                         initialDirectory = ""
                     ){path ->
                         if(!path.isNullOrEmpty()){
                             vocabularyPathChanged(path)
-                            val vocabulary = loadMutableVocabulary(path)
-                            vocabularyChanged(vocabulary)
                         }
                         showVocabularyPicker = false
                     }
@@ -730,7 +774,9 @@ fun Player(
                         }) {
                             Text("打开视频")
                         }
-                        DropdownMenuItem(onClick = {
+                        DropdownMenuItem(
+                            enabled = videoPath.isNotEmpty(),
+                            onClick = {
                             addVocabulary()
                             showDropdownMenu = false
                         }) {
@@ -742,10 +788,16 @@ fun Player(
                 }
             }
 
+            MessageDialog(
+                show = showMessageDialog,
+                close = { showMessageDialog = false },
+                message = message
+            )
+
         }
 
 
-        /** 播放器显示后只执行一次，设置最小尺寸，绑定时间进度条，和时间 */
+        /** 播放器显示后只执行一次，设置最小尺寸，绑定时间进度条，和时间,设置拖放函数 */
         LaunchedEffect(Unit) {
             if(playerState.danmakuVisible && videoPath.isNotEmpty() && danmakuMap.isNotEmpty()){
                 danmakuTimer.start()
@@ -781,6 +833,15 @@ fun Player(
                 }
             }
             videoPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(eventListener)
+            /** 设置拖放函数 */
+            val transferHandler = createTransferHandler(
+                singleFile = false,
+                showWrongMessage = { message ->
+                    JOptionPane.showMessageDialog(window, message)
+                },
+                parseImportFile = {  parseImportFile(it)}
+            )
+            window.transferHandler = transferHandler
         }
         /** 保存 mediaPlayerEventListener 的引用，用于删除。*/
         var mediaPlayerEventListener by remember{ mutableStateOf<MediaPlayerEventAdapter?>(null) }
@@ -832,7 +893,9 @@ fun Player(
                 if(playerState.danmakuVisible && !danmakuTimer.isRunning){
                     danmakuTimer.restart()
                 }
-
+                if(danmakuTimer.isRunning){
+                    showingDanmaku.clear()
+                }
             }
         }
 

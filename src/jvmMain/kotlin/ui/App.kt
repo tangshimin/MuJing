@@ -29,6 +29,7 @@ import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import data.MutableVocabulary
 import data.VocabularyType
 import data.getHardVocabularyFile
+import data.loadMutableVocabulary
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -106,11 +107,39 @@ fun App() {
                         close = {close()}
                     )
                     MenuDialogs(appState)
-                    /** 显示视频播放器 */
-                    var showEmptyPlayer by remember { mutableStateOf(false) }
                     if(appState.searching){
                         Search(appState = appState,typingWordState = wordState)
                     }
+
+                    /** 显示视频播放器 */
+                    var showPlayer by remember { mutableStateOf(false) }
+                    /** 播放器 > 视频地址 */
+                    var videoPath by remember{ mutableStateOf("") }
+                    /** 播放器 > 词库，用于生成弹幕 */
+                    var vocabulary by remember{ mutableStateOf<MutableVocabulary?>(null) }
+                    /** 播放器 > 词库地址，用于保存词库，因为看视频时可以查看单词详情，如果觉得太简单了可以删除或加入到熟悉词库 */
+                    var vocabularyPath by remember{ mutableStateOf("") }
+                    val videoPathChanged:(String) -> Unit = {
+                        // 已经打开了一个视频再打开一个新的视频，重置与旧视频相关联的词库。
+                        if(videoPath.isNotEmpty() && vocabulary != null){
+                            vocabularyPath = ""
+                            vocabulary = null
+                        }
+                        videoPath = it
+                    }
+                    val vocabularyPathChanged:(String) -> Unit = {
+                        vocabularyPath = it
+                        val newVocabulary = loadMutableVocabulary(it)
+                        vocabulary = newVocabulary
+                    }
+                    val closePlayer:() -> Unit = {
+                        showPlayer = false
+                        videoPath = ""
+                        vocabularyPath = ""
+                        vocabulary = null
+                    }
+
+
                     when (appState.global.type) {
                         TypingType.WORD -> {
                             title = computeTitle(wordState.vocabularyName,wordState.vocabulary.wordList.isNotEmpty())
@@ -131,8 +160,10 @@ fun App() {
                                 appState = appState,
                                 typingWord = wordState,
                                 videoBounds = videoBounds,
-                                resetVideoBounds =resetVideoBounds,
-                                showEmptyPlayer = {showEmptyPlayer = true}
+                                resetVideoBounds = resetVideoBounds,
+                                showPlayer = { showPlayer = it },
+                                videoPathChanged = videoPathChanged,
+                                vocabularyPathChanged = vocabularyPathChanged
                             )
                         }
                         TypingType.SUBTITLES -> {
@@ -155,7 +186,7 @@ fun App() {
                                 openLoadingDialog = { appState.openLoadingDialog()},
                                 closeLoadingDialog = { appState.loadingFileChooserVisible = false },
                                 openSearch = {appState.openSearch()},
-                                showEmptyPlayer = {showEmptyPlayer = true}
+                                showPlayer = { showPlayer = it },
                             )
                         }
 
@@ -176,34 +207,30 @@ fun App() {
                                 openLoadingDialog = { appState.openLoadingDialog()},
                                 closeLoadingDialog = { appState.loadingFileChooserVisible = false },
                                 openSearch = {appState.openSearch()},
-                                showEmptyPlayer = {showEmptyPlayer = true}
+                                showPlayer = { showPlayer = it },
                             )
                         }
                     }
-                if(showEmptyPlayer){
-                    var videoPath by remember{ mutableStateOf("") }
-                    var vocabulary by remember{ mutableStateOf<MutableVocabulary?>(null) }
-                    var vocabularyPath by remember{ mutableStateOf("") }
-                    Player(
-                        close = {showEmptyPlayer = false},
-                        minimized = {window.isMinimized = true},
-                        videoPath = videoPath,
-                        videoPathChanged = {videoPath = it},
-                        vocabulary = vocabulary,
-                        vocabularyChanged = {vocabulary = it},
-                        vocabularyPath = vocabularyPath,
-                        vocabularyPathChanged = {vocabularyPath = it},
-                        audioSet = appState.audioSet,
-                        pronunciation = wordState.pronunciation,
-                        audioVolume = appState.global.audioVolume,
-                        videoVolume = appState.global.videoVolume,
-                        videoVolumeChanged = {
-                            appState.global.videoVolume = it
-                            appState.saveGlobalState()
-                        },
-                        futureFileChooser = appState.futureFileChooser,
-                    )
-                }
+                    if(showPlayer){
+                        Player(
+                            close = {closePlayer()},
+                            minimized = {window.isMinimized = true},
+                            videoPath = videoPath,
+                            videoPathChanged = videoPathChanged,
+                            vocabulary = vocabulary,
+                            vocabularyPath = vocabularyPath,
+                            vocabularyPathChanged = vocabularyPathChanged,
+                            audioSet = appState.audioSet,
+                            pronunciation = wordState.pronunciation,
+                            audioVolume = appState.global.audioVolume,
+                            videoVolume = appState.global.videoVolume,
+                            videoVolumeChanged = {
+                                appState.global.videoVolume = it
+                                appState.saveGlobalState()
+                            },
+                            futureFileChooser = appState.futureFileChooser,
+                        )
+                    }
 
                 }
 
@@ -594,7 +621,7 @@ fun Toolbar(
     modifier: Modifier,
     globalState: GlobalState,
     saveGlobalState:() -> Unit,
-    showEmptyPlayer :() -> Unit
+    showPlayer :(Boolean) -> Unit
 ) {
     Row (modifier = modifier){
         val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
@@ -733,7 +760,7 @@ fun Toolbar(
                 offset = DpOffset.Zero
             )
         ) {
-            IconButton(onClick = {showEmptyPlayer()}) {
+            IconButton(onClick = {showPlayer(true)}) {
                 Icon(
                     Icons.Outlined.PlayCircle,
                     contentDescription = "Localized description",

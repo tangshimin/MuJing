@@ -69,7 +69,7 @@ fun TypingText(
     openLoadingDialog: () -> Unit,
     closeLoadingDialog: () -> Unit,
     openSearch: () -> Unit,
-    showEmptyPlayer :() -> Unit
+    showPlayer :(Boolean) -> Unit,
 ){
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
@@ -615,7 +615,7 @@ fun TypingText(
             modifier = Modifier.align(Alignment.TopStart),
             globalState = globalState,
             saveGlobalState = saveGlobalState,
-            showEmptyPlayer = showEmptyPlayer
+            showPlayer = showPlayer
         )
     }
 
