@@ -339,7 +339,7 @@ private fun computeTitle(textState: TextState) :String{
 /**
  * 菜单栏
  */
-@OptIn(ExperimentalSerializationApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalSerializationApi::class)
 @Composable
 private fun FrameWindowScope.WindowMenuBar(
     appState: AppState,
@@ -472,22 +472,6 @@ private fun FrameWindowScope.WindowMenuBar(
         Separator()
         Item("退出(X)", mnemonic = 'X', onClick = { close() })
     }
-    Menu("章节(C)", mnemonic = 'C') {
-        val enable = appState.global.type == TypingType.WORD
-        var showChapterDialog by remember { mutableStateOf(false) }
-        Item(
-            "选择章节(C)", mnemonic = 'C',
-            enabled = enable,
-            onClick = { showChapterDialog = true },
-        )
-        if(showChapterDialog){
-            SelectChapterDialog(
-                close = {showChapterDialog = false},
-                typingWordState = typingState,
-                isMultiple = false
-            )
-        }
-    }
     Menu("字幕(S)", mnemonic = 'S') {
         val enableTypingSubtitles = (appState.global.type != TypingType.SUBTITLES)
         Item(
@@ -551,44 +535,25 @@ private fun FrameWindowScope.WindowMenuBar(
             onClick = { showTextFormatDialog = true },
         )
     }
-    Menu("复习(F)",mnemonic = 'F'){
-        var showChapterDialog by remember { mutableStateOf(false) }
-        Item(
-            text = "听写复习(F)",
-            mnemonic = 'F',
-            enabled = true,
-            onClick = { showChapterDialog = true }
-        )
-        if(showChapterDialog){
-            SelectChapterDialog(
-                close = {showChapterDialog = false},
-                typingWordState = typingState,
-                isMultiple = true
-            )
-        }
-    }
-    var aboutDialogVisible by remember { mutableStateOf(false) }
-    var donateDialogVisible by remember { mutableStateOf(false) }
-    var helpDialogVisible by remember { mutableStateOf(false) }
-    var shortcutKeyDialogVisible by remember { mutableStateOf(false) }
-    var directoryDialogVisible by remember { mutableStateOf(false) }
     Menu("帮助(H)", mnemonic = 'H') {
-
-
-        Item("文档D)", mnemonic = 'D', onClick = { helpDialogVisible = true})
-        if(helpDialogVisible){
+        var documentDialogVisible by remember { mutableStateOf(false) }
+        Item("文档D)", mnemonic = 'D', onClick = { documentDialogVisible = true})
+        if(documentDialogVisible){
             DocumentDialog(
-                close = {helpDialogVisible = false}
+                close = {documentDialogVisible = false}
             )
         }
+        var shortcutKeyDialogVisible by remember { mutableStateOf(false) }
         Item("快捷键(K)", mnemonic = 'K', onClick = {shortcutKeyDialogVisible = true})
         if(shortcutKeyDialogVisible){
             ShortcutKeyDialog(close ={shortcutKeyDialogVisible = false} )
         }
+        var directoryDialogVisible by remember { mutableStateOf(false) }
         Item("特殊文件夹(F)",mnemonic = 'F', onClick = {directoryDialogVisible = true})
         if(directoryDialogVisible){
             SpecialDirectoryDialog(close ={directoryDialogVisible = false})
         }
+        var donateDialogVisible by remember { mutableStateOf(false) }
         Item("捐赠", onClick = { donateDialogVisible = true })
         if(donateDialogVisible){
             DonateDialog (
@@ -599,6 +564,7 @@ private fun FrameWindowScope.WindowMenuBar(
             appState.showUpdateDialog = true
             appState.latestVersion = ""
         })
+        var aboutDialogVisible by remember { mutableStateOf(false) }
         Item("关于(A)", mnemonic = 'A', onClick = { aboutDialogVisible = true })
         if (aboutDialogVisible) {
             AboutDialog(

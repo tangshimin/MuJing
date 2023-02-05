@@ -37,7 +37,7 @@ fun SelectChapterDialog(
     isMultiple:Boolean
 ) {
     Dialog(
-        title = if(isMultiple) "听写复习" else "选择章节",
+        title = if(isMultiple) "先听写测试，再复习错误的单词" else "选择章节",
         onCloseRequest = { close() },
         resizable = true,
         state = rememberDialogState(

@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
+import kotlinx.coroutines.launch
 import ui.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
@@ -64,8 +65,22 @@ fun SettingsDialog(
             Box(Modifier.fillMaxSize()) {
 
                 Row(Modifier.fillMaxSize()) {
-                    var currentPage by remember { mutableStateOf("TextStyle") }
+                    var currentPage by remember { mutableStateOf("Theme") }
                     Column(Modifier.width(100.dp).fillMaxHeight()) {
+
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clickable { currentPage = "Theme" }
+                                .fillMaxWidth()
+                                .height(48.dp)) {
+                            Text("主题", modifier = Modifier.padding(start = 16.dp))
+                            if (currentPage == "Theme") {
+                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                            }
+                        }
+
                         Row(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
@@ -78,7 +93,6 @@ fun SettingsDialog(
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
                             }
                         }
-
                         Row(horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier
@@ -94,15 +108,19 @@ fun SettingsDialog(
                     }
                     Divider(Modifier.fillMaxHeight().width(1.dp))
                     when (currentPage) {
+                        "Theme" -> {
+                            SettingTheme(state)
+                        }
+                        "TextStyle" -> {
+                            SettingTextStyle(state,typingWordState)
+                        }
                         "ColorChooser" -> {
                             PrimaryColorChooser(
                                 close = { close() },
                                 state = state
                             )
                         }
-                        "TextStyle" -> {
-                            SettingTestStyle(state,typingWordState)
-                        }
+
                     }
                 }
                 Divider(Modifier.align(Alignment.TopCenter))
@@ -181,18 +199,18 @@ fun PrimaryColorChooser(
                                 withStyle(
                                     style = SpanStyle(color = selectedColor, fontFamily = fontFamily)
                                 ) {
-                                    append("typing-l")
+                                    append("Mo")
                                 }
 
                                 withStyle(
                                     style = SpanStyle(color = Color.Red, fontFamily = fontFamily)
                                 ) {
-                                    append("e")
+                                    append("v")
                                 }
                                 withStyle(
                                     style = SpanStyle(color = darkColors().onBackground, fontFamily = fontFamily)
                                 ) {
-                                    append("arner")
+                                    append("Context")
                                 }
                             }
                         )
@@ -224,18 +242,18 @@ fun PrimaryColorChooser(
                                 withStyle(
                                     style = SpanStyle(color = selectedColor, fontFamily = fontFamily)
                                 ) {
-                                    append("typing-l")
+                                    append("Mo")
                                 }
 
                                 withStyle(
                                     style = SpanStyle(color = Color.Red, fontFamily = fontFamily)
                                 ) {
-                                    append("e")
+                                    append("v")
                                 }
                                 withStyle(
                                     style = SpanStyle(color = lightColors().onBackground, fontFamily = fontFamily)
                                 ) {
-                                    append("arner")
+                                    append("Context")
                                 }
                             }
                         )
@@ -293,7 +311,7 @@ fun PrimaryColorChooser(
 
 @OptIn(ExperimentalSerializationApi::class)
 @Composable
-fun SettingTestStyle(
+fun SettingTextStyle(
     state: AppState,
     typingState: WordState,
 ) {
@@ -310,9 +328,9 @@ fun SettingTestStyle(
     }
 
     Column(
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize().padding(bottom = 60.dp)
+        modifier = Modifier.fillMaxSize().padding(top = 48.dp,bottom = 60.dp)
     ) {
         val background = if (MaterialTheme.colors.isLight) Color.LightGray else MaterialTheme.colors.background
         Column (Modifier.width(600.dp).background(background)){
@@ -623,5 +641,33 @@ fun TextStyleChooser(
             }
 
         }
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Composable
+fun SettingTheme(
+    state: AppState,
+){
+    Row(
+        horizontalArrangement = Arrangement.Start,
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        val scope = rememberCoroutineScope()
+        Text("深色模式", color = MaterialTheme.colors.onBackground,modifier = Modifier.padding(start = 20.dp))
+        Spacer(Modifier.width(15.dp))
+        Switch(
+            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+            checked = state.global.isDarkTheme,
+            onCheckedChange = {
+                scope.launch {
+                    state.global.isDarkTheme = it
+                    state.colors = createColors(state.global.isDarkTheme, state.global.primaryColor)
+                    state.saveGlobalState()
+                }
+
+            },
+        )
     }
 }

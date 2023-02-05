@@ -45,7 +45,6 @@ import state.AppState
 import state.MemoryStrategy.*
 import state.WordState
 import state.getResourcesFile
-import theme.createColors
 import ui.dialog.ChapterFinishedDialog
 import ui.dialog.ConfirmDialog
 import ui.dialog.EditWordDialog
@@ -459,14 +458,6 @@ fun MainContent(
                     }
                     true
                 }
-                (it.isCtrlPressed && it.key == Key.D && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        appState.global.isDarkTheme = !appState.global.isDarkTheme
-                        appState.colors = createColors(appState.global.isDarkTheme, appState.global.primaryColor)
-                        appState.saveGlobalState()
-                    }
-                    true
-                }
                 (it.isCtrlPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         appState.openSearch()
@@ -568,21 +559,6 @@ fun MainContent(
                 (it.isCtrlPressed && it.key == Key.S && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         typingWord.subtitlesVisible = !typingWord.subtitlesVisible
-                        typingWord.saveTypingWordState()
-                    }
-                    true
-                }
-
-                (it.isCtrlPressed && it.key == Key.M && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        appState.global.isPlayKeystrokeSound = !appState.global.isPlayKeystrokeSound
-                        appState.saveGlobalState()
-                    }
-                    true
-                }
-                (it.isCtrlPressed && it.key == Key.Q && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        typingWord.isPlaySoundTips = !typingWord.isPlaySoundTips
                         typingWord.saveTypingWordState()
                     }
                     true

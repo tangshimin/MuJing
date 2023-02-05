@@ -186,10 +186,7 @@ fun TypingText(
                 scope.launch {openSearch() }
                 true
             }
-            (keyEvent.isCtrlPressed && keyEvent.key == Key.D && keyEvent.type == KeyEventType.KeyUp) -> {
-                setIsDarkTheme(!globalState.isDarkTheme)
-                true
-            }
+
             else -> false
         }
     }
@@ -675,30 +672,6 @@ fun TypingTextSidebar(
                     modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
                 )
             }
-
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
-            ) {
-                Row {
-                    Text("深色模式", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = "$ctrl+D",
-                        color = MaterialTheme.colors.onBackground
-                    )
-                }
-
-                Spacer(Modifier.width(15.dp))
-                Switch(
-                    colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                    checked = isDarkTheme,
-                    onCheckedChange = { setIsDarkTheme(it) },
-                )
-            }
-
-
         }
     }
 }

@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,7 +20,7 @@ import player.isMacOS
 import player.isWindows
 import state.AppState
 import state.WordState
-import theme.createColors
+import ui.dialog.SelectChapterDialog
 
 /**
  * 侧边菜单
@@ -44,6 +46,55 @@ fun TypingWordSidebar(
                     .verticalScroll(stateVertical)
             ) {
                 Spacer(Modifier.fillMaxWidth().height(if (isMacOS()) 78.dp else 48.dp))
+                Divider()
+                val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
+
+                var showDictationDialog by remember { mutableStateOf(false) }
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().clickable { showDictationDialog = true }.padding(start = 16.dp, end = 8.dp)
+                ) {
+
+                    Text("听写复习", color = MaterialTheme.colors.onBackground)
+                    Spacer(Modifier.width(15.dp))
+                    Icon(
+                        Icons.Filled.RateReview,
+                        contentDescription = "Localized description",
+                        tint = tint,
+                        modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
+                    )
+                    if(showDictationDialog){
+                        SelectChapterDialog(
+                            close = {showDictationDialog = false},
+                            typingWordState = typingWordState,
+                            isMultiple = true
+                        )
+                    }
+                }
+                var showChapterDialog by remember { mutableStateOf(false) }
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().clickable { showChapterDialog = true }.padding(start = 16.dp, end = 8.dp)
+                ) {
+
+                    Text("选择章节", color = MaterialTheme.colors.onBackground)
+                    Spacer(Modifier.width(15.dp))
+                    Icon(
+                        Icons.Filled.Apps,
+                        contentDescription = "Localized description",
+                        tint = tint,
+                            modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
+                    )
+                    if(showChapterDialog){
+                        SelectChapterDialog(
+                            close = {showChapterDialog = false},
+                            typingWordState = typingWordState,
+                            isMultiple = false
+                        )
+                    }
+                }
                 Divider()
                 val ctrl = LocalCtrl.current
                 Row(
@@ -210,47 +261,10 @@ fun TypingWordSidebar(
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
-                ) {
-                    Row {
-                        Text("深色模式", color = MaterialTheme.colors.onBackground)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = "$ctrl+D",
-                            color = MaterialTheme.colors.onBackground
-                        )
-                    }
-
-                    Spacer(Modifier.width(15.dp))
-                    Switch(
-                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = state.global.isDarkTheme,
-                        onCheckedChange = {
-                            scope.launch {
-                                state.global.isDarkTheme = it
-                                state.colors = createColors(state.global.isDarkTheme, state.global.primaryColor)
-                                state.saveGlobalState()
-                            }
-
-                        },
-                    )
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
                         .clickable { }.padding(start = 16.dp, end = 8.dp)
                 ) {
-                    Row {
-                        Text("击键音效", color = MaterialTheme.colors.onBackground)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = "$ctrl+M",
-                            color = MaterialTheme.colors.onBackground
-                        )
-                    }
-
+                    Text("击键音效", color = MaterialTheme.colors.onBackground)
                     Spacer(Modifier.width(15.dp))
                     Switch(
                         colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
@@ -261,7 +275,6 @@ fun TypingWordSidebar(
                                 state.saveGlobalState()
                             }
                         },
-
                         )
                 }
                 Row(
@@ -270,15 +283,7 @@ fun TypingWordSidebar(
                     modifier = Modifier.fillMaxWidth()
                         .clickable { }.padding(start = 16.dp, end = 8.dp)
                 ) {
-                    Row {
-                        Text("提示音效", color = MaterialTheme.colors.onBackground)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = "$ctrl+Q",
-                            color = MaterialTheme.colors.onBackground
-                        )
-                    }
-
+                    Text("提示音效", color = MaterialTheme.colors.onBackground)
                     Spacer(Modifier.width(15.dp))
                     Switch(
                         colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
@@ -292,7 +297,6 @@ fun TypingWordSidebar(
 
                         )
                 }
-                Divider()
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
