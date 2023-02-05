@@ -36,7 +36,7 @@ fun BuiltInVocabularyDialog(
 ) {
     if(show){
         Dialog(
-            title = "选择内置词库",
+            title = "选择内置词库到本地文件系统",
             icon = painterResource("logo/logo.png"),
             onCloseRequest = { close() },
             resizable = false,
