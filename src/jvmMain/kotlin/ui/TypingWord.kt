@@ -495,48 +495,6 @@ fun MainContent(
                     }
                     true
                 }
-                (it.isCtrlPressed && it.isShiftPressed && it.key == Key.Z && it.type == KeyEventType.KeyUp) -> {
-                    if(typingWord.memoryStrategy != Dictation && typingWord.memoryStrategy != Review ){
-                        val playTriple = if (typingWord.vocabulary.type == VocabularyType.DOCUMENT) {
-                            getPayTriple(currentWord, 0)
-                        } else {
-                            val caption = typingWord.getCurrentWord().captions[0]
-                            Triple(caption, typingWord.vocabulary.relateVideoPath, typingWord.vocabulary.subtitlesTrackId)
-                        }
-                        plyingIndex = 0
-                        if (playTriple != null && typingWord.subtitlesVisible) focusRequester1.requestFocus()
-                        shortcutPlay(playTriple)
-                    }
-                    true
-                }
-                (it.isCtrlPressed && it.isShiftPressed && it.key == Key.X && it.type == KeyEventType.KeyUp) -> {
-                    if(typingWord.memoryStrategy != Dictation && typingWord.memoryStrategy != Review){
-                        val playTriple = if (typingWord.getCurrentWord().externalCaptions.size >= 2) {
-                            getPayTriple(currentWord, 1)
-                        } else if (typingWord.getCurrentWord().captions.size >= 2) {
-                            val caption = typingWord.getCurrentWord().captions[1]
-                            Triple(caption, typingWord.vocabulary.relateVideoPath, typingWord.vocabulary.subtitlesTrackId)
-                        }else null
-                        plyingIndex = 1
-                        if (playTriple != null && typingWord.subtitlesVisible) focusRequester2.requestFocus()
-                        shortcutPlay(playTriple)
-                    }
-                    true
-                }
-                (it.isCtrlPressed && it.isShiftPressed && it.key == Key.C && it.type == KeyEventType.KeyUp) -> {
-                    if(typingWord.memoryStrategy != Dictation && typingWord.memoryStrategy != Review){
-                        val playTriple = if (typingWord.getCurrentWord().externalCaptions.size >= 3) {
-                            getPayTriple(currentWord, 2)
-                        } else if (typingWord.getCurrentWord().captions.size >= 3) {
-                            val caption = typingWord.getCurrentWord().captions[2]
-                            Triple(caption, typingWord.vocabulary.relateVideoPath, typingWord.vocabulary.subtitlesTrackId)
-                        }else null
-                        plyingIndex = 2
-                        if (playTriple != null && typingWord.subtitlesVisible) focusRequester3.requestFocus()
-                        shortcutPlay(playTriple)
-                    }
-                    true
-                }
                 (it.isCtrlPressed && it.key == Key.S && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         typingWord.subtitlesVisible = !typingWord.subtitlesVisible
@@ -576,11 +534,59 @@ fun MainContent(
 
         }
 
+        val globalPreviewKeyEvent: (KeyEvent) -> Boolean = {
+            when{
+                (it.isCtrlPressed && it.isShiftPressed && it.key == Key.Z && it.type == KeyEventType.KeyUp) -> {
+                    if(typingWord.memoryStrategy != Dictation && typingWord.memoryStrategy != Review ){
+                        val playTriple = if (typingWord.vocabulary.type == VocabularyType.DOCUMENT) {
+                            getPayTriple(currentWord, 0)
+                        } else {
+                            val caption = typingWord.getCurrentWord().captions[0]
+                            Triple(caption, typingWord.vocabulary.relateVideoPath, typingWord.vocabulary.subtitlesTrackId)
+                        }
+                        plyingIndex = 0
+                        if (playTriple != null && typingWord.subtitlesVisible &&  typingWord.isWriteSubtitles ) focusRequester1.requestFocus()
+                        shortcutPlay(playTriple)
+                    }
+                    true
+                }
+                (it.isCtrlPressed && it.isShiftPressed && it.key == Key.X && it.type == KeyEventType.KeyUp) -> {
+                    if(typingWord.memoryStrategy != Dictation && typingWord.memoryStrategy != Review){
+                        val playTriple = if (typingWord.getCurrentWord().externalCaptions.size >= 2) {
+                            getPayTriple(currentWord, 1)
+                        } else if (typingWord.getCurrentWord().captions.size >= 2) {
+                            val caption = typingWord.getCurrentWord().captions[1]
+                            Triple(caption, typingWord.vocabulary.relateVideoPath, typingWord.vocabulary.subtitlesTrackId)
+                        }else null
+                        plyingIndex = 1
+                        if (playTriple != null && typingWord.subtitlesVisible && typingWord.isWriteSubtitles) focusRequester2.requestFocus()
+                        shortcutPlay(playTriple)
+                    }
+                    true
+                }
+                (it.isCtrlPressed && it.isShiftPressed && it.key == Key.C && it.type == KeyEventType.KeyUp) -> {
+                    if(typingWord.memoryStrategy != Dictation && typingWord.memoryStrategy != Review){
+                        val playTriple = if (typingWord.getCurrentWord().externalCaptions.size >= 3) {
+                            getPayTriple(currentWord, 2)
+                        } else if (typingWord.getCurrentWord().captions.size >= 3) {
+                            val caption = typingWord.getCurrentWord().captions[2]
+                            Triple(caption, typingWord.vocabulary.relateVideoPath, typingWord.vocabulary.subtitlesTrackId)
+                        }else null
+                        plyingIndex = 2
+                        if (playTriple != null && typingWord.subtitlesVisible && typingWord.isWriteSubtitles) focusRequester3.requestFocus()
+                        shortcutPlay(playTriple)
+                    }
+                    true
+                }
+                else -> false
+            }
+        }
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
                 .onKeyEvent { globalKeyEvent(it) }
+                .onPreviewKeyEvent { globalPreviewKeyEvent(it) }
                 .width(intrinsicSize = IntrinsicSize.Max)
                 .background(MaterialTheme.colors.background)
                 .focusable(true)
@@ -1270,7 +1276,8 @@ fun MainContent(
                 fontSize = appState.global.detailFontSize,
                 resetVideoBounds = resetVideoBounds,
                 isVideoBoundsChanged = appState.isChangeVideoBounds,
-                setIsChangeBounds ={appState.isChangeVideoBounds = it}
+                setIsChangeBounds = { appState.isChangeVideoBounds = it },
+                isWriteSubtitles = typingWord.isWriteSubtitles
             )
             if (isPlaying && !appState.isChangeVideoBounds) Spacer(
                 Modifier.height((videoSize.height).dp).width(videoSize.width.dp)
@@ -1703,7 +1710,8 @@ fun Captions(
     fontSize: TextUnit,
     resetVideoBounds :() ->  Rectangle,
     isVideoBoundsChanged:Boolean,
-    setIsChangeBounds:(Boolean) -> Unit = {}
+    setIsChangeBounds:(Boolean) -> Unit = {},
+    isWriteSubtitles:Boolean,
 ) {
     if (captionsVisible) {
         val horizontalArrangement = if (isPlaying && !isVideoBoundsChanged) Arrangement.Center else Arrangement.Start
@@ -1755,6 +1763,7 @@ fun Captions(
                                 }
                             }
                         }
+                        if(isWriteSubtitles) focusRequesterList[index].requestFocus()
                     }
                     var selectable by remember { mutableStateOf(false) }
                     val focusMoveUp:() -> Unit = {
@@ -2089,7 +2098,7 @@ fun Caption(
             ) {
                 IconButton(onClick = {
                     playCurrentCaption()
-                    focusRequester.requestFocus()
+//                    focusRequester.requestFocus()
                 }) {
                     val tint = if(isPlaying && playingIndex == index) MaterialTheme.colors.primary else MaterialTheme.colors.onBackground
                     Icon(

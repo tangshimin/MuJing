@@ -33,6 +33,7 @@ data class DataWordState(
     var vocabularyName: String = "",
     var vocabularyPath: String = "",
     var externalSubtitlesVisible: Boolean = true,
+    var isWriteSubtitles: Boolean = true,
 )
 
 /** 记忆单词的可观察状态 */
@@ -117,6 +118,9 @@ class WordState(dataWordState: DataWordState) {
 
     /** 外部字幕的可见性 */
     var externalSubtitlesVisible by mutableStateOf(dataWordState.externalSubtitlesVisible)
+
+    /** 抄写字幕，打开后播放了某条字幕后，光标就切换到字幕，就可以抄写字幕了 */
+    var isWriteSubtitles by mutableStateOf(dataWordState.isWriteSubtitles)
 
     // 可持久化的状态 结束
 

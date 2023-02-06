@@ -335,6 +335,24 @@ fun TypingWordSidebar(
                         },
                     )
                 }
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
+                ) {
+                    Text("抄写字幕", color = MaterialTheme.colors.onBackground)
+                    Spacer(Modifier.width(15.dp))
+                    Switch(
+                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                        checked = typingWordState.isWriteSubtitles,
+                        onCheckedChange = {
+                            scope.launch {
+                                typingWordState.isWriteSubtitles = it
+                                typingWordState.saveTypingWordState()
+                            }
+                        },
+                    )
+                }
                 var expanded by remember { mutableStateOf(false) }
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
