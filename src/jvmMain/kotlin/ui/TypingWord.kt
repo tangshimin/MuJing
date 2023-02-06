@@ -136,26 +136,7 @@ fun TypingWord(
                     window = window,
                     modifier = Modifier.align(Alignment.TopCenter)
                 )
-//                if(showPlayer){
-//                    Player(
-//                        close = {showPlayer = false},
-//                        minimized = {window.isMinimized = true},
-//                        videoPath = dragVideoPath,
-//                        videoPathChanged = {},
-//                        vocabulary = typingWord.vocabulary,
-//                        vocabularyPath = typingWord.vocabularyPath,
-//                        vocabularyPathChanged = {},
-//                        audioSet = appState.audioSet,
-//                        pronunciation = typingWord.pronunciation,
-//                        audioVolume = appState.global.audioVolume,
-//                        videoVolume = appState.global.videoVolume,
-//                        videoVolumeChanged = {
-//                            appState.global.videoVolume = it
-//                            appState.saveGlobalState()
-//                        },
-//                        futureFileChooser = appState.futureFileChooser,
-//                    )
-//                }
+
 
             }
         }
