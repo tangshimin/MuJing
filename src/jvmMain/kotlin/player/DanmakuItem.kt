@@ -80,9 +80,12 @@ fun Danmaku(
         val text = if(danmakuItem.isPause){
             buildAnnotatedString {
                 withStyle(style = SpanStyle(color = Color.LightGray)) {
-                    append("${danmakuItem.sequence} ${danmakuItem.content}")
+                    val sequence = if(playerState.showSequence) danmakuItem.sequence else ""
+                    append("$sequence ${danmakuItem.content}")
                 }
             }
+
+
         }else{
             if (playerState.showSequence) {
                 buildAnnotatedString {
