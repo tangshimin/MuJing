@@ -393,7 +393,7 @@ private fun FrameWindowScope.WindowMenuBar(
             showFilePicker = false
         }
         var showBuiltInVocabulary by remember{mutableStateOf(false)}
-        Item("选择内置词库(B)", mnemonic = 'B', onClick = {showBuiltInVocabulary = true})
+        Item("保存内置词库(B)", mnemonic = 'B', onClick = {showBuiltInVocabulary = true})
         BuiltInVocabularyDialog(
             show = showBuiltInVocabulary,
             close = {showBuiltInVocabulary = false},
