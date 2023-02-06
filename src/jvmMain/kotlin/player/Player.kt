@@ -59,6 +59,7 @@ import javax.swing.JOptionPane
 import javax.swing.Timer
 import javax.swing.filechooser.FileSystemView
 import kotlin.concurrent.schedule
+import kotlin.math.floor
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -1262,39 +1263,50 @@ fun rememberDanmakuMap(
     // Key 为秒 > 这一秒出现的单词列表
     val timeMap = mutableMapOf<Int, MutableList<DanmakuItem>>()
     if (vocabulary != null) {
-        // TODO 处理混合词库
+        // 使用字幕和MKV 生成的词库
         if (vocabulary.relateVideoPath == videoPath) {
             vocabulary.wordList.forEach { word ->
                 if (word.captions.isNotEmpty()) {
                     word.captions.forEach { caption ->
 
-                        val startTime = Math.floor(parseTime(caption.start)).toInt()
-                        val dList = timeMap.get(startTime)
-                        val item = DanmakuItem(word.value, true, startTime, 0, false, IntOffset(0, 0), word)
-                        if (dList == null) {
-                            val newList = mutableListOf(item)
-                            timeMap.put(startTime, newList)
-                        } else {
-                            dList.add(item)
-                        }
+                        val startTime = floor(parseTime(caption.start)).toInt()
+                        addDanmakuToMap(timeMap, startTime, word)
                     }
                 } else {
                     word.externalCaptions.forEach { externalCaption ->
-                        val startTime = Math.floor(parseTime(externalCaption.start)).toInt()
-                        val dList = timeMap.get(startTime)
-                        val item = DanmakuItem(word.value, true, startTime, 0, false, IntOffset(0, 0), word)
-                        if (dList == null) {
-                            val newList = mutableListOf(item)
-                            timeMap.put(startTime, newList)
-                        } else {
-                            dList.add(item)
-                        }
+                        val startTime = floor(parseTime(externalCaption.start)).toInt()
+                        addDanmakuToMap(timeMap, startTime, word)
+                    }
+                }
+            }
+        // 文档词库，或混合词库
+        }else{
+            vocabulary.wordList.forEach { word ->
+                word.externalCaptions.forEach{externalCaption ->
+                    if(externalCaption.relateVideoPath == videoPath){
+                        val startTime = floor(parseTime(externalCaption.start)).toInt()
+                        addDanmakuToMap(timeMap, startTime, word)
                     }
                 }
             }
         }
     }
     timeMap
+}
+
+private fun addDanmakuToMap(
+    timeMap: MutableMap<Int, MutableList<DanmakuItem>>,
+    startTime: Int,
+    word: Word
+) {
+    val dList = timeMap.get(startTime)
+    val item = DanmakuItem(word.value, true, startTime, 0, false, IntOffset(0, 0), word)
+    if (dList == null) {
+        val newList = mutableListOf(item)
+        timeMap.put(startTime, newList)
+    } else {
+        dList.add(item)
+    }
 }
 
 @OptIn(ExperimentalSerializationApi::class)
