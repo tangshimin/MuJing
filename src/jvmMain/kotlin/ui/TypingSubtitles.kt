@@ -627,7 +627,10 @@ fun TypingSubtitles(
 
                             val textFieldKeyEvent: (KeyEvent) -> Boolean = { it: KeyEvent ->
                                 when {
-                                    ((it.key != Key.ShiftLeft && it.key != Key.ShiftRight) && it.type == KeyEventType.KeyDown) -> {
+                                    ((it.key != Key.ShiftLeft && it.key != Key.ShiftRight &&
+                                            it.key != Key.AltLeft && it.key != Key.AltRight &&
+                                            it.key != Key.CtrlLeft && it.key != Key.CtrlRight)
+                                            && it.type == KeyEventType.KeyDown) -> {
                                         playKeySound()
                                         true
                                     }

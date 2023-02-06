@@ -1104,8 +1104,12 @@ fun MainContent(
                         true
                     }
                     (it.type == KeyEventType.KeyDown
-                            && !it.isCtrlPressed
-                            && !it.isAltPressed
+                            && it.key != Key.ShiftRight
+                            && it.key != Key.ShiftLeft
+                            && it.key != Key.CtrlRight
+                            && it.key != Key.CtrlLeft
+                            && it.key != Key.AltLeft
+                            && it.key != Key.AltRight
                             && it.key != Key.Escape
                             && it.key != Key.Enter
                             && it.key != Key.NumPadEnter
