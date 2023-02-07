@@ -214,7 +214,6 @@ fun App() {
                     if(showPlayer){
                         Player(
                             close = {closePlayer()},
-                            minimized = {window.isMinimized = true},
                             videoPath = videoPath,
                             videoPathChanged = videoPathChanged,
                             vocabulary = vocabulary,

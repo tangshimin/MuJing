@@ -71,7 +71,6 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun Player(
     close: () -> Unit,
-    minimized:() -> Unit,
     videoPath: String = "",
     videoPathChanged:(String) -> Unit,
     vocabulary: MutableVocabulary? = null,
@@ -281,26 +280,6 @@ fun Player(
             setIsAutoPlay = { })
     }
 
-    /** 全屏*/
-    val fullscreen:()-> Unit = {
-        if(isFullscreen){
-            isFullscreen = false
-            windowState.position =  fullscreenBeforePosition
-            windowState.size = fullscreenBeforeSize
-            controlWindow?.isResizable = true
-            playerWindow?.requestFocus()
-        }else{
-            isFullscreen = true
-            fullscreenBeforePosition = WindowPosition(windowState.position.x,windowState.position.y)
-            fullscreenBeforeSize =  windowState.size
-            windowState.position = WindowPosition((-1).dp, 0.dp)
-            val windowSize = Toolkit.getDefaultToolkit().screenSize.size.toComposeSize()
-            windowState.size = windowSize.copy(width = windowSize.width + 1.dp)
-            controlWindow?.isResizable = false
-            playerWindow?.requestFocus()
-        }
-    }
-
     /** 打开视频 */
     val openVideo:() -> Unit = {
         if(isWindows()) {
@@ -397,442 +376,489 @@ fun Player(
 
     }
 
-    Dialog(
+    Window(
         title = title,
         icon = painterResource("logo/logo.png"),
-        state = windowState,
         undecorated = true,
-        resizable = false,
-        onCloseRequest = { closeWindow() },
-    ) {
-        playerWindow = window
-        Column(Modifier.fillMaxSize()) {
-            if(isFullscreen){
-                Divider(color = Color(0xFF121212),modifier = Modifier.height(1.dp))
-            }else{
-                Box(
-                    Modifier.fillMaxWidth().height(40.dp)
-                        .background(if (MaterialTheme.colors.isLight) Color.White else Color(48, 50, 52))
-                )
-            }
-
-            Box(Modifier.fillMaxSize()) {
-                val videoSize by remember(windowState.size) {
-                    derivedStateOf { Dimension(window.size.width, window.size.height - 40) }
-                }
-                videoPlayerComponent.size = videoSize
-                SwingPanel(
-                    background = Color.Transparent,
-                    modifier = Modifier.fillMaxSize(),
-                    factory = { videoPlayerComponent },
-                    update = {}
-                )
-
-            }
-        }
-    }
-
-    Dialog(
-        onCloseRequest = { closeWindow() },
-        title = title,
         transparent = true,
-        undecorated = true,
-        state = windowState,
-        icon = painterResource("logo/logo.png"),
-        onKeyEvent = { keyEvent ->
-            if (keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp) {
-                play()
-                normalPause()
-                true
-            } else if (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyDown) {
-               if(isFullscreen){
-                   fullscreen()
-                   true
-               }else false
-            }  else if (keyEvent.key == Key.DirectionRight && keyEvent.type == KeyEventType.KeyUp) {
-                videoPlayerComponent.mediaPlayer().controls().skipTime(+5000L)
-                cleanDanmaku()
-                true
-            } else if (keyEvent.key == Key.DirectionLeft && keyEvent.type == KeyEventType.KeyUp) {
-                videoPlayerComponent.mediaPlayer().controls().skipTime(-5000L)
-                cleanDanmaku()
-                true
-            } else false
-
+        resizable = true,
+        onCloseRequest = { closeWindow() },
+    ){
+        /** 最小化 */
+        val minimized:() -> Unit = {
+            window.isMinimized = true
         }
-    ) {
-        controlWindow = window
 
-        Surface(
-            color = Color.Transparent,
-            modifier = Modifier.fillMaxSize()
-                .border(border = BorderStroke(1.dp, if(isFullscreen) Color.Transparent else MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
-                .combinedClickable(
-                    interactionSource = remember(::MutableInteractionSource),
-                    indication = null,
-                    onDoubleClick = {
-                        if (showingDetail) {
-                            showingDetail = false
-                        } else {
-                            fullscreen()
-                        }
-                    },
-                    onClick = {},
-                    onLongClick = {}
-                )
-                .onPointerEvent(PointerEventType.Enter) {
-                    if (!controlBoxVisible) {
-                        controlBoxVisible = true
-                    }
-                }
-                .onPointerEvent(PointerEventType.Exit) {
-                    if (isPlaying && !settingsExpanded) {
-                        controlBoxVisible = false
-                    }
-                }
+        /** 全屏 */
+        val fullscreen:()-> Unit = {
+            if(isFullscreen){
+                isFullscreen = false
+                windowState.position =  fullscreenBeforePosition
+                windowState.size = fullscreenBeforeSize
+                controlWindow?.isResizable = true
+                playerWindow?.requestFocus()
+            }else{
+                isFullscreen = true
+                fullscreenBeforePosition = WindowPosition(windowState.position.x,windowState.position.y)
+                fullscreenBeforeSize =  windowState.size
+                windowState.position = WindowPosition((-1).dp, 0.dp)
+                val windowSize = Toolkit.getDefaultToolkit().screenSize.size.toComposeSize()
+                windowState.size = windowSize.copy(width = windowSize.width + 1.dp)
+                controlWindow?.isResizable = false
+                playerWindow?.requestFocus()
+            }
+        }
+
+
+        Dialog(
+            title = title,
+            icon = painterResource("logo/logo.png"),
+            state = windowState,
+            undecorated = true,
+            resizable = false,
+            onCloseRequest = { closeWindow() },
         ) {
-
-
-
-            Column {
+            playerWindow = window
+            Column(Modifier.fillMaxSize()) {
                 if(isFullscreen){
                     Divider(color = Color(0xFF121212),modifier = Modifier.height(1.dp))
                 }else{
-                    WindowDraggableArea {
-                        TitleBar(title, closeWindow,isFullscreen,fullscreen,minimized)
-                    }
+                    Box(
+                        Modifier.fillMaxWidth().height(40.dp)
+                            .background(if (MaterialTheme.colors.isLight) Color.White else Color(48, 50, 52))
+                    )
                 }
 
-
-                Box(Modifier
-                    .fillMaxSize()
-                    .onClick(
-                    matcher = PointerMatcher.mouse(PointerButton.Secondary), // add onClick for every required PointerButton
-                    keyboardModifiers = { true }, // e.g { isCtrlPressed }; Remove it to ignore keyboardModifiers
-                    onClick = { showDropdownMenu = true}
-                )) {
-
-                    /** 如果手动触发了暂停，就不处理播放函数 */
-                    val playEvent: () -> Unit = {
-                        if (!isNormalPause) {
-                            play()
-                        }
+                Box(Modifier.fillMaxSize()) {
+                    val videoSize by remember(windowState.size) {
+                        derivedStateOf { Dimension(window.size.width, window.size.height - 40) }
                     }
-                    val showingDetailChanged:(Boolean) -> Unit = {
-                        showingDetail = it
-                    }
-
-                    DanmakuBox(
-                        vocabulary,
-                        vocabularyPath,
-                        playerState,
-                        showingDanmakuNum,
-                        playEvent,
-                        playAudio,
-                        windowState.size.height.value.toInt(),
-                        showingDetail,
-                        showingDetailChanged
+                    videoPlayerComponent.size = videoSize
+                    SwingPanel(
+                        background = Color.Transparent,
+                        modifier = Modifier.fillMaxSize(),
+                        factory = { videoPlayerComponent },
+                        update = {}
                     )
+
+                }
+            }
+        }
+
+
+        Dialog(
+            onCloseRequest = { closeWindow() },
+            title = title,
+            transparent = true,
+            undecorated = true,
+            state = windowState,
+            icon = painterResource("logo/logo.png"),
+            onPreviewKeyEvent ={ keyEvent ->
+                if (keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp) {
+                    play()
+                    normalPause()
+                    true
+                } else if (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyDown) {
                     if(isFullscreen){
-                        var titleBarVisible by remember{ mutableStateOf(false) }
-                        Column(modifier = Modifier
-                            .fillMaxWidth()
-                            .height(40.dp)
-                            .align(Alignment.TopCenter)
-                            .onPointerEvent(PointerEventType.Enter){titleBarVisible = true}
-                            .onPointerEvent(PointerEventType.Exit){titleBarVisible = false}
-                        ){
-                            AnimatedVisibility(titleBarVisible){
-                                TitleBar(title, closeWindow,isFullscreen,fullscreen,minimized)
+                        fullscreen()
+                        true
+                    }else false
+                }  else if (keyEvent.key == Key.DirectionRight && keyEvent.type == KeyEventType.KeyUp) {
+                    videoPlayerComponent.mediaPlayer().controls().skipTime(+5000L)
+                    cleanDanmaku()
+                    true
+                } else if (keyEvent.key == Key.DirectionLeft && keyEvent.type == KeyEventType.KeyUp) {
+                    videoPlayerComponent.mediaPlayer().controls().skipTime(-5000L)
+                    cleanDanmaku()
+                    true
+                } else false
+
+            }
+        ) {
+            controlWindow = window
+
+            Surface(
+                color = Color.Transparent,
+                modifier = Modifier.fillMaxSize()
+                    .border(border = BorderStroke(1.dp, if(isFullscreen) Color.Transparent else MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
+                    .combinedClickable(
+                        interactionSource = remember(::MutableInteractionSource),
+                        indication = null,
+                        onDoubleClick = {
+                            if (showingDetail) {
+                                showingDetail = false
+                            } else if(isWindows()){
+                                fullscreen()
                             }
+                        },
+                        onClick = {},
+                        onLongClick = {}
+                    )
+                    .onPointerEvent(PointerEventType.Enter) {
+                        if (!controlBoxVisible) {
+                            controlBoxVisible = true
                         }
                     }
-                    Column(
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp)
-                    ) {
-                        if (controlBoxVisible) {
-                            // 进度条
-                            var sliderVisible by remember { mutableStateOf(false) }
-                            Box(
-                                Modifier
-                                    .fillMaxWidth().padding(start = 5.dp, end = 5.dp, bottom = 10.dp)
-                                    .offset(x = 0.dp, y = 20.dp)
-                                    .onPointerEvent(PointerEventType.Enter) { sliderVisible = true }
-                                    .onPointerEvent(PointerEventType.Exit) { sliderVisible = false }
-                            ) {
-                                val animatedPosition by animateFloatAsState(
-                                    targetValue = timeProgress,
-                                    animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
-                                )
-                                if (sliderVisible) {
-                                    Slider(
-                                        value = timeProgress,
-                                        modifier = Modifier.align(Alignment.Center)
-                                            .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
-                                        onValueChange = {
-                                            timeProgress = it
-                                            cleanDanmaku()
-                                            videoPlayerComponent.mediaPlayer().controls().setPosition(timeProgress)
-                                        })
-                                } else {
-                                    LinearProgressIndicator(
-                                        progress = animatedPosition,
-                                        modifier = Modifier.align(Alignment.Center).fillMaxWidth()
-                                            .offset(x = 0.dp, y = (-20).dp).padding(top = 20.dp)
-                                    )
+                    .onPointerEvent(PointerEventType.Exit) {
+                        if (isPlaying && !settingsExpanded) {
+                            controlBoxVisible = false
+                        }
+                    }
+            ) {
+
+
+
+
+                Column {
+                    if(isFullscreen){
+                        Divider(color = Color(0xFF121212),modifier = Modifier.height(1.dp))
+                    }else{
+                        WindowDraggableArea {
+                            TitleBar(title, closeWindow,isFullscreen,fullscreen,minimized)
+                        }
+                    }
+
+
+                    Box(Modifier
+                        .fillMaxSize()
+                        .onClick(
+                            matcher = PointerMatcher.mouse(PointerButton.Secondary), // add onClick for every required PointerButton
+                            keyboardModifiers = { true }, // e.g { isCtrlPressed }; Remove it to ignore keyboardModifiers
+                            onClick = { showDropdownMenu = true}
+                        )) {
+
+                        /** 如果手动触发了暂停，就不处理播放函数 */
+                        val playEvent: () -> Unit = {
+                            if (!isNormalPause) {
+                                play()
+                            }
+                        }
+                        val showingDetailChanged:(Boolean) -> Unit = {
+                            showingDetail = it
+                        }
+
+                        DanmakuBox(
+                            vocabulary,
+                            vocabularyPath,
+                            playerState,
+                            showingDanmakuNum,
+                            playEvent,
+                            playAudio,
+                            windowState.size.height.value.toInt(),
+                            showingDetail,
+                            showingDetailChanged
+                        )
+                        if(isFullscreen){
+                            var titleBarVisible by remember{ mutableStateOf(false) }
+                            Column(modifier = Modifier
+                                .fillMaxWidth()
+                                .height(40.dp)
+                                .align(Alignment.TopCenter)
+                                .onPointerEvent(PointerEventType.Enter){titleBarVisible = true}
+                                .onPointerEvent(PointerEventType.Exit){titleBarVisible = false}
+                            ){
+                                AnimatedVisibility(titleBarVisible){
+                                    TitleBar(title, closeWindow,isFullscreen,fullscreen,minimized)
                                 }
                             }
-                            // 暂停、音量、时间、弹幕、设置
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.Start,
-                            ) {
-                                IconButton(onClick = {
-                                    play()
-                                    normalPause()
-                                }) {
-                                    Icon(
-                                        if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                                        contentDescription = "Localized description",
-                                        tint = Color.White,
+                        }
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp)
+                        ) {
+                            if (controlBoxVisible) {
+                                // 进度条
+                                var sliderVisible by remember { mutableStateOf(false) }
+                                Box(
+                                    Modifier
+                                        .fillMaxWidth().padding(start = 5.dp, end = 5.dp, bottom = 10.dp)
+                                        .offset(x = 0.dp, y = 20.dp)
+                                        .onPointerEvent(PointerEventType.Enter) { sliderVisible = true }
+                                        .onPointerEvent(PointerEventType.Exit) { sliderVisible = false }
+                                ) {
+                                    val animatedPosition by animateFloatAsState(
+                                        targetValue = timeProgress,
+                                        animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
                                     )
+                                    if (sliderVisible) {
+                                        Slider(
+                                            value = timeProgress,
+                                            modifier = Modifier.align(Alignment.Center)
+                                                .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
+                                            onValueChange = {
+                                                timeProgress = it
+                                                cleanDanmaku()
+                                                videoPlayerComponent.mediaPlayer().controls().setPosition(timeProgress)
+                                            })
+                                    } else {
+                                        LinearProgressIndicator(
+                                            progress = animatedPosition,
+                                            modifier = Modifier.align(Alignment.Center).fillMaxWidth()
+                                                .offset(x = 0.dp, y = (-20).dp).padding(top = 20.dp)
+                                        )
+                                    }
                                 }
-                                var volumeOff by remember { mutableStateOf(false) }
-                                var volumeSliderVisible by remember { mutableStateOf(false) }
+                                // 暂停、音量、时间、弹幕、设置
                                 Row(
-                                    modifier = Modifier
-                                        .onPointerEvent(PointerEventType.Enter) { volumeSliderVisible = true }
-                                        .onPointerEvent(PointerEventType.Exit) { volumeSliderVisible = false }
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Start,
                                 ) {
                                     IconButton(onClick = {
-                                        volumeOff = !volumeOff
-                                        if(volumeOff){
-                                            videoPlayerComponent.mediaPlayer().audio()
-                                                .setVolume(0)
-                                        }
+                                        play()
+                                        normalPause()
                                     }) {
                                         Icon(
-                                            if (volumeOff) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+                                            if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
                                             contentDescription = "Localized description",
                                             tint = Color.White,
                                         )
                                     }
-                                    AnimatedVisibility (visible = volumeSliderVisible) {
-                                        Slider(
-                                            value = videoVolume,
-                                            valueRange = 1f..100f,
-                                            onValueChange = {
-                                                videoVolumeChanged (it)
-                                                if(it > 1f){
-                                                    volumeOff = false
-                                                    videoPlayerComponent.mediaPlayer().audio()
-                                                        .setVolume(videoVolume.toInt())
-                                                }else{
-                                                    volumeOff = true
-                                                    videoPlayerComponent.mediaPlayer().audio()
-                                                        .setVolume(0)
-                                                }
+                                    var volumeOff by remember { mutableStateOf(false) }
+                                    var volumeSliderVisible by remember { mutableStateOf(false) }
+                                    Row(
+                                        modifier = Modifier
+                                            .onPointerEvent(PointerEventType.Enter) { volumeSliderVisible = true }
+                                            .onPointerEvent(PointerEventType.Exit) { volumeSliderVisible = false }
+                                    ) {
+                                        IconButton(onClick = {
+                                            volumeOff = !volumeOff
+                                            if(volumeOff){
+                                                videoPlayerComponent.mediaPlayer().audio()
+                                                    .setVolume(0)
+                                            }
+                                        }) {
+                                            Icon(
+                                                if (volumeOff) Icons.Filled.VolumeOff else Icons.Filled.VolumeUp,
+                                                contentDescription = "Localized description",
+                                                tint = Color.White,
+                                            )
+                                        }
+                                        AnimatedVisibility (visible = volumeSliderVisible) {
+                                            Slider(
+                                                value = videoVolume,
+                                                valueRange = 1f..100f,
+                                                onValueChange = {
+                                                    videoVolumeChanged (it)
+                                                    if(it > 1f){
+                                                        volumeOff = false
+                                                        videoPlayerComponent.mediaPlayer().audio()
+                                                            .setVolume(videoVolume.toInt())
+                                                    }else{
+                                                        volumeOff = true
+                                                        videoPlayerComponent.mediaPlayer().audio()
+                                                            .setVolume(0)
+                                                    }
+                                                },
+                                                modifier = Modifier
+                                                    .width(60.dp)
+                                                    .onPointerEvent(PointerEventType.Enter) {
+                                                        volumeSliderVisible = true
+                                                    }
+                                                    .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
+                                            )
+                                        }
+                                    }
+
+                                    // 时间
+                                    Text(" $timeText ", color = Color.White)
+                                    // 设置按钮
+                                    Box {
+                                        IconButton(onClick = { settingsExpanded = true }) {
+                                            Icon(
+                                                Icons.Filled.Settings,
+                                                contentDescription = "Localized description",
+                                                tint = Color.White,
+                                            )
+                                        }
+                                        DropdownMenu(
+                                            expanded = settingsExpanded,
+                                            offset = DpOffset(x = (-60).dp, y = 0.dp),
+                                            onDismissRequest = {
+                                                settingsExpanded = false
+                                                controlBoxVisible = true
                                             },
                                             modifier = Modifier
-                                                .width(60.dp)
                                                 .onPointerEvent(PointerEventType.Enter) {
-                                                    volumeSliderVisible = true
+                                                    controlBoxVisible = true
                                                 }
-                                                .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
-                                        )
-                                    }
-                                }
+                                                .onPointerEvent(PointerEventType.Exit) {
+                                                    controlBoxVisible = true
+                                                }
+                                        ) {
 
-                                // 时间
-                                Text(" $timeText ", color = Color.White)
-                                // 设置按钮
-                                Box {
-                                    IconButton(onClick = { settingsExpanded = true }) {
+                                            DropdownMenuItem(onClick = { }) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Text("单词定位弹幕")
+                                                    Switch(checked = !playerState.showSequence, onCheckedChange = {
+                                                        playerState.showSequence = !it
+                                                        playerState.savePlayerState()
+                                                    })
+                                                }
+                                            }
+                                            DropdownMenuItem(onClick = { }) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Text("数字定位弹幕")
+                                                    Switch(checked = playerState.showSequence, onCheckedChange = {
+                                                        playerState.showSequence = it
+                                                        playerState.savePlayerState()
+                                                    })
+                                                }
+                                            }
+                                            DropdownMenuItem(onClick = { }) {
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Text("弹幕")
+                                                    Switch(checked = playerState.danmakuVisible, onCheckedChange = {
+                                                        if (playerState.danmakuVisible) {
+                                                            playerState.danmakuVisible = false
+                                                            shouldAddDanmaku.clear()
+                                                            showingDanmakuNum.clear()
+                                                            danmakuTimer.stop()
+                                                        } else {
+                                                            playerState.danmakuVisible = true
+                                                            danmakuTimer.restart()
+                                                        }
+                                                        playerState.savePlayerState()
+                                                    })
+                                                }
+                                            }
+                                        }
+
+                                    }
+
+                                    // 字幕选择按钮
+                                    var showSubtitleMenu by remember{mutableStateOf(false)}
+                                    IconButton(onClick = {showSubtitleMenu = !showSubtitleMenu  }) {
                                         Icon(
-                                            Icons.Filled.Settings,
+                                            Icons.Filled.Subtitles,
                                             contentDescription = "Localized description",
                                             tint = Color.White,
                                         )
                                     }
+                                    var height = (subtitleTrackList.size * 40 + 60).dp
+                                    if(height>740.dp) height = 740.dp
                                     DropdownMenu(
-                                        expanded = settingsExpanded,
-                                        offset = DpOffset(x = (-60).dp, y = 0.dp),
-                                        onDismissRequest = {
-                                            settingsExpanded = false
-                                            controlBoxVisible = true
-                                        },
-                                        modifier = Modifier
+                                        expanded = showSubtitleMenu,
+                                        onDismissRequest = {showSubtitleMenu = false},
+                                        modifier = Modifier.width(282.dp).height(height)
                                             .onPointerEvent(PointerEventType.Enter) {
                                                 controlBoxVisible = true
                                             }
                                             .onPointerEvent(PointerEventType.Exit) {
                                                 controlBoxVisible = true
-                                            }
-                                    ) {
-
-                                        DropdownMenuItem(onClick = { }) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                modifier = Modifier.fillMaxWidth()
-                                            ) {
-                                                Text("单词定位弹幕")
-                                                Switch(checked = !playerState.showSequence, onCheckedChange = {
-                                                    playerState.showSequence = !it
-                                                    playerState.savePlayerState()
-                                                })
-                                            }
-                                        }
-                                        DropdownMenuItem(onClick = { }) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                modifier = Modifier.fillMaxWidth()
-                                            ) {
-                                                Text("数字定位弹幕")
-                                                Switch(checked = playerState.showSequence, onCheckedChange = {
-                                                    playerState.showSequence = it
-                                                    playerState.savePlayerState()
-                                                })
-                                            }
-                                        }
-                                        DropdownMenuItem(onClick = { }) {
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.SpaceBetween,
-                                                modifier = Modifier.fillMaxWidth()
-                                            ) {
-                                                Text("弹幕")
-                                                Switch(checked = playerState.danmakuVisible, onCheckedChange = {
-                                                    if (playerState.danmakuVisible) {
-                                                        playerState.danmakuVisible = false
-                                                        shouldAddDanmaku.clear()
-                                                        showingDanmakuNum.clear()
-                                                        danmakuTimer.stop()
-                                                    } else {
-                                                        playerState.danmakuVisible = true
-                                                        danmakuTimer.restart()
+                                            },
+                                        offset = DpOffset(x = 170.dp, y = (-20).dp),
+                                    ){
+                                        Column{
+                                            DropdownMenuItem(
+                                                onClick = {
+                                                    if(isWindows()){
+                                                        showSubtitlePicker = true
+                                                    }else if(isMacOS()){
+                                                        Thread(Runnable {
+                                                            val fileChooser = futureFileChooser.get()
+                                                            fileChooser.dialogTitle = "添加字幕"
+                                                            fileChooser.fileSystemView = FileSystemView.getFileSystemView()
+                                                            fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+                                                            fileChooser.selectedFile = null
+                                                            if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                                                                val path = fileChooser.selectedFile.absolutePath
+                                                                if(!path.isNullOrEmpty()){
+                                                                    addSubtitle(path)
+                                                                }
+                                                            }
+                                                        }).start()
                                                     }
-                                                    playerState.savePlayerState()
-                                                })
+
+                                                },
+                                                modifier = Modifier.width(282.dp).height(40.dp)
+                                            ) {
+                                                Text(
+                                                    text = "添加字幕",
+                                                    fontSize = 12.sp,
+                                                    modifier = Modifier.fillMaxWidth()
+                                                )
+                                            }
+                                            Divider()
+                                            Box(Modifier.width(282.dp).height(700.dp)){
+                                                val scrollState = rememberLazyListState()
+                                                LazyColumn(Modifier.fillMaxSize(),scrollState){
+                                                    items(subtitleTrackList){(track,description) ->
+                                                        DropdownMenuItem(
+                                                            onClick = {
+                                                                showSubtitleMenu = false
+                                                                setCurrentSubtitleTrack(track)
+                                                            },
+                                                            modifier = Modifier.width(282.dp).height(40.dp)
+                                                        ){
+
+                                                            Row(
+                                                                verticalAlignment = Alignment.CenterVertically,
+                                                                modifier = Modifier.fillMaxWidth()) {
+                                                                val color = if(currentSubtitleTrack == track)  MaterialTheme.colors.primary else  Color.Transparent
+                                                                Spacer(Modifier
+                                                                    .background(color)
+                                                                    .height(16.dp)
+                                                                    .width(2.dp)
+                                                                )
+
+                                                                Text(
+                                                                    text = description,
+                                                                    color = if(currentSubtitleTrack == track) MaterialTheme.colors.primary else  Color.Unspecified,
+                                                                    fontSize = 12.sp,
+                                                                    modifier = Modifier.padding(start = 10.dp)
+                                                                )
+                                                            }
+
+                                                        }
+                                                    }
+                                                }
+                                                VerticalScrollbar(
+                                                    modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                                                    adapter = rememberScrollbarAdapter(scrollState = scrollState),
+                                                    style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
+                                                )
                                             }
                                         }
+
                                     }
 
-                                }
+                                    // 输入框
+                                    if (playerState.danmakuVisible && vocabularyPath.isNotEmpty()) {
 
-                                // 字幕选择按钮
-                                var showSubtitleMenu by remember{mutableStateOf(false)}
-                                IconButton(onClick = {showSubtitleMenu = !showSubtitleMenu  }) {
-                                    Icon(
-                                        Icons.Filled.Subtitles,
-                                        contentDescription = "Localized description",
-                                        tint = Color.White,
-                                    )
-                                }
-                                var height = (subtitleTrackList.size * 40 + 60).dp
-                                if(height>740.dp) height = 740.dp
-                                DropdownMenu(
-                                    expanded = showSubtitleMenu,
-                                    onDismissRequest = {showSubtitleMenu = false},
-                                    modifier = Modifier.width(282.dp).height(height)
-                                        .onPointerEvent(PointerEventType.Enter) {
-                                            controlBoxVisible = true
-                                        }
-                                        .onPointerEvent(PointerEventType.Exit) {
-                                            controlBoxVisible = true
-                                        },
-                                    offset = DpOffset(x = 170.dp, y = (-20).dp),
-                                ){
-                                    Column{
-                                        DropdownMenuItem(
-                                            onClick = {
-                                                if(isWindows()){
-                                                    showSubtitlePicker = true
-                                                }else if(isMacOS()){
-                                                    Thread(Runnable {
-                                                        val fileChooser = futureFileChooser.get()
-                                                        fileChooser.dialogTitle = "添加字幕"
-                                                        fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                                                        fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                                                        fileChooser.selectedFile = null
-                                                        if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                                                            val path = fileChooser.selectedFile.absolutePath
-                                                            if(!path.isNullOrEmpty()){
-                                                                addSubtitle(path)
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .border(border = BorderStroke(1.dp, Color.White.copy(alpha = 0.4f)))
+                                        ) {
+                                            fun searchDanmaku() {
+                                                if (playerState.showSequence && searchDanmaku.isNotEmpty()) {
+                                                    val num = searchDanmaku.toIntOrNull()
+                                                    if (num != null) {
+                                                        val danmakuItem = showingDanmakuNum.get(num)
+                                                        if (danmakuItem != null) {
+                                                            danmakuItem.isPause = true
+                                                            showingDetail = true
+                                                            if (!isNormalPause) {
+                                                                play()
                                                             }
                                                         }
-                                                    }).start()
-                                                }
-
-                                            },
-                                            modifier = Modifier.width(282.dp).height(40.dp)
-                                        ) {
-                                            Text(
-                                                text = "添加字幕",
-                                                fontSize = 12.sp,
-                                                modifier = Modifier.fillMaxWidth()
-                                            )
-                                        }
-                                        Divider()
-                                        Box(Modifier.width(282.dp).height(700.dp)){
-                                            val scrollState = rememberLazyListState()
-                                            LazyColumn(Modifier.fillMaxSize(),scrollState){
-                                                items(subtitleTrackList){(track,description) ->
-                                                    DropdownMenuItem(
-                                                        onClick = {
-                                                            showSubtitleMenu = false
-                                                            setCurrentSubtitleTrack(track)
-                                                        },
-                                                        modifier = Modifier.width(282.dp).height(40.dp)
-                                                    ){
-
-                                                        Row(
-                                                            verticalAlignment = Alignment.CenterVertically,
-                                                            modifier = Modifier.fillMaxWidth()) {
-                                                            val color = if(currentSubtitleTrack == track)  MaterialTheme.colors.primary else  Color.Transparent
-                                                            Spacer(Modifier
-                                                                .background(color)
-                                                                .height(16.dp)
-                                                                .width(2.dp)
-                                                            )
-
-                                                            Text(
-                                                                text = description,
-                                                                color = if(currentSubtitleTrack == track) MaterialTheme.colors.primary else  Color.Unspecified,
-                                                                fontSize = 12.sp,
-                                                                modifier = Modifier.padding(start = 10.dp)
-                                                            )
-                                                        }
-
                                                     }
-                                                }
-                                            }
-                                            VerticalScrollbar(
-                                                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                                                adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                                                style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
-                                            )
-                                        }
-                                    }
 
-                                }
-
-                                // 输入框
-                                if (playerState.danmakuVisible && vocabularyPath.isNotEmpty()) {
-
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .border(border = BorderStroke(1.dp, Color.White.copy(alpha = 0.4f)))
-                                    ) {
-                                        fun searchDanmaku() {
-                                            if (playerState.showSequence && searchDanmaku.isNotEmpty()) {
-                                                val num = searchDanmaku.toIntOrNull()
-                                                if (num != null) {
-                                                    val danmakuItem = showingDanmakuNum.get(num)
+                                                }else if(!playerState.showSequence  && searchDanmaku.isNotEmpty()){
+                                                    val danmakuItem = showingDanmakuWord.get(searchDanmaku)
                                                     if (danmakuItem != null) {
                                                         danmakuItem.isPause = true
                                                         showingDetail = true
@@ -841,273 +867,264 @@ fun Player(
                                                         }
                                                     }
                                                 }
-
-                                            }else if(!playerState.showSequence  && searchDanmaku.isNotEmpty()){
-                                                val danmakuItem = showingDanmakuWord.get(searchDanmaku)
-                                                if (danmakuItem != null) {
-                                                    danmakuItem.isPause = true
-                                                    showingDetail = true
-                                                    if (!isNormalPause) {
-                                                        play()
+                                            }
+                                            Box(modifier = Modifier.width(110.dp).padding(start = 5.dp)) {
+                                                BasicTextField(
+                                                    value = searchDanmaku,
+                                                    singleLine = true,
+                                                    onValueChange = { searchDanmaku = it },
+                                                    cursorBrush = SolidColor(MaterialTheme.colors.primary),
+                                                    textStyle = MaterialTheme.typography.h5.copy(
+                                                        color = Color.White,
+                                                    ),
+                                                    modifier = Modifier.onKeyEvent { keyEvent ->
+                                                        if ((keyEvent.key == Key.Enter || keyEvent.key == Key.NumPadEnter) && keyEvent.type == KeyEventType.KeyUp) {
+                                                            searchDanmaku()
+                                                            true
+                                                        } else false
                                                     }
-                                                }
-                                            }
-                                        }
-                                        Box(modifier = Modifier.width(110.dp).padding(start = 5.dp)) {
-                                            BasicTextField(
-                                                value = searchDanmaku,
-                                                singleLine = true,
-                                                onValueChange = { searchDanmaku = it },
-                                                cursorBrush = SolidColor(MaterialTheme.colors.primary),
-                                                textStyle = MaterialTheme.typography.h5.copy(
-                                                    color = Color.White,
-                                                ),
-                                                modifier = Modifier.onKeyEvent { keyEvent ->
-                                                    if ((keyEvent.key == Key.Enter || keyEvent.key == Key.NumPadEnter) && keyEvent.type == KeyEventType.KeyUp) {
-                                                        searchDanmaku()
-                                                        true
-                                                    } else false
-                                                }
-                                            )
-                                            if (searchDanmaku.isEmpty()) {
-                                                val text = if(playerState.showSequence) "输入数字" else "输入单词"
-                                                Text(text, color = Color.White)
-                                            }
-                                        }
-
-
-                                        TooltipArea(
-                                            tooltip = {
-                                                Surface(
-                                                    elevation = 4.dp,
-                                                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
-                                                    shape = RectangleShape
-                                                ) {
-                                                    Text(text = "搜索  Enter", modifier = Modifier.padding(10.dp))
-                                                }
-                                            },
-                                            delayMillis = 100,
-                                            tooltipPlacement = TooltipPlacement.ComponentRect(
-                                                anchor = Alignment.TopCenter,
-                                                alignment = Alignment.TopCenter,
-                                                offset = DpOffset.Zero
-                                            )
-                                        ) {
-                                            IconButton(
-                                                onClick = { searchDanmaku() },
-                                                modifier = Modifier.size(40.dp, 40.dp)
-                                            ) {
-                                                Icon(
-                                                    Icons.Filled.Navigation,
-                                                    contentDescription = "Localized description",
-                                                    tint = Color.White,
                                                 )
+                                                if (searchDanmaku.isEmpty()) {
+                                                    val text = if(playerState.showSequence) "输入数字" else "输入单词"
+                                                    Text(text, color = Color.White)
+                                                }
                                             }
 
-                                        }
 
+                                            TooltipArea(
+                                                tooltip = {
+                                                    Surface(
+                                                        elevation = 4.dp,
+                                                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                                        shape = RectangleShape
+                                                    ) {
+                                                        Text(text = "搜索  Enter", modifier = Modifier.padding(10.dp))
+                                                    }
+                                                },
+                                                delayMillis = 100,
+                                                tooltipPlacement = TooltipPlacement.ComponentRect(
+                                                    anchor = Alignment.TopCenter,
+                                                    alignment = Alignment.TopCenter,
+                                                    offset = DpOffset.Zero
+                                                )
+                                            ) {
+                                                IconButton(
+                                                    onClick = { searchDanmaku() },
+                                                    modifier = Modifier.size(40.dp, 40.dp)
+                                                ) {
+                                                    Icon(
+                                                        Icons.Filled.Navigation,
+                                                        contentDescription = "Localized description",
+                                                        tint = Color.White,
+                                                    )
+                                                }
+
+                                            }
+
+
+                                        }
 
                                     }
+                                }
+                            }
 
+                        }
+                        if(videoPath.isEmpty()){
+                            Row( modifier = Modifier.align(Alignment.Center)){
+                                OutlinedButton(onClick = { openVideo() }){
+                                    Text("打开视频")
                                 }
                             }
                         }
+                        // 视频文件选择器
+                        FilePicker(
+                            show = showFilePicker,
+                            initialDirectory = ""
+                        ){path ->
+                            if(!path.isNullOrEmpty()){
+                                videoPathChanged(path)
+                            }
+                            showFilePicker = false
+                        }
+                        // 词库文件选择器
+                        FilePicker(
+                            show = showVocabularyPicker,
+                            fileExtension = "json",
+                            initialDirectory = ""
+                        ){path ->
+                            if(!path.isNullOrEmpty()){
+                                vocabularyPathChanged(path)
+                            }
+                            showVocabularyPicker = false
+                        }
+                        // 字幕文件选择器
+                        FilePicker(
+                            show = showSubtitlePicker,
+//                        fileExtension = "srt",
+                            initialDirectory = ""
+                        ){path ->
+                            if(!path.isNullOrEmpty()){
+                                addSubtitle(path)
+                            }
+                            showSubtitlePicker = false
+                        }
 
-                    }
-                    if(videoPath.isEmpty()){
-                        Row( modifier = Modifier.align(Alignment.Center)){
-                            OutlinedButton(onClick = { openVideo() }){
+                        // 右键菜单
+                        CursorDropdownMenu(
+                            expanded = showDropdownMenu,
+                            onDismissRequest = {showDropdownMenu = false},
+                        ){
+                            DropdownMenuItem(onClick = {
+                                openVideo()
+                                showDropdownMenu = false
+                            }) {
                                 Text("打开视频")
                             }
-                        }
-                    }
-                    // 视频文件选择器
-                    FilePicker(
-                        show = showFilePicker,
-                        initialDirectory = ""
-                    ){path ->
-                        if(!path.isNullOrEmpty()){
-                            videoPathChanged(path)
-                        }
-                        showFilePicker = false
-                    }
-                    // 词库文件选择器
-                    FilePicker(
-                        show = showVocabularyPicker,
-                        fileExtension = "json",
-                        initialDirectory = ""
-                    ){path ->
-                        if(!path.isNullOrEmpty()){
-                            vocabularyPathChanged(path)
-                        }
-                        showVocabularyPicker = false
-                    }
-                    // 字幕文件选择器
-                    FilePicker(
-                        show = showSubtitlePicker,
-//                        fileExtension = "srt",
-                        initialDirectory = ""
-                    ){path ->
-                        if(!path.isNullOrEmpty()){
-                            addSubtitle(path)
-                        }
-                        showSubtitlePicker = false
-                    }
-
-                    // 右键菜单
-                    CursorDropdownMenu(
-                        expanded = showDropdownMenu,
-                        onDismissRequest = {showDropdownMenu = false},
-                    ){
-                        DropdownMenuItem(onClick = {
-                            openVideo()
-                            showDropdownMenu = false
-                        }) {
-                            Text("打开视频")
-                        }
-                        DropdownMenuItem(
-                            enabled = videoPath.isNotEmpty(),
-                            onClick = {
-                            addVocabulary()
-                            showDropdownMenu = false
-                        }) {
-                            Text("添加词库")
-                        }
-                    }
-
-                }
-            }
-
-            MessageDialog(
-                show = showMessageDialog,
-                close = { showMessageDialog = false },
-                message = message
-            )
-
-        }
-
-
-        /** 播放器显示后只执行一次，设置最小尺寸，绑定时间进度条，和时间,设置拖放函数 */
-        LaunchedEffect(Unit) {
-            if(playerState.danmakuVisible && videoPath.isNotEmpty() && danmakuMap.isNotEmpty()){
-                danmakuTimer.start()
-            }
-            window.minimumSize = Dimension(900,854)
-            val eventListener = object:MediaPlayerEventAdapter() {
-                override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
-                    val videoDuration = videoPlayerComponent.mediaPlayer().media().info().duration()
-                    timeProgress = (newTime.toFloat()).div(videoDuration)
-                    var startText: String
-                    timeProgress.times(videoDuration).toInt().milliseconds.toComponents { hours, minutes, seconds, _ ->
-                        startText = timeFormat(hours, minutes, seconds)
-                    }
-                    videoDuration.milliseconds.toComponents { hours, minutes, seconds, _ ->
-                        val durationText = timeFormat(hours, minutes, seconds)
-                        timeText = "$startText / $durationText"
-                    }
-
-                }
-
-                private fun timeFormat(hours: Long, minutes: Int, seconds: Int): String {
-                    val h = if (hours < 10) "0$hours" else "$hours"
-                    val m = if (minutes < 10) "0$minutes" else "$minutes"
-                    val s = if (seconds < 10) "0$seconds" else "$seconds"
-                    return "$h:$m:$s"
-                }
-                override fun mediaPlayerReady(mediaPlayer: MediaPlayer) {
-                    mediaPlayer.audio().setVolume(videoVolume.toInt())
-                    currentSubtitleTrack = mediaPlayer.subpictures().track()
-                    mediaPlayer.subpictures().trackDescriptions().forEach { trackDescription ->
-                        subtitleTrackList.add(Pair(trackDescription.id(),trackDescription.description()))
-                    }
-                }
-
-                override fun finished(mediaPlayer: MediaPlayer?) {
-                    isPlaying = false
-                }
-
-            }
-            videoPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(eventListener)
-            /** 设置拖放函数 */
-            val transferHandler = createTransferHandler(
-                singleFile = false,
-                showWrongMessage = { message ->
-                    JOptionPane.showMessageDialog(window, message)
-                },
-                parseImportFile = {  parseImportFile(it)}
-            )
-            window.transferHandler = transferHandler
-        }
-        /** 保存 mediaPlayerEventListener 的引用，用于删除。*/
-        var mediaPlayerEventListener by remember{ mutableStateOf<MediaPlayerEventAdapter?>(null) }
-        /** 启动的时候执行一次，每次添加词库后再执行一次 */
-        LaunchedEffect(vocabularyPath) {
-            if(mediaPlayerEventListener != null){
-                videoPlayerComponent.mediaPlayer().events().removeMediaPlayerEventListener(mediaPlayerEventListener)
-            }
-            var lastTime = -1
-            var lastMaxLength = 0
-            val eventListener = object:MediaPlayerEventAdapter() {
-                override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
-                    // 单位为秒
-                    val startTime = (newTime.milliseconds.inWholeSeconds + widthDuration.div(3000)).toInt()
-                    // 每秒执行一次
-                    if (playerState.danmakuVisible && danmakuMap.isNotEmpty() && startTime != lastTime) {
-                        val danmakuList = danmakuMap.get(startTime)
-                        var offsetY = if(isFullscreen) 50 else 20
-                        val sequenceWidth = if (playerState.showSequence) counter.toString().length * 12 else 0
-                        val offsetX = sequenceWidth + lastMaxLength * 12 + 30
-                        var maxLength = 0
-                        danmakuList?.forEach { danmakuItem ->
-                            if (offsetY > 395) offsetY = 10
-                            danmakuItem.position = IntOffset(window.size.width + offsetX, offsetY)
-                            offsetY += 35
-                            if (danmakuItem.content.length > maxLength) {
-                                maxLength = danmakuItem.content.length
+                            DropdownMenuItem(
+                                enabled = videoPath.isNotEmpty(),
+                                onClick = {
+                                    addVocabulary()
+                                    showDropdownMenu = false
+                                }) {
+                                Text("添加词库")
                             }
-
-                            // TODO 这里还是有多线程问题，可能会出现：这里刚刚添加，在另一个控制动画的 Timer 里面马上就删除了。
-                            danmakuItem.sequence = counter
-                            shouldAddDanmaku.put(counter++, danmakuItem)
-                            if(counter == 100) counter = 1
                         }
-                        lastMaxLength = maxLength
-                        lastTime = startTime
+
+                    }
+                }
+
+                MessageDialog(
+                    show = showMessageDialog,
+                    close = { showMessageDialog = false },
+                    message = message
+                )
+
+            }
+
+
+            /** 播放器显示后只执行一次，设置最小尺寸，绑定时间进度条，和时间,设置拖放函数 */
+            LaunchedEffect(Unit) {
+                if(playerState.danmakuVisible && videoPath.isNotEmpty() && danmakuMap.isNotEmpty()){
+                    danmakuTimer.start()
+                }
+                window.minimumSize = Dimension(900,854)
+                val eventListener = object:MediaPlayerEventAdapter() {
+                    override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
+                        val videoDuration = videoPlayerComponent.mediaPlayer().media().info().duration()
+                        timeProgress = (newTime.toFloat()).div(videoDuration)
+                        var startText: String
+                        timeProgress.times(videoDuration).toInt().milliseconds.toComponents { hours, minutes, seconds, _ ->
+                            startText = timeFormat(hours, minutes, seconds)
+                        }
+                        videoDuration.milliseconds.toComponents { hours, minutes, seconds, _ ->
+                            val durationText = timeFormat(hours, minutes, seconds)
+                            timeText = "$startText / $durationText"
+                        }
+
+                    }
+
+                    private fun timeFormat(hours: Long, minutes: Int, seconds: Int): String {
+                        val h = if (hours < 10) "0$hours" else "$hours"
+                        val m = if (minutes < 10) "0$minutes" else "$minutes"
+                        val s = if (seconds < 10) "0$seconds" else "$seconds"
+                        return "$h:$m:$s"
+                    }
+                    override fun mediaPlayerReady(mediaPlayer: MediaPlayer) {
+                        mediaPlayer.audio().setVolume(videoVolume.toInt())
+                        currentSubtitleTrack = mediaPlayer.subpictures().track()
+                        mediaPlayer.subpictures().trackDescriptions().forEach { trackDescription ->
+                            subtitleTrackList.add(Pair(trackDescription.id(),trackDescription.description()))
+                        }
+                    }
+
+                    override fun finished(mediaPlayer: MediaPlayer?) {
+                        isPlaying = false
+                    }
+
+                }
+                videoPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(eventListener)
+                /** 设置拖放函数 */
+                val transferHandler = createTransferHandler(
+                    singleFile = false,
+                    showWrongMessage = { message ->
+                        JOptionPane.showMessageDialog(window, message)
+                    },
+                    parseImportFile = {  parseImportFile(it)}
+                )
+                window.transferHandler = transferHandler
+            }
+            /** 保存 mediaPlayerEventListener 的引用，用于删除。*/
+            var mediaPlayerEventListener by remember{ mutableStateOf<MediaPlayerEventAdapter?>(null) }
+            /** 启动的时候执行一次，每次添加词库后再执行一次 */
+            LaunchedEffect(vocabularyPath) {
+                if(mediaPlayerEventListener != null){
+                    videoPlayerComponent.mediaPlayer().events().removeMediaPlayerEventListener(mediaPlayerEventListener)
+                }
+                var lastTime = -1
+                var lastMaxLength = 0
+                val eventListener = object:MediaPlayerEventAdapter() {
+                    override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
+                        // 单位为秒
+                        val startTime = (newTime.milliseconds.inWholeSeconds + widthDuration.div(3000)).toInt()
+                        // 每秒执行一次
+                        if (playerState.danmakuVisible && danmakuMap.isNotEmpty() && startTime != lastTime) {
+                            val danmakuList = danmakuMap.get(startTime)
+                            var offsetY = if(isFullscreen) 50 else 20
+                            val sequenceWidth = if (playerState.showSequence) counter.toString().length * 12 else 0
+                            val offsetX = sequenceWidth + lastMaxLength * 12 + 30
+                            var maxLength = 0
+                            danmakuList?.forEach { danmakuItem ->
+                                if (offsetY > 395) offsetY = 10
+                                danmakuItem.position = IntOffset(window.size.width + offsetX, offsetY)
+                                offsetY += 35
+                                if (danmakuItem.content.length > maxLength) {
+                                    maxLength = danmakuItem.content.length
+                                }
+
+                                // TODO 这里还是有多线程问题，可能会出现：这里刚刚添加，在另一个控制动画的 Timer 里面马上就删除了。
+                                danmakuItem.sequence = counter
+                                shouldAddDanmaku.put(counter++, danmakuItem)
+                                if(counter == 100) counter = 1
+                            }
+                            lastMaxLength = maxLength
+                            lastTime = startTime
+                        }
+                    }
+                }
+                videoPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(eventListener)
+                mediaPlayerEventListener = eventListener
+            }
+
+            /** 打开视频后自动播放 */
+            LaunchedEffect(videoPath) {
+                if(videoPath.isNotEmpty()){
+                    videoPlayerComponent.mediaPlayer().media().play(videoPath,":sub-autodetect-file")
+                    isPlaying = true
+                    if(playerState.danmakuVisible && !danmakuTimer.isRunning){
+                        danmakuTimer.restart()
+                    }
+                    if(danmakuTimer.isRunning){
+                        showingDanmakuNum.clear()
                     }
                 }
             }
-            videoPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(eventListener)
-            mediaPlayerEventListener = eventListener
-        }
 
-        /** 打开视频后自动播放 */
-        LaunchedEffect(videoPath) {
-            if(videoPath.isNotEmpty()){
-                videoPlayerComponent.mediaPlayer().media().play(videoPath,":sub-autodetect-file")
-                isPlaying = true
-                if(playerState.danmakuVisible && !danmakuTimer.isRunning){
-                    danmakuTimer.restart()
-                }
-                if(danmakuTimer.isRunning){
-                    showingDanmakuNum.clear()
-                }
+            /** 同步窗口尺寸 */
+            LaunchedEffect(windowState) {
+                snapshotFlow { windowState.size }
+                    .onEach {
+                        val titleBarHeight = if(isFullscreen) 1 else 40
+                        videoPlayerComponent.size =
+                            Dimension(windowState.size.width.value.toInt(), windowState.size.height.value.toInt() - titleBarHeight)
+                        widthDuration = windowState.size.width.value.div(3).times(30).toInt()
+                        // 改变窗口的宽度后，有的弹幕会加速移动，还有一些弹幕会重叠，所以要把弹幕全部清除。
+                        cleanDanmaku()
+                    }
+                    .launchIn(this)
             }
-        }
-
-        /** 同步窗口尺寸 */
-        LaunchedEffect(windowState) {
-            snapshotFlow { windowState.size }
-                .onEach {
-                    val titleBarHeight = if(isFullscreen) 1 else 40
-                    videoPlayerComponent.size =
-                        Dimension(windowState.size.width.value.toInt(), windowState.size.height.value.toInt() - titleBarHeight)
-                    widthDuration = windowState.size.width.value.div(3).times(30).toInt()
-                    // 改变窗口的宽度后，有的弹幕会加速移动，还有一些弹幕会重叠，所以要把弹幕全部清除。
-                    cleanDanmaku()
-                }
-                .launchIn(this)
         }
     }
+
 }
 @Composable
 fun TitleBar(
@@ -1136,14 +1153,18 @@ fun TitleBar(
                     tint = Color(140, 140, 140),
                 )
             }
-            IconButton(onClick = { fullscreen() },
-                modifier = Modifier.size(40.dp)) {
-                Icon(
-                    if(isFullscreen) Icons.Filled.FullscreenExit else Icons.Filled.Fullscreen,
-                    contentDescription = "Localized description",
-                    tint = Color(140, 140, 140),
-                )
+
+            if(isWindows()){
+                IconButton(onClick = { fullscreen() },
+                    modifier = Modifier.size(40.dp)) {
+                    Icon(
+                        if(isFullscreen) Icons.Filled.FullscreenExit else Icons.Filled.Fullscreen,
+                        contentDescription = "Localized description",
+                        tint = Color(140, 140, 140),
+                    )
+                }
             }
+
             IconButton(
                 onClick = { closeWindow() },
                 modifier = Modifier.size(40.dp)
