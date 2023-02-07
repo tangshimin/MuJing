@@ -14,10 +14,12 @@
     https://user-images.githubusercontent.com/16540656/163662386-e82dc534-7a5a-4566-8449-fc71db51f960.mp4
     
     demo 中的电影片段来源于 [Sintel](https://www.youtube.com/watch?v=eRsGyueVLvQ)。
-4. 视频播放器，播放电影时，添加用电影生成的词库到播放器，单词会以弹幕的形式出现。要查看某个单词的中文解释，只需要输入单词的编号就可以查看，然后按 `Esc` 退出。
+4. 视频播放器，播放电影时，添加用电影生成的词库到播放器，单词会以弹幕的形式出现。要查看某个单词的中文解释，只需要输入单词或对应的数字就可以查看，然后按 `Esc` 退出。
 
 5. 字幕浏览器，可以浏览字幕，练习跟读，可以选择性的播放一条或多条字幕，还可以抄写字幕。
+
    https://user-images.githubusercontent.com/16540656/174944474-e5947df9-c8ed-4546-9c67-057fe52c2d51.mp4
+
 6. 听写复习，可以选择多个章节的单词一起复习，先听写测试，然后再复习错误的单词。
 
    ![DictionReview](https://user-images.githubusercontent.com/16540656/184179317-f8c0ac99-9048-48da-b59b-5badbaae7c62.png)
@@ -31,17 +33,6 @@
 9. [用 MKV 视频或字幕生成的词库，可以链接到用文档生成的词库或内置的词库]()。下面着张图片表示，电影 Sintel 的所有字幕中，有 9 条字幕，匹配了四级词库中的 6 个单词。
 
    ![Link Vocabulary](https://user-images.githubusercontent.com/16540656/166690274-2075b736-af51-42f0-a881-6535ca11d4d3.png)
-
-10. 过滤词库，过滤熟悉的单词。
-
-11. 歌词转字幕
-
-12. 合并词库，可以把一整季的电视剧生成的多个字幕词库合并成一个词库。
-
-13. 内置了常用词库(单词本)：四级、六级、专四、专八、考研、TOEFL、IELTS、GRE、GMAT、SAT、牛津核心词、北师大版高中英语、人教版英语、商务英语、外研版英语、新概念英语。这些词是没有链接字幕的，后续可用根据自己的兴趣，[链接字幕词库](https://github.com/tangshimin/typing-learner/wiki/链接字幕词库)。
-
-14. 内置了一个包含 770612 个词条的本地词典，这个词典来自于 [ECDICT](https://github.com/skywind3000/ECDICT) 的基础版，可以用快捷键 `Ctrl + F` 打开搜索框，查询单词。
-
 
 
 ## 应用平台：Windows / macOS
