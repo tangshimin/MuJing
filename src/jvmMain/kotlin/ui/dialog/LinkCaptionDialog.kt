@@ -116,7 +116,6 @@ fun LinkCaptionDialog(
                                 val fileChooser = state.futureFileChooser.get()
                                 fileChooser.dialogTitle = "选择字幕词库"
                                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                                fileChooser.currentDirectory = getResourcesFile("vocabulary")
                                 fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
                                 fileChooser.isAcceptAllFileFilterUsed = false
                                 fileChooser.selectedFile = null

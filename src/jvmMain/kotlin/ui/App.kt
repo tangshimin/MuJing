@@ -356,7 +356,6 @@ private fun FrameWindowScope.WindowMenuBar(
                     val fileChooser = appState.futureFileChooser.get()
                     fileChooser.dialogTitle = "选择词库"
                     fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                    fileChooser.currentDirectory = getResourcesFile("vocabulary")
                     fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
                     fileChooser.selectedFile = null
                     if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
