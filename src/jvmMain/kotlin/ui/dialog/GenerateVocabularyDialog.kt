@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -46,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
+import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.matthewn4444.ebml.EBMLReader
 import com.matthewn4444.ebml.UnSupportSubtitlesException
 import com.matthewn4444.ebml.subtitles.SSASubtitles
@@ -978,6 +980,31 @@ fun GenerateVocabularyDialog(
         )
 
     }
+}
+ fun writeToCSV(
+    previewList: SnapshotStateList<Word>,
+    selectedFile: File
+) {
+    val rows = mutableListOf<List<String>>()
+    val header = listOf("单词", "中文释义", "英文释义", "字幕")
+    rows.add(header)
+    previewList.forEach { word ->
+        val line = mutableListOf<String>()
+        line.add(word.value)
+        line.add(word.translation)
+        line.add(word.definition)
+        var captions = ""
+        word.captions.forEach { caption ->
+            captions = captions + caption + "\n"
+        }
+        word.externalCaptions.forEach { caption ->
+            captions = captions + caption + "\n"
+        }
+        line.add(captions)
+        rows.add(line)
+    }
+
+    csvWriter().writeAll(rows, selectedFile.absolutePath, append = false)
 }
 
 @Serializable

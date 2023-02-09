@@ -51,6 +51,8 @@ kotlin {
                 implementation("org.junit.vintage:junit-vintage-engine:5.9.0")
                 implementation(compose("org.jetbrains.compose.ui:ui-test-junit4"))
                 implementation("com.darkrockstudios:mpfilepicker:1.0.0")
+                implementation("com.github.doyaaaaaken:kotlin-csv-jvm:1.8.0")
+
 
             }
         }
