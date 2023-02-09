@@ -351,7 +351,7 @@ fun composeAppResource(path: String): File {
 
 fun getAudioDirectory(): File {
     val homeDir = File(System.getProperty("user.home"))
-    val audioDir = File(homeDir, ".MovContext/audio")
+    val audioDir = File(homeDir, ".MuJing/audio")
     if (!audioDir.exists()) {
         audioDir.mkdir()
     }
@@ -361,7 +361,7 @@ fun getAudioDirectory(): File {
 /** 获取应用程序的配置文件的目录 */
 fun getSettingsDirectory(): File {
     val homeDir = File(System.getProperty("user.home"))
-    val applicationDir = File(homeDir, ".MovContext")
+    val applicationDir = File(homeDir, ".MuJing")
     if (!applicationDir.exists()) {
         applicationDir.mkdir()
     }
