@@ -467,8 +467,11 @@ private fun FrameWindowScope.WindowMenuBar(
                 typingWordState = typingState
             )
         }
-        Separator()
-        Item("退出(X)", mnemonic = 'X', onClick = { close() })
+        if(isWindows()){
+            Separator()
+            Item("退出(X)", mnemonic = 'X', onClick = { close() })
+        }
+
     }
     Menu("字幕(S)", mnemonic = 'S') {
         val enableTypingSubtitles = (appState.global.type != TypingType.SUBTITLES)
