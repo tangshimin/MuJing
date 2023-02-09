@@ -37,12 +37,14 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import data.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
 import state.AppState
 import state.MemoryStrategy.*
+import state.TypingType
 import state.WordState
 import state.getResourcesFile
 import ui.dialog.ChapterFinishedDialog
@@ -72,7 +74,7 @@ import kotlin.concurrent.schedule
 @OptIn(
     ExperimentalComposeUiApi::class,
     ExperimentalAnimationApi::class,
-    ExperimentalSerializationApi::class
+    ExperimentalSerializationApi::class, ExperimentalFoundationApi::class
 )
 @ExperimentalAnimationApi
 @ExperimentalComposeUiApi
@@ -141,14 +143,87 @@ fun TypingWord(
             }
         }
 
-        Toolbar(
-            isOpen = appState.openSettings,
-            setIsOpen ={ appState.openSettings = it },
-            modifier = Modifier.align(Alignment.TopStart),
-            globalState = appState.global,
-            saveGlobalState = {appState.saveGlobalState()},
-            showPlayer = showPlayer
-        )
+        Row( modifier = Modifier.align(Alignment.TopStart),){
+            Toolbar(
+                isOpen = appState.openSettings,
+                setIsOpen ={ appState.openSettings = it },
+                modifier = Modifier,
+                globalState = appState.global,
+                saveGlobalState = {appState.saveGlobalState()},
+                showPlayer = showPlayer
+            )
+            val ctrl = LocalCtrl.current
+            var showFilePicker by remember {mutableStateOf(false)}
+            TooltipArea(
+                tooltip = {
+                    Surface(
+                        elevation = 4.dp,
+                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                        shape = RectangleShape
+                    ) {
+                        Text(text = "打开词库文件 $ctrl + O", modifier = Modifier.padding(10.dp))
+                    }
+                },
+                delayMillis = 50,
+                tooltipPlacement = TooltipPlacement.ComponentRect(
+                    anchor = Alignment.BottomCenter,
+                    alignment = Alignment.BottomCenter,
+                    offset = DpOffset.Zero
+                )
+            ) {
+
+                IconButton(onClick = {
+                    if(isWindows()) {
+                        showFilePicker = true
+                    }else if(isMacOS()){
+                        Thread(Runnable {
+                            val fileChooser = appState.futureFileChooser.get()
+                            fileChooser.dialogTitle = "选择词库"
+                            fileChooser.fileSystemView = FileSystemView.getFileSystemView()
+                            fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+                            fileChooser.selectedFile = null
+                            if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
+                                val file = fileChooser.selectedFile
+                                val index = appState.findVocabularyIndex(file)
+                                appState.changeVocabulary(
+                                    vocabularyFile = file,
+                                    typingWord,
+                                    index
+                                )
+                                appState.global.type = TypingType.WORD
+                                appState.saveGlobalState()
+                            }
+                        }).start()
+                    }
+
+                }) {
+                    Icon(
+                        Icons.Filled.Folder,
+                        contentDescription = "Localized description",
+                        tint = MaterialTheme.colors.onBackground
+                    )
+                }
+            }
+
+            FilePicker(
+                show = showFilePicker,
+                fileExtension = "json",
+                initialDirectory = ""){path ->
+                if(!path.isNullOrEmpty()){
+                    val file = File(path)
+                    val index = appState.findVocabularyIndex(file)
+                    appState.changeVocabulary(
+                        vocabularyFile = file,
+                        typingWord,
+                        index
+                    )
+                    appState.global.type = TypingType.WORD
+                    appState.saveGlobalState()
+                }
+                showFilePicker = false
+            }
+        }
+
     }
 
 }

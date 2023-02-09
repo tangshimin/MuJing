@@ -71,7 +71,6 @@ fun TypingSubtitles(
     globalState: GlobalState,
     saveSubtitlesState: () -> Unit,
     saveGlobalState: () -> Unit,
-    setIsDarkTheme: (Boolean) -> Unit,
     isOpenSettings: Boolean,
     setIsOpenSettings: (Boolean) -> Unit,
     window: ComposeWindow,
@@ -169,7 +168,7 @@ fun TypingSubtitles(
                                 file.absolutePath,
                                 setTrackList = { setTrackList(it) },
                             )
-
+                            if(showOpenFile == true) showOpenFile = false
                         } else {
                             JOptionPane.showMessageDialog(window, "文件已打开")
                         }
@@ -183,6 +182,7 @@ fun TypingSubtitles(
                     } else {
                         JOptionPane.showMessageDialog(window, "格式不支持")
                     }
+
                     loading = false
                 }).start()
             }
@@ -203,6 +203,7 @@ fun TypingSubtitles(
                 captionList.clear()
                 mediaType = computeMediaType(subtitlesState.mediaPath)
                 if(openMode == OpenMode.Open) showOpenFile = false
+                if(showOpenFile == true) showOpenFile = false
             }else if(formatList.contains(first.extension) && last.extension == "srt"){
                 subtitlesState.trackID = -1
                 subtitlesState.trackSize = 0
@@ -214,6 +215,7 @@ fun TypingSubtitles(
                 captionList.clear()
                 mediaType = computeMediaType(subtitlesState.mediaPath)
                 if(openMode == OpenMode.Open) showOpenFile = false
+                if(showOpenFile == true) showOpenFile = false
             }else if(first.extension == "mp4" && last.extension == "mp4"){
                 JOptionPane.showMessageDialog(window, "${modeString}了2个 MP4 格式的视频，\n需要1个媒体（mp3、aac、wav、mp4、mkv）和1个 srt 字幕")
             }else if(first.extension == "mkv" && last.extension == "mkv"){
@@ -242,7 +244,7 @@ fun TypingSubtitles(
 
         Thread(Runnable{
             val fileChooser = futureFileChooser.get()
-            fileChooser.dialogTitle = "打开"
+            fileChooser.dialogTitle = "选择 MKV 视频或同时选择字幕和媒体"
             fileChooser.fileSystemView = FileSystemView.getFileSystemView()
             fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
             fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
@@ -449,20 +451,8 @@ fun TypingSubtitles(
                 }
                 true
             }
-            (keyEvent.isCtrlPressed && keyEvent.key == Key.H && keyEvent.type == KeyEventType.KeyUp) -> {
-                setCurrentCaptionVisible(!subtitlesState.currentCaptionVisible)
-                true
-            }
             (keyEvent.isCtrlPressed && keyEvent.key == Key.F && keyEvent.type == KeyEventType.KeyUp) -> {
                 scope.launch { openSearch() }
-                true
-            }
-            (keyEvent.isCtrlPressed && keyEvent.key == Key.G && keyEvent.type == KeyEventType.KeyUp) -> {
-                setNotWroteCaptionVisible(!subtitlesState.notWroteCaptionVisible)
-                true
-            }
-            (keyEvent.isCtrlPressed && keyEvent.key == Key.M && keyEvent.type == KeyEventType.KeyUp) -> {
-                setIsPlayKeystrokeSound(!globalState.isPlayKeystrokeSound)
                 true
             }
             (keyEvent.isCtrlPressed && keyEvent.key == Key.One && keyEvent.type == KeyEventType.KeyUp) -> {
@@ -510,15 +500,11 @@ fun TypingSubtitles(
                 externalSubtitlesVisible = subtitlesState.externalSubtitlesVisible,
                 setExternalSubtitlesVisible = {setExternalSubtitlesVisible(it)},
                 trackSize = subtitlesState.trackSize,
-                openFile = { showOpenFile = true },
-                openFileChooser = { openFileChooser() },
                 selectTrack = { selectTypingSubTitles() },
-                isDarkTheme = globalState.isDarkTheme,
-                setIsDarkTheme = { setIsDarkTheme(it) },
                 isPlayKeystrokeSound = globalState.isPlayKeystrokeSound,
                 setIsPlayKeystrokeSound = { setIsPlayKeystrokeSound(it) },
             )
-            val topPadding = if (isMacOS()) 30.dp else 0.dp
+            val topPadding = if (isMacOS()) 78.dp else 48.dp
             if (isOpenSettings) {
                 Divider(Modifier.fillMaxHeight().width(1.dp).padding(top = topPadding))
             }
@@ -1167,14 +1153,46 @@ fun TypingSubtitles(
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = 5.dp)
             )
         }
-        Toolbar(
-            isOpen = isOpenSettings,
-            setIsOpen = setIsOpenSettings,
-            modifier = Modifier.align(Alignment.TopStart),
-            globalState = globalState,
-            saveGlobalState = saveGlobalState,
-            showPlayer = showPlayer
-        )
+        Row(modifier = Modifier.align(Alignment.TopStart)){
+            Toolbar(
+                isOpen = isOpenSettings,
+                setIsOpen = setIsOpenSettings,
+                modifier = Modifier,
+                globalState = globalState,
+                saveGlobalState = saveGlobalState,
+                showPlayer = showPlayer
+            )
+
+            val ctrl = LocalCtrl.current
+            TooltipArea(
+                tooltip = {
+                    Surface(
+                        elevation = 4.dp,
+                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                        shape = RectangleShape
+                    ) {
+                        Text(text = "打开文件 $ctrl + O", modifier = Modifier.padding(10.dp))
+                    }
+                },
+                delayMillis = 50,
+                tooltipPlacement = TooltipPlacement.ComponentRect(
+                    anchor = Alignment.BottomCenter,
+                    alignment = Alignment.BottomCenter,
+                    offset = DpOffset.Zero
+                )
+            ) {
+                IconButton(onClick = { showOpenFile = true }) {
+                    Icon(
+                        Icons.Filled.Folder,
+                        contentDescription = "Localized description",
+                        tint = MaterialTheme.colors.onBackground
+                    )
+                }
+            }
+
+
+        }
+
 
     }
 
@@ -1233,9 +1251,10 @@ fun OpenFileComponent(
         var loading by remember { mutableStateOf(false) }
         Column( modifier = Modifier.width(IntrinsicSize.Max).align(Alignment.Center)){
             Text(
-                text = "可以拖放一个有字幕的 MKV 视频或\n"+
-                        "字幕(SRT) + 媒体(MP3、WAV、AAC、MP4、MKV)到这里\n",
-                color = MaterialTheme.colors.primary,
+                text = "可以拖放一个有字幕的 MKV 视频到这里或\n"+
+                        "一个字幕(SRT) + 一个媒体(MKV、MP4、MP3、WAV、AAC、)一起放到这里。\n",
+                style = MaterialTheme.typography.h5,
+                color = MaterialTheme.colors.onBackground,
             )
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -1378,13 +1397,9 @@ fun SubtitlesSidebar(
     setNotWroteCaptionVisible:(Boolean) -> Unit,
     externalSubtitlesVisible: Boolean,
     setExternalSubtitlesVisible:(Boolean) -> Unit,
-    isDarkTheme: Boolean,
-    setIsDarkTheme: (Boolean) -> Unit,
     isPlayKeystrokeSound: Boolean,
     setIsPlayKeystrokeSound: (Boolean) -> Unit,
     trackSize: Int,
-    openFile: () -> Unit,
-    openFileChooser: () -> Unit,
     selectTrack: () -> Unit,
 ) {
     if (isOpen) {
@@ -1399,32 +1414,6 @@ fun SubtitlesSidebar(
             Divider()
             val ctrl = LocalCtrl.current
             val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .clickable {
-                        openFileChooser()
-                        openFile()
-                    }
-                    .fillMaxWidth().height(48.dp).padding(start = 16.dp, end = 8.dp)
-            ) {
-                Row {
-                    Text("打开文件", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = "$ctrl+O",
-                        color = MaterialTheme.colors.onBackground
-                    )
-                }
-                Spacer(Modifier.width(15.dp))
-                Icon(
-                    Icons.Filled.Folder,
-                    contentDescription = "Localized description",
-                    tint = tint,
-                    modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
-                )
-            }
 
             if (trackSize > 1) {
                 Row(
@@ -1457,15 +1446,8 @@ fun SubtitlesSidebar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
             ) {
-                Row {
-                    Text("当前字幕", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = "$ctrl+H",
-                        color = MaterialTheme.colors.onBackground
-                    )
-                }
 
+                Text("当前字幕", color = MaterialTheme.colors.onBackground)
                 Spacer(Modifier.width(15.dp))
 
                 Switch(
@@ -1479,15 +1461,8 @@ fun SubtitlesSidebar(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
             ) {
-                Row {
-                    Text("未写字幕", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = "$ctrl+G",
-                        color = MaterialTheme.colors.onBackground
-                    )
-                }
 
+                Text("未写字幕", color = MaterialTheme.colors.onBackground)
                 Spacer(Modifier.width(15.dp))
 
                 Switch(
@@ -1514,22 +1489,13 @@ fun SubtitlesSidebar(
                     onCheckedChange = {setExternalSubtitlesVisible(!externalSubtitlesVisible) },
                 )
             }
-            Divider()
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth()
                     .clickable { }.padding(start = 16.dp, end = 8.dp)
             ) {
-                Row {
-                    Text("击键音效", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = "$ctrl+M",
-                        color = MaterialTheme.colors.onBackground
-                    )
-                }
-
+                Text("击键音效", color = MaterialTheme.colors.onBackground)
                 Spacer(Modifier.width(15.dp))
                 Switch(
                     colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),

@@ -53,7 +53,7 @@ import javax.swing.JOptionPane
 import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.filechooser.FileSystemView
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun TypingText(
     title: String,
@@ -64,7 +64,6 @@ fun TypingText(
     saveTextState: () -> Unit,
     isOpenSettings: Boolean,
     setIsOpenSettings: (Boolean) -> Unit,
-    setIsDarkTheme: (Boolean) -> Unit,
     futureFileChooser: FutureTask<JFileChooser>,
     openLoadingDialog: () -> Unit,
     closeLoadingDialog: () -> Unit,
@@ -216,11 +215,9 @@ fun TypingText(
         Row(Modifier.fillMaxSize()){
             TypingTextSidebar(
                 isOpen = isOpenSettings,
-                isDarkTheme = globalState.isDarkTheme,
-                setIsDarkTheme = {setIsDarkTheme(it)},
                 openFileChooser = { openFileChooser() },
             )
-            val topPadding = if (isMacOS()) 30.dp else 0.dp
+            val topPadding = if (isMacOS()) 78.dp else 40.dp
             if (isOpenSettings) {
                 Divider(Modifier.fillMaxHeight().width(1.dp).padding(top = topPadding))
             }
@@ -606,14 +603,46 @@ fun TypingText(
                 modifier = Modifier.align(Alignment.TopCenter).padding(top = 5.dp)
             )
         }
-        Toolbar(
-            isOpen = isOpenSettings,
-            setIsOpen = setIsOpenSettings,
-            modifier = Modifier.align(Alignment.TopStart),
-            globalState = globalState,
-            saveGlobalState = saveGlobalState,
-            showPlayer = showPlayer
-        )
+        Row(modifier = Modifier.align(Alignment.TopStart)){
+            Toolbar(
+                isOpen = isOpenSettings,
+                setIsOpen = setIsOpenSettings,
+                modifier = Modifier,
+                globalState = globalState,
+                saveGlobalState = saveGlobalState,
+                showPlayer = showPlayer
+            )
+
+            val ctrl = LocalCtrl.current
+            TooltipArea(
+                tooltip = {
+                    Surface(
+                        elevation = 4.dp,
+                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                        shape = RectangleShape
+                    ) {
+                        Text(text = "打开文本文件 $ctrl + O", modifier = Modifier.padding(10.dp))
+                    }
+                },
+                delayMillis = 50,
+                tooltipPlacement = TooltipPlacement.ComponentRect(
+                    anchor = Alignment.BottomCenter,
+                    alignment = Alignment.BottomCenter,
+                    offset = DpOffset.Zero
+                )
+            ) {
+                IconButton(onClick = { openFileChooser() }) {
+                    Icon(
+                        Icons.Filled.Folder,
+                        contentDescription = "Localized description",
+                        tint = MaterialTheme.colors.onBackground
+                    )
+                }
+            }
+
+
+        }
+
     }
 
 }
@@ -633,8 +662,6 @@ fun TypingText(
 @Composable
 fun TypingTextSidebar(
     isOpen:Boolean,
-    isDarkTheme:Boolean,
-    setIsDarkTheme:(Boolean) -> Unit,
     openFileChooser: () -> Unit,
 ){
     if(isOpen){
@@ -656,21 +683,7 @@ fun TypingTextSidebar(
                     .clickable { openFileChooser() }
                     .fillMaxWidth().height(48.dp).padding(start = 16.dp, end = 8.dp)
             ) {
-                Row {
-                    Text("打开文件", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(10.dp))
-                    Text(
-                        text = "$ctrl+O",
-                        color = MaterialTheme.colors.onBackground
-                    )
-                }
-                Spacer(Modifier.width(15.dp))
-                Icon(
-                    Icons.Filled.Folder,
-                    contentDescription = "Localized description",
-                    tint = tint,
-                    modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
-                )
+
             }
         }
     }

@@ -174,7 +174,6 @@ fun App() {
                                 globalState = appState.global,
                                 saveSubtitlesState = { subtitlesState.saveTypingSubtitlesState() },
                                 saveGlobalState = { appState.saveGlobalState() },
-                                setIsDarkTheme = { appState.changeTheme(it) },
                                 isOpenSettings = appState.openSettings,
                                 setIsOpenSettings = { appState.openSettings = it },
                                 window = window,
@@ -202,7 +201,6 @@ fun App() {
                                 saveTextState = { textState.saveTypingTextState() },
                                 isOpenSettings = appState.openSettings,
                                 setIsOpenSettings = {appState.openSettings = it},
-                                setIsDarkTheme = { appState.changeTheme(it) },
                                 futureFileChooser = appState.futureFileChooser,
                                 openLoadingDialog = { appState.openLoadingDialog()},
                                 closeLoadingDialog = { appState.loadingFileChooserVisible = false },
@@ -610,7 +608,7 @@ fun Toolbar(
                     Text(text = "记忆单词", modifier = Modifier.padding(10.dp))
                 }
             },
-            delayMillis = 100,
+            delayMillis = 50,
             tooltipPlacement = TooltipPlacement.ComponentRect(
                 anchor = Alignment.BottomCenter,
                 alignment = Alignment.BottomCenter,
@@ -645,7 +643,7 @@ fun Toolbar(
                     Text(text = "字幕浏览器", modifier = Modifier.padding(10.dp))
                 }
             },
-            delayMillis = 100,
+            delayMillis = 50,
             tooltipPlacement = TooltipPlacement.ComponentRect(
                 anchor = Alignment.BottomCenter,
                 alignment = Alignment.BottomCenter,
@@ -682,7 +680,7 @@ fun Toolbar(
                     Text(text = "抄写文本", modifier = Modifier.padding(10.dp))
                 }
             },
-            delayMillis = 100,
+            delayMillis = 50,
             tooltipPlacement = TooltipPlacement.ComponentRect(
                 anchor = Alignment.BottomCenter,
                 alignment = Alignment.BottomCenter,
@@ -714,10 +712,10 @@ fun Toolbar(
                     border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                     shape = RectangleShape
                 ) {
-                    Text(text = "播放器", modifier = Modifier.padding(10.dp))
+                    Text(text = "视频播放器", modifier = Modifier.padding(10.dp))
                 }
             },
-            delayMillis = 100,
+            delayMillis = 50,
             tooltipPlacement = TooltipPlacement.ComponentRect(
                 anchor = Alignment.BottomCenter,
                 alignment = Alignment.BottomCenter,
