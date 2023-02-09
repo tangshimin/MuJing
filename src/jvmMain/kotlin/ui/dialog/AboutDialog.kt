@@ -98,10 +98,17 @@ fun AboutDialog(
                                 modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
                             ) {
                                 SelectionContainer {
-                                    Text("MovContext $version")
+                                    Text("幕境 $version")
                                 }
                             }
 
+                            Row{
+                                Text("GitHub 地址：")
+                                LinkText(
+                                    text = "https://github.com/tangshimin/movcontext",
+                                    url =  "https://github.com/tangshimin/movcontext"
+                                )
+                            }
                             Row(
                                 horizontalArrangement = Arrangement.Start,
                                 verticalAlignment = Alignment.CenterVertically,
@@ -109,14 +116,7 @@ fun AboutDialog(
                             ) {
                                 Text("如果你有任何问题或建议可以到 GitHub 提 Issue")
                             }
-                            Row{
-                                Text("GitHub 地址：")
-                                LinkText(
-                                    text = "https://github.com/tangshimin/movcontext",
-                                    url =  "https://github.com/tangshimin/movcontext"
-                                )
 
-                            }
                         }
                     }
                     1 -> {
@@ -207,7 +207,7 @@ fun AboutDialog(
                                 Dependency(
                                     name = "Compose Desktop",
                                     url = "https://github.com/JetBrains/compose-jb",
-                                    version = "1.2.2",
+                                    version = "1.3.0",
                                     license = Apache2,
                                 )
 
@@ -228,7 +228,7 @@ fun AboutDialog(
                                 Dependency(
                                     name = "kotlin",
                                     url = "https://github.com/JetBrains/kotlin",
-                                    version = "1.7.20",
+                                    version = "1.8.0",
                                     license = Apache2,
                                 )
 
@@ -241,7 +241,7 @@ fun AboutDialog(
                                 Dependency(
                                     name = "kotlinx-serialization-json",
                                     url = "https://github.com/Kotlin/kotlinx.serialization",
-                                    version = "1.3.2",
+                                    version = "1.8.0",
                                     license = Apache2,
                                 )
                                 Dependency(
@@ -313,6 +313,18 @@ fun AboutDialog(
                                     url = "https://github.com/freemansoft/jacob-project",
                                     version = "1.2.0",
                                     license = LGPL,
+                                )
+                                Dependency(
+                                    name = "Multiplatform File Picker",
+                                    url = "https://github.com/Wavesonics/compose-multiplatform-file-picker",
+                                    version = "1.0.0",
+                                    license = MIT,
+                                )
+                                Dependency(
+                                    name = "kotlin-csv",
+                                    url = "https://github.com/doyaaaaaken/kotlin-csv",
+                                    version = "1.8.0",
+                                    license = Apache2,
                                 )
                                 Row(horizontalArrangement = Arrangement.SpaceBetween,
                                     modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp)){
