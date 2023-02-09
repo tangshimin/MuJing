@@ -1181,7 +1181,7 @@ fun TitleBar(
     }
 }
 
-private fun Dimension.toComposeSize(): DpSize = DpSize(width.dp, height.dp)
+fun Dimension.toComposeSize(): DpSize = DpSize(width.dp, height.dp)
 
 @Composable
 fun DanmakuBox(
