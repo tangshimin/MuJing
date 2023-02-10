@@ -22,6 +22,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -54,6 +55,18 @@ fun DocumentDialog(close: () -> Unit) {
                         verticalArrangement = Arrangement.Top,
                         modifier = Modifier.width(200.dp).fillMaxHeight()
                     ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .clickable { currentPage = "tips" }) {
+                            Text("使用技巧", modifier = Modifier.padding(start = 16.dp))
+                            if(currentPage == "tips"){
+                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                            }
+                        }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -118,6 +131,9 @@ fun DocumentDialog(close: () -> Unit) {
                     Divider(Modifier.width(1.dp).fillMaxHeight())
 
                     when(currentPage){
+                        "tips" -> {
+                            Tips()
+                        }
                         "document" -> {
                             DocumentPage()
                         }
@@ -178,6 +194,56 @@ fun FrequencyRelatedLink(){
             })
     }
 }
+
+@Composable
+fun Tips(){
+    Column (Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp)){
+        val background = if (MaterialTheme.colors.isLight) Color.LightGray else Color(35, 35, 35)
+        Row(Modifier.fillMaxWidth()){
+            val annotatedString = buildAnnotatedString {
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold,color = MaterialTheme.colors.onBackground)) {
+                    append("复制单词")
+                }
+                withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                    append("，如果要复制正在抄写的字幕或文本，可以先把光标定位到要复制的行，然后按 ")
+                }
+
+                withStyle(style = SpanStyle(color =  MaterialTheme.colors.primary,background = background)) {
+                    append("Ctrl + B")
+                }
+
+                withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                    append("，就可以复制单词了。 ")
+                }
+            }
+            Text(annotatedString)
+        }
+        Row(Modifier.fillMaxWidth().padding(top = 10.dp)){
+            val annotatedString = buildAnnotatedString {
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold,color = MaterialTheme.colors.onBackground)) {
+                    append("快速打开视频弹幕")
+                }
+                withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                    append("，如果正在记忆某个由视频生成的词库，把视频拖放到记忆单词界面，就可以快速的打开视频和弹幕。")
+                }
+            }
+            Text(annotatedString)
+        }
+        Row(Modifier.fillMaxWidth().padding(top = 10.dp)){
+            val annotatedString = buildAnnotatedString {
+                withStyle(style = SpanStyle(fontWeight = FontWeight.Bold,color = MaterialTheme.colors.onBackground)) {
+                    append("播放多行字幕")
+                }
+                withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                    append(", 在字幕浏览器界面，如果要播放多行字幕，点击左边的数字就可以开启，点击 5 和 10 再点击左边的播放按钮，" +
+                            "就会从第5行开始播放，到第10行结束。")
+                }
+            }
+            Text(annotatedString)
+        }
+    }
+}
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun DocumentPage(){
