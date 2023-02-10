@@ -1256,7 +1256,7 @@ fun OpenFileComponent(
             Text(
                 text = "可以拖放一个有字幕的 MKV 视频到这里或\n"+
                         "一个字幕(SRT) + 一个媒体(MKV、MP4、MP3、WAV、AAC、)一起放到这里。\n",
-                style = MaterialTheme.typography.h5,
+                style = MaterialTheme.typography.h6,
                 color = MaterialTheme.colors.onBackground,
             )
             Row(

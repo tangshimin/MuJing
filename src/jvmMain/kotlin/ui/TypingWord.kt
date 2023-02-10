@@ -1451,13 +1451,91 @@ fun MainContent(
 @Composable
 fun VocabularyEmpty() {
     Surface(Modifier.fillMaxSize()) {
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxSize()
-        ) {
-            Text("请选择一个词库,也可以拖放词库到这里", style = MaterialTheme.typography.h6)
+
+        Box( modifier = Modifier.fillMaxSize()){
+            Column(verticalArrangement = Arrangement.Center,
+                modifier = Modifier.align(Alignment.Center)
+            ){
+                Row(
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("1. 请选择一个词库,也可以拖放词库到这里。", style = MaterialTheme.typography.h6)
+                }
+                Row(
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top =30.dp)
+                ) {
+                    val annotatedString = buildAnnotatedString {
+                        withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                            append("2. 如果要记忆高考单词四六级单词，请从")
+                        }
+                        withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
+                            append("词库菜单栏")
+                        }
+                        withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                            append(" > ")
+                        }
+                        withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
+                            append("选择内置词库")
+                        }
+                        withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                            append("，选择词库到本地文件系统。")
+                        }
+                    }
+                    Text(annotatedString, style = MaterialTheme.typography.h6)
+                }
+
+                Row(
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top =30.dp)
+                ) {
+                    val annotatedString = buildAnnotatedString {
+                        withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                            append("3. 如果要使用电影美剧的字幕生成词库，请从")
+                        }
+                        withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
+                            append("词库菜单栏")
+                        }
+                        withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                            append(" > ")
+                        }
+                        withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
+                            append("用字幕生成词库")
+                        }
+                        withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                            append(" 或 ")
+                        }
+                        withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
+                            append("用MKV视频生成词库")
+                        }
+                    }
+                    Text(annotatedString, style = MaterialTheme.typography.h6)
+                }
+                Row(
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top =30.dp)
+                ) {
+                    val annotatedString = buildAnnotatedString {
+                        withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                            append("4. 内置词库可以使用")
+                        }
+                        withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
+                            append(" 链接字幕词库 ")
+                        }
+                        withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                            append("，把内置词库和字幕词库进行匹配，并把匹配到的字幕添加到内置词库")
+                        }
+                    }
+                    Text(annotatedString, style = MaterialTheme.typography.h6)
+                }
+            }
         }
+
+
     }
 }
 

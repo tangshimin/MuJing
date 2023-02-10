@@ -589,6 +589,7 @@ fun TypingText(
                     Text(
                         text = "可以拖放 TXT 文本到这里",
                         color = MaterialTheme.colors.primary,
+                        style = MaterialTheme.typography.h6,
                         modifier = Modifier.align(Alignment.Center)
                         )
                 }
