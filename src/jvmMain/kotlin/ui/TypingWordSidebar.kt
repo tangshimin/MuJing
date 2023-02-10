@@ -376,28 +376,28 @@ fun TypingWordSidebar(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("击键音效")
                                     Slider(value = state.global.keystrokeVolume, onValueChange = {
-                                        Thread(Runnable {
+                                        Thread {
                                             state.global.keystrokeVolume = it
                                             state.saveGlobalState()
-                                        }).start()
+                                        }.start()
                                     })
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("提示音效")
                                     Slider(value = typingWordState.soundTipsVolume, onValueChange = {
-                                        Thread(Runnable {
+                                        Thread {
                                             typingWordState.soundTipsVolume = it
                                             typingWordState.saveTypingWordState()
-                                        }).start()
+                                        }.start()
                                     })
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("单词发音")
                                     Slider(value = state.global.audioVolume, onValueChange = {
-                                        Thread(Runnable {
+                                        Thread {
                                             state.global.audioVolume = it
                                             state.saveGlobalState()
-                                        }).start()
+                                        }.start()
                                     })
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -406,10 +406,10 @@ fun TypingWordSidebar(
                                         value = state.global.videoVolume,
                                         valueRange = 1f..100f,
                                         onValueChange = {
-                                        Thread(Runnable {
+                                        Thread {
                                             state.global.videoVolume = it
                                             state.saveGlobalState()
-                                        }).start()
+                                        }.start()
                                     })
                                 }
 

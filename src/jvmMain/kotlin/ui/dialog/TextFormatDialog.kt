@@ -3,7 +3,6 @@ package ui.dialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
@@ -18,8 +17,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
-import ui.createTransferHandler
 import kotlinx.coroutines.launch
+import ui.createTransferHandler
 import java.io.File
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
@@ -87,7 +86,7 @@ fun TextFormatDialog(
         val openFileChooser: () -> Unit = {
             // 打开 windows 的文件选择器很慢，有时候会等待超过2秒
             openLoadingDialog()
-            Thread(Runnable {
+            Thread {
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogTitle = "选择文本"
                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -107,13 +106,13 @@ fun TextFormatDialog(
                 fileChooser.selectedFile = null
                 fileChooser.isMultiSelectionEnabled = false
                 fileChooser.removeChoosableFileFilter(fileFilter)
-            }).start()
+            }.start()
 
         }
 
         /** 保存文件对话框 */
         val saveFileChooser: () -> Unit = {
-            Thread(Runnable {
+            Thread {
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                 fileChooser.dialogTitle = "保存文本"
@@ -137,7 +136,7 @@ fun TextFormatDialog(
                     successful = false
                 }
 
-            }).start()
+            }.start()
         }
         val formatText: () -> Unit = {
             scope.launch {
@@ -311,7 +310,7 @@ fun FormatDialog(
 
         /** 保存文件 */
         val saveFile: () -> Unit = {
-            Thread(Runnable {
+            Thread {
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                 fileChooser.dialogTitle = "保存文本"
@@ -326,7 +325,7 @@ fun FormatDialog(
                         formatFile.useLines { lines ->
                             lines.forEach { line ->
                                 if (line.length > 75) {
-                                    val subLines = split(line,75)
+                                    val subLines = split(line, 75)
                                     saveList.addAll(subLines)
                                 } else {
                                     saveList.add(line)
@@ -347,7 +346,7 @@ fun FormatDialog(
                     close()
                 }
 
-            }).start()
+            }.start()
         }
 
         Surface(

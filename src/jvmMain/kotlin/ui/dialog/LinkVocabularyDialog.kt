@@ -124,7 +124,7 @@ fun LinkVocabularyDialog(
      * 用户选择字幕词库后，用这个函数提取相关信息
      */
     val extractCaption: (File) -> Unit = {
-        Thread(Runnable {
+        Thread {
             val selectedVocabulary = loadVocabulary(it.absolutePath)
             subtitlesName = if (selectedVocabulary.type == VocabularyType.SUBTITLES) selectedVocabulary.name else ""
             vocabularyType = selectedVocabulary.type
@@ -156,7 +156,10 @@ fun LinkVocabularyDialog(
                                 )
 
                                 if (counter != 0) {
-                                    if (!word.externalCaptions.contains(externalCaption)&& !links.contains(externalCaption)) {
+                                    if (!word.externalCaptions.contains(externalCaption) && !links.contains(
+                                            externalCaption
+                                        )
+                                    ) {
                                         links.add(externalCaption)
                                         counter--
                                     } else {
@@ -190,8 +193,8 @@ fun LinkVocabularyDialog(
                     }
                 }
 
-            }else {
-            // 文档词库，字幕保存在单词的 externalCaptions 属性中
+            } else {
+                // 文档词库，字幕保存在单词的 externalCaptions 属性中
                 val wordCaptionsMap = HashMap<String, List<ExternalCaption>>()
                 selectedVocabulary.wordList.forEach { word ->
                     wordCaptionsMap.put(word.value, word.externalCaptions)
@@ -206,7 +209,10 @@ fun LinkVocabularyDialog(
                         if (counter in 1..3) {
                             externalCaptions?.forEachIndexed { _, externalCaption ->
                                 if (counter != 0) {
-                                    if (!word.externalCaptions.contains(externalCaption)&& !links.contains(externalCaption)) {
+                                    if (!word.externalCaptions.contains(externalCaption) && !links.contains(
+                                            externalCaption
+                                        )
+                                    ) {
                                         links.add(externalCaption)
                                         counter--
                                     } else {
@@ -242,7 +248,7 @@ fun LinkVocabularyDialog(
                 }
                 vocabularyWrong = true
             }
-        }).start()
+        }.start()
     }
 
     /**
@@ -309,16 +315,16 @@ fun LinkVocabularyDialog(
 
         /** 保存词库 */
         val save:() -> Unit = {
-            Thread(Runnable {
+            Thread {
 
                 val fileChooser = state.futureFileChooser.get()
                 fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                 fileChooser.dialogTitle = "保存词库"
                 val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
                 val appVocabulary = getResourcesFile("vocabulary")
-                val parent = if(directoryPath.startsWith(appVocabulary.absolutePath)){
+                val parent = if (directoryPath.startsWith(appVocabulary.absolutePath)) {
                     myDocuments
-                }else directoryPath
+                } else directoryPath
                 fileChooser.selectedFile = File("$parent${File.separator}${vocabulary?.name}.json")
                 val userSelection = fileChooser.showSaveDialog(window)
                 if (userSelection == JFileChooser.APPROVE_OPTION) {
@@ -332,24 +338,24 @@ fun LinkVocabularyDialog(
                     close()
                 }
                 clear()
-            }).start()
+            }.start()
         }
         /** 选择词库*/
         val openVocabulary:(String) -> Unit = {title ->
             vocabularyWrong = false
-            Thread(Runnable {
+            Thread {
                 val fileChooser = state.futureFileChooser.get()
                 fileChooser.dialogTitle = title
                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
                 fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
                 fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
                 fileChooser.selectedFile = null
-                fileChooser.fileFilter = FileNameExtensionFilter("词库","json")
+                fileChooser.fileFilter = FileNameExtensionFilter("词库", "json")
                 if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
                     val file = fileChooser.selectedFile
                     handleInputFile(file)
                 }
-            }).start()
+            }.start()
         }
         WindowDraggableArea {
             Surface(

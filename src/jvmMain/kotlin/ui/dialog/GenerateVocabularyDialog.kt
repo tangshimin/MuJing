@@ -51,12 +51,9 @@ import com.github.doyaaaaaken.kotlincsv.dsl.csvWriter
 import com.matthewn4444.ebml.EBMLReader
 import com.matthewn4444.ebml.UnSupportSubtitlesException
 import com.matthewn4444.ebml.subtitles.SSASubtitles
-import ui.createTransferHandler
-import player.parseTrackList
 import data.*
 import data.Dictionary
 import data.VocabularyType.*
-import ui.dialog.FilterState.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -75,11 +72,14 @@ import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import org.mozilla.universalchardet.UniversalDetector
 import player.isWindows
+import player.parseTrackList
 import state.AppState
 import state.composeAppResource
 import state.getResourcesFile
 import subtitleFile.FormatSRT
 import subtitleFile.TimedTextObject
+import ui.createTransferHandler
+import ui.dialog.FilterState.*
 import java.awt.BorderLayout
 import java.awt.Desktop
 import java.io.File
@@ -89,7 +89,6 @@ import java.io.InputStream
 import java.net.URI
 import java.nio.charset.Charset
 import java.nio.file.Paths
-import java.text.Collator
 import java.util.*
 import java.util.concurrent.FutureTask
 import java.util.regex.Pattern
@@ -303,7 +302,7 @@ fun GenerateVocabularyDialog(
         /** 拖放的文件和文件选择器选择的文件都使用这个函数处理 */
         val parseImportFile: (List<File>) -> Unit = { files ->
             scope.launch {
-                Thread(Runnable {
+                Thread {
                     if (files.size == 1) {
                         val file = files.first()
                         when (file.extension) {
@@ -318,6 +317,7 @@ fun GenerateVocabularyDialog(
                                     )
                                 }
                             }
+
                             "srt" -> {
                                 if (type == SUBTITLES) {
                                     selectedFilePath = file.absolutePath
@@ -329,6 +329,7 @@ fun GenerateVocabularyDialog(
                                     )
                                 }
                             }
+
                             "mp4" -> {
                                 if (type == SUBTITLES) {
                                     relateVideoPath = file.absolutePath
@@ -336,6 +337,7 @@ fun GenerateVocabularyDialog(
                                     JOptionPane.showMessageDialog(window, "格式错误")
                                 }
                             }
+
                             "mkv" -> {
                                 when (type) {
                                     MKV -> {
@@ -351,7 +353,7 @@ fun GenerateVocabularyDialog(
                                                 setTrackList = {
                                                     trackList.clear()
                                                     trackList.addAll(it)
-                                                    if(it.isNotEmpty()){
+                                                    if (it.isNotEmpty()) {
                                                         selectedFilePath = file.absolutePath
                                                         relateVideoPath = file.absolutePath
                                                         selectedSubtitlesName = "    "
@@ -375,9 +377,11 @@ fun GenerateVocabularyDialog(
                                         }
 
                                     }
+
                                     SUBTITLES -> {
                                         relateVideoPath = file.absolutePath
                                     }
+
                                     else -> {
                                         JOptionPane.showMessageDialog(
                                             window,
@@ -386,11 +390,13 @@ fun GenerateVocabularyDialog(
                                     }
                                 }
                             }
+
                             "json" -> {
                                 if (title == "过滤词库") {
                                     selectedFilePath = file.absolutePath
                                 }
                             }
+
                             else -> {
                                 JOptionPane.showMessageDialog(window, "格式不支持")
                             }
@@ -411,15 +417,30 @@ fun GenerateVocabularyDialog(
                             relateVideoPath = first.absolutePath
                             selectedTrackId = -1
                         } else if (first.extension == "srt" && last.extension == "srt") {
-                            JOptionPane.showMessageDialog(window, "不能接收两个 srt 字幕文件，\n需要一个字幕(srt)文件和一个视频（mp4、mkv）文件")
+                            JOptionPane.showMessageDialog(
+                                window,
+                                "不能接收两个 srt 字幕文件，\n需要一个字幕(srt)文件和一个视频（mp4、mkv）文件"
+                            )
                         } else if (first.extension == "mp4" && last.extension == "mp4") {
-                            JOptionPane.showMessageDialog(window, "不能接收两个 mp4 视频文件，\n需要一个字幕(srt)文件和一个视频（mp4、mkv）文件")
+                            JOptionPane.showMessageDialog(
+                                window,
+                                "不能接收两个 mp4 视频文件，\n需要一个字幕(srt)文件和一个视频（mp4、mkv）文件"
+                            )
                         } else if (first.extension == "mkv" && last.extension == "mkv") {
-                            JOptionPane.showMessageDialog(window, "不能接收两个 mkv 视频文件，\n需要一个字幕(srt)文件和一个视频（mp4、mkv）文件")
+                            JOptionPane.showMessageDialog(
+                                window,
+                                "不能接收两个 mkv 视频文件，\n需要一个字幕(srt)文件和一个视频（mp4、mkv）文件"
+                            )
                         } else if (first.extension == "mkv" && last.extension == "mp4") {
-                            JOptionPane.showMessageDialog(window, "不能接收两个视频文件，\n需要一个字幕(srt)文件和一个视频（mp4、mkv）文件")
+                            JOptionPane.showMessageDialog(
+                                window,
+                                "不能接收两个视频文件，\n需要一个字幕(srt)文件和一个视频（mp4、mkv）文件"
+                            )
                         } else {
-                            JOptionPane.showMessageDialog(window, "格式错误，\n需要一个字幕(srt)文件和一个视频（mp4、mkv）文件")
+                            JOptionPane.showMessageDialog(
+                                window,
+                                "格式错误，\n需要一个字幕(srt)文件和一个视频（mp4、mkv）文件"
+                            )
                         }
 
                     } else if (files.size in 2..100 && type == MKV) {
@@ -442,13 +463,13 @@ fun GenerateVocabularyDialog(
                     } else {
                         JOptionPane.showMessageDialog(window, "文件不能超过两个")
                     }
-                }).start()
+                }.start()
             }
         }
 
         /** 打开文件时调用的函数 */
         val openFile:() -> Unit = {
-            Thread(Runnable {
+            Thread {
                 val fileChooser = state.futureFileChooser.get()
                 fileChooser.dialogTitle = chooseText
                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -464,7 +485,7 @@ fun GenerateVocabularyDialog(
                 fileChooser.selectedFiles = null
                 fileChooser.isMultiSelectionEnabled = true
                 fileChooser.removeChoosableFileFilter(fileFilter)
-            }).start()
+            }.start()
 
         }
 
@@ -535,7 +556,7 @@ fun GenerateVocabularyDialog(
             filterState = Parsing
             vocabularyFilterList.clear()
             documentWords.clear()
-            Thread(Runnable() {
+            Thread {
                 val words = when (type) {
                     DOCUMENT -> {
                         if (title == "过滤词库") {
@@ -551,9 +572,11 @@ fun GenerateVocabularyDialog(
                         }
 
                     }
+
                     SUBTITLES -> {
                         readSRT(pathName = pathName, setProgressText = { progressText = it })
                     }
+
                     MKV -> {
                         readMKV(
                             pathName = pathName,
@@ -566,7 +589,8 @@ fun GenerateVocabularyDialog(
                 filterState =
                     if (numberFilter || bncNumberFilter || frqNumFilter ||
                         bncZeroFilter || frqZeroFilter || replaceToLemma ||
-                        vocabularyFilterList.isNotEmpty()) {
+                        vocabularyFilterList.isNotEmpty()
+                    ) {
                         Filtering
                     } else {
                         End
@@ -575,7 +599,7 @@ fun GenerateVocabularyDialog(
                     previewList.clear()
                     previewList.addAll(documentWords)
                 }
-            }).start()
+            }.start()
         }
 
         /** 批量分析文件 MKV 视频里的单词 */
@@ -583,11 +607,11 @@ fun GenerateVocabularyDialog(
 
             vocabularyFilterList.clear()
             documentWords.clear()
-            Thread(Runnable() {
+            Thread {
                 val words = batchReadMKV(
                     language = language,
                     selectedFileList = selectedFileList,
-                    setCurrentTask = {currentTask = it},
+                    setCurrentTask = { currentTask = it },
                     setErrorMessages = {
                         errorMessages.clear()
                         errorMessages.putAll(it)
@@ -596,7 +620,7 @@ fun GenerateVocabularyDialog(
                         tasksState[it.first] = it.second
                     }
                 )
-                if(words.isNotEmpty()){
+                if (words.isNotEmpty()) {
                     showTaskList = false
                     selectable = false
                 }
@@ -604,7 +628,8 @@ fun GenerateVocabularyDialog(
                 filterState =
                     if (numberFilter || bncNumberFilter || frqNumFilter ||
                         bncZeroFilter || frqZeroFilter || replaceToLemma ||
-                        vocabularyFilterList.isNotEmpty()) {
+                        vocabularyFilterList.isNotEmpty()
+                    ) {
                         Filtering
                     } else {
                         End
@@ -614,12 +639,12 @@ fun GenerateVocabularyDialog(
                     previewList.addAll(documentWords)
                 }
 
-                if(errorMessages.isNotEmpty()){
+                if (errorMessages.isNotEmpty()) {
                     val string = "有 ${errorMessages.size} 个文件解析失败，请点击 [任务列表] 查看详细信息"
-                    JOptionPane.showMessageDialog(window,string)
+                    JOptionPane.showMessageDialog(window, string)
                 }
 
-            }).start()
+            }.start()
 
         }
 
@@ -788,7 +813,7 @@ fun GenerateVocabularyDialog(
                                         CircularProgressIndicator(
                                             Modifier.width(60.dp).align(Alignment.Center)
                                         )
-                                        Thread(Runnable {
+                                        Thread {
                                             // 根据词频或原型过滤单词
                                             val filteredDocumentList = filterDocumentWords(
                                                 documentWords,
@@ -800,7 +825,7 @@ fun GenerateVocabularyDialog(
                                                 bncZeroFilter,
                                                 frqZeroFilter,
                                                 replaceToLemma,
-                                               selectedFileList.isEmpty()
+                                                selectedFileList.isEmpty()
                                             )
                                             previewList.clear()
                                             // 根据选择的词库过滤单词
@@ -812,7 +837,7 @@ fun GenerateVocabularyDialog(
                                             filteredList.removeAll(removedWords)
                                             previewList.addAll(filteredList)
                                             filterState = End
-                                        }).start()
+                                        }.start()
 
 
                                     }
@@ -890,7 +915,7 @@ fun GenerateVocabularyDialog(
                         OutlinedButton(
                             enabled = previewList.size > 0,
                             onClick = {
-                                scope.launch {
+                                Thread {
                                     val fileChooser = state.futureFileChooser.get()
                                     fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                                     fileChooser.dialogTitle = "保存词库"
@@ -950,7 +975,7 @@ fun GenerateVocabularyDialog(
 
 
                                     }
-                                }
+                                }.start()
 
                             }) {
                             Text("保存")
@@ -1627,7 +1652,7 @@ fun VocabularyFilter(
             ) {
                 OutlinedButton(
                     onClick = {
-                        Thread(Runnable {
+                        Thread {
                             val fileChooser = futureFileChooser.get()
                             fileChooser.dialogTitle = "选择词库"
                             fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -1642,7 +1667,7 @@ fun VocabularyFilter(
                             }
                             fileChooser.selectedFile = null
                             fileChooser.removeChoosableFileFilter(fileFilter)
-                        }).start()
+                        }.start()
 
                     },
                     modifier = Modifier
@@ -1816,7 +1841,7 @@ fun addNodes(curTop: DefaultMutableTreeNode?, dir: File): DefaultMutableTreeNode
 
     ol.forEach { file ->
         if (file.isDirectory)
-            addNodes(curDir, file);
+            addNodes(curDir, file)
         else{
             var name = file.nameWithoutExtension
             if(file.parentFile.nameWithoutExtension == "人教版英语" ||
@@ -1827,7 +1852,7 @@ fun addNodes(curTop: DefaultMutableTreeNode?, dir: File): DefaultMutableTreeNode
                 }
 
             }
-            files.addElement(name);
+            files.addElement(name)
         }
 
     }
@@ -2214,7 +2239,7 @@ fun filterSelectVocabulary(
     selectedFileList: List<File>,
     filteredDocumentList: List<Word>
 ): MutableList<Word> {
-    var list = ArrayList(filteredDocumentList)
+    val list = ArrayList(filteredDocumentList)
     selectedFileList.forEach { file ->
         if (file.exists()) {
             val vocabulary = loadVocabulary(file.absolutePath)
@@ -2294,7 +2319,7 @@ fun PreviewWords(
                             ) {
                                 Column(Modifier.padding(5.dp).width(200.dp)) {
                                     Text(
-                                        text = "${word.value}",
+                                        text = word.value,
                                         textAlign = TextAlign.Center,
                                         modifier = Modifier.fillMaxWidth()
                                     )
@@ -2310,7 +2335,7 @@ fun PreviewWords(
                                     Text(text = "COCA:${word.frq}", fontSize = 12.sp)
                                     Divider()
                                     Text(
-                                        text = "${word.translation}",
+                                        text = word.translation,
                                         fontSize = 12.sp,
                                         modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)
                                     )

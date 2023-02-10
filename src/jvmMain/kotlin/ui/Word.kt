@@ -28,7 +28,6 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import data.Word
-import kotlinx.coroutines.launch
 import player.AudioButton
 import state.GlobalState
 import state.getResourcesFile
@@ -70,10 +69,6 @@ fun Word(
     showMenu: () -> Unit,
 ) {
 
-    /**
-     * 协程构建器
-     */
-    val scope = rememberCoroutineScope()
 
     val wordValue = word.value
         Row(

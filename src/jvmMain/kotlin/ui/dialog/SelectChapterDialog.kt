@@ -170,7 +170,7 @@ fun Chapters(
         ) {
             itemsIndexed(chapters) { index: Int, item: String ->
                 val chapter = index + 1
-                var checkedState = if(isMultiple){
+                val checkedState = if(isMultiple){
                      checkedChapters.contains(chapter)
                 }else{
                     chapter == checkedChapters.first()

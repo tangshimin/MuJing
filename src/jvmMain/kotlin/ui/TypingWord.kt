@@ -143,7 +143,7 @@ fun TypingWord(
             }
         }
 
-        Row( modifier = Modifier.align(Alignment.TopStart),){
+        Row( modifier = Modifier.align(Alignment.TopStart)){
             Toolbar(
                 isOpen = appState.openSettings,
                 setIsOpen ={ appState.openSettings = it },
@@ -176,7 +176,7 @@ fun TypingWord(
                     if(isWindows()) {
                         showFilePicker = true
                     }else if(isMacOS()){
-                        Thread(Runnable {
+                        Thread {
                             val fileChooser = appState.futureFileChooser.get()
                             fileChooser.dialogTitle = "选择词库"
                             fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -193,7 +193,7 @@ fun TypingWord(
                                 appState.global.type = TypingType.WORD
                                 appState.saveGlobalState()
                             }
-                        }).start()
+                        }.start()
                     }
 
                 }) {

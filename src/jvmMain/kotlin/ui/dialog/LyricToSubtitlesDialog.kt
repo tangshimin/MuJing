@@ -89,7 +89,7 @@ fun LyricToSubtitlesDialog(
         val openFileChooser: () -> Unit = {
             // 打开 windows 的文件选择器很慢，有时候会等待超过2秒
             openLoadingDialog()
-            Thread(Runnable {
+            Thread {
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogTitle = "选择文本"
                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -109,7 +109,7 @@ fun LyricToSubtitlesDialog(
                 fileChooser.selectedFile = null
                 fileChooser.isMultiSelectionEnabled = false
                 fileChooser.removeChoosableFileFilter(fileFilter)
-            }).start()
+            }.start()
 
         }
 
@@ -126,7 +126,7 @@ fun LyricToSubtitlesDialog(
 
         /** 保存文件对话框 */
         val saveFile: () -> Unit = {
-            Thread(Runnable {
+            Thread {
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                 fileChooser.dialogTitle = "保存字幕"
@@ -144,7 +144,7 @@ fun LyricToSubtitlesDialog(
                     successful = false
                 }
 
-            }).start()
+            }.start()
         }
 
         Surface(

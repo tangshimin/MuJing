@@ -29,12 +29,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
-import player.play
 import data.*
 import kotlinx.coroutines.launch
+import player.play
 import state.AppState
 import state.WordState
-import state.getResourcesFile
 import java.awt.Point
 import java.awt.Rectangle
 import java.io.File
@@ -74,7 +73,7 @@ fun LinkCaptionDialog(
             Box(modifier = Modifier.fillMaxSize()) {
 
                 val scope = rememberCoroutineScope()
-                var wordList = remember { mutableStateListOf<Word>() }
+                val wordList = remember { mutableStateListOf<Word>() }
                 var subtitleVocabularyPath by remember { mutableStateOf("") }
                 var relateVideoPath by remember { mutableStateOf("") }
                 var subtitlesTrackId by remember { mutableStateOf(0) }
@@ -111,7 +110,7 @@ fun LinkCaptionDialog(
                                 .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
                         )
                         IconButton(onClick = {
-                            Thread(Runnable {
+                            Thread {
                                 state.loadingFileChooserVisible = true
                                 val fileChooser = state.futureFileChooser.get()
                                 fileChooser.dialogTitle = "选择字幕词库"
@@ -133,7 +132,7 @@ fun LinkCaptionDialog(
                                     fileChooser.selectedFile = File("")
                                 }
                                 state.loadingFileChooserVisible = false
-                            }).start()
+                            }.start()
 
                         }) {
                             Icon(

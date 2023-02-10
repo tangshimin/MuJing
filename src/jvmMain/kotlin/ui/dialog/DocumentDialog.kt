@@ -564,7 +564,7 @@ fun YouTubeDownloadPage(){
                 Text(" 基于 youtube-dl 的视频下载工具, UI 非常简洁。")
             }
             val text = if(isWindows()) "最好选择 Microsoft Store 版本，因为其他版本在某些 Windows 电脑上可能无法使用。\n" else ""
-           Text("$text")
+           Text(text)
 
             val annotatedString = buildAnnotatedString {
                 pushStringAnnotation(tag = "howto", annotation = "https://zh.wikihow.com/%E4%B8%8B%E8%BD%BDYouTube%E8%A7%86%E9%A2%91")

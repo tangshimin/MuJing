@@ -57,13 +57,12 @@ fun Search(
         if (it.isCtrlPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) {
             onDismissRequest()
             true
-        }
-        if (it.isCtrlPressed && it.key == Key.J && it.type == KeyEventType.KeyUp) {
+        }else if (it.isCtrlPressed && it.key == Key.J && it.type == KeyEventType.KeyUp) {
             if (!isPlayingAudio && searchResult != null && searchResult!!.value.isNotEmpty()) {
                 val audioPath = getAudioPath(
                     word = searchResult!!.value,
                     audioSet = appState.audioSet,
-                    addToAudioSet = {appState.audioSet.add(it)},
+                    addToAudioSet = {audioPath -> appState.audioSet.add(audioPath)},
                     pronunciation = typingWordState.pronunciation
                 )
                 playAudio(

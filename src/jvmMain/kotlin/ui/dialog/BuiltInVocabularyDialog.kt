@@ -55,12 +55,13 @@ fun BuiltInVocabularyDialog(
                 ){
                     /** 保存词库 */
                     val save:(File) -> Unit = {file ->
-                        Thread(Runnable {
+                        Thread {
                             var name = file.nameWithoutExtension
-                            if(file.parentFile.nameWithoutExtension == "人教版英语" ||
-                                file.parentFile.nameWithoutExtension == "外研版英语"||
-                                file.parentFile.nameWithoutExtension == "北师大版高中英语"){
-                                if(name.contains(" ")){
+                            if (file.parentFile.nameWithoutExtension == "人教版英语" ||
+                                file.parentFile.nameWithoutExtension == "外研版英语" ||
+                                file.parentFile.nameWithoutExtension == "北师大版高中英语"
+                            ) {
+                                if (name.contains(" ")) {
                                     name = name.split(" ")[1]
                                 }
                             }
@@ -75,17 +76,18 @@ fun BuiltInVocabularyDialog(
                                 val fileToSave = fileChooser.selectedFile
                                 if (fileToSave.exists()) {
                                     // 是-0,否-1，取消-2
-                                    val answer = JOptionPane.showConfirmDialog(null, "${name}.json 已存在。\n要替换它吗？")
-                                    if(answer == 0){
+                                    val answer =
+                                        JOptionPane.showConfirmDialog(null, "${name}.json 已存在。\n要替换它吗？")
+                                    if (answer == 0) {
                                         fileToSave.writeBytes(file.readBytes())
                                     }
-                                }else{
+                                } else {
                                     fileToSave.writeBytes(file.readBytes())
                                 }
 
                             }
 
-                        }).start()
+                        }.start()
                     }
 
                     val stateVertical = rememberScrollState(0)

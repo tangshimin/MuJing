@@ -8,7 +8,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -18,10 +17,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
-import ui.createTransferHandler
 import data.*
 import kotlinx.coroutines.launch
 import player.isWindows
+import ui.createTransferHandler
 import java.io.File
 import java.util.*
 import java.util.concurrent.FutureTask
@@ -31,7 +30,6 @@ import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.filechooser.FileSystemView
 import kotlin.concurrent.schedule
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MergeVocabularyDialog(
     futureFileChooser: FutureTask<JFileChooser>,
@@ -54,7 +52,7 @@ fun MergeVocabularyDialog(
         var mergeEnabled by remember { mutableStateOf(false) }
 
         /** 选择的词库列表 */
-        var selectedFileList = remember { mutableStateListOf<File>() }
+        val selectedFileList = remember { mutableStateListOf<File>() }
 
         /** 合并后的新词库 */
         var newVocabulary by remember { mutableStateOf<Vocabulary?>(null) }
@@ -208,7 +206,7 @@ fun MergeVocabularyDialog(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         OutlinedButton(onClick = {
-                            Thread(Runnable {
+                            Thread {
                                 val fileChooser = futureFileChooser.get()
                                 fileChooser.dialogTitle = "选择词库"
                                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -237,7 +235,7 @@ fun MergeVocabularyDialog(
                                 fileChooser.selectedFile = null
                                 fileChooser.isMultiSelectionEnabled = false
                                 fileChooser.removeChoosableFileFilter(fileFilter)
-                            }).start()
+                            }.start()
                         }, modifier = Modifier.padding(end = 10.dp)) {
                             Text("添加词库")
                         }
@@ -245,7 +243,7 @@ fun MergeVocabularyDialog(
                         OutlinedButton(
                             enabled = mergeEnabled,
                             onClick = {
-                                Thread(Runnable {
+                                Thread {
                                     merging = true
                                     newVocabulary = Vocabulary(
                                         name = "",
@@ -317,7 +315,7 @@ fun MergeVocabularyDialog(
                                     newVocabulary!!.size = wordList.size
                                     merging = false
                                     mergeEnabled = false
-                                }).start()
+                                }.start()
                             }, modifier = Modifier.padding(end = 10.dp)
                         ) {
                             Text("合并词库")
@@ -325,7 +323,7 @@ fun MergeVocabularyDialog(
                         OutlinedButton(
                             enabled = !merging && size > 0,
                             onClick = {
-                                Thread(Runnable {
+                                Thread {
                                     val fileChooser = futureFileChooser.get()
                                     fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                                     fileChooser.dialogTitle = "保存词库"
@@ -344,7 +342,7 @@ fun MergeVocabularyDialog(
                                         close()
                                     }
 
-                                }).start()
+                                }.start()
                             }) {
                             Text("保存词库")
                         }

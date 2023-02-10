@@ -102,7 +102,7 @@ fun TypingSubtitles(
     val audioPlayerComponent = LocalAudioPlayerComponent.current
     var isVideoBoundsChanged by remember{ mutableStateOf(false) }
     /** 如果移动了播放器的位置，用这个变量保存计算的位置，点击恢复按钮的时候用这个临时的变量恢复 */
-    var tempPoint by remember{mutableStateOf(Point(0,0))}
+    val tempPoint by remember{mutableStateOf(Point(0,0))}
     var charWidth by remember{ mutableStateOf(computeCharWidth(subtitlesState.trackDescription)) }
 
     /** 读取字幕文件*/
@@ -157,7 +157,7 @@ fun TypingSubtitles(
             val file = files.first()
             loading = true
             scope.launch {
-                Thread(Runnable{
+                Thread {
                     if (file.extension == "mkv") {
                         if (subtitlesState.mediaPath != file.absolutePath) {
                             selectedPath = file.absolutePath
@@ -168,23 +168,23 @@ fun TypingSubtitles(
                                 file.absolutePath,
                                 setTrackList = { setTrackList(it) },
                             )
-                            if(showOpenFile == true) showOpenFile = false
+                            if (showOpenFile) showOpenFile = false
                         } else {
                             JOptionPane.showMessageDialog(window, "文件已打开")
                         }
 
-                    }else if (formatList.contains(file.extension)) {
+                    } else if (formatList.contains(file.extension)) {
                         JOptionPane.showMessageDialog(window, "需要同时选择 ${file.extension} 视频 + srt 字幕")
-                    }else if (file.extension == "srt") {
+                    } else if (file.extension == "srt") {
                         JOptionPane.showMessageDialog(window, "需要同时选择1个视频(mp4、mkv) + 1个srt 字幕")
-                    }else if (file.extension == "json") {
+                    } else if (file.extension == "json") {
                         JOptionPane.showMessageDialog(window, "想要打开词库文件，需要先切换到记忆单词界面")
                     } else {
                         JOptionPane.showMessageDialog(window, "格式不支持")
                     }
 
                     loading = false
-                }).start()
+                }.start()
             }
         }else if(files.size == 2){
             val first = files.first()
@@ -203,7 +203,7 @@ fun TypingSubtitles(
                 captionList.clear()
                 mediaType = computeMediaType(subtitlesState.mediaPath)
                 if(openMode == OpenMode.Open) showOpenFile = false
-                if(showOpenFile == true) showOpenFile = false
+                if(showOpenFile) showOpenFile = false
             }else if(formatList.contains(first.extension) && last.extension == "srt"){
                 subtitlesState.trackID = -1
                 subtitlesState.trackSize = 0
@@ -215,7 +215,7 @@ fun TypingSubtitles(
                 captionList.clear()
                 mediaType = computeMediaType(subtitlesState.mediaPath)
                 if(openMode == OpenMode.Open) showOpenFile = false
-                if(showOpenFile == true) showOpenFile = false
+                if(showOpenFile) showOpenFile = false
             }else if(first.extension == "mp4" && last.extension == "mp4"){
                 JOptionPane.showMessageDialog(window, "${modeString}了2个 MP4 格式的视频，\n需要1个媒体（mp3、aac、wav、mp4、mkv）和1个 srt 字幕")
             }else if(first.extension == "mkv" && last.extension == "mkv"){
@@ -242,20 +242,28 @@ fun TypingSubtitles(
         // 打开 windows 的文件选择器很慢，有时候会等待超过2秒
         openLoadingDialog()
 
-        Thread(Runnable{
+        Thread {
             val fileChooser = futureFileChooser.get()
-            fileChooser.dialogTitle = "选择 MKV 视频或同时选择字幕和媒体"
+            fileChooser.dialogTitle = "打开"
             fileChooser.fileSystemView = FileSystemView.getFileSystemView()
             fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
             fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
             fileChooser.isAcceptAllFileFilterUsed = false
             fileChooser.isMultiSelectionEnabled = true
-            val fileFilter = FileNameExtensionFilter("1个 mkv 视频，或 1个媒体(mp3、wav、aac、mp4、mkv) + 1个字幕(srt)","mp3","wav","aac","mkv","srt","mp4")
+            val fileFilter = FileNameExtensionFilter(
+                "1个 mkv 视频，或 1个媒体(mp3、wav、aac、mp4、mkv) + 1个字幕(srt)",
+                "mp3",
+                "wav",
+                "aac",
+                "mkv",
+                "srt",
+                "mp4"
+            )
             fileChooser.addChoosableFileFilter(fileFilter)
             fileChooser.selectedFile = null
             if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
                 val files = fileChooser.selectedFiles.toList()
-                parseImportFile(files,OpenMode.Open)
+                parseImportFile(files, OpenMode.Open)
                 closeLoadingDialog()
             } else {
                 closeLoadingDialog()
@@ -263,7 +271,7 @@ fun TypingSubtitles(
             fileChooser.selectedFile = null
             fileChooser.isMultiSelectionEnabled = false
             fileChooser.removeChoosableFileFilter(fileFilter)
-        }).start()
+        }.start()
 
     }
     val resetVideoBounds:() -> Rectangle = {
@@ -392,7 +400,7 @@ fun TypingSubtitles(
             loading = true
             scope.launch {
                 showSelectTrack = true
-                Thread(Runnable{
+                Thread {
                     parseTrackList(
                         mediaPlayerComponent = mediaPlayerComponent,
                         parentComponent = window,
@@ -404,7 +412,7 @@ fun TypingSubtitles(
                     )
                     loading = false
 
-                }).start()
+                }.start()
 
             }
         }else if(!videoFile.exists()){
@@ -760,7 +768,7 @@ fun TypingSubtitles(
                                             ) {
                                                 val icon = if (mediaType == "audio" && !isPlaying) {
                                                     Icons.Filled.VolumeDown
-                                                } else if (mediaType == "audio" && isPlaying) {
+                                                } else if (mediaType == "audio") {
                                                     Icons.Filled.VolumeUp
                                                 } else Icons.Filled.PlayArrow
 
@@ -901,7 +909,7 @@ fun TypingSubtitles(
                                                     }
                                                 }
                                             }
-                                            var remainChars = captionContent.substring(typingResult.size)
+                                            val remainChars = captionContent.substring(typingResult.size)
 
 
                                             withStyle(
@@ -1034,7 +1042,7 @@ fun TypingSubtitles(
                                             ) {
                                                 val icon = if(mediaType=="audio" && !isPlaying) {
                                                     Icons.Filled.VolumeDown
-                                                } else if(mediaType=="audio" && isPlaying){
+                                                } else if(mediaType=="audio"){
                                                     Icons.Filled.VolumeUp
                                                 }else Icons.Filled.PlayArrow
 
@@ -1319,7 +1327,7 @@ fun SelectTrack(
 ) {
     if (trackList.isNotEmpty()) {
         var expanded by remember { mutableStateOf(false) }
-        var selectedSubtitle by remember { mutableStateOf("    ") }
+        val selectedSubtitle by remember { mutableStateOf("    ") }
         Box(Modifier.width(IntrinsicSize.Max).padding(end = 20.dp)) {
             OutlinedButton(
                 onClick = { expanded = true },
@@ -1347,9 +1355,9 @@ fun SelectTrack(
                     DropdownMenuItem(
                         onClick = {
                             setIsLoading(true)
-                            Thread(Runnable {
+                            Thread {
                                 expanded = false
-                                val subtitles = writeToFile(selectedPath, trackId,parentComponent)
+                                val subtitles = writeToFile(selectedPath, trackId, parentComponent)
                                 if (subtitles != null) {
                                     setSubtitlesPath(subtitles.absolutePath)
                                     setTrackId(trackId)
@@ -1363,7 +1371,7 @@ fun SelectTrack(
                                 }
                                 setIsLoading(false)
 
-                            }).start()
+                            }.start()
                         },
                         modifier = Modifier.width(282.dp).height(40.dp)
                     ) {

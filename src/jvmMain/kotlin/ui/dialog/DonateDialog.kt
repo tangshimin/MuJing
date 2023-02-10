@@ -14,8 +14,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
-import player.isMacOS
-import player.isWindows
 
 @Composable
 fun DonateDialog(close: () -> Unit) {

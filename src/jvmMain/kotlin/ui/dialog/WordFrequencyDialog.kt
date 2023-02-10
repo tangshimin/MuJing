@@ -8,12 +8,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
@@ -29,9 +24,9 @@ import data.Dictionary
 import data.Vocabulary
 import data.VocabularyType
 import data.saveVocabulary
+import java.io.File
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
-import java.io.File
 import javax.swing.JOptionPane
 import javax.swing.filechooser.FileSystemView
 
@@ -65,7 +60,7 @@ fun WordFrequencyDialog(
             var done by remember { mutableStateOf(false) }
 
             val generate: () -> Unit = {
-                Thread(Runnable {
+                Thread {
                     done = false
                     waiting = true
                     // 词频数据并不是连续的，中间有断开，但是用户选择 1000 时，想要 1000 个单词，
@@ -74,11 +69,11 @@ fun WordFrequencyDialog(
                         num + 20
                     } else if (num in 100 until 1000) {
                         num + 100
-                    } else if(num in 1000 until 7000){
+                    } else if (num in 1000 until 7000) {
                         num + 1000
-                    }else if(num in 7000 until 16000){
+                    } else if (num in 7000 until 16000) {
                         num + 2000
-                    }else num + 4000
+                    } else num + 4000
 
                     val list = if (selectState == "BNC") {
                         Dictionary.queryByBncLessThan(actualNum)
@@ -99,11 +94,11 @@ fun WordFrequencyDialog(
                     done = true
                     waiting = false
                     saveEnable = true
-                }).start()
+                }.start()
             }
 
             val save:() -> Unit = {
-                Thread(Runnable {
+                Thread {
                     val fileChooser = futureFileChooser.get()
                     fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                     fileChooser.dialogTitle = "保存词库"
@@ -122,7 +117,7 @@ fun WordFrequencyDialog(
                         close()
                     }
 
-                }).start()
+                }.start()
             }
             Box(Modifier.fillMaxSize()){
                 if(selectState == "Idle"){

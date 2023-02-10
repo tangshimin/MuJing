@@ -123,27 +123,27 @@ fun TypingText(
     val parseImportFile: (List<File>, OpenMode) -> Unit = { files, openMode ->
         val file = files.first()
         scope.launch {
-            Thread(Runnable {
-                if(file.extension == "txt"){
+            Thread {
+                if (file.extension == "txt") {
                     // 拖放的文件和已有的文件不一样，或者文件路径一样，但是后面又修改了。
-                    if(textState.textPath != file.absolutePath || lastModified == file.lastModified()){
+                    if (textState.textPath != file.absolutePath || lastModified == file.lastModified()) {
                         val result = isGreaterThan75(file)
-                        if(!result.first){
+                        if (!result.first) {
                             changeTextPath(file)
-                        }else{
+                        } else {
                             formatPath = file.absolutePath
                             row = result.second + 1
                             showFormatDialog = true
                         }
 
-                    }else {
+                    } else {
                         JOptionPane.showMessageDialog(window, "文件已打开")
                     }
 
-                }else{
+                } else {
                     JOptionPane.showMessageDialog(window, "格式不支持")
                 }
-            }).start()
+            }.start()
         }
     }
 
@@ -151,19 +151,19 @@ fun TypingText(
     val openFileChooser: () -> Unit = {
         // 打开 windows 的文件选择器很慢，有时候会等待超过2秒
         openLoadingDialog()
-        Thread(Runnable {
+        Thread {
             val fileChooser = futureFileChooser.get()
             fileChooser.dialogTitle = "打开文本"
             fileChooser.fileSystemView = FileSystemView.getFileSystemView()
             fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
             fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
             fileChooser.isAcceptAllFileFilterUsed = false
-            val fileFilter = FileNameExtensionFilter(" ","txt")
+            val fileFilter = FileNameExtensionFilter(" ", "txt")
             fileChooser.addChoosableFileFilter(fileFilter)
             fileChooser.selectedFile = null
             if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
                 val file = fileChooser.selectedFile
-                parseImportFile(listOf(file),OpenMode.Open)
+                parseImportFile(listOf(file), OpenMode.Open)
                 closeLoadingDialog()
             } else {
                 closeLoadingDialog()
@@ -171,7 +171,7 @@ fun TypingText(
             fileChooser.selectedFile = null
             fileChooser.isMultiSelectionEnabled = false
             fileChooser.removeChoosableFileFilter(fileFilter)
-        }).start()
+        }.start()
 
     }
     /** 当前界面的快捷键 */
@@ -488,7 +488,7 @@ fun TypingText(
                                                     }
                                                 }
                                             }
-                                            var remainChars = line.substring(typingResult.size)
+                                            val remainChars = line.substring(typingResult.size)
 
 
                                             withStyle(
@@ -588,7 +588,7 @@ fun TypingText(
                 }else{
                     Text(
                         text = "可以拖放 TXT 文本到这里",
-                        color = MaterialTheme.colors.primary,
+                        color = MaterialTheme.colors.onBackground,
                         style = MaterialTheme.typography.h6,
                         modifier = Modifier.align(Alignment.Center)
                         )

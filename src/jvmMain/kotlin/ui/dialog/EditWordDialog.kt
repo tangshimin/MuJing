@@ -118,7 +118,7 @@ fun EditWordDialog(
 
                         var updateFailed by remember { mutableStateOf(false) }
                         OutlinedButton(onClick = {
-                            Thread(Runnable {
+                            Thread {
                                 val newWord = Dictionary.query(inputWordStr.text)
                                 if (newWord != null) {
                                     mutableWord = newWord
@@ -128,7 +128,7 @@ fun EditWordDialog(
                                 } else {
                                     updateFailed = true
                                 }
-                            }).start()
+                            }.start()
                         }) {
                             Text("查询")
                         }
@@ -288,7 +288,7 @@ fun EditingCaptions(
     val scope = rememberCoroutineScope()
     val playTripleMap = getPlayTripleMap(typingWordState, word)
     playTripleMap.forEach { (index, playTriple) ->
-        var captionContent = playTriple.first.content
+        val captionContent = playTriple.first.content
         val relativeVideoPath = playTriple.second
 
         Row(

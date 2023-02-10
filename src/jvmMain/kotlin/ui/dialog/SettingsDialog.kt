@@ -400,7 +400,7 @@ fun SettingTextStyle(
                 var textHeight by remember { mutableStateOf(0.dp) }
                 val smallStyleList =
                     listOf("H5", "H6", "Subtitle1", "Subtitle2", "Body1", "Body2", "Button", "Caption", "Overline")
-                val bottom = computeBottom(textStyle = state.global.wordTextStyle, textHeight = textHeight,)
+                val bottom = computeBottom(textStyle = state.global.wordTextStyle, textHeight = textHeight)
                 var previewWord = typingState.getCurrentWord().value
                 if (previewWord.isEmpty()) {
                     previewWord = "Typing"

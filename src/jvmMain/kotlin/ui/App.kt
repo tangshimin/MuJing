@@ -345,12 +345,12 @@ private fun FrameWindowScope.WindowMenuBar(
 ) = MenuBar {
     Menu("词库(V)", mnemonic = 'V') {
         var showFilePicker by remember {mutableStateOf(false)}
-        Item("打开词库(O)", mnemonic = 'O', onClick = {
+        Item("打开词库(O)", mnemonic = 'O') {
 
-            if(isWindows()) {
+            if (isWindows()) {
                 showFilePicker = true
-            }else if(isMacOS()){
-                Thread(Runnable {
+            } else if (isMacOS()) {
+                Thread {
                     val fileChooser = appState.futureFileChooser.get()
                     fileChooser.dialogTitle = "选择词库"
                     fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -367,10 +367,10 @@ private fun FrameWindowScope.WindowMenuBar(
                         appState.global.type = TypingType.WORD
                         appState.saveGlobalState()
                     }
-                }).start()
+                }.start()
             }
 
-        })
+        }
         FilePicker(
             show = showFilePicker,
             fileExtension = "json",

@@ -79,15 +79,15 @@ fun UpdateDialog(
                                 body = if (releaseVersion >currentVersion) {
                                     downloadable = true
                                     releaseTagName = releases.tag_name
-                                    var string = "版本：${releases.tag_name}\n"
-                                    val body = releases.body
-                                    if(body != null){
-                                        val end = body.indexOf("---")
+                                    var releaseContent = "版本：${releases.tag_name}\n"
+                                    val contentBody = releases.body
+                                    if(contentBody != null){
+                                        val end = contentBody.indexOf("---")
                                         if(end != -1){
-                                            string += body.substring(0,end)
+                                            releaseContent += contentBody.substring(0,end)
                                         }
                                     }
-                                    string
+                                    releaseContent
                                 } else {
                                     downloadable = false
                                     "没有可用更新"
