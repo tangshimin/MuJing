@@ -1181,7 +1181,10 @@ fun TypingSubtitles(
                     offset = DpOffset.Zero
                 )
             ) {
-                IconButton(onClick = { showOpenFile = true }) {
+                IconButton(onClick = {
+                    showOpenFile = true
+                    openFileChooser()
+                }) {
                     Icon(
                         Icons.Filled.Folder,
                         contentDescription = "Localized description",
