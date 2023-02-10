@@ -12,5 +12,5 @@ pluginManagement {
     }
 }
 
-rootProject.name = "MovContext"
+rootProject.name = "MuJing"
 
