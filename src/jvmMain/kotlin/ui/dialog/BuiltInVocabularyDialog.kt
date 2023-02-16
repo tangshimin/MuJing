@@ -98,6 +98,10 @@ fun BuiltInVocabularyDialog(
                                 save = save
                             )
                             VocabularyCategory(
+                                directory = getResourcesFile("vocabulary/其它"),
+                                save = save
+                            )
+                            VocabularyCategory(
                                 directory = getResourcesFile("vocabulary/牛津核心词"),
                                 save = save
                             )
@@ -121,49 +125,6 @@ fun BuiltInVocabularyDialog(
                                 directory = getResourcesFile("vocabulary/商务英语"),
                                 save = save
                             )
-                            Column (Modifier.padding(bottom = 20.dp)){
-                                Text("其它",
-                                    color = MaterialTheme.colors.onBackground,
-                                    fontWeight = FontWeight.Bold,
-                                    modifier = Modifier.padding(start = 17.dp)
-                                )
-                                Row {
-                                    val sat = getResourcesFile("vocabulary/SAT.json")
-                                    val essential = getResourcesFile("vocabulary/4000 Essential English Words.json")
-                                    Card(
-                                        modifier = Modifier
-                                            .padding(7.5.dp)
-                                            .clickable { save(sat)},
-                                        backgroundColor = MaterialTheme.colors.surface,
-                                        elevation = 3.dp
-                                    ) {
-                                        Box(Modifier.size(width = 160.dp, height = 65.dp)) {
-                                            Text(
-                                                text = sat.nameWithoutExtension,
-                                                color = MaterialTheme.colors.onBackground,
-                                                textAlign = TextAlign.Center,
-                                                modifier = Modifier.align(Alignment.Center)
-                                            )
-                                        }
-                                    }
-                                    Card(
-                                        modifier = Modifier
-                                            .padding(7.5.dp)
-                                            .clickable {save(essential)},
-                                        backgroundColor = MaterialTheme.colors.surface,
-                                        elevation = 3.dp
-                                    ) {
-                                        Box(Modifier.size(width = 160.dp, height = 65.dp)) {
-                                            Text(
-                                                text = essential.nameWithoutExtension,
-                                                color = MaterialTheme.colors.onBackground,
-                                                textAlign = TextAlign.Center,
-                                                modifier = Modifier.align(Alignment.Center)
-                                            )
-                                        }
-                                    }
-                                }
-                            }
                         }
                     }
                     VerticalScrollbar(
