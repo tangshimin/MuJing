@@ -162,8 +162,8 @@ fun AudioButton(
         val playAudio = {
             val audioPath = getAudioPath(
                 word = word.value,
-                audioSet = state.audioSet,
-                addToAudioSet = {state.audioSet.add(it)},
+                audioSet = state.localAudioSet,
+                addToAudioSet = {state.localAudioSet.add(it)},
                 pronunciation = typingState.pronunciation
             )
             playAudio(
@@ -276,7 +276,7 @@ fun playAudio(
     }
 
 }
-
+/** 计算单词的发音地址 */
 fun getAudioPath(
     word: String,
     audioSet:Set<String>,
@@ -295,7 +295,7 @@ fun getAudioPath(
             ""
         }
     }
-    val fileName = word + "_" + pronunciation + ".mp3"
+    val fileName = word.lowercase() + "_" + pronunciation + ".mp3"
     // 先查询本地有没有
     if (audioSet.contains(fileName)) {
         path = File(audioDir, fileName).absolutePath

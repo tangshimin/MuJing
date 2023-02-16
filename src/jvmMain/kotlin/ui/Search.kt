@@ -61,8 +61,8 @@ fun Search(
             if (!isPlayingAudio && searchResult != null && searchResult!!.value.isNotEmpty()) {
                 val audioPath = getAudioPath(
                     word = searchResult!!.value,
-                    audioSet = appState.audioSet,
-                    addToAudioSet = {audioPath -> appState.audioSet.add(audioPath)},
+                    audioSet = appState.localAudioSet,
+                    addToAudioSet = {audioPath -> appState.localAudioSet.add(audioPath)},
                     pronunciation = typingWordState.pronunciation
                 )
                 playAudio(

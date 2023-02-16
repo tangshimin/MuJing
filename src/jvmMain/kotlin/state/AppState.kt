@@ -89,7 +89,7 @@ class AppState {
     var releaseNote by mutableStateOf("")
 
     /** 本地缓存的单词发音列表 */
-    var audioSet = loadAudioSet()
+    var localAudioSet = loadAudioSet()
 
     var vocabularyChanged by mutableStateOf(false)
 

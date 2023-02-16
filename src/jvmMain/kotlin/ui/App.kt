@@ -217,7 +217,7 @@ fun App() {
                             vocabulary = vocabulary,
                             vocabularyPath = vocabularyPath,
                             vocabularyPathChanged = vocabularyPathChanged,
-                            audioSet = appState.audioSet,
+                            audioSet = appState.localAudioSet,
                             pronunciation = wordState.pronunciation,
                             audioVolume = appState.global.audioVolume,
                             videoVolume = appState.global.videoVolume,

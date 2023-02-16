@@ -374,8 +374,8 @@ fun MainContent(
             derivedStateOf {
                 getAudioPath(
                     word = currentWord.value,
-                    audioSet = appState.audioSet,
-                    addToAudioSet = {appState.audioSet.add(it)},
+                    audioSet = appState.localAudioSet,
+                    addToAudioSet = {appState.localAudioSet.add(it)},
                     pronunciation = typingWord.pronunciation
                 )
             }
