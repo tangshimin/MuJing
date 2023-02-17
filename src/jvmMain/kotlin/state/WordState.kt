@@ -300,6 +300,11 @@ class WordState(dataWordState: DataWordState) {
 fun rememberWordState():WordState = remember{
     loadWordState()
 }
+@Composable
+fun rememberPronunciation():String = remember{
+    val wordState = loadWordState()
+    wordState.pronunciation
+}
 
 /** 加载应用记忆单词界面的设置信息 */
 @OptIn(ExperimentalSerializationApi::class)

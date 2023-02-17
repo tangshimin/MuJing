@@ -60,36 +60,55 @@ const val version = "v2.0.0"
 )
 @Composable
 fun App() {
-    var isOpen by remember { mutableStateOf(true) }
+
+    /** 显示视频播放器 */
+    var showPlayerWindow by remember { mutableStateOf(false) }
+    /** 播放器 > 视频地址 */
+    var videoPath by remember{ mutableStateOf("") }
+    /** 与视频关联的词库，用于生成弹幕 */
+    var vocabulary by remember{ mutableStateOf<MutableVocabulary?>(null) }
+    /** 与视频关联的词库地址，用于保存词库，因为看视频时可以查看单词详情，如果觉得太简单了可以删除或加入到熟悉词库 */
+    var vocabularyPath by remember{ mutableStateOf("") }
+    /** 设置视频地址的函数，放到这里是因为记忆单词窗口可以接受拖放的视频，然后打开视频播放器 */
+    val videoPathChanged:(String) -> Unit = {
+        // 已经打开了一个视频再打开一个新的视频，重置与旧视频相关联的词库。
+        if(videoPath.isNotEmpty() && vocabulary != null){
+            vocabularyPath = ""
+            vocabulary = null
+        }
+        videoPath = it
+    }
+    /** 设置词库地址的函数，放到这里是因为记忆单词可以接受拖放的视频，然后把当前词库关联到打开的视频播放器。*/
+    val vocabularyPathChanged:(String) -> Unit = {
+        vocabularyPath = it
+        val newVocabulary = loadMutableVocabulary(it)
+        vocabulary = newVocabulary
+    }
+
 
     val appState = rememberAppState()
 
-    // 改变主题后，更新菜单栏的样式
-    LaunchedEffect(appState.global.isDarkTheme){
-        updateFlatLaf(appState.global.isDarkTheme)
-        appState.futureFileChooser = setupFileChooser()
-    }
+    var showMainWindow by remember { mutableStateOf(true) }
+    if (showMainWindow) {
+        CompositionLocalProvider(
+            LocalAudioPlayerComponent provides rememberAudioPlayerComponent(),
+            LocalCtrl provides rememberCtrl(),
+            LocalTextSelectionColors provides textSelectionColors()
+        ) {
+            val audioPlayerComponent = LocalAudioPlayerComponent.current
 
-    CompositionLocalProvider(
-        LocalAudioPlayerComponent provides rememberAudioPlayerComponent(),
-        LocalCtrl provides rememberCtrl(),
-        LocalTextSelectionColors provides textSelectionColors()
-    ) {
-        val audioPlayerComponent = LocalAudioPlayerComponent.current
-        val close: () -> Unit = {
-            isOpen = false
-            audioPlayerComponent.mediaPlayer().release()
-            appState.videoPlayerComponent.mediaPlayer().release()
-        }
+            val close: () -> Unit = {
+                showMainWindow = false
+                audioPlayerComponent.mediaPlayer().release()
+                appState.videoPlayerComponent.mediaPlayer().release()
+            }
 
-        val windowState = rememberWindowState(
-            position = appState.global.position,
-            placement = appState.global.placement,
-            size = appState.global.size,
-        )
+            val windowState = rememberWindowState(
+                position = appState.global.position,
+                placement = appState.global.placement,
+                size = appState.global.size,
+            )
 
-
-        if (isOpen) {
             var title by remember{ mutableStateOf("") }
             Window(
                 title = title,
@@ -110,36 +129,6 @@ fun App() {
                     if(appState.searching){
                         Search(appState = appState,typingWordState = wordState)
                     }
-
-                    /** 显示视频播放器 */
-                    var showPlayer by remember { mutableStateOf(false) }
-                    /** 播放器 > 视频地址 */
-                    var videoPath by remember{ mutableStateOf("") }
-                    /** 播放器 > 词库，用于生成弹幕 */
-                    var vocabulary by remember{ mutableStateOf<MutableVocabulary?>(null) }
-                    /** 播放器 > 词库地址，用于保存词库，因为看视频时可以查看单词详情，如果觉得太简单了可以删除或加入到熟悉词库 */
-                    var vocabularyPath by remember{ mutableStateOf("") }
-                    val videoPathChanged:(String) -> Unit = {
-                        // 已经打开了一个视频再打开一个新的视频，重置与旧视频相关联的词库。
-                        if(videoPath.isNotEmpty() && vocabulary != null){
-                            vocabularyPath = ""
-                            vocabulary = null
-                        }
-                        videoPath = it
-                    }
-                    val vocabularyPathChanged:(String) -> Unit = {
-                        vocabularyPath = it
-                        val newVocabulary = loadMutableVocabulary(it)
-                        vocabulary = newVocabulary
-                    }
-                    val closePlayer:() -> Unit = {
-                        showPlayer = false
-                        videoPath = ""
-                        vocabularyPath = ""
-                        vocabulary = null
-                    }
-
-
                     when (appState.global.type) {
                         TypingType.WORD -> {
                             title = computeTitle(wordState.vocabularyName,wordState.vocabulary.wordList.isNotEmpty())
@@ -161,7 +150,7 @@ fun App() {
                                 typingWord = wordState,
                                 videoBounds = videoBounds,
                                 resetVideoBounds = resetVideoBounds,
-                                showPlayer = { showPlayer = it },
+                                showPlayer = { showPlayerWindow = it },
                                 videoPathChanged = videoPathChanged,
                                 vocabularyPathChanged = vocabularyPathChanged
                             )
@@ -185,7 +174,7 @@ fun App() {
                                 openLoadingDialog = { appState.openLoadingDialog()},
                                 closeLoadingDialog = { appState.loadingFileChooserVisible = false },
                                 openSearch = {appState.openSearch()},
-                                showPlayer = { showPlayer = it },
+                                showPlayer = { showPlayerWindow = it },
                             )
                         }
 
@@ -205,30 +194,10 @@ fun App() {
                                 openLoadingDialog = { appState.openLoadingDialog()},
                                 closeLoadingDialog = { appState.loadingFileChooserVisible = false },
                                 openSearch = {appState.openSearch()},
-                                showPlayer = { showPlayer = it },
+                                showPlayer = { showPlayerWindow = it },
                             )
                         }
                     }
-                    if(showPlayer){
-                        Player(
-                            close = {closePlayer()},
-                            videoPath = videoPath,
-                            videoPathChanged = videoPathChanged,
-                            vocabulary = vocabulary,
-                            vocabularyPath = vocabularyPath,
-                            vocabularyPathChanged = vocabularyPathChanged,
-                            audioSet = appState.localAudioSet,
-                            pronunciation = wordState.pronunciation,
-                            audioVolume = appState.global.audioVolume,
-                            videoVolume = appState.global.videoVolume,
-                            videoVolumeChanged = {
-                                appState.global.videoVolume = it
-                                appState.saveGlobalState()
-                            },
-                            futureFileChooser = appState.futureFileChooser,
-                        )
-                    }
-
                 }
 
                 //移动，或改变窗口后保存状态到磁盘
@@ -262,6 +231,50 @@ fun App() {
             }
 
         }
+    }
+
+
+    if(showPlayerWindow){
+        CompositionLocalProvider(
+            LocalAudioPlayerComponent provides rememberAudioPlayerComponent(),
+            LocalCtrl provides rememberCtrl(),
+            LocalTextSelectionColors provides textSelectionColors()
+        ) {
+            MaterialTheme(colors = appState.colors) {
+                val closePlayerWindow:() -> Unit = {
+                    showPlayerWindow = false
+                    videoPath = ""
+                    vocabularyPath = ""
+                    vocabulary = null
+                }
+                val pronunciation = rememberPronunciation()
+                Player(
+                    close = {closePlayerWindow()},
+                    videoPath = videoPath,
+                    videoPathChanged = videoPathChanged,
+                    vocabulary = vocabulary,
+                    vocabularyPath = vocabularyPath,
+                    vocabularyPathChanged = vocabularyPathChanged,
+                    audioSet = appState.localAudioSet,
+                    pronunciation = pronunciation,
+                    audioVolume = appState.global.audioVolume,
+                    videoVolume = appState.global.videoVolume,
+                    videoVolumeChanged = {
+                        appState.global.videoVolume = it
+                        appState.saveGlobalState()
+                    },
+                    futureFileChooser = appState.futureFileChooser,
+                )
+
+            }
+
+        }
+    }
+
+    // 改变主题后，更新菜单栏、标题栏的样式
+    LaunchedEffect(appState.global.isDarkTheme){
+        updateFlatLaf(appState.global.isDarkTheme)
+        appState.futureFileChooser = setupFileChooser()
     }
 }
 
