@@ -59,7 +59,7 @@ fun UpdateDialog(
 
             fun detectingUpdates(version: String) {
                 val client = OkHttpClient()
-                val url = "https://api.github.com/repos/tangshimin/movcontext/releases/latest"
+                val url = "https://api.github.com/repos/tangshimin/mujing/releases/latest"
                 val headerName = "Accept"
                 val headerValue = "application/vnd.github.v3+json"
                 val request = Request.Builder()
@@ -177,7 +177,7 @@ fun UpdateDialog(
                     }
                     Spacer(Modifier.width(20.dp))
                     val uriHandler = LocalUriHandler.current
-                    val latest = "https://github.com/tangshimin/movcontext/releases"
+                    val latest = "https://github.com/tangshimin/mujing/releases"
                     OutlinedButton(
                         onClick = {
                             uriHandler.openUri(latest)
@@ -220,7 +220,7 @@ fun UpdateDialog(
 @OptIn(ExperimentalSerializationApi::class)
 fun autoDetectingUpdates(version: String):Triple<Boolean,String,String>{
     val client = OkHttpClient()
-    val url = "https://api.github.com/repos/tangshimin/movcontext/releases/latest"
+    val url = "https://api.github.com/repos/tangshimin/mujing/releases/latest"
     val headerName = "Accept"
     val headerValue = "application/vnd.github.v3+json"
     val request = Request.Builder()
