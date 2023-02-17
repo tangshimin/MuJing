@@ -932,9 +932,11 @@ fun Player(
 
                         }
                         if(videoPath.isEmpty()){
-                            Row( modifier = Modifier.align(Alignment.Center)){
-                                OutlinedButton(onClick = { openVideo() }){
-                                    Text("打开视频")
+                            MaterialTheme(colors = darkColors(primary = Color.LightGray)) {
+                                Row( modifier = Modifier.align(Alignment.Center)){
+                                    OutlinedButton(onClick = { openVideo() }){
+                                        Text("打开视频")
+                                    }
                                 }
                             }
                         }
