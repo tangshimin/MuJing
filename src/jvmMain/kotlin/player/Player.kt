@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.window.WindowDraggableArea
@@ -21,6 +22,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeDialog
 import androidx.compose.ui.awt.SwingPanel
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
@@ -1144,42 +1146,70 @@ fun TitleBar(
             modifier = Modifier.align(Alignment.Center),
             color = MaterialTheme.colors.onBackground
         )
-        Row(Modifier.align(Alignment.CenterEnd)) {
-            IconButton(onClick = { minimized()
-            }, modifier = Modifier.size(40.dp)) {
-                Icon(
-                    Icons.Filled.Remove,
-                    contentDescription = "Localized description",
-                    tint = Color(140, 140, 140),
-                )
+        if(isMacOS()){
+            Row(Modifier.align(Alignment.CenterStart)) {
+                FourteenPixelCircle(onClick = {closeWindow()},color = Color(0xFFD7392B),modifier = Modifier.padding(start = 8.dp))
+                FourteenPixelCircle(onClick = {minimized()},color = Color(0xFFDDBD37),modifier = Modifier.padding(start = 13.dp))
+                FourteenPixelCircle(onClick = {},color = Color(0xFF9B9B9B),modifier = Modifier.padding(start = 13.dp))
             }
 
-            if(isWindows()){
-                IconButton(onClick = { fullscreen() },
-                    modifier = Modifier.size(40.dp)) {
+        }else {
+            Row(Modifier.align(Alignment.CenterEnd)) {
+                IconButton(onClick = { minimized()
+                }, modifier = Modifier.size(40.dp)) {
                     Icon(
-                        if(isFullscreen) Icons.Filled.FullscreenExit else Icons.Filled.Fullscreen,
+                        Icons.Filled.Remove,
                         contentDescription = "Localized description",
                         tint = Color(140, 140, 140),
                     )
                 }
-            }
 
-            IconButton(
-                onClick = { closeWindow() },
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    Icons.Filled.Close,
-                    contentDescription = "Localized description",
-                    tint = Color(140, 140, 140),
-                )
-            }
 
+                    IconButton(onClick = { fullscreen() },
+                        modifier = Modifier.size(40.dp)) {
+                        Icon(
+                            if(isFullscreen) Icons.Filled.FullscreenExit else Icons.Filled.Fullscreen,
+                            contentDescription = "Localized description",
+                            tint = Color(140, 140, 140),
+                        )
+                    }
+
+
+                IconButton(
+                    onClick = { closeWindow() },
+                    modifier = Modifier.size(40.dp)
+                ) {
+                    Icon(
+                        Icons.Filled.Close,
+                        contentDescription = "Localized description",
+                        tint = Color(140, 140, 140),
+                    )
+                }
+
+            }
         }
+
 
     }
 }
+
+@Composable
+fun FourteenPixelCircle(
+    onClick :() -> Unit,
+    color: Color,
+    modifier:Modifier
+) {
+    BoxWithConstraints {
+        Box(
+            modifier = modifier
+                .clickable { onClick() }
+                .size(14.dp)
+                .clip(CircleShape)
+                .background(color)
+        )
+    }
+}
+
 
 fun Dimension.toComposeSize(): DpSize = DpSize(width.dp, height.dp)
 
