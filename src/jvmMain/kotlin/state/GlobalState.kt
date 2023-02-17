@@ -30,7 +30,7 @@ data class GlobalData(
     val y:Float = 100F,
     val width:Float = 1030F,
     val height:Float = 862F,
-    val placement:WindowPlacement = WindowPlacement.Floating,
+    val placement:WindowPlacement = WindowPlacement.Maximized,
     val autoUpdate:Boolean = true,
     val ignoreVersion:String = "",
     val bnc:Int = 1000,
