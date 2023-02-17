@@ -66,11 +66,8 @@ fun createMediaPlayerComponent(): Component {
         }
         CallbackMediaPlayerComponent()
     } else if(isWindows()){
-        val args = listOf(
-            "--video-title=vlcj video output",
-            "--no-snapshot-preview",
-            "--quiet",
-            "--intf=dummy")
+        // --quiet 是控制台的日志参数，quiet 是关闭所有的日志。
+        val args = listOf("--quiet")
         val mediaPlayerFactory = MediaPlayerFactory(null,args )
         val embeddedMediaPlayerComponent = EmbeddedMediaPlayerComponent(mediaPlayerFactory, null, null, null, null)
         val embeddedMediaPlayer = embeddedMediaPlayerComponent.mediaPlayer()
