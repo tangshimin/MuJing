@@ -1189,10 +1189,13 @@ fun TypingSubtitles(
                     offset = DpOffset.Zero
                 )
             ) {
-                IconButton(onClick = {
-                    showOpenFile = true
-                    openFileChooser()
-                }) {
+                IconButton(
+                    onClick = {
+                        showOpenFile = true
+                        openFileChooser()
+                    },
+                    modifier = Modifier.padding(top = if (isMacOS()) 30.dp else 0.dp)
+                ) {
                     Icon(
                         Icons.Filled.Folder,
                         contentDescription = "Localized description",

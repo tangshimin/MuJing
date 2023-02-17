@@ -172,31 +172,34 @@ fun TypingWord(
                 )
             ) {
 
-                IconButton(onClick = {
-                    if(isWindows()) {
-                        showFilePicker = true
-                    }else if(isMacOS()){
-                        Thread {
-                            val fileChooser = appState.futureFileChooser.get()
-                            fileChooser.dialogTitle = "选择词库"
-                            fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                            fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                            fileChooser.selectedFile = null
-                            if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
-                                val file = fileChooser.selectedFile
-                                val index = appState.findVocabularyIndex(file)
-                                appState.changeVocabulary(
-                                    vocabularyFile = file,
-                                    typingWord,
-                                    index
-                                )
-                                appState.global.type = TypingType.WORD
-                                appState.saveGlobalState()
-                            }
-                        }.start()
-                    }
+                IconButton(
+                    onClick = {
+                        if (isWindows()) {
+                            showFilePicker = true
+                        } else if (isMacOS()) {
+                            Thread {
+                                val fileChooser = appState.futureFileChooser.get()
+                                fileChooser.dialogTitle = "选择词库"
+                                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
+                                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+                                fileChooser.selectedFile = null
+                                if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
+                                    val file = fileChooser.selectedFile
+                                    val index = appState.findVocabularyIndex(file)
+                                    appState.changeVocabulary(
+                                        vocabularyFile = file,
+                                        typingWord,
+                                        index
+                                    )
+                                    appState.global.type = TypingType.WORD
+                                    appState.saveGlobalState()
+                                }
+                            }.start()
+                        }
 
-                }) {
+                    },
+                    modifier = Modifier.padding(top = if (isMacOS()) 30.dp else 0.dp)
+                ) {
                     Icon(
                         Icons.Filled.Folder,
                         contentDescription = "Localized description",

@@ -632,7 +632,8 @@ fun TypingText(
                     offset = DpOffset.Zero
                 )
             ) {
-                IconButton(onClick = { openFileChooser() }) {
+                IconButton(onClick = { openFileChooser() },
+                    modifier = Modifier.padding(top = if (isMacOS()) 30.dp else 0.dp)) {
                     Icon(
                         Icons.Filled.Folder,
                         contentDescription = "Localized description",
