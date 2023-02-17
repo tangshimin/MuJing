@@ -1227,7 +1227,7 @@ private fun loadSummaryVocabulary(): Map<String, List<String>> {
     val oxford = loadVocabulary("vocabulary/牛津核心词/The_Oxford_5000.json").wordList
     val cet4 = loadVocabulary("vocabulary/大学英语/四级.json").wordList
     val cet6 = loadVocabulary("vocabulary/大学英语/六级.json").wordList
-    val gre = loadVocabulary("vocabulary/大学英语/GRE.json").wordList
+    val gre = loadVocabulary("vocabulary/其它/GRE.json").wordList
 
     val oxfordList = oxford.map { word -> word.value }
     val cet4List = cet4.map { word -> word.value }
