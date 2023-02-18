@@ -502,7 +502,9 @@ fun TypingText(
                                                     }
                                                 }
                                             }
-                                            val remainChars = line.substring(typingResult.size)
+                                            // 使用中文输入法可能会超出当前行的字符限制
+                                            val remainLength = if(typingResult.size <= line.length) typingResult.size else line.length
+                                            val remainChars = line.substring(remainLength)
 
 
                                             withStyle(
