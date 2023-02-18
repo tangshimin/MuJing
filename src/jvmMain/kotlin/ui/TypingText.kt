@@ -109,6 +109,16 @@ fun TypingText(
         saveTextState()
     }
 
+    /** 移除当前文本 */
+    val removeText:() -> Unit = {
+        textState.textPath = ""
+        focusManager.clearFocus()
+        textState.currentIndex = 0
+        textState.firstVisibleItemIndex = 0
+        lines.clear()
+        saveTextState()
+    }
+
     if(showFormatDialog){
         FormatDialog(
             close = {showFormatDialog = false},
@@ -127,9 +137,13 @@ fun TypingText(
                 if (file.extension == "txt") {
                     // 拖放的文件和已有的文件不一样，或者文件路径一样，但是后面又修改了。
                     if (textState.textPath != file.absolutePath || lastModified == file.lastModified()) {
+                        // 检查一行是否超过 75个字符
                         val result = isGreaterThan75(file)
+                        // 如果没有超过 75 个字符，马上就可以开始抄写
                         if (!result.first) {
                             changeTextPath(file)
+
+                        // 如果是需要格式化再抄写
                         } else {
                             formatPath = file.absolutePath
                             row = result.second + 1
@@ -641,7 +655,7 @@ fun TypingText(
                     )
                 }
             }
-
+            RemoveButton( onClick = {removeText()},toolTip = "移除当前文本")
 
         }
 

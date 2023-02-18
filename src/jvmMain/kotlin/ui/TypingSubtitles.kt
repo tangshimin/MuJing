@@ -233,7 +233,7 @@ fun TypingSubtitles(
         }else{
             JOptionPane.showMessageDialog(window, "不能超过两个文件")
         }
-
+        subtitlesState.saveTypingSubtitlesState()
     }
 
     /** 打开文件对话框 */
@@ -274,6 +274,22 @@ fun TypingSubtitles(
         }.start()
 
     }
+
+    /** 移除当前字幕*/
+    val removeSubtitles:() -> Unit = {
+        selectedPath = ""
+        trackList.clear()
+        subtitlesState.trackID = -1
+        subtitlesState.trackSize = 0
+        subtitlesState.currentIndex = 0
+        subtitlesState.firstVisibleItemIndex = 0
+        subtitlesState.subtitlesPath = ""
+        subtitlesState.mediaPath = ""
+        subtitlesState.trackDescription = ""
+        captionList.clear()
+        subtitlesState.saveTypingSubtitlesState()
+    }
+
     val resetVideoBounds:() -> Rectangle = {
         isVideoBoundsChanged = false
         Rectangle(tempPoint.x, tempPoint.y, 540, 303)
@@ -1179,7 +1195,7 @@ fun TypingSubtitles(
                         border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                         shape = RectangleShape
                     ) {
-                        Text(text = "打开文件 $ctrl + O", modifier = Modifier.padding(10.dp))
+                        Text(text = "打开字幕文件 $ctrl + O", modifier = Modifier.padding(10.dp))
                     }
                 },
                 delayMillis = 50,
@@ -1203,8 +1219,7 @@ fun TypingSubtitles(
                     )
                 }
             }
-
-
+            RemoveButton( onClick = {removeSubtitles()},toolTip = "移除当前字幕")
         }
 
 
