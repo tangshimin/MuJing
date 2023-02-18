@@ -1149,10 +1149,10 @@ fun TitleBar(
             color = MaterialTheme.colors.onBackground
         )
         if(isMacOS()){
-            Row(Modifier.align(Alignment.CenterStart)) {
-                FourteenPixelCircle(onClick = {closeWindow()},color = Color(0xFFD7392B),modifier = Modifier.padding(start = 8.dp))
-                FourteenPixelCircle(onClick = {minimized()},color = Color(0xFFDDBD37),modifier = Modifier.padding(start = 13.dp))
-                FourteenPixelCircle(onClick = {},color = Color(0xFF9B9B9B),modifier = Modifier.padding(start = 13.dp))
+            Row(Modifier.align(Alignment.TopStart).padding(top = 8.dp)) {
+                ThirteenPixelCircle(onClick = {closeWindow()},color = Color(246, 95, 87),modifier = Modifier.padding(start = 8.dp))
+                ThirteenPixelCircle(onClick = {minimized()},color = Color(250, 188, 47),modifier = Modifier.padding(start = 9.dp))
+                ThirteenPixelCircle(onClick = {},color = Color(0xFF9B9B9B),modifier = Modifier.padding(start = 9.dp))
             }
 
         }else {
@@ -1196,7 +1196,7 @@ fun TitleBar(
 }
 
 @Composable
-fun FourteenPixelCircle(
+fun ThirteenPixelCircle(
     onClick :() -> Unit,
     color: Color,
     modifier:Modifier
@@ -1205,7 +1205,7 @@ fun FourteenPixelCircle(
         Box(
             modifier = modifier
                 .clickable { onClick() }
-                .size(14.dp)
+                .size(13.dp)
                 .clip(CircleShape)
                 .background(color)
         )
