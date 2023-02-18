@@ -36,7 +36,7 @@ fun AboutDialog(
         resizable = false,
         state = rememberDialogState(
             position = WindowPosition(Alignment.Center),
-            size = DpSize(645.dp, 650.dp)
+            size = DpSize(795.dp, 650.dp)
         ),
     ) {
         Surface(
@@ -105,8 +105,8 @@ fun AboutDialog(
                             Row{
                                 Text("GitHub 地址：")
                                 LinkText(
-                                    text = "https://github.com/tangshimin/movcontext",
-                                    url =  "https://github.com/tangshimin/movcontext"
+                                    text = "https://github.com/tangshimin/MuJing",
+                                    url =  "https://github.com/tangshimin/MuJing"
                                 )
                             }
                             Row(
@@ -395,11 +395,8 @@ fun AboutDialog(
                                     text = "qwerty-learner",
                                     url = "https://github.com/Kaiyiwing/qwerty-learner"
                                 )
-                                Text("的所有贡献者，让我有机会把我曾经放弃的一个 app，")
+                                Text("的所有贡献者，让我有机会把我曾经放弃的一个 app，又找到新的方式实现。")
 
-                            }
-                            Row{
-                                Text("又找到新的方式实现。")
                             }
                             Row{
                                 Text("感谢 ")
@@ -412,6 +409,7 @@ fun AboutDialog(
                                     text = "ECDICT",
                                     url = "https://github.com/skywind3000/ECDICT"
                                 )
+                                Text("。")
                             }
                             Row{
                                 Text("感谢 ")
@@ -419,7 +417,15 @@ fun AboutDialog(
                                     text = "libregd",
                                     url = "https://github.com/libregd"
                                 )
-                                Text(" 为本项目设计 Logo,和一些交互设计，以及非常好的功能建议。")
+                                Text(" 为本项目贡献了一些交互设和及非常好的功能建议，以及为 Typing Learner 设计 Logo。")
+                            }
+                            Row{
+                                Text("感谢")
+                                LinkText(
+                                    text = "网易有道",
+                                    url = "https://www.youdao.com/"
+                                )
+                                Text("为本项目提供专业的词典发音。")
                             }
                         }
 
@@ -430,8 +436,8 @@ fun AboutDialog(
                             val license = file.readText()
                             Box(Modifier.fillMaxWidth().height(550.dp)) {
                                 val stateVertical = rememberScrollState(0)
-                                Box(Modifier.verticalScroll(stateVertical)) {
-                                    SelectionContainer {
+                                Box(Modifier.verticalScroll(stateVertical).align(Alignment.Center)) {
+                                    SelectionContainer (Modifier.align(Alignment.Center)){
                                         Text(
                                             license,
                                             modifier = Modifier.padding(start = 38.dp, top = 20.dp, end = 38.dp)
