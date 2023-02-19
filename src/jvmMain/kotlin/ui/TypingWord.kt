@@ -788,7 +788,8 @@ fun MainContent(
             val toNext: () -> Unit = {
                 scope.launch {
                     clear()
-
+                }
+                scope.launch {
                     when (typingWord.memoryStrategy) {
                         Normal -> {
                             when {
