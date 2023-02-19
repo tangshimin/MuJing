@@ -153,87 +153,88 @@ fun Chapters(
     onChapterSelected: (Int) -> Unit,
     isMultiple:Boolean
 ) {
-    Box(
-        modifier = Modifier.fillMaxWidth().background(color = MaterialTheme.colors.background)
-    ) {
-        var count = size / 20
-        val mod = size % 20
-        if (mod != 0 && size > 20) count += 1
-        if (size < 20) count = 1
-        val chapters = (1 until count + 1).map { "Chapter $it" }.toList()
-        val listState = rememberLazyGridState()
-        LazyVerticalGrid(
-            columns = GridCells.Adaptive(144.dp),
-            contentPadding = PaddingValues(10.dp),
-            modifier = Modifier.fillMaxWidth(),
-            state = listState
+    if(size<0){
+        Box(
+            modifier = Modifier.fillMaxWidth().background(color = MaterialTheme.colors.background)
         ) {
-            itemsIndexed(chapters) { index: Int, item: String ->
-                val chapter = index + 1
-                val checkedState = if(isMultiple){
-                     checkedChapters.contains(chapter)
-                }else{
-                    chapter == checkedChapters.first()
-                }
-
-                val onClick:() -> Unit = {
-                    if(isMultiple){
-                        onChapterSelected(chapter)
+            var count = size / 20
+            val mod = size % 20
+            if (mod != 0 && size > 20) count += 1
+            if (size < 20) count = 1
+            val chapters = (1 until count + 1).map { "Chapter $it" }.toList()
+            val listState = rememberLazyGridState()
+            LazyVerticalGrid(
+                columns = GridCells.Adaptive(144.dp),
+                contentPadding = PaddingValues(10.dp),
+                modifier = Modifier.fillMaxWidth(),
+                state = listState
+            ) {
+                itemsIndexed(chapters) { index: Int, item: String ->
+                    val chapter = index + 1
+                    val checkedState = if(isMultiple){
+                        checkedChapters.contains(chapter)
                     }else{
-                        // 如果已经选择了这个章节，就取消选择这个章节，章节设置为0，
-                        // 否则设置选择的章节
-                        onChapterSelected(if (checkedState) 0 else chapter)
+                        chapter == checkedChapters.first()
                     }
 
-                }
-
-                Card(
-                    modifier = Modifier
-                        .padding(7.5.dp)
-                        .clickable {
-                            onClick()
-                        },
-                    backgroundColor = MaterialTheme.colors.surface,
-                    elevation = 3.dp
-                ) {
-                    Box(Modifier.size(width = 144.dp, height = 65.dp)) {
-                        Text(
-                            text = item,
-                            color = MaterialTheme.colors.onBackground,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.align(Alignment.TopCenter).padding(top = 10.dp)
-                        )
-
-                        val words = if (index == count - 1){
-                            if(mod==0) 20 else mod
-                        } else 20
-                        Text(
-                            text = "$words 词",
-                            color = MaterialTheme.colors.onBackground,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 10.dp)
-                        )
-                        if(!isMultiple){
-                            if (checkedState) {
-                                Checkbox(
-                                    checked = true,
-                                    onCheckedChange = { onClick()},
-                                    modifier = Modifier.align(Alignment.BottomEnd)
-                                )
-                            }
+                    val onClick:() -> Unit = {
+                        if(isMultiple){
+                            onChapterSelected(chapter)
                         }else{
-                            Checkbox(
-                                checked = checkedState,
-                                onCheckedChange = {  onClick()},
-                                modifier = Modifier.align(Alignment.BottomEnd)
-                            )
+                            // 如果已经选择了这个章节，就取消选择这个章节，章节设置为0，
+                            // 否则设置选择的章节
+                            onChapterSelected(if (checkedState) 0 else chapter)
                         }
 
                     }
-                }
-            }
 
-        }
+                    Card(
+                        modifier = Modifier
+                            .padding(7.5.dp)
+                            .clickable {
+                                onClick()
+                            },
+                        backgroundColor = MaterialTheme.colors.surface,
+                        elevation = 3.dp
+                    ) {
+                        Box(Modifier.size(width = 144.dp, height = 65.dp)) {
+                            Text(
+                                text = item,
+                                color = MaterialTheme.colors.onBackground,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.align(Alignment.TopCenter).padding(top = 10.dp)
+                            )
+
+                            val words = if (index == count - 1){
+                                if(mod==0) 20 else mod
+                            } else 20
+                            Text(
+                                text = "$words 词",
+                                color = MaterialTheme.colors.onBackground,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 10.dp)
+                            )
+                            if(!isMultiple){
+                                if (checkedState) {
+                                    Checkbox(
+                                        checked = true,
+                                        onCheckedChange = { onClick()},
+                                        modifier = Modifier.align(Alignment.BottomEnd)
+                                    )
+                                }
+                            }else{
+                                Checkbox(
+                                    checked = checkedState,
+                                    onCheckedChange = {  onClick()},
+                                    modifier = Modifier.align(Alignment.BottomEnd)
+                                )
+                            }
+
+                        }
+                    }
+                }
+
+            }
 // 相关 Issue: https://github.com/JetBrains/compose-jb/issues/2029
 //        VerticalScrollbar(
 //            style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
@@ -243,7 +244,9 @@ fun Chapters(
 //            )
 //        )
 
+        }
     }
+
 }
 
 @Composable
