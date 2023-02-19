@@ -151,7 +151,7 @@ fun App() {
                                 videoBounds = videoBounds,
                                 resetVideoBounds = resetVideoBounds,
                                 showPlayer = { showPlayerWindow = it },
-                                videoPathChanged = videoPathChanged,
+                                setVideoPath = videoPathChanged,
                                 vocabularyPathChanged = vocabularyPathChanged
                             )
                         }
@@ -194,7 +194,8 @@ fun App() {
                                 openLoadingDialog = { appState.openLoadingDialog()},
                                 closeLoadingDialog = { appState.loadingFileChooserVisible = false },
                                 openSearch = {appState.openSearch()},
-                                showPlayer = { showPlayerWindow = it },
+                                showVideoPlayer = { showPlayerWindow = it },
+                                setVideoPath = videoPathChanged,
                             )
                         }
                     }

@@ -87,7 +87,7 @@ fun TypingWord(
     videoBounds: Rectangle,
     resetVideoBounds :() -> Rectangle,
     showPlayer :(Boolean) -> Unit,
-    videoPathChanged:(String) -> Unit,
+    setVideoPath:(String) -> Unit,
     vocabularyPathChanged:(String) -> Unit
 ) {
 
@@ -98,8 +98,8 @@ fun TypingWord(
             window = window,
             state = appState,
             wordState = typingWord,
-            showPlayerChanged = showPlayer,
-            setVideoPath = videoPathChanged,
+            showVideoPlayer = showPlayer,
+            setVideoPath = setVideoPath,
             vocabularyPathChanged = vocabularyPathChanged
         )
     }
@@ -2658,7 +2658,7 @@ fun setWindowTransferHandler(
     window: ComposeWindow,
     state: AppState,
     wordState: WordState,
-    showPlayerChanged:(Boolean) -> Unit,
+    showVideoPlayer:(Boolean) -> Unit,
     setVideoPath:(String) -> Unit,
     vocabularyPathChanged:(String) -> Unit
 ){
@@ -2677,7 +2677,7 @@ fun setWindowTransferHandler(
                 }
 
             } else if (file.extension == "mkv" || file.extension == "mp4") {
-                showPlayerChanged(true)
+                showVideoPlayer(true)
                 setVideoPath(file.absolutePath)
                 vocabularyPathChanged(wordState.vocabularyPath)
             } else {

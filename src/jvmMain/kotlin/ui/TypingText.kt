@@ -68,7 +68,8 @@ fun TypingText(
     openLoadingDialog: () -> Unit,
     closeLoadingDialog: () -> Unit,
     openSearch: () -> Unit,
-    showPlayer :(Boolean) -> Unit,
+    showVideoPlayer :(Boolean) -> Unit,
+    setVideoPath:(String) -> Unit,
 ){
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
@@ -134,7 +135,8 @@ fun TypingText(
         val file = files.first()
         scope.launch {
             Thread {
-                if (file.extension == "txt") {
+                val extension = file.extension
+                if (extension == "txt") {
                     // 拖放的文件和已有的文件不一样，或者文件路径一样，但是后面又修改了。
                     if (textState.textPath != file.absolutePath || lastModified == file.lastModified()) {
                         // 检查一行是否超过 75个字符
@@ -154,6 +156,9 @@ fun TypingText(
                         JOptionPane.showMessageDialog(window, "文件已打开")
                     }
 
+                }else if(videoFormatList.contains(extension)){
+                    showVideoPlayer(true)
+                    setVideoPath(file.absolutePath)
                 } else {
                     JOptionPane.showMessageDialog(window, "格式不支持")
                 }
@@ -627,7 +632,7 @@ fun TypingText(
                 modifier = Modifier,
                 globalState = globalState,
                 saveGlobalState = saveGlobalState,
-                showPlayer = showPlayer
+                showPlayer = showVideoPlayer
             )
 
             val ctrl = LocalCtrl.current

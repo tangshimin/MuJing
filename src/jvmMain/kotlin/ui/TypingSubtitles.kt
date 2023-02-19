@@ -64,6 +64,10 @@ import javax.swing.TransferHandler
 import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.filechooser.FileSystemView
 
+
+/** 支持的视频类型 */
+val videoFormatList = listOf("mp4","mkv")
+
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun TypingSubtitles(
@@ -148,8 +152,6 @@ fun TypingSubtitles(
     val formatList = listOf("wav","mp3","aac","mp4","mkv")
     /** 支持的音频类型*/
     val audioFormatList = listOf("wav","mp3","aac")
-    /** 支持的视频类型 */
-    val videoFormatList = listOf("mp4","mkv")
 
     /** 解析打开的文件 */
     val parseImportFile: (List<File>,OpenMode) -> Unit = {files,openMode ->
