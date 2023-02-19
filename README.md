@@ -46,7 +46,7 @@
   > Windows : OpenJDK 17.0.1<br>
   > macOS : OpenJDK 17.0.5
 - gradle 7.5.1
-- 启动项目之前需要将 `typing-learner\resources\common\dictionary` 文件夹里的词典文件`ecdict.mv.db.7z` 解压缩。不然不能使用生成词库功能。打包之前要把`ecdict.mv.db.7z`删掉。
+- 启动项目之前需要将 `MuJing\resources\common\dictionary` 文件夹里的词典文件`ecdict.mv.db.7z` 解压缩。不然不能使用生成词库功能。打包之前要把`ecdict.mv.db.7z`删掉。
 - macOS 系统还需要下载 [VLC 视频播放器](https://www.videolan.org/)， windows 系统也可以下载 VLC，用于调试应用程序，但是程序优先使用项目内置的 VLC DLL,如果内置的 DLL 有问题再试本机安装的 VLC.
 
 
