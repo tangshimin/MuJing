@@ -111,6 +111,7 @@ fun rememberSubtitlesState():SubtitlesState = remember{
 }
 
 /** 加载抄写字幕的配置信息 */
+@OptIn(ExperimentalSerializationApi::class)
 private fun loadSubtitlesState(): SubtitlesState {
     val typingSubtitlesSetting = getSubtitlesSettingsFile()
     return if (typingSubtitlesSetting.exists()) {

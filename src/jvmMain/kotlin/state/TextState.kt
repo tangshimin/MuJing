@@ -62,6 +62,7 @@ fun rememberTextState():TextState = remember{
 }
 
 /** 加载抄写文本的配置信息 */
+@OptIn(ExperimentalSerializationApi::class)
 private fun loadTextState():TextState{
     val typingTextSetting = getTextSettingsFile()
     return if(typingTextSetting.exists()){
