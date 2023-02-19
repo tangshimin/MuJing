@@ -79,7 +79,7 @@ fun UpdateDialog(
                                 body = if (releaseVersion >currentVersion) {
                                     downloadable = true
                                     releaseTagName = releases.tag_name
-                                    var releaseContent = "版本：${releases.tag_name}\n"
+                                    var releaseContent = "最新版本：${releases.tag_name}\n"
                                     val contentBody = releases.body
                                     if(contentBody != null){
                                         val end = contentBody.indexOf("---")
@@ -125,7 +125,7 @@ fun UpdateDialog(
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("当前版本：  $version")
+                        Text("当前版本：$version")
                     }
                     Row(
                         horizontalArrangement = Arrangement.Center,
@@ -160,7 +160,7 @@ fun UpdateDialog(
                         modifier = Modifier.fillMaxWidth().padding(start = 20.dp,top = 10.dp,end = 20.dp)
                     ) {
                         if(latestVersion.isNotEmpty()){
-                            val note = "版本：$latestVersion\n$releaseNote"
+                            val note = "最新版本：$latestVersion\n$releaseNote"
                             Text(text = note)
                         }else{
                             Text(body)
