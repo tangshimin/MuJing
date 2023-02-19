@@ -234,7 +234,6 @@ fun Player(
 
     /** 关闭窗口 */
     val closeWindow: () -> Unit = {
-        videoPlayerComponent.mediaPlayer().release()
         danmakuTimer.stop()
         close()
     }
@@ -376,6 +375,11 @@ fun Player(
             currentSubtitleTrack = count
         }
 
+    }
+    DisposableEffect(Unit){
+        onDispose {
+            videoPlayerComponent.mediaPlayer().release()
+        }
     }
 
     Window(
