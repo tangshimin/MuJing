@@ -326,178 +326,188 @@ fun SettingTextStyle(
             )
         )
     }
+    if(typingState.vocabulary.size>1){
+        Column(
+            verticalArrangement = Arrangement.Top,
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize().padding(top = 48.dp,bottom = 60.dp)
+        ) {
+            val background = if (MaterialTheme.colors.isLight) Color.LightGray else MaterialTheme.colors.background
+            Column (Modifier.width(600.dp).background(background)){
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 50.dp ,top = 20.dp,bottom = 10.dp, end = 50.dp)
+                ) {
 
-    Column(
-        verticalArrangement = Arrangement.Top,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.fillMaxSize().padding(top = 48.dp,bottom = 60.dp)
-    ) {
-        val background = if (MaterialTheme.colors.isLight) Color.LightGray else MaterialTheme.colors.background
-        Column (Modifier.width(600.dp).background(background)){
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 50.dp ,top = 20.dp,bottom = 10.dp, end = 50.dp)
-            ) {
+                    Text("单词的样式")
+                    Spacer(Modifier.width(15.dp))
 
-                Text("单词的样式")
-                Spacer(Modifier.width(15.dp))
-
-                TextStyleChooser(
-                    isWord = true,
-                    selectedTextStyle = state.global.wordTextStyle,
-                    textStyleChange = {
-                        state.global.wordTextStyle = it
-                        state.saveGlobalState()
-                    }
-                )
-                Spacer(Modifier.width(30.dp))
-                Text("字间隔空")
-                Spacer(Modifier.width(15.dp))
-                Box {
-                    var spacingExpanded by remember { mutableStateOf(false) }
-                    var spacingText by remember { mutableStateOf("5sp") }
-                    OutlinedButton(
-                        onClick = { spacingExpanded = true },
-                        modifier = Modifier
-                            .width(120.dp)
-                            .background(Color.Transparent)
-                            .border(1.dp, Color.Transparent)
-                    ) {
-                        Text(text = spacingText)
-                        Icon(Icons.Default.ExpandMore, contentDescription = "Localized description")
-                    }
-                    DropdownMenu(
-                        expanded = spacingExpanded,
-                        onDismissRequest = { spacingExpanded = false },
-                        modifier = Modifier.width(120.dp)
-                            .height(300.dp)
-                    ) {
-                        val modifier = Modifier.width(120.dp).height(40.dp)
-                        for (i in 0..6) {
-                            DropdownMenuItem(
-                                onClick = {
-                                    state.global.letterSpacing = (i).sp
-                                    spacingText = "${i}sp"
-                                    spacingExpanded = false
-                                    state.saveGlobalState()
-                                },
-                                modifier = modifier
-                            ) {
-                                Text("${i}sp")
-                            }
+                    TextStyleChooser(
+                        isWord = true,
+                        selectedTextStyle = state.global.wordTextStyle,
+                        textStyleChange = {
+                            state.global.wordTextStyle = it
+                            state.saveGlobalState()
                         }
-
-                    }
-                }
-            }
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.width(600.dp).padding(bottom = 10.dp)
-
-            ) {
-                var textHeight by remember { mutableStateOf(0.dp) }
-                val smallStyleList =
-                    listOf("H5", "H6", "Subtitle1", "Subtitle2", "Body1", "Body2", "Button", "Caption", "Overline")
-                val bottom = computeBottom(textStyle = state.global.wordTextStyle, textHeight = textHeight)
-                var previewWord = typingState.getCurrentWord().value
-                if (previewWord.isEmpty()) {
-                    previewWord = "Typing"
-                }
-                Text(
-                    text = buildAnnotatedString {
-                        withStyle(
-                            style = SpanStyle(
-                                color = MaterialTheme.colors.onBackground,
-                                fontFamily = fontFamily,
-                                fontSize = state.global.wordFontSize,
-                                letterSpacing = state.global.letterSpacing
-                            )
+                    )
+                    Spacer(Modifier.width(30.dp))
+                    Text("字间隔空")
+                    Spacer(Modifier.width(15.dp))
+                    Box {
+                        var spacingExpanded by remember { mutableStateOf(false) }
+                        var spacingText by remember { mutableStateOf("5sp") }
+                        OutlinedButton(
+                            onClick = { spacingExpanded = true },
+                            modifier = Modifier
+                                .width(120.dp)
+                                .background(Color.Transparent)
+                                .border(1.dp, Color.Transparent)
                         ) {
-                            append(previewWord)
+                            Text(text = spacingText)
+                            Icon(Icons.Default.ExpandMore, contentDescription = "Localized description")
                         }
-                    },
-                    modifier = Modifier
-                        .padding(bottom = bottom)
-                        .onGloballyPositioned { layoutCoordinates ->
-                            textHeight = (layoutCoordinates.size.height).dp
+                        DropdownMenu(
+                            expanded = spacingExpanded,
+                            onDismissRequest = { spacingExpanded = false },
+                            modifier = Modifier.width(120.dp)
+                                .height(300.dp)
+                        ) {
+                            val modifier = Modifier.width(120.dp).height(40.dp)
+                            for (i in 0..6) {
+                                DropdownMenuItem(
+                                    onClick = {
+                                        state.global.letterSpacing = (i).sp
+                                        spacingText = "${i}sp"
+                                        spacingExpanded = false
+                                        state.saveGlobalState()
+                                    },
+                                    modifier = modifier
+                                ) {
+                                    Text("${i}sp")
+                                }
+                            }
+
                         }
-                )
-                Spacer(Modifier.width(5.dp))
-                Column(verticalArrangement = Arrangement.SpaceBetween) {
-                    val top = (textHeight - 36.dp).div(2)
-                    var numberFontSize = LocalTextStyle.current.fontSize
-                    if (smallStyleList.contains(state.global.wordTextStyle)) numberFontSize =
-                        MaterialTheme.typography.overline.fontSize
-                    Spacer(modifier = Modifier.height(top))
+                    }
+                }
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.width(600.dp).padding(bottom = 10.dp)
+
+                ) {
+                    var textHeight by remember { mutableStateOf(0.dp) }
+                    val smallStyleList =
+                        listOf("H5", "H6", "Subtitle1", "Subtitle2", "Body1", "Body2", "Button", "Caption", "Overline")
+                    val bottom = computeBottom(textStyle = state.global.wordTextStyle, textHeight = textHeight)
+                    var previewWord = typingState.getCurrentWord().value
+                    if (previewWord.isEmpty()) {
+                        previewWord = "Typing"
+                    }
                     Text(
-                        text = "3",
-                        color = MaterialTheme.colors.primary,
-                        fontSize = numberFontSize
+                        text = buildAnnotatedString {
+                            withStyle(
+                                style = SpanStyle(
+                                    color = MaterialTheme.colors.onBackground,
+                                    fontFamily = fontFamily,
+                                    fontSize = state.global.wordFontSize,
+                                    letterSpacing = state.global.letterSpacing
+                                )
+                            ) {
+                                append(previewWord)
+                            }
+                        },
+                        modifier = Modifier
+                            .padding(bottom = bottom)
+                            .onGloballyPositioned { layoutCoordinates ->
+                                textHeight = (layoutCoordinates.size.height).dp
+                            }
                     )
-                    Spacer(modifier = Modifier.height(top))
-                    Text(
-                        text = "1",
-                        color = Color.Red,
-                        fontSize = numberFontSize
+                    Spacer(Modifier.width(5.dp))
+                    Column(verticalArrangement = Arrangement.SpaceBetween) {
+                        val top = (textHeight - 36.dp).div(2)
+                        var numberFontSize = LocalTextStyle.current.fontSize
+                        if (smallStyleList.contains(state.global.wordTextStyle)) numberFontSize =
+                            MaterialTheme.typography.overline.fontSize
+                        Spacer(modifier = Modifier.height(top))
+                        Text(
+                            text = "3",
+                            color = MaterialTheme.colors.primary,
+                            fontSize = numberFontSize
+                        )
+                        Spacer(modifier = Modifier.height(top))
+                        Text(
+                            text = "1",
+                            color = Color.Red,
+                            fontSize = numberFontSize
+                        )
+                    }
+                    Spacer(Modifier.width(5.dp))
+                    var volumeTop = textHeight.div(2) - 20.dp
+                    if (volumeTop < 0.dp) volumeTop = 0.dp
+                    if (state.global.wordTextStyle == "H1") volumeTop = 23.dp
+
+                    Icon(
+                        Icons.Filled.VolumeDown,
+                        contentDescription = "Localized description",
+                        tint = MaterialTheme.colors.primary,
+                        modifier = Modifier.padding(top = volumeTop),
                     )
                 }
-                Spacer(Modifier.width(5.dp))
-                var volumeTop = textHeight.div(2) - 20.dp
-                if (volumeTop < 0.dp) volumeTop = 0.dp
-                if (state.global.wordTextStyle == "H1") volumeTop = 23.dp
+            }
 
-                Icon(
-                    Icons.Filled.VolumeDown,
-                    contentDescription = "Localized description",
-                    tint = MaterialTheme.colors.primary,
-                    modifier = Modifier.padding(top = volumeTop),
+            Spacer(Modifier.height(30.dp))
+            Column (Modifier.width(600.dp).background(background)){
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(start = 50.dp ,top = 20.dp,bottom = 10.dp, end = 100.dp)
+                ) {
+                    Text("详细信息的样式")
+                    Spacer(Modifier.width(15.dp))
+                    TextStyleChooser(
+                        isWord = false,
+                        selectedTextStyle = state.global.detailTextStyle,
+                        textStyleChange = {
+                            state.global.detailTextStyle = it
+                            state.saveGlobalState()
+                        }
+                    )
+                }
+                val currentWord = typingState.getCurrentWord()
+                Morphology(
+                    word = currentWord,
+                    isPlaying = false,
+                    searching = false,
+                    morphologyVisible = true,
+                    fontSize = state.global.detailFontSize
+                )
+                Definition(
+                    word = currentWord,
+                    definitionVisible = true,
+                    isPlaying = false,
+                    fontSize = state.global.detailFontSize
+                )
+                Translation(
+                    word = currentWord,
+                    translationVisible = true,
+                    isPlaying = false,
+                    fontSize = state.global.detailFontSize
                 )
             }
-        }
 
-        Spacer(Modifier.height(30.dp))
-        Column (Modifier.width(600.dp).background(background)){
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(start = 50.dp ,top = 20.dp,bottom = 10.dp, end = 100.dp)
-            ) {
-                Text("详细信息的样式")
-                Spacer(Modifier.width(15.dp))
-                TextStyleChooser(
-                    isWord = false,
-                    selectedTextStyle = state.global.detailTextStyle,
-                    textStyleChange = {
-                        state.global.detailTextStyle = it
-                        state.saveGlobalState()
-                    }
-                )
-            }
-            val currentWord = typingState.getCurrentWord()
-            Morphology(
-                word = currentWord,
-                isPlaying = false,
-                searching = false,
-                morphologyVisible = true,
-                fontSize = state.global.detailFontSize
-            )
-            Definition(
-                word = currentWord,
-                definitionVisible = true,
-                isPlaying = false,
-                fontSize = state.global.detailFontSize
-            )
-            Translation(
-                word = currentWord,
-                translationVisible = true,
-                isPlaying = false,
-                fontSize = state.global.detailFontSize
+        }
+    }else{
+        Box(Modifier.fillMaxSize()){
+            Text(
+                text = "请先选择词库",
+                style = MaterialTheme.typography.h6,
+                modifier = Modifier.align(Alignment.Center)
             )
         }
-
     }
+
 
 }
 @Composable
