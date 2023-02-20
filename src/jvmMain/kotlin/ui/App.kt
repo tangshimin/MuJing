@@ -80,9 +80,13 @@ fun App() {
     }
     /** 设置词库地址的函数，放到这里是因为记忆单词可以接受拖放的视频，然后把当前词库关联到打开的视频播放器。*/
     val vocabularyPathChanged:(String) -> Unit = {
-        vocabularyPath = it
-        val newVocabulary = loadMutableVocabulary(it)
-        vocabulary = newVocabulary
+        if(videoPath.isNotEmpty()){
+            vocabularyPath = it
+            val newVocabulary = loadMutableVocabulary(it)
+            vocabulary = newVocabulary
+        }else{
+            JOptionPane.showMessageDialog(null,"先打开视频，再拖放词库。")
+        }
     }
 
 
@@ -233,7 +237,6 @@ fun App() {
 
         }
     }
-
 
     if(showPlayerWindow){
         CompositionLocalProvider(

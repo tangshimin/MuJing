@@ -339,12 +339,7 @@ fun Player(
                 videoPathChanged(file.absolutePath)
             /** 拖放的可能是词库。*/
             }else if(file.extension == "json"){
-                if(videoPath.isNotEmpty()){
-                    vocabularyPathChanged(file.absolutePath)
-                }else{
-                    message = "先打开视频，再拖放词库。"
-                    showMessageDialog = true
-                }
+                vocabularyPathChanged(file.absolutePath)
             }
         }else if(files.size == 2){
             val first = files.first()
