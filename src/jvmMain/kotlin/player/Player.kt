@@ -294,7 +294,7 @@ fun Player(
         if(isWindows()) {
             showFilePicker = true
         }else if(isMacOS()){
-            Thread(Runnable {
+            Thread {
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogTitle = "打开视频"
                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -302,11 +302,11 @@ fun Player(
                 fileChooser.selectedFile = null
                 if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                     val path = fileChooser.selectedFile.absolutePath
-                    if(!path.isNullOrEmpty()){
+                    if (!path.isNullOrEmpty()) {
                         videoPathChanged(path)
                     }
                 }
-            }).start()
+            }.start()
         }
     }
 
@@ -314,7 +314,7 @@ fun Player(
         if(isWindows()) {
             showVocabularyPicker = true
         }else if(isMacOS()){
-            Thread(Runnable {
+            Thread {
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogTitle = "添加词库"
                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -322,11 +322,11 @@ fun Player(
                 fileChooser.selectedFile = null
                 if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                     val path = fileChooser.selectedFile.absolutePath
-                    if(!path.isNullOrEmpty()){
+                    if (!path.isNullOrEmpty()) {
                         vocabularyPathChanged(path)
                     }
                 }
-            }).start()
+            }.start()
         }
     }
 
@@ -781,19 +781,20 @@ fun Player(
                                                     if(isWindows()){
                                                         showSubtitlePicker = true
                                                     }else if(isMacOS()){
-                                                        Thread(Runnable {
+                                                        Thread {
                                                             val fileChooser = futureFileChooser.get()
                                                             fileChooser.dialogTitle = "添加字幕"
-                                                            fileChooser.fileSystemView = FileSystemView.getFileSystemView()
+                                                            fileChooser.fileSystemView =
+                                                                FileSystemView.getFileSystemView()
                                                             fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
                                                             fileChooser.selectedFile = null
                                                             if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
                                                                 val path = fileChooser.selectedFile.absolutePath
-                                                                if(!path.isNullOrEmpty()){
+                                                                if (!path.isNullOrEmpty()) {
                                                                     addSubtitle(path)
                                                                 }
                                                             }
-                                                        }).start()
+                                                        }.start()
                                                     }
 
                                                 },
