@@ -85,7 +85,15 @@ fun Player(
     videoVolumeChanged: (Float) -> Unit,
     futureFileChooser: FutureTask<JFileChooser>,
 ) {
-    val windowState = rememberDialogState(
+
+    /** 窗口的大小和位置 */
+    val windowState = rememberWindowState(
+        size = DpSize(1289.dp, 854.dp),
+        position = WindowPosition(Alignment.Center)
+    )
+
+    /** 播放器的大小和位置 */
+    val playerWindowState = rememberDialogState(
         width = 1289.dp,
         height = 854.dp,
         position = WindowPosition(Alignment.Center)
@@ -170,7 +178,7 @@ fun Player(
     var settingsExpanded by remember { mutableStateOf(false) }
 
     /** 弹幕从右到左需要的时间，单位为毫秒 */
-    var widthDuration by remember { mutableStateOf(windowState.size.width.value.div(3).times(30).toInt()) }
+    var widthDuration by remember { mutableStateOf(playerWindowState.size.width.value.div(3).times(30).toInt()) }
 
     /** 动作监听器每次需要删除的弹幕列表 */
     val removedList = remember { mutableStateListOf<DanmakuItem>() }
@@ -384,6 +392,7 @@ fun Player(
 
     Window(
         title = title,
+        state = windowState,
         icon = painterResource("logo/logo.png"),
         undecorated = true,
         transparent = true,
@@ -399,27 +408,26 @@ fun Player(
         val fullscreen:()-> Unit = {
             if(isFullscreen){
                 isFullscreen = false
-                windowState.position =  fullscreenBeforePosition
-                windowState.size = fullscreenBeforeSize
+                playerWindowState.position =  fullscreenBeforePosition
+                playerWindowState.size = fullscreenBeforeSize
                 controlWindow?.isResizable = true
                 playerWindow?.requestFocus()
             }else{
                 isFullscreen = true
-                fullscreenBeforePosition = WindowPosition(windowState.position.x,windowState.position.y)
-                fullscreenBeforeSize =  windowState.size
-                windowState.position = WindowPosition((-1).dp, 0.dp)
+                fullscreenBeforePosition = WindowPosition(playerWindowState.position.x,playerWindowState.position.y)
+                fullscreenBeforeSize =  playerWindowState.size
+                playerWindowState.position = WindowPosition((-1).dp, 0.dp)
                 val windowSize = Toolkit.getDefaultToolkit().screenSize.size.toComposeSize()
-                windowState.size = windowSize.copy(width = windowSize.width + 1.dp)
+                playerWindowState.size = windowSize.copy(width = windowSize.width + 1.dp)
                 controlWindow?.isResizable = false
                 playerWindow?.requestFocus()
             }
         }
 
-
         Dialog(
             title = title,
             icon = painterResource("logo/logo.png"),
-            state = windowState,
+            state = playerWindowState,
             undecorated = true,
             resizable = false,
             onCloseRequest = { closeWindow() },
@@ -436,7 +444,7 @@ fun Player(
                 }
 
                 Box(Modifier.fillMaxSize()) {
-                    val videoSize by remember(windowState.size) {
+                    val videoSize by remember(playerWindowState.size) {
                         derivedStateOf { Dimension(window.size.width, window.size.height - 40) }
                     }
                     videoPlayerComponent.size = videoSize
@@ -457,7 +465,7 @@ fun Player(
             title = title,
             transparent = true,
             undecorated = true,
-            state = windowState,
+            state = playerWindowState,
             icon = painterResource("logo/logo.png"),
             onPreviewKeyEvent ={ keyEvent ->
                 if (keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp) {
@@ -550,7 +558,7 @@ fun Player(
                             showingDanmakuNum,
                             playEvent,
                             playAudio,
-                            windowState.size.height.value.toInt(),
+                            playerWindowState.size.height.value.toInt(),
                             showingDetail,
                             showingDetailChanged
                         )
@@ -1118,15 +1126,24 @@ fun Player(
             }
 
             /** 同步窗口尺寸 */
-            LaunchedEffect(windowState) {
-                snapshotFlow { windowState.size }
+            LaunchedEffect(playerWindowState) {
+                snapshotFlow { playerWindowState.size }
                     .onEach {
+                        // 同步窗口和对话框的大小
+                        windowState.size = playerWindowState.size
                         val titleBarHeight = if(isFullscreen) 1 else 40
                         videoPlayerComponent.size =
-                            Dimension(windowState.size.width.value.toInt(), windowState.size.height.value.toInt() - titleBarHeight)
-                        widthDuration = windowState.size.width.value.div(3).times(30).toInt()
+                            Dimension(playerWindowState.size.width.value.toInt(), playerWindowState.size.height.value.toInt() - titleBarHeight)
+                        widthDuration = playerWindowState.size.width.value.div(3).times(30).toInt()
                         // 改变窗口的宽度后，有的弹幕会加速移动，还有一些弹幕会重叠，所以要把弹幕全部清除。
                         cleanDanmaku()
+                    }
+                    .launchIn(this)
+
+                snapshotFlow { playerWindowState.position }
+                    .onEach {
+                        // 同步窗口和对话框的位置
+                        windowState.position = playerWindowState.position
                     }
                     .launchIn(this)
             }
