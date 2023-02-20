@@ -16,7 +16,7 @@
     demo 中的电影片段来源于 [Sintel](https://www.youtube.com/watch?v=eRsGyueVLvQ)。
 4. 视频播放器，播放电影时，添加用电影生成的词库到播放器，单词会以弹幕的形式出现。要查看某个单词的中文解释，只需要输入单词或对应的数字就可以查看。打开弹幕的快捷方式：如果正在记忆某个由视频或字幕生成的词库，把视频拖放到记忆单词界面，就可以快速的打开视频和弹幕。
 
-   ![videoPlayer](https://user-images.githubusercontent.com/16540656/219966650-1dd1115f-b6cc-4fc3-a96d-e0102f235742.jpg)
+   ![videoPlayer](https://user-images.githubusercontent.com/16540656/220088640-2f9c3a54-500e-477b-8c63-bc31b32d2d71.jpg)
 
 5. 字幕浏览器，可以浏览字幕，练习跟读美剧、电影、TED演讲，可以选择性的播放一条或多条字幕，还可以抄写字幕。如果要播放多行字幕，点击左边的数字就可以开启，点击 5 和 10 再点击左边的播放按钮，
    就会从第5行开始播放，到第10行结束。
