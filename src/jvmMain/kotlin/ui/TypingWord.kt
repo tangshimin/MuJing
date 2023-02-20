@@ -1915,7 +1915,11 @@ fun Captions(
                                 }
                             }
                         }
-                        if(isWriteSubtitles) focusRequesterList[index].requestFocus()
+                        if(isWriteSubtitles){
+                            focusRequesterList[index].requestFocus()
+                        }else{
+                            jumpToWord()
+                        }
                     }
                     var selectable by remember { mutableStateOf(false) }
                     val focusMoveUp:() -> Unit = {

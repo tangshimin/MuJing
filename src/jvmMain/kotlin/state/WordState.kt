@@ -284,6 +284,7 @@ class WordState(dataWordState: DataWordState) {
                         vocabularyName,
                         vocabularyPath,
                         externalSubtitlesVisible,
+                        isWriteSubtitles
                     )
 
                     val json = encodeBuilder.encodeToString(dataWordState)
