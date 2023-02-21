@@ -850,7 +850,14 @@ fun GenerateVocabularyDialog(
                                             changeSort = {sort = it}
                                         )
                                     }
-                                    Idle -> {}
+                                    Idle -> {
+                                        Text(
+                                            text = "可以拖放文件到这里",
+                                            color = MaterialTheme.colors.onBackground,
+                                            style = MaterialTheme.typography.h6,
+                                            modifier = Modifier.align(Alignment.Center)
+                                        )
+                                    }
                                 }
 
                                     if (loading) {
