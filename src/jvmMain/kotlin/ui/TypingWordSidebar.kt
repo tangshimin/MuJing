@@ -427,7 +427,7 @@ fun TypingWordSidebar(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp)
                 ) {
-                    Text("自动发音", color = MaterialTheme.colors.onBackground)
+                    Text("发音设置", color = MaterialTheme.colors.onBackground)
                     Spacer(Modifier.width(5.dp))
                     var expand by remember { mutableStateOf(false) }
                     val selectedText = when (typingWordState.pronunciation) {
