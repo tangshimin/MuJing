@@ -1,10 +1,12 @@
 package player
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FlipToBack
 import androidx.compose.material.icons.filled.Pause
@@ -28,6 +30,10 @@ import androidx.compose.ui.window.*
 import data.Caption
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import state.rememberPronunciation
+import ui.LocalCtrl
+import ui.rememberCtrl
+import ui.textSelectionColors
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import java.awt.Component
@@ -36,23 +42,31 @@ import java.awt.Toolkit
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun Player(
+fun SimplePlayer(
     close: () -> Unit,
-    videoBounds: DialogState,
+    videoPlayerBounds: DialogState,
     volume: Float,
     playTriple: Triple<Caption, String, Int>,
-    videoPlayerComponent: Component,
     externalSubtitlesVisible:Boolean = false,
     resetVideoBounds :() ->Unit,
     isVideoBoundsChanged:Boolean = false,
     setIsVideoBoundsChanged:(Boolean) -> Unit = {}
 ){
 
+    /** 窗口的大小和位置 */
+    val windowState = rememberWindowState(
+        size = videoPlayerBounds.size,
+        position = WindowPosition(Alignment.Center)
+    )
+
     /** 显示视频的窗口 */
     var playerWindow by remember { mutableStateOf<ComposeDialog?>(null) }
 
+    /** VLC 是视频播放组件 */
+    val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent()) }
+
     /** 控制视频显示的窗口，弹幕显示到这个窗口 */
-    var controlWindow by remember { mutableStateOf<ComposeDialog?>(null) }
+    val controlWindow by remember { mutableStateOf<ComposeDialog?>(null) }
     
     /** 是否全屏，如果使用系统的全屏，播放器窗口会黑屏 */
     var isFullscreen by remember { mutableStateOf(false) }
@@ -61,7 +75,7 @@ fun Player(
     var fullscreenBeforePosition by remember { mutableStateOf(WindowPosition(0.dp,0.dp)) }
 
     /** 全屏之前的尺寸 */
-    var fullscreenBeforeSize by remember{ mutableStateOf(DpSize(1289.dp, 854.dp)) }
+    var fullscreenBeforeSize by remember{ mutableStateOf(videoPlayerBounds.size) }
 
     /** 是否正在播放视频 */
     var isPlaying by remember { mutableStateOf(false) }
@@ -87,6 +101,7 @@ fun Player(
 
     Window(
         title = "播放视频",
+        state = windowState,
         icon = painterResource("logo/logo.png"),
         undecorated = true,
         transparent = true,
@@ -97,17 +112,17 @@ fun Player(
         val fullscreen:()-> Unit = {
             if(isFullscreen){
                 isFullscreen = false
-                videoBounds.position =  fullscreenBeforePosition
-                videoBounds.size = fullscreenBeforeSize
+                videoPlayerBounds.position =  fullscreenBeforePosition
+                videoPlayerBounds.size = fullscreenBeforeSize
                 controlWindow?.isResizable = true
                 playerWindow?.requestFocus()
             }else{
                 isFullscreen = true
-                fullscreenBeforePosition = WindowPosition(videoBounds.position.x,videoBounds.position.y)
-                fullscreenBeforeSize =  videoBounds.size
-                videoBounds.position = WindowPosition((-1).dp, 0.dp)
+                fullscreenBeforePosition = WindowPosition(videoPlayerBounds.position.x,videoPlayerBounds.position.y)
+                fullscreenBeforeSize =  videoPlayerBounds.size
+                videoPlayerBounds.position = WindowPosition((-1).dp, 0.dp)
                 val windowSize = Toolkit.getDefaultToolkit().screenSize.size.toComposeSize()
-                videoBounds.size = windowSize.copy(width = windowSize.width + 1.dp)
+                videoPlayerBounds.size = windowSize.copy(width = windowSize.width + 1.dp)
                 controlWindow?.isResizable = false
                 playerWindow?.requestFocus()
             }
@@ -115,16 +130,17 @@ fun Player(
 
 
         VideoLayer(
-            windowState = videoBounds,
+            windowState = videoPlayerBounds,
             videoPlayerComponent = videoPlayerComponent,
             setPlayerWindow = { playerWindow = it }
         )
 
+        // control layer
         Dialog(
             onCloseRequest = {  },
             transparent = true,
             undecorated = true,
-            state = videoBounds,
+            state = videoPlayerBounds,
             icon = painterResource("logo/logo.png"),
             onPreviewKeyEvent ={ keyEvent ->
                 if (keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp) {
@@ -213,17 +229,23 @@ fun Player(
 
         }
 
-        LaunchedEffect(videoBounds) {
-            snapshotFlow { videoBounds.size }
+        DisposableEffect(Unit){
+            onDispose {
+                videoPlayerComponent.mediaPlayer().release()
+            }
+        }
+
+        LaunchedEffect(videoPlayerBounds) {
+            snapshotFlow { videoPlayerBounds.size }
                 .onEach{
-                    println(videoBounds.size)
+                   windowState.size = videoPlayerBounds.size
                     setIsVideoBoundsChanged(true)
                 }
                 .launchIn(this)
 
-            snapshotFlow { videoBounds.position }
+            snapshotFlow { videoPlayerBounds.position }
                 .onEach {
-                    println(videoBounds.position)
+                   windowState.position = videoPlayerBounds.position
                     setIsVideoBoundsChanged(true)
                 }
                 .launchIn(this)
