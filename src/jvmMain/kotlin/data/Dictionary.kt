@@ -96,7 +96,7 @@ object Dictionary {
         return if (dir != null) {
             // 打包之后的环境
             if(isMacOS()){
-                "jdbc:h2:file:/Applications/MovContext.app/Contents/app/resources/dictionary/ecdict;ACCESS_MODE_DATA=r"
+                "jdbc:h2:file:/Applications/幕境.app/Contents/app/resources/dictionary/ecdict;ACCESS_MODE_DATA=r"
             }else{
                 "jdbc:h2:./app/resources/dictionary/ecdict;ACCESS_MODE_DATA=r"
             }
