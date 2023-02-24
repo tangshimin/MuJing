@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.movcontext"
-version = "2.0.1"
+version = "2.0.2"
 
 repositories {
     google()
@@ -96,7 +96,7 @@ compose.desktop {
 //            vendor = "深圳市龙华区幕境网络工作室"
             licenseFile.set(project.file("LICENSE"))
             windows{
-                console = true
+//                console = true
                 dirChooser = true
 //                menuGroup = "幕境"
                 // windows 暂时不能打包中文名称，所有用拼音替代
