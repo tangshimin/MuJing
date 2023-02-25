@@ -153,7 +153,7 @@ fun Chapters(
     onChapterSelected: (Int) -> Unit,
     isMultiple:Boolean
 ) {
-    if(size<0){
+    if(size>0){
         Box(
             modifier = Modifier.fillMaxWidth().background(color = MaterialTheme.colors.background)
         ) {
