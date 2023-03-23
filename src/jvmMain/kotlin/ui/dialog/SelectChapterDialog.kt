@@ -1,12 +1,12 @@
 package ui.dialog
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -23,6 +23,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.Word
+import player.isWindows
 import state.MemoryStrategy
 import state.WordState
 
@@ -235,14 +236,13 @@ fun Chapters(
                 }
 
             }
-// 相关 Issue: https://github.com/JetBrains/compose-jb/issues/2029
-//        VerticalScrollbar(
-//            style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
-//            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-//            adapter = rememberScrollbarAdapter(
-//                scrollState = listState
-//            )
-//        )
+        VerticalScrollbar(
+            style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(
+                scrollState = listState
+            )
+        )
 
         }
     }

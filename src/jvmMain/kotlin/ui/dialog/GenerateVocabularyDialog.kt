@@ -2404,15 +2404,14 @@ fun PreviewWords(
                 }
             }
 
-// 相关 Issue: https://github.com/JetBrains/compose-jb/issues/2029
-//            VerticalScrollbar(
-//                style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
-//                modifier = Modifier.align(Alignment.CenterEnd)
-//                    .fillMaxHeight(),
-//                adapter = rememberScrollbarAdapter(
-//                    scrollState = listState
-//                )
-//            )
+            VerticalScrollbar(
+                style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
+                modifier = Modifier.align(Alignment.CenterEnd)
+                    .fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(
+                    scrollState = listState
+                )
+            )
 
 
         }
