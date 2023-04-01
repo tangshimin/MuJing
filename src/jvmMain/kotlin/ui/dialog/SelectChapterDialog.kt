@@ -8,10 +8,7 @@ import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -56,7 +53,17 @@ fun SelectChapterDialog(
                     .fillMaxSize()
                     .background(color = MaterialTheme.colors.background)
             ) {
-                val checkedChapters  = remember{
+                val chapterSize by remember {
+                    derivedStateOf {
+                        val size = typingWordState.vocabulary.size
+                        var count = size / 20
+                        val mod = size % 20
+                        if (mod != 0 && size > 20) count += 1
+                        if (size < 20) count = 1
+                        count
+                    }
+                }
+                val selectedChapters  = remember{
                     if(isMultiple){
                         mutableStateListOf()
                     }else{
@@ -64,10 +71,23 @@ fun SelectChapterDialog(
                     }
                 }
 
-                val selectedWords = remember(checkedChapters){
+                var isSelectAll by remember { mutableStateOf(false) }
+
+                val selectAll = {
+                    if(isSelectAll){
+                        selectedChapters.clear()
+                        val list = (1 until chapterSize + 1).toList()
+                        selectedChapters.addAll(list)
+                    }else{
+                        selectedChapters.clear()
+                    }
+
+                }
+
+                val selectedWords = remember(selectedChapters){
                     derivedStateOf {
                         val list = mutableStateListOf<Word>()
-                        checkedChapters.forEach { chapter ->
+                        selectedChapters.forEach { chapter ->
                             val start = chapter * 20 - 20
                             var end = chapter * 20
                             if(end > typingWordState.vocabulary.wordList.size){
@@ -85,31 +105,40 @@ fun SelectChapterDialog(
                         Row(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth().padding(top = 5.dp, bottom = 5.dp)
+                            modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("选择了${checkedChapters.size}个章节  ", color = MaterialTheme.colors.onBackground)
+                            Text("选择了${selectedChapters.size}个章节  ", color = MaterialTheme.colors.onBackground)
                             Text("${selectedWords.value.size}", color = MaterialTheme.colors.primary)
                             Text(" 个单词", color = MaterialTheme.colors.onBackground)
+                            Checkbox(
+                                checked = isSelectAll,
+                                onCheckedChange = {
+                                    isSelectAll = it
+                                    selectAll()
+                                },
+                                modifier = Modifier.padding(start = 20.dp)
+                            )
+                            Text("全选")
                         }
                         Divider()
                     }
                 }
 
 
-                Row(modifier = Modifier.align(Alignment.Center).padding(top = 33.dp, bottom = 55.dp)) {
+                Row(modifier = Modifier.align(Alignment.Center).padding(top = 48.dp, bottom = 55.dp)) {
                     Chapters(
-                        checkedChapters = checkedChapters,
+                        checkedChapters = selectedChapters,
                         size = typingWordState.vocabulary.size,
                         isMultiple = isMultiple,
                         onChapterSelected = {
                             if(!isMultiple){
-                                checkedChapters.clear()
-                                checkedChapters.add(it)
+                                selectedChapters.clear()
+                                selectedChapters.add(it)
                             }else{
-                                if(checkedChapters.contains(it)){
-                                    checkedChapters.remove(it)
+                                if(selectedChapters.contains(it)){
+                                    selectedChapters.remove(it)
                                 }else{
-                                    checkedChapters.add(it)
+                                    selectedChapters.add(it)
                                 }
                             }
                         },
@@ -130,7 +159,7 @@ fun SelectChapterDialog(
                             typingWordState.dictationIndex = 0
 
                         }else{
-                            val chapter = checkedChapters.first()
+                            val chapter = selectedChapters.first()
                             if (chapter == 0) typingWordState.chapter = 1
                             typingWordState.chapter = chapter
                             typingWordState.index = (chapter - 1) * 20
