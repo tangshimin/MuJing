@@ -96,7 +96,10 @@ fun ChapterFinishedDialog(
 
                             ((it.key == Key.Enter || it.key == Key.NumPadEnter)
                                     && it.type == KeyEventType.KeyUp) -> {
-                                if (isVocabularyFinished) resetIndex(false)
+
+                                if(memoryStrategy == MemoryStrategy.Review || memoryStrategy == MemoryStrategy.DictationReviewWrong){
+                                    openReviewDialog()
+                                }else if (isVocabularyFinished) resetIndex(false)
                                 else nextChapter()
                                 true
                             }
