@@ -35,7 +35,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
                 implementation("io.github.microutils:kotlin-logging:2.1.21")
                 implementation("uk.co.caprica:vlcj:4.7.2")
-                implementation("com.formdev:flatlaf:2.6")
+                implementation("com.formdev:flatlaf:3.0")
                 implementation("com.formdev:flatlaf-extras:2.6")
                 implementation("org.apache.opennlp:opennlp-tools:1.9.4")
                 implementation("org.apache.pdfbox:pdfbox:2.0.24")
