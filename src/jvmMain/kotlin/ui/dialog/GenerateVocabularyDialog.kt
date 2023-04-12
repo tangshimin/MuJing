@@ -30,7 +30,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.PointerIcon.Companion.Hand
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.res.ResourceLoader
@@ -1426,7 +1426,7 @@ fun BasicFilter(
                                     Desktop.getDesktop().browse(URI("https://www.natcorp.ox.ac.uk/"))
                                 }
                             }
-                            .pointerHoverIcon(PointerIconDefaults.Hand)
+                            .pointerHoverIcon(Hand)
                             .padding(end = 3.dp))
                 }
 
@@ -1472,7 +1472,7 @@ fun BasicFilter(
                                 Desktop.getDesktop().browse(URI("https://www.english-corpora.org/coca/"))
                             }
                         }
-                            .pointerHoverIcon(PointerIconDefaults.Hand))
+                            .pointerHoverIcon(Hand))
                 }
 
                 Text(" 语料库词频顺序为0的词", color = textColor)

@@ -14,7 +14,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.input.pointer.PointerIconDefaults
+import androidx.compose.ui.input.pointer.PointerIcon.Companion.Hand
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalUriHandler
@@ -186,7 +186,7 @@ fun FrequencyRelatedLink(){
             text = annotatedString1,
             style = MaterialTheme.typography.body1,
             modifier = Modifier
-                .pointerHoverIcon(PointerIconDefaults.Hand),
+                .pointerHoverIcon(Hand),
             onClick = { offset ->
                 annotatedString1.getStringAnnotations(tag = "android", start = offset, end = offset).firstOrNull()?.let {
                     uriHandler.openUri(it.item)
@@ -277,7 +277,7 @@ fun DocumentPage(){
                     text = annotatedString1,
                     style = MaterialTheme.typography.body1,
                     modifier = Modifier
-                        .pointerHoverIcon(PointerIconDefaults.Hand),
+                        .pointerHoverIcon(Hand),
                     onClick = { offset ->
                         annotatedString1.getStringAnnotations(tag = "android", start = offset, end = offset).firstOrNull()?.let {
                             uriHandler.openUri(it.item)
@@ -406,7 +406,7 @@ fun SubtitlesPage(){
                 ClickableText(
                     text = annotatedString,
                     style = MaterialTheme.typography.body1,
-                    modifier = Modifier.pointerHoverIcon(PointerIconDefaults.Hand),
+                    modifier = Modifier.pointerHoverIcon(Hand),
                     onClick = { offset ->
                         annotatedString.getStringAnnotations(tag = "blender", start = offset, end = offset).firstOrNull()?.let {
                             uriHandler.openUri(it.item)
@@ -457,7 +457,7 @@ fun MatroskaPage(){
                     text = annotatedString,
                     style = MaterialTheme.typography.body1,
                     modifier = Modifier
-                        .pointerHoverIcon(PointerIconDefaults.Hand)
+                        .pointerHoverIcon(Hand)
                     ,
                     onClick = { offset ->
                         annotatedString.getStringAnnotations(tag = "Sintel", start = offset, end = offset).firstOrNull()?.let {
@@ -499,7 +499,7 @@ fun YouTubeDownloadPage(){
                     text = annotatedString,
                     style = MaterialTheme.typography.body1,
                     modifier = Modifier
-                        .pointerHoverIcon(PointerIconDefaults.Hand)
+                        .pointerHoverIcon(Hand)
                     ,
                     onClick = { offset ->
                         annotatedString.getStringAnnotations(tag = "youtube-dl", start = offset, end = offset).firstOrNull()?.let {
@@ -555,7 +555,7 @@ fun YouTubeDownloadPage(){
                 ClickableText(
                     text = annotatedString,
                     style = MaterialTheme.typography.body1,
-                    modifier = Modifier.pointerHoverIcon(PointerIconDefaults.Hand),
+                    modifier = Modifier.pointerHoverIcon(Hand),
                     onClick = { offset ->
                         annotatedString.getStringAnnotations(tag = "downloader", start = offset, end = offset).firstOrNull()?.let {
                             uriHandler.openUri(it.item)
@@ -576,7 +576,7 @@ fun YouTubeDownloadPage(){
             ClickableText(
                 text = annotatedString,
                 style = MaterialTheme.typography.body1,
-                modifier = Modifier.pointerHoverIcon(PointerIconDefaults.Hand),
+                modifier = Modifier.pointerHoverIcon(Hand),
                 onClick = { offset ->
                     annotatedString.getStringAnnotations(tag = "howto", start = offset, end = offset).firstOrNull()?.let {
                         uriHandler.openUri(it.item)
