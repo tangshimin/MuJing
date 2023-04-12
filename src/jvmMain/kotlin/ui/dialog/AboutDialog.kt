@@ -157,7 +157,7 @@ fun AboutDialog(
                                 Dependency(
                                     name = "FlatLaf",
                                     url = "https://github.com/JFormDesigner/FlatLaf",
-                                    version = "2.6",
+                                    version = "3.1",
                                     license = Apache2,
                                 )
 
