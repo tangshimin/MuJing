@@ -34,7 +34,11 @@ import java.util.*
 import kotlin.concurrent.schedule
 
 @Composable
-fun DocumentDialog(close: () -> Unit) {
+fun DocumentDialog(
+    close: () -> Unit,
+    currentPage:String,
+    setCurrentPage:(String) -> Unit
+) {
     Dialog(
         title = "文档",
         icon = painterResource("logo/logo.png"),
@@ -49,7 +53,6 @@ fun DocumentDialog(close: () -> Unit) {
             Column (Modifier.fillMaxSize().background(MaterialTheme.colors.background)){
                 Divider()
                 Row{
-                    var currentPage by remember{ mutableStateOf("") }
                     Column(
                         horizontalAlignment = Alignment.Start,
                         verticalArrangement = Arrangement.Top,
@@ -61,7 +64,7 @@ fun DocumentDialog(close: () -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .clickable { currentPage = "tips" }) {
+                                .clickable { setCurrentPage("tips" )}) {
                             Text("使用技巧", modifier = Modifier.padding(start = 16.dp))
                             if(currentPage == "tips"){
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
@@ -73,7 +76,7 @@ fun DocumentDialog(close: () -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .clickable { currentPage = "document" }) {
+                                .clickable {  setCurrentPage("document") }) {
                             Text("用文档生成词库", modifier = Modifier.padding(start = 16.dp))
                             if(currentPage == "document"){
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
@@ -85,7 +88,7 @@ fun DocumentDialog(close: () -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .clickable {  currentPage = "subtitles" }) {
+                                .clickable {  setCurrentPage("subtitles") }) {
                             Text("用字幕生成词库", modifier = Modifier.padding(start = 16.dp))
                             if(currentPage == "subtitles"){
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
@@ -97,7 +100,7 @@ fun DocumentDialog(close: () -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .clickable {  currentPage = "matroska"}) {
+                                .clickable {  setCurrentPage("matroska")}) {
                             Text("用 MKV 视频生成词库", modifier = Modifier.padding(start = 16.dp))
                             if( currentPage == "matroska"){
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
@@ -109,7 +112,7 @@ fun DocumentDialog(close: () -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .clickable { currentPage = "youtube" }) {
+                                .clickable { setCurrentPage("youtube") }) {
                             Text("YouTube 视频下载", modifier = Modifier.padding(start = 16.dp))
                             if(currentPage == "youtube"){
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
@@ -121,7 +124,7 @@ fun DocumentDialog(close: () -> Unit) {
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .clickable { currentPage = "linkVocabulary" }) {
+                                .clickable {  setCurrentPage("linkVocabulary") }) {
                             Text("链接字幕词库", modifier = Modifier.padding(start = 16.dp))
                             if(currentPage == "linkVocabulary"){
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))

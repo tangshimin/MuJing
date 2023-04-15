@@ -15,6 +15,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.runtime.*
@@ -99,7 +100,6 @@ import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.filechooser.FileSystemView
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.TreePath
-
 
 /**
  * 生成词库
@@ -1872,6 +1872,7 @@ fun addNodes(curTop: DefaultMutableTreeNode?, dir: File): DefaultMutableTreeNode
     return curDir
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SelectFile(
     type: VocabularyType,
@@ -1935,12 +1936,58 @@ fun SelectFile(
             }
 
             Spacer(Modifier.width(10.dp))
-            if (type != MKV && selectedFilePath.isNotEmpty()) {
-                OutlinedButton(
-                    onClick = {
-                        analysis(selectedFilePath, selectedTrackId)
-                    }) {
-                    Text("开始", fontSize = 12.sp)
+            OutlinedButton(
+                enabled = type != MKV && selectedFilePath.isNotEmpty(),
+                onClick = {
+                    analysis(selectedFilePath, selectedTrackId)
+                }) {
+                Text("开始", fontSize = 12.sp)
+            }
+            Spacer(Modifier.width(10.dp))
+            if(chooseText != "选择词库"){
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                            shape = RectangleShape
+                        ) {
+                            Text(text = "帮助", modifier = Modifier.padding(10.dp))
+                        }
+                    },
+                    delayMillis = 50,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.BottomCenter,
+                        alignment = Alignment.BottomCenter,
+                        offset = DpOffset.Zero
+                    )
+                ) {
+                    var documentDialogVisible by remember { mutableStateOf(false) }
+                    var currentPage by remember { mutableStateOf("document") }
+                    IconButton(onClick = {
+                        documentDialogVisible = true
+                        currentPage = when(type){
+                            DOCUMENT  -> "document"
+                            SUBTITLES -> "subtitles"
+                            MKV -> "matroska"
+                        }
+                    }){
+                        Icon(
+                            Icons.Filled.Help,
+                            contentDescription = "Localized description",
+                            tint =if(MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground,
+                        )
+                    }
+
+
+                    if(documentDialogVisible){
+                        DocumentDialog(
+                            close = {documentDialogVisible = false},
+                            currentPage = currentPage,
+                            setCurrentPage = {currentPage = it}
+
+                        )
+                    }
                 }
             }
         }
