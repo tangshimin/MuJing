@@ -448,6 +448,17 @@ private fun FrameWindowScope.WindowMenuBar(
         Item("过滤词库(F)", mnemonic = 'F', onClick = {
             appState.filterVocabulary = true
         })
+        var matchVocabulary by remember{ mutableStateOf(false) }
+        Item("匹配词库(P)", mnemonic = 'P', onClick = {
+            matchVocabulary = true
+        })
+        if(matchVocabulary){
+            MatchVocabularyDialog(
+                futureFileChooser = appState.futureFileChooser,
+                close = {matchVocabulary = false}
+            )
+        }
+
         Item("导入词库到熟悉词库(I)", mnemonic = 'F', onClick = {
             appState.importFamiliarVocabulary = true
         })

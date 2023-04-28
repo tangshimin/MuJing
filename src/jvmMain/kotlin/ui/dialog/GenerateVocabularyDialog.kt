@@ -1073,13 +1073,13 @@ private fun onCloseRequest(state: AppState, title: String) {
     }
 
 }
-
-private fun getWordLemma(word: Word): String? {
+/** 返回单词的原型，如果没有原型，就返回单词本身 */
+ fun getWordLemma(word: Word): String {
     word.exchange.split("/").forEach { exchange ->
         val pair = exchange.split(":")
         if (pair[0] == "0") return pair[1]
     }
-    return null
+    return word.value
 }
 
 @Composable

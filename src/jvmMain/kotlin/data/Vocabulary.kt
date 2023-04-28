@@ -1,7 +1,6 @@
 package data
 
 import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -69,7 +68,7 @@ data class Word(
 ) {
     override fun equals(other: Any?): Boolean {
         val otherWord = other as Word
-        return this.value == otherWord.value
+        return this.value.lowercase() == otherWord.value.lowercase()
     }
 
     override fun hashCode(): Int {
