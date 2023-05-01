@@ -136,9 +136,8 @@ fun GenerateVocabularyDialog(
                 "json",
             )
             "用文档生成词库" -> FileNameExtensionFilter(
-                "支持的文件扩展(*.pdf、*.txt)",
-                "pdf",
-                "txt",
+                "支持的文件扩展(*.pdf;*.txt;*.md*.java;*.cs;*.cpp;*.c;*.kt;*.py;*.ts)",
+                "pdf", "txt","md", "java", "cs", "cpp", "c", "kt", "js", "py", "ts"
             )
             "用字幕生成词库" -> FileNameExtensionFilter(
                 "SRT 格式的字幕文件",
@@ -306,7 +305,7 @@ fun GenerateVocabularyDialog(
                     if (files.size == 1) {
                         val file = files.first()
                         when (file.extension) {
-                            "pdf", "txt" -> {
+                            "pdf", "txt" ,"md", "java", "cs", "cpp", "c", "kt", "js", "py", "ts"-> {
                                 if (type == DOCUMENT) {
                                     selectedFilePath = file.absolutePath
                                     selectedSubtitlesName = "    "
@@ -2620,7 +2619,7 @@ fun readDocument(
     val file = File(pathName)
     var text = ""
     val extension = file.extension
-    val otherExtensions = listOf("txt", "java", "cs", "cpp", "c", "kt", "js", "py", "ts")
+    val otherExtensions = listOf("txt", "java","md","cs", "cpp", "c", "kt", "js", "py", "ts")
 
     try{
         if (extension == "pdf") {
