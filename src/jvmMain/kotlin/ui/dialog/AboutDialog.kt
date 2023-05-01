@@ -213,7 +213,7 @@ fun AboutDialog(
 
                                 Dependency(
                                     name = "jetbrains compose material3",
-                                    url = "https://github.com/JetBrains/compose-jb",
+                                    url = "https://github.com/JetBrains/compose-multiplatform",
                                     version = "1.0.1",
                                     license = Apache2,
                                 )
