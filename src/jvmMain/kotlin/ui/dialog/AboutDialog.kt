@@ -205,9 +205,9 @@ fun AboutDialog(
                                 )
 
                                 Dependency(
-                                    name = "Compose Desktop",
+                                    name = "Compose Multiplatform",
                                     url = "https://github.com/JetBrains/compose-jb",
-                                    version = "1.3.0",
+                                    version = "1.4.0",
                                     license = Apache2,
                                 )
 
