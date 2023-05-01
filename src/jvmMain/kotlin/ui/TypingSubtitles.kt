@@ -823,48 +823,75 @@ fun TypingSubtitles(
                                                 }
                                             }
 
-                                            val density = LocalDensity.current.density
-
-                                            IconButton(onClick = {
-                                                val playItem = Caption(multipleLines.startTime ,multipleLines.endTime ,"")
-                                                playCaption(playItem)
-                                            },
-                                                modifier = Modifier
-                                                    .onGloballyPositioned{coordinates ->
-                                                        val rect = coordinates.boundsInWindow()
-                                                        if (multipleLines.isUp) {
-                                                            playerPoint2.y =
-                                                                window.y + rect.top.toInt() - ((303 - 48) * density).toInt()
-                                                        } else {
-                                                            playerPoint2.y =
-                                                                window.y + rect.top.toInt() + (100 * density).toInt()
-                                                        }
-                                                        playerPoint2.x =
-                                                            window.x + rect.left.toInt() - (270 * density).toInt()
-                                                        if(!isVideoBoundsChanged){
-                                                            // 播放按钮可以显示
-                                                            if(!rect.isEmpty){
-                                                                videoPlayerBounds.location = playerPoint2
-                                                                adjustPosition(density, videoPlayerBounds)
-                                                                playerPoint2 = videoPlayerBounds.location
+                                            TooltipArea(
+                                                tooltip = {
+                                                    Surface(
+                                                        elevation = 4.dp,
+                                                        border = BorderStroke(
+                                                            1.dp,
+                                                            MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+                                                        ),
+                                                        shape = RectangleShape
+                                                    ) {
+                                                        Row(modifier = Modifier.padding(10.dp)){
+                                                            Text(text = "播放" )
+                                                            CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                                                Text(text = " Tab ")
                                                             }
                                                         }
 
-
                                                     }
-                                            ) {
-                                                val icon = if (mediaType == "audio" && !isPlaying) {
-                                                    Icons.Filled.VolumeDown
-                                                } else if (mediaType == "audio") {
-                                                    Icons.Filled.VolumeUp
-                                                } else Icons.Filled.PlayArrow
-
-                                                Icon(
-                                                    icon,
-                                                    contentDescription = "Localized description",
-                                                    tint = MaterialTheme.colors.primary
+                                                },
+                                                delayMillis = 300,
+                                                tooltipPlacement = TooltipPlacement.ComponentRect(
+                                                    anchor = Alignment.TopCenter,
+                                                    alignment = Alignment.TopCenter,
+                                                    offset = DpOffset.Zero
                                                 )
+                                            ) {
+                                                val density = LocalDensity.current.density
+                                                IconButton(onClick = {
+                                                    val playItem = Caption(multipleLines.startTime ,multipleLines.endTime ,"")
+                                                    playCaption(playItem)
+                                                },
+                                                    modifier = Modifier
+                                                        .onGloballyPositioned{coordinates ->
+                                                            val rect = coordinates.boundsInWindow()
+                                                            if (multipleLines.isUp) {
+                                                                playerPoint2.y =
+                                                                    window.y + rect.top.toInt() - ((303 - 48) * density).toInt()
+                                                            } else {
+                                                                playerPoint2.y =
+                                                                    window.y + rect.top.toInt() + (100 * density).toInt()
+                                                            }
+                                                            playerPoint2.x =
+                                                                window.x + rect.left.toInt() - (270 * density).toInt()
+                                                            if(!isVideoBoundsChanged){
+                                                                // 播放按钮可以显示
+                                                                if(!rect.isEmpty){
+                                                                    videoPlayerBounds.location = playerPoint2
+                                                                    adjustPosition(density, videoPlayerBounds)
+                                                                    playerPoint2 = videoPlayerBounds.location
+                                                                }
+                                                            }
+
+
+                                                        }
+                                                ) {
+                                                    val icon = if (mediaType == "audio" && !isPlaying) {
+                                                        Icons.Filled.VolumeDown
+                                                    } else if (mediaType == "audio") {
+                                                        Icons.Filled.VolumeUp
+                                                    } else Icons.Filled.PlayArrow
+
+                                                    Icon(
+                                                        icon,
+                                                        contentDescription = "Localized description",
+                                                        tint = MaterialTheme.colors.primary
+                                                    )
+                                                }
                                             }
+
 
                                         }
                                     }
