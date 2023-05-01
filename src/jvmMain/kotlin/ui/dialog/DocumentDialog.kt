@@ -30,6 +30,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import player.isWindows
+import ui.LocalCtrl
 import java.util.*
 import kotlin.concurrent.schedule
 
@@ -202,6 +203,7 @@ fun FrequencyRelatedLink(){
 fun Tips(){
     Column (Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp)){
         val background = if (MaterialTheme.colors.isLight) Color.LightGray else Color(35, 35, 35)
+        val ctrl = LocalCtrl.current
         Row(Modifier.fillMaxWidth()){
             val annotatedString = buildAnnotatedString {
                 withStyle(style = SpanStyle(fontWeight = FontWeight.Bold,color = MaterialTheme.colors.onBackground)) {
@@ -212,7 +214,7 @@ fun Tips(){
                 }
 
                 withStyle(style = SpanStyle(color =  MaterialTheme.colors.primary,background = background)) {
-                    append("Ctrl + B")
+                    append("$ctrl + B")
                 }
 
                 withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
@@ -239,7 +241,10 @@ fun Tips(){
                 }
                 withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
                     append(", 在字幕浏览器界面，如果要播放多行字幕，点击左边的数字就可以开启，点击 5 和 10 再点击左边的播放按钮，" +
-                            "就会从第5行开始播放，到第10行结束。")
+                            "就会从第5行开始播放，到第10行结束。快捷键 ")
+                }
+                withStyle(style = SpanStyle(color =  MaterialTheme.colors.primary,background = background)) {
+                    append("$ctrl + N ")
                 }
             }
             Text(annotatedString)

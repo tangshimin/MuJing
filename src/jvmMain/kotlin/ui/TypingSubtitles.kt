@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.awt.awtEventOrNull
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -24,8 +23,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -106,8 +103,14 @@ fun TypingSubtitles(
     val audioPlayerComponent = LocalAudioPlayerComponent.current
     var isVideoBoundsChanged by remember{ mutableStateOf(false) }
     /** 如果移动了播放器的位置，用这个变量保存计算的位置，点击恢复按钮的时候用这个临时的变量恢复 */
-    val tempPoint by remember{mutableStateOf(Point(0,0))}
+    val playerPoint1 by remember{mutableStateOf(Point(0,0))}
+    /** 如果移动了播放器的位置，用这个变量保存计算的位置，点击恢复按钮的时候用这个临时的变量恢复,多行模式的位置 */
+    var playerPoint2 by remember{mutableStateOf(Point(0,0))}
     var charWidth by remember{ mutableStateOf(computeCharWidth(subtitlesState.trackDescription)) }
+    // 一次播放多条字幕
+    val multipleLines = rememberMultipleLines()
+    // 启动播放多行字幕后，在这一行显示播放按钮
+    var playIconIndex  by remember{mutableStateOf(0)}
 
     /** 读取字幕文件*/
     if (subtitlesState.subtitlesPath.isNotEmpty() && captionList.isEmpty()) {
@@ -294,11 +297,16 @@ fun TypingSubtitles(
 
     val resetVideoBounds:() -> Rectangle = {
         isVideoBoundsChanged = false
-        Rectangle(tempPoint.x, tempPoint.y, 540, 303)
+        if(multipleLines.enabled){
+            Rectangle(playerPoint2.x, playerPoint2.y, 540, 303)
+        }else{
+            Rectangle(playerPoint1.x, playerPoint1.y, 540, 303)
+        }
+
     }
 
     /**  使用按钮播放视频时调用的回调函数   */
-    val playCurrentCaption: (Caption) -> Unit = { caption ->
+    val playCaption: (Caption) -> Unit = { caption ->
         val file = File(subtitlesState.mediaPath)
         if (file.exists() ) {
             if (!isPlaying) {
@@ -485,9 +493,22 @@ fun TypingSubtitles(
                 setIsOpenSettings(!isOpenSettings)
                 true
             }
+            (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyUp) -> {
+                if(multipleLines.enabled){
+                    multipleLines.enabled = false
+                    playIconIndex = 0
+                }
+                true
+            }
             ((keyEvent.key == Key.Tab) && keyEvent.type == KeyEventType.KeyUp) -> {
-                val caption = captionList[subtitlesState.currentIndex]
-                playCurrentCaption(caption)
+                if(multipleLines.enabled){
+                    val playItem = Caption(multipleLines.startTime ,multipleLines.endTime ,"")
+                    playCaption(playItem)
+                }else{
+                    val caption = captionList[subtitlesState.currentIndex]
+                    playCaption(caption)
+                }
+
                 true
             }
             else -> false
@@ -553,10 +574,7 @@ fun TypingSubtitles(
                     var rowWidth = indexWidth + startPadding + (subtitlesState.sentenceMaxLength * charWidth).dp +  endPadding + buttonWidth
 
                     if(subtitlesState.sentenceMaxLength < 50) rowWidth += 120.dp
-                    // 一次播放多条字幕
-                    val multipleLines = rememberMultipleLines()
-                    // 启动播放多行字幕后，在这一行显示播放按钮
-                    var playIconIndex  by remember{mutableStateOf(0)}
+
                     LazyColumn(
                         state = listState,
                         horizontalAlignment = Alignment.CenterHorizontally,
@@ -637,6 +655,32 @@ fun TypingSubtitles(
                                     }
                             }
 
+                            val enableMultipleLines:() -> Unit = {
+                                if(!multipleLines.enabled){
+                                    multipleLines.enabled = true
+                                    multipleLines.startIndex = index
+                                    multipleLines.endIndex = index
+                                    playIconIndex = index
+
+                                    multipleLines.startTime = caption.start
+                                    multipleLines.endTime = caption.end
+                                }else if(multipleLines.startIndex > index){
+                                    multipleLines.startIndex = index
+                                    playIconIndex = index
+
+                                    multipleLines.startTime = caption.start
+                                    // 播放器的位置向上偏移
+                                    multipleLines.isUp = true
+                                }else if(multipleLines.startIndex < index){
+                                    multipleLines.endIndex = index
+                                    playIconIndex = index
+
+                                    multipleLines.endTime = caption.end
+                                    // 播放器的位置向下偏移
+                                    multipleLines.isUp = false
+                                }
+                            }
+
                             val textFieldKeyEvent: (KeyEvent) -> Boolean = { it: KeyEvent ->
                                 when {
                                     ((it.key != Key.ShiftLeft && it.key != Key.ShiftRight &&
@@ -671,6 +715,10 @@ fun TypingSubtitles(
                                     }
                                     (it.isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) -> {
                                         scope.launch { selectable = !selectable }
+                                        true
+                                    }
+                                    (it.isCtrlPressed && it.key == Key.N && it.type == KeyEventType.KeyUp) -> {
+                                        scope.launch { enableMultipleLines() }
                                         true
                                     }
                                     else -> false
@@ -737,51 +785,72 @@ fun TypingSubtitles(
                                 ){
                                     Row(Modifier.width(96.dp)){
                                         if (multipleLines.enabled && playIconIndex == index) {
-                                            IconButton(onClick = {
-                                                multipleLines.enabled = false
-                                                playIconIndex = 0
-                                            }) {
-                                                Icon(
-                                                    Icons.Filled.Close,
-                                                    contentDescription = "Localized description",
-                                                    tint = MaterialTheme.colors.primary
-                                                )
-                                            }
-                                            val density = LocalDensity.current.density
-
-                                            IconButton(onClick = {},
-                                                modifier = Modifier
-                                                    .onPointerEvent(PointerEventType.Press) { pointerEvent ->
-                                                        val location =
-                                                            pointerEvent.awtEventOrNull?.locationOnScreen
-                                                        if (location != null) {
-                                                            if (isVideoBoundsChanged) {
-                                                                if (multipleLines.isUp) {
-                                                                    tempPoint.y =
-                                                                        ((location.y - (303 + 24)) * density).toInt()
-                                                                } else {
-                                                                    tempPoint.y =
-                                                                        ((location.y + 24) * density).toInt()
-                                                                }
-                                                                tempPoint.x =
-                                                                    ((location.x - 270) * density).toInt()
-                                                            } else {
-                                                                if (multipleLines.isUp) {
-                                                                    videoPlayerBounds.y =
-                                                                        ((location.y - (303 + 24)) * density).toInt()
-                                                                } else {
-                                                                    videoPlayerBounds.y =
-                                                                        ((location.y + 24) * density).toInt()
-                                                                }
-                                                                videoPlayerBounds.x =
-                                                                    ((location.x - 270) * density).toInt()
-                                                                // 根据一些特殊情况调整播放器的位置， 比如显示器缩放，播放器的位置超出屏幕边界。
-                                                                adjustPosition(density, videoPlayerBounds)
+                                            TooltipArea(
+                                                tooltip = {
+                                                    Surface(
+                                                        elevation = 4.dp,
+                                                        border = BorderStroke(
+                                                            1.dp,
+                                                            MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+                                                        ),
+                                                        shape = RectangleShape
+                                                    ) {
+                                                        Row(modifier = Modifier.padding(10.dp)){
+                                                            Text(text = "退出" )
+                                                            CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                                                Text(text = " Esc")
                                                             }
                                                         }
 
-                                                        val playItem = Caption(multipleLines.startTime ,multipleLines.endTime ,"")
-                                                        playCurrentCaption(playItem)
+                                                    }
+                                                },
+                                                delayMillis = 300,
+                                                tooltipPlacement = TooltipPlacement.ComponentRect(
+                                                    anchor = Alignment.TopCenter,
+                                                    alignment = Alignment.TopCenter,
+                                                    offset = DpOffset.Zero
+                                                )
+                                            ) {
+                                                IconButton(onClick = {
+                                                    multipleLines.enabled = false
+                                                    playIconIndex = 0
+                                                }) {
+                                                    Icon(
+                                                        Icons.Filled.Close,
+                                                        contentDescription = "Localized description",
+                                                        tint = MaterialTheme.colors.primary
+                                                    )
+                                                }
+                                            }
+
+                                            val density = LocalDensity.current.density
+
+                                            IconButton(onClick = {
+                                                val playItem = Caption(multipleLines.startTime ,multipleLines.endTime ,"")
+                                                playCaption(playItem)
+                                            },
+                                                modifier = Modifier
+                                                    .onGloballyPositioned{coordinates ->
+                                                        val rect = coordinates.boundsInWindow()
+                                                        if (multipleLines.isUp) {
+                                                            playerPoint2.y =
+                                                                window.y + rect.top.toInt() - ((303 - 48) * density).toInt()
+                                                        } else {
+                                                            playerPoint2.y =
+                                                                window.y + rect.top.toInt() + (100 * density).toInt()
+                                                        }
+                                                        playerPoint2.x =
+                                                            window.x + rect.left.toInt() - (270 * density).toInt()
+                                                        if(!isVideoBoundsChanged){
+                                                            // 播放按钮可以显示
+                                                            if(!rect.isEmpty){
+                                                                videoPlayerBounds.location = playerPoint2
+                                                                adjustPosition(density, videoPlayerBounds)
+                                                                playerPoint2 = videoPlayerBounds.location
+                                                            }
+                                                        }
+
+
                                                     }
                                             ) {
                                                 val icon = if (mediaType == "audio" && !isPlaying) {
@@ -800,32 +869,10 @@ fun TypingSubtitles(
                                         }
                                     }
 
+
                                     Text(
                                         modifier = Modifier.clickable {
-                                            if(!multipleLines.enabled){
-                                                multipleLines.enabled = true
-                                                multipleLines.startIndex = index
-                                                multipleLines.endIndex = index
-                                                playIconIndex = index
-
-                                                multipleLines.startTime = caption.start
-                                                multipleLines.endTime = caption.end
-                                            }else if(multipleLines.startIndex > index){
-                                                multipleLines.startIndex = index
-                                                playIconIndex = index
-
-                                                multipleLines.startTime = caption.start
-                                                // 播放器的位置向上偏移
-                                                multipleLines.isUp = true
-                                            }else if(multipleLines.startIndex < index){
-                                                multipleLines.endIndex = index
-                                                playIconIndex = index
-
-                                                multipleLines.endTime = caption.end
-                                                // 播放器的位置向下偏移
-                                                multipleLines.isUp = false
-                                            }
-
+                                            enableMultipleLines()
                                         },
                                         text = buildAnnotatedString {
                                             withStyle(
@@ -1026,7 +1073,7 @@ fun TypingSubtitles(
                                         ) {
                                             val density = LocalDensity.current.density
                                             IconButton(onClick = {
-                                                playCurrentCaption(caption)
+                                                playCaption(caption)
                                                 textFieldRequester.requestFocus()
                                             },
                                                 modifier = Modifier
@@ -1047,12 +1094,12 @@ fun TypingSubtitles(
                                                         }else{
                                                             if(!rect.isEmpty){
                                                                 // 视频播放按钮没有被遮挡
-                                                                tempPoint.x = window.x + rect.left.toInt() + (48 * density).toInt()
-                                                                tempPoint.y = window.y + rect.top.toInt() - (100 * density).toInt()
+                                                                playerPoint1.x = window.x + rect.left.toInt() + (48 * density).toInt()
+                                                                playerPoint1.y = window.y + rect.top.toInt() - (100 * density).toInt()
                                                             }else{
                                                                 // 视频播放按钮被遮挡
-                                                                tempPoint.x = window.x + textRect.right.toInt()
-                                                                tempPoint.y = window.y + textRect.top.toInt() - (100 * density).toInt()
+                                                                playerPoint1.x = window.x + textRect.right.toInt()
+                                                                playerPoint1.y = window.y + textRect.top.toInt() - (100 * density).toInt()
                                                             }
                                                         }
 
