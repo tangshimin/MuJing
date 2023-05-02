@@ -1,8 +1,6 @@
 package ui.dialog
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -16,6 +14,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -32,7 +31,7 @@ import javax.swing.JOptionPane
 import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.filechooser.FileSystemView
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun MatchVocabularyDialog(
     futureFileChooser: FutureTask<JFileChooser>,
@@ -151,7 +150,31 @@ fun MatchVocabularyDialog(
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Box{
+                        TooltipArea(
+                            tooltip = {
+                                Surface(
+                                    elevation = 4.dp,
+                                    border = BorderStroke(
+                                        1.dp,
+                                        MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+                                    ),
+                                    shape = RectangleShape
+                                ) {
+                                    Row(modifier = Modifier.padding(10.dp)){
+                                        Text(text = "比如四、六级词库" )
+
+                                    }
+
+                                }
+                            },
+                            delayMillis = 300,
+                            tooltipPlacement = TooltipPlacement.ComponentRect(
+                                anchor = Alignment.TopCenter,
+                                alignment = Alignment.TopCenter,
+                                offset = DpOffset(0.dp,(-2).dp)
+                            )
+                        ) {
+                            Box{
                             var isHover by remember { mutableStateOf(false) }
                             Column (
                                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -184,7 +207,7 @@ fun MatchVocabularyDialog(
 
 
                             ){
-                                Text(text = "基准词库",modifier = Modifier.padding(top = 10.dp))
+                                Text(text = "常用词库",modifier = Modifier.padding(top = 10.dp))
                                 Column ( horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center,
                                     modifier = Modifier.fillMaxSize()){
@@ -211,70 +234,96 @@ fun MatchVocabularyDialog(
 
                             }
                         }
+                        }
+
 
                         Spacer(Modifier.width(30.dp))
-                        Box{
-                            var isHover by remember { mutableStateOf(false) }
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                verticalArrangement = Arrangement.Center,
-                                modifier = Modifier.width(165.dp).height(200.dp)
-                                    .clickable {
-                                        Thread {
-                                            val fileChooser = futureFileChooser.get()
-                                            fileChooser.dialogTitle = "选择对比词库"
-                                            fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                                            fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                                            fileChooser.isAcceptAllFileFilterUsed = false
-                                            val fileFilter = FileNameExtensionFilter("词库", "json")
-                                            fileChooser.addChoosableFileFilter(fileFilter)
-                                            fileChooser.selectedFile = null
-                                            if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                                                val path = fileChooser.selectedFile.absolutePath
-                                                comparisonDir = fileChooser.selectedFile.parent
-                                                comparison = loadVocabulary(path)
-
-                                            }
-                                            fileChooser.selectedFile = null
-
-                                            fileChooser.removeChoosableFileFilter(fileFilter)
-                                        }.start()
+                        TooltipArea(
+                            tooltip = {
+                                Surface(
+                                    elevation = 4.dp,
+                                    border = BorderStroke(
+                                        1.dp,
+                                        MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+                                    ),
+                                    shape = RectangleShape
+                                ) {
+                                    Row(modifier = Modifier.padding(10.dp)){
+                                        Text(text = "要提取四、六级单词的词库" )
                                     }
-                                    .onPointerEvent(PointerEventType.Enter){isHover = true}
-                                    .onPointerEvent(PointerEventType.Exit){isHover = false}
-                                    .border(border = BorderStroke(if(isHover) 2.dp else 1.dp,
-                                        if(isHover) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
-                            ){
-                                Text(text = "对比词库",modifier = Modifier.padding(top = 10.dp))
-                                Column ( horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center,
-                                    modifier = Modifier.fillMaxSize()){
-                                    if(comparison == null){
-                                        val tint = if(isHover){
-                                            MaterialTheme.colors.primary
-                                        }else if(MaterialTheme.colors.isLight){
-                                            Color.DarkGray
-                                        }else {
-                                            MaterialTheme.colors.onBackground
-                                        }
-                                        Icon(
-                                            Icons.Filled.Add,
-                                            contentDescription = "Localized description",
-                                            tint =tint,
-                                        )
 
-                                    }else{
-                                        Text(comparison!!.name)
-                                        Text(text = "数量：${comparison!!.wordList.size}")
+                                }
+                            },
+                            delayMillis = 300,
+                            tooltipPlacement = TooltipPlacement.ComponentRect(
+                                anchor = Alignment.TopCenter,
+                                alignment = Alignment.TopCenter,
+                                offset = DpOffset(0.dp,(-2).dp)
+                            )
+                        ) {
+                            Box{
+                                var isHover by remember { mutableStateOf(false) }
+                                Column(
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    verticalArrangement = Arrangement.Center,
+                                    modifier = Modifier.width(165.dp).height(200.dp)
+                                        .clickable {
+                                            Thread {
+                                                val fileChooser = futureFileChooser.get()
+                                                fileChooser.dialogTitle = "选择对比词库"
+                                                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
+                                                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+                                                fileChooser.isAcceptAllFileFilterUsed = false
+                                                val fileFilter = FileNameExtensionFilter("词库", "json")
+                                                fileChooser.addChoosableFileFilter(fileFilter)
+                                                fileChooser.selectedFile = null
+                                                if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                                                    val path = fileChooser.selectedFile.absolutePath
+                                                    comparisonDir = fileChooser.selectedFile.parent
+                                                    comparison = loadVocabulary(path)
+
+                                                }
+                                                fileChooser.selectedFile = null
+
+                                                fileChooser.removeChoosableFileFilter(fileFilter)
+                                            }.start()
+                                        }
+                                        .onPointerEvent(PointerEventType.Enter){isHover = true}
+                                        .onPointerEvent(PointerEventType.Exit){isHover = false}
+                                        .border(border = BorderStroke(if(isHover) 2.dp else 1.dp,
+                                            if(isHover) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
+                                ){
+                                    Text(text = "对比词库",modifier = Modifier.padding(top = 10.dp))
+                                    Column ( horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center,
+                                        modifier = Modifier.fillMaxSize()){
+                                        if(comparison == null){
+                                            val tint = if(isHover){
+                                                MaterialTheme.colors.primary
+                                            }else if(MaterialTheme.colors.isLight){
+                                                Color.DarkGray
+                                            }else {
+                                                MaterialTheme.colors.onBackground
+                                            }
+                                            Icon(
+                                                Icons.Filled.Add,
+                                                contentDescription = "Localized description",
+                                                tint =tint,
+                                            )
+
+                                        }else{
+                                            Text(comparison!!.name)
+                                            Text(text = "数量：${comparison!!.wordList.size}")
+                                        }
                                     }
                                 }
-                            }
 
+                            }
                         }
+
                     }
 
                     if(result!=null){
-
                         Text(text = "共匹配到${result!!.size}个单词",modifier = Modifier.padding(top = 30.dp))
                     }
                     Row(
