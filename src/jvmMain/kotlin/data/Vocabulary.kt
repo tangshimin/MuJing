@@ -8,6 +8,7 @@ import kotlinx.serialization.json.Json
 import state.getResourcesFile
 import state.getSettingsDirectory
 import java.io.File
+import java.util.*
 import javax.swing.JOptionPane
 
 /**
@@ -72,7 +73,7 @@ data class Word(
     }
 
     override fun hashCode(): Int {
-        return value.hashCode()
+        return value.lowercase().hashCode()
     }
 }
 fun Word.deepCopy():Word{
