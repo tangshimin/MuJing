@@ -238,11 +238,6 @@ fun GenerateVocabularyDialog(
         val summaryVocabulary = loadSummaryVocabulary()
 
         /**
-         * 分析之后得到的单词
-         */
-        val documentWords = remember { mutableStateListOf<Word>() }
-
-        /**
          * 用于过滤的词库列表
          */
         val vocabularyFilterList = remember { mutableStateListOf<File>() }
@@ -554,7 +549,7 @@ fun GenerateVocabularyDialog(
         val analysis : (String,Int) -> Unit = { pathName,trackId ->
             filterState = Parsing
             vocabularyFilterList.clear()
-            documentWords.clear()
+            previewList.clear()
             Thread {
                 val words = when (type) {
                     DOCUMENT -> {
@@ -577,14 +572,14 @@ fun GenerateVocabularyDialog(
                     }
 
                     MKV -> {
-                        readMKV(
+                       readMKV(
                             pathName = pathName,
                             trackId = trackId,
                             setProgressText = { progressText = it },
                         )
                     }
                 }
-                words.forEach { word -> documentWords.add(word) }
+                previewList.addAll(words)
                 filterState =
                     if (numberFilter || bncNumberFilter || frqNumFilter ||
                         bncZeroFilter || frqZeroFilter || replaceToLemma ||
@@ -594,10 +589,6 @@ fun GenerateVocabularyDialog(
                     } else {
                         End
                     }
-                if (filterState == End) {
-                    previewList.clear()
-                    previewList.addAll(documentWords)
-                }
             }.start()
         }
 
@@ -605,7 +596,7 @@ fun GenerateVocabularyDialog(
         val batchAnalysis:(String) -> Unit = {language ->
 
             vocabularyFilterList.clear()
-            documentWords.clear()
+            previewList.clear()
             Thread {
                 val words = batchReadMKV(
                     language = language,
@@ -623,7 +614,7 @@ fun GenerateVocabularyDialog(
                     showTaskList = false
                     selectable = false
                 }
-                words.forEach { word -> documentWords.add(word) }
+                previewList.addAll(words)
                 filterState =
                     if (numberFilter || bncNumberFilter || frqNumFilter ||
                         bncZeroFilter || frqZeroFilter || replaceToLemma ||
@@ -633,10 +624,6 @@ fun GenerateVocabularyDialog(
                     } else {
                         End
                     }
-                if (filterState == End) {
-                    previewList.clear()
-                    previewList.addAll(documentWords)
-                }
 
                 if (errorMessages.isNotEmpty()) {
                     val string = "有 ${errorMessages.size} 个文件解析失败，请点击 [任务列表] 查看详细信息"
@@ -769,6 +756,7 @@ fun GenerateVocabularyDialog(
                                 setSelectedFilePath = { selectedFilePath = it },
                                 selectedSubtitle = selectedSubtitlesName,
                                 setSelectedSubtitle = { selectedSubtitlesName = it },
+                                setRelateVideoPath = {relateVideoPath = it},
                                 relateVideoPath = relateVideoPath,
                                 trackList = trackList,
                                 selectedTrackId = selectedTrackId,
@@ -815,7 +803,7 @@ fun GenerateVocabularyDialog(
                                         Thread {
                                             // 根据词频或原型过滤单词
                                             val filteredDocumentList = filterDocumentWords(
-                                                documentWords,
+                                                previewList,
                                                 numberFilter,
                                                 state.global.bncNum,
                                                 bncNumberFilter,
@@ -850,12 +838,15 @@ fun GenerateVocabularyDialog(
                                         )
                                     }
                                     Idle -> {
-                                        Text(
-                                            text = "可以拖放文件到这里",
-                                            color = MaterialTheme.colors.onBackground,
-                                            style = MaterialTheme.typography.h6,
-                                            modifier = Modifier.align(Alignment.Center)
-                                        )
+                                        if(!loading){
+                                            Text(
+                                                text = "可以拖放文件到这里",
+                                                color = MaterialTheme.colors.onBackground,
+                                                style = MaterialTheme.typography.h6,
+                                                modifier = Modifier.align(Alignment.Center)
+                                            )
+                                        }
+
                                     }
                                 }
 
@@ -971,9 +962,10 @@ fun GenerateVocabularyDialog(
                                             filteringType = DOCUMENT
                                             trackList.clear()
                                             filterState = Idle
-                                            documentWords.clear()
                                             vocabularyFilterList.clear()
                                             numberFilter = false
+                                            frqNumFilter = false
+                                            bncNumberFilter = false
                                             bncZeroFilter = false
                                             frqZeroFilter = false
                                             replaceToLemma = false
@@ -1880,6 +1872,7 @@ fun SelectFile(
     setSelectedFilePath: (String) -> Unit,
     selectedSubtitle: String,
     setSelectedSubtitle: (String) -> Unit,
+    setRelateVideoPath: (String) -> Unit,
     relateVideoPath: String,
     trackList: List<Pair<Int, String>>,
     selectedTrackId: Int,
@@ -1935,10 +1928,19 @@ fun SelectFile(
             }
 
             Spacer(Modifier.width(10.dp))
+            val startEnable = if(type != MKV){
+                selectedFilePath.isNotEmpty()
+            }else selectedSubtitle != "    "
+
             OutlinedButton(
-                enabled = type != MKV && selectedFilePath.isNotEmpty(),
+                enabled = startEnable,
                 onClick = {
-                    analysis(selectedFilePath, selectedTrackId)
+                    if(selectedFileList.isEmpty()){
+                        analysis(selectedFilePath, selectedTrackId)
+                    }else{
+                        batchAnalysis("English")
+                    }
+
                 }) {
                 Text("开始", fontSize = 12.sp)
             }
@@ -2081,19 +2083,19 @@ fun SelectFile(
                     }
                 }
 
-                if (selectedFileList.isEmpty() && selectedSubtitle != "    " && trackList.isNotEmpty()) {
-                    OutlinedButton(onClick = {
-                        analysis(selectedFilePath, selectedTrackId)
-                    }) {
-                        Text("开始", fontSize = 12.sp)
-                    }
-                }
+//                if (selectedFileList.isEmpty() && selectedSubtitle != "    " && trackList.isNotEmpty()) {
+//                    OutlinedButton(onClick = {
+//                        analysis(selectedFilePath, selectedTrackId)
+//                    }) {
+//                        Text("开始", fontSize = 12.sp)
+//                    }
+//                }
 
                 if(selectedFileList.isNotEmpty()){
-                    OutlinedButton(onClick = { batchAnalysis("English") }) {
-                        Text("开始", fontSize = 12.sp)
-                    }
-                    Spacer(Modifier.width(10.dp))
+//                    OutlinedButton(onClick = { batchAnalysis("English") }) {
+//                        Text("开始", fontSize = 12.sp)
+//                    }
+//                    Spacer(Modifier.width(10.dp))
                     OutlinedButton(onClick = { showTaskListEvent() }) {
                         Text("任务列表", fontSize = 12.sp)
                     }
@@ -2129,8 +2131,7 @@ fun SelectFile(
                 Text("选择对应的视频(可选)", color = MaterialTheme.colors.onBackground)
                 BasicTextField(
                     value = relateVideoPath,
-                    onValueChange = {
-                    },
+                    onValueChange = setRelateVideoPath,
                     singleLine = true,
                     cursorBrush = SolidColor(MaterialTheme.colors.primary),
                     textStyle = TextStyle(
@@ -2155,7 +2156,7 @@ fun SelectFile(
 
 
 fun filterDocumentWords(
-    documentWords: List<Word>,
+    inputWords: List<Word>,
     numberFilter: Boolean,
     bncNum:Int,
     bncNumFilter:Boolean,
@@ -2166,7 +2167,7 @@ fun filterDocumentWords(
     replaceToLemma: Boolean,
     isBatchMKV:Boolean
 ): List<Word> {
-    val previewList = ArrayList(documentWords)
+    val resultList = ArrayList(inputWords)
     /**
      * Key 为需要转换为原型的单词，
      *  Value 是 Key 的原型词，还没有查词典，有可能词典里面没有。
@@ -2179,27 +2180,27 @@ fun filterDocumentWords(
     /** 原型词 -> 外部字幕列表映射,批量生成 MKV 词库时，字幕保存在单词的外部字幕列表 */
     val externalCaptionsMap = HashMap<String, MutableList<ExternalCaption>>()
 
-    documentWords.forEach { word ->
+    inputWords.forEach { word ->
 
         if (numberFilter && (word.value.toDoubleOrNull() != null)){
             // 过滤数字
-            previewList.remove(word)
+            resultList.remove(word)
         }else if(bncNumFilter && (word.bnc!! in 1 until bncNum)){
             // 过滤最常见的词
-            previewList.remove(word)
+            resultList.remove(word)
         }else if(frqNumFilter && (word.frq!! in 1 until frqNum)){
             // 过滤最常见的词
-            previewList.remove(word)
+            resultList.remove(word)
         }else if (bncZeroFilter && word.bnc == 0){
             // 过滤 BNC 词频为 0 的词
-            previewList.remove(word)
+            resultList.remove(word)
         }else if (frqZeroFilter && word.frq == 0){
             // 过滤 COCA 词频为 0 的词
-            previewList.remove(word)
+            resultList.remove(word)
         }
 
         val lemma = getWordLemma(word)
-        if (replaceToLemma && !lemma.isNullOrEmpty()) {
+        if (replaceToLemma && lemma.isNotEmpty()) {
             lemmaMap[word] = lemma
             // 处理内部字幕，批量的用 MKV 生成词库时，字幕保存在外部字幕列表
             if(!isBatchMKV){
@@ -2255,14 +2256,14 @@ fun filterDocumentWords(
 
     val toLemmaList = lemmaMap.keys
     for (word in toLemmaList) {
-        val index = previewList.indexOf(word)
+        val index = resultList.indexOf(word)
         // 有一些词可能 属于 BNC 或 FRQ 为 0 的词，已经被过滤了，所以 index 为 -1
         if(index != -1){
             val lemmaStr = lemmaMap[word]
             val validLemma = validLemmaMap[lemmaStr]
             if(validLemma != null){
-                previewList.remove(word)
-                if (!previewList.contains(validLemma)){
+                resultList.remove(word)
+                if (!resultList.contains(validLemma)){
                     // 默认 add 为真
                     var add = true
                     // 但是，如果单词的词频为 0 或者是最常见的单词就不添加
@@ -2277,7 +2278,7 @@ fun filterDocumentWords(
                     }
 
                     if(add){
-                        previewList.add(index,validLemma)
+                        resultList.add(index,validLemma)
                     }
                 }
             }
@@ -2285,7 +2286,7 @@ fun filterDocumentWords(
         }
 
     }
-    return previewList
+    return resultList
 }
 
 fun filterSelectVocabulary(
@@ -2377,9 +2378,7 @@ fun PreviewWords(
                                         modifier = Modifier.fillMaxWidth()
                                     )
                                     val lemma = getWordLemma(word)
-                                    if (lemma != null) {
-                                        Text(text = "原型:$lemma", fontSize = 12.sp)
-                                    }
+                                    Text(text = "原型:$lemma", fontSize = 12.sp)
                                     Row {
                                         Text(text = "BNC  ", fontSize = 12.sp, modifier = Modifier.padding(end = 2.dp))
                                         Text(text = ":${word.bnc}", fontSize = 12.sp)
