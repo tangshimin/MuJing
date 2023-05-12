@@ -2,6 +2,7 @@ package ui.dialog
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -12,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.PointerIcon.Companion.Hand
@@ -307,7 +309,11 @@ fun DocumentPage(){
 @Composable
 fun SameSteps(){
     val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
-    Text(frequencyText,modifier = Modifier.padding(start = 20.dp))
+    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(top = 10.dp)){
+        Spacer(Modifier.width(3.dp).height(180.dp).background(Color.Red))
+        Text(frequencyText,modifier = Modifier.padding(start = 10.dp,bottom = 5.dp))
+    }
+
     Text("\n2. 在左边的预览区可以看到程序生成的单词。你可以点击左边的过滤词频顺序为0的词，\n" +
             "    词频为 0 的词包括简单的字母和数字还有一些没有收录进词频顺序的生僻词。\n")
     Column {
@@ -390,7 +396,21 @@ fun SubtitlesPage(){
         val stateVertical = rememberScrollState(0)
         Column (Modifier.padding(start = 16.dp, top = 16.dp,end = 16.dp).verticalScroll(stateVertical)){
             val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
-            Text("从字幕生成的词库，每个单词最多匹配三条字幕。\n")
+            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max)){
+                Spacer(Modifier.width(3.dp).height(90.dp).background(Color.Red))
+                Column (Modifier.padding(start = 10.dp,top = 10.dp)){
+
+                    Text(text = "• 使用字幕生成的词库，每个单词最多匹配三条字幕。", fontWeight = FontWeight.Bold,)
+                    Row(modifier = Modifier.padding(top = 5.dp)){
+                        Text("• ", fontWeight = FontWeight.Bold)
+                        Text(text = "生成词库并没有切割视频，生成词库后不要移动视频的位置或重命名视频，如果移动或重命名了视频，播放视频时会发生错误，只能重新再生成一次。",
+                            fontWeight = FontWeight.Bold)
+                    }
+
+
+                }
+            }
+
             Text("\n1. 打开从字幕生成词库窗口,然后选择 SRT 字幕，也可以拖放文件到窗口快速打开，\n" +
                     "    如果有对应的视频，就选择对应的视频，然后点击分析按钮。[1]\n")
             Image(
@@ -440,13 +460,28 @@ fun MatroskaPage(){
         val stateVertical = rememberScrollState(0)
         Column (Modifier.padding(start = 16.dp, top = 16.dp,end = 16.dp).verticalScroll(stateVertical)){
             val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
-            Text("从 MKV 生成的词库，每个单词最多匹配三条字幕。\n")
+            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max)){
+                Spacer(Modifier.width(3.dp).height(90.dp).background(Color.Red))
+                Column (Modifier.padding(start = 10.dp,top = 10.dp)){
+                    Text(text = "• 使用 MKV 视频生成的词库，每个单词最多匹配三条字幕。",
+                        fontWeight = FontWeight.Bold)
+                    Row(modifier = Modifier.padding(top = 5.dp)){
+                        Text("• ", fontWeight = FontWeight.Bold)
+                        Text(text = "生成词库并没有切割视频，生成词库后不要移动视频的位置或重命名视频，如果移动或重命名了视频，播放视频时会发生错误，只能重新再生成一次。",
+                            fontWeight = FontWeight.Bold,)
+                    }
+
+                }
+            }
+
+
+
             Text("\n1. 打开从 MKV 生成词库窗口,然后选择 MKV 视频，也可以拖放文件到窗口快速打开，（最新版支持批量生成词库）\n" +
                     "    然后点击开始按钮。[1]\n")
             Image(
                 painter = painterResource("screenshot/mkv-$theme/MKV-1.png"),
                 contentDescription = "mkv-step-1",
-                modifier = Modifier.width(588.dp).height(192.dp).padding(start = 20.dp)
+                modifier = Modifier.width(685.dp).height(192.dp).padding(start = 20.dp)
                     .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
             )
             SameSteps()
