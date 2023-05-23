@@ -78,7 +78,7 @@ fun AboutDialog(
                 }
                 when (state) {
                     0 -> {
-                        Column (modifier = Modifier.width(IntrinsicSize.Max).padding(start = 38.dp,top = 20.dp,end = 38.dp)){
+                        Column (modifier = Modifier.width(IntrinsicSize.Max).padding(start = 38.dp,top = 20.dp,end = 38.dp,bottom = 20.dp)){
 
                             Row(
                                 horizontalArrangement = Arrangement.Center,
@@ -102,20 +102,28 @@ fun AboutDialog(
                                 }
                             }
 
-                            Row{
-                                Text("GitHub 地址：")
+                            Row(modifier = Modifier.fillMaxWidth().padding(top = 20.dp)){
+                                Text("GitHub 地址：     ")
                                 LinkText(
                                     text = "https://github.com/tangshimin/MuJing",
                                     url =  "https://github.com/tangshimin/MuJing"
                                 )
                             }
-                            Row(
-                                horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
-                            ) {
-                                Text("如果你有任何问题或建议可以到 GitHub 提 Issue")
+                            Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)){
+                                Text("用户反馈地址：   ")
+                                LinkText(
+                                    text = "https://support.qq.com/products/594079/",
+                                    url =  "https://support.qq.com/products/594079/"
+                                )
                             }
+                            Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)){
+                                Text("邮箱：                ",modifier = Modifier.padding(end = 1.dp))
+                                LinkText(
+                                    text = "tang_shimin@qq.com",
+                                    url = "mailto:tang_shimin@qq.com"
+                                )
+                            }
+
 
                         }
                     }
