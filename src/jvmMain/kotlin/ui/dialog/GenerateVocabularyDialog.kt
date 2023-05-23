@@ -1930,7 +1930,7 @@ fun SelectFile(
             Spacer(Modifier.width(10.dp))
             val startEnable = if(type != MKV){
                 selectedFilePath.isNotEmpty()
-            }else selectedSubtitle != "    "
+            }else selectedSubtitle != "    " || selectedFileList.isNotEmpty()
 
             OutlinedButton(
                 enabled = startEnable,
@@ -2083,19 +2083,8 @@ fun SelectFile(
                     }
                 }
 
-//                if (selectedFileList.isEmpty() && selectedSubtitle != "    " && trackList.isNotEmpty()) {
-//                    OutlinedButton(onClick = {
-//                        analysis(selectedFilePath, selectedTrackId)
-//                    }) {
-//                        Text("开始", fontSize = 12.sp)
-//                    }
-//                }
 
                 if(selectedFileList.isNotEmpty()){
-//                    OutlinedButton(onClick = { batchAnalysis("English") }) {
-//                        Text("开始", fontSize = 12.sp)
-//                    }
-//                    Spacer(Modifier.width(10.dp))
                     OutlinedButton(onClick = { showTaskListEvent() }) {
                         Text("任务列表", fontSize = 12.sp)
                     }
