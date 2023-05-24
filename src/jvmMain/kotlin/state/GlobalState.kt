@@ -23,6 +23,8 @@ data class GlobalData(
     val keystrokeVolume: Float = 0.75F,
     val isPlayKeystrokeSound: Boolean = false,
     val primaryColorValue: ULong = 18377412168996880384UL,
+    val backgroundColorValue:ULong = 18446744069414584320UL,
+    val onBackgroundColorValue:ULong = 18374686479671623680UL,
     val wordTextStyle: String = "H2",
     val detailTextStyle: String = "Body1",
     val letterSpacing: Float = 5F,
@@ -74,6 +76,16 @@ class GlobalState(globalData: GlobalData) {
      * 主色调，默认为绿色
      */
     var primaryColor by mutableStateOf(Color(globalData.primaryColorValue))
+
+    /**
+     * 浅色主题的背景色
+     */
+    var backgroundColor by mutableStateOf(Color(globalData.backgroundColorValue))
+
+    /**
+     * 浅色主题的背景色
+     */
+    var onBackgroundColor by mutableStateOf(Color(globalData.onBackgroundColorValue))
 
     /**
      * 单词的字体样式，需要持久化

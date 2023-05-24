@@ -36,7 +36,7 @@ class AppState {
     var global: GlobalState = loadGlobalState()
 
     /** Material 颜色 */
-    var colors by mutableStateOf(createColors(global.isDarkTheme, global.primaryColor))
+    var colors by mutableStateOf(createColors(global.isDarkTheme, global.primaryColor,global.backgroundColor,global.onBackgroundColor))
 
     /** 视频播放窗口,使用 JFrame 的一个原因是 swingPanel 重组的时候会产生闪光,
      * 相关 Issue: https://github.com/JetBrains/compose-jb/issues/1800,
@@ -141,6 +141,8 @@ class AppState {
                     global.keystrokeVolume,
                     global.isPlayKeystrokeSound,
                     global.primaryColor.value,
+                    global.backgroundColor.value,
+                    global.onBackgroundColor.value,
                     global.wordTextStyle,
                     global.detailTextStyle,
                     global.letterSpacing.value,
@@ -285,7 +287,7 @@ class AppState {
         runBlocking {
             launch {
                 global.isDarkTheme = it
-                colors = createColors(global.isDarkTheme, global.primaryColor)
+                colors = createColors(global.isDarkTheme, global.primaryColor,global.backgroundColor,global.onBackgroundColor)
                 saveGlobalState()
             }
         }

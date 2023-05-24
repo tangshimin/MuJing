@@ -51,7 +51,11 @@ fun initializeFlatLaf(darkTheme: Boolean) {
 /**
  * 更新 FlatLaf
  */
-fun updateFlatLaf(darkTheme: Boolean) {
+fun updateFlatLaf(
+    darkTheme: Boolean,
+    background: Color,
+    onBackground: Color,
+) {
     if (darkTheme) {
         FlatDarkLaf.setup()
         UIManager.put("TitlePane.unifiedBackground", false)
@@ -81,21 +85,23 @@ fun updateFlatLaf(darkTheme: Boolean) {
         FlatLightLaf.setup()
         val border = Color(224, 224, 224)
         UIManager.put("TitlePane.unifiedBackground", false)
-        UIManager.put("TitlePane.background", Color.WHITE)
-        UIManager.put("TitlePane.foreground", Color.BLACK)
+//        UIManager.put("TitlePane.background", Color.WHITE)
+        UIManager.put("TitlePane.background", background)
+        UIManager.put("TitlePane.foreground", onBackground)
         UIManager.put("TitlePane.focusColor", border)
 
         // ScrollPane
-        UIManager.put("ScrollPane.background", Color(245, 245, 245))
-        UIManager.put("ScrollPane.foreground", Color.BLACK)
+        UIManager.put("ScrollPane.background", background)
+        UIManager.put("ScrollPane.foreground", onBackground)
         UIManager.put("ScrollPane.border", LineBorder(border, 1))
 
         //MenuBar
         UIManager.put("MenuBar.borderColor", border)
         //SplitPane
-        UIManager.put("SplitPane.background", Color(219, 219, 219))
-        UIManager.put("Tree.background", Color.WHITE)
-        UIManager.put("Tree.foreground", Color.BLACK)
+        UIManager.put("SplitPane.background", background)
+//        UIManager.put("Tree.background", Color.WHITE)
+        UIManager.put("Tree.background", background)
+        UIManager.put("Tree.foreground", onBackground)
 
         // Panel
 //        UIManager.put("Panel.background", Color.WHITE)

@@ -10,7 +10,9 @@ val green = Color(0xFF09af00)// Color(46, 125, 50)
 val IDEADarkThemeOnBackground = Color(133, 144, 151)
 fun createColors(
     isDarkTheme: Boolean,
-    primary: Color
+    primary: Color,
+    background:Color,
+    onBackground:Color
 ): Colors {
     return if (isDarkTheme) {
         darkColors(
@@ -20,6 +22,8 @@ fun createColors(
     } else {
         lightColors(
             primary = primary,
+            background = background,
+            onBackground = onBackground
         )
     }
 }

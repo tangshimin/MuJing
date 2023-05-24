@@ -25,10 +25,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.text.withStyle
-import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
@@ -38,6 +35,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
 import state.WordState
 import theme.createColors
+import ui.flatlaf.updateFlatLaf
 import java.awt.Dimension
 import javax.swing.JColorChooser
 
@@ -58,93 +56,96 @@ fun SettingsDialog(
             size = DpSize(900.dp, 700.dp)
         ),
     ) {
-        Surface(
-            elevation = 5.dp,
-            shape = RectangleShape,
-        ) {
-            Box(Modifier.fillMaxSize()) {
+        MaterialTheme(colors = state.colors) {
+            Surface(
+                elevation = 5.dp,
+                shape = RectangleShape,
+            ) {
+                Box(Modifier.fillMaxSize().background(MaterialTheme.colors.background)) {
 
-                Row(Modifier.fillMaxSize()) {
-                    var currentPage by remember { mutableStateOf("Theme") }
-                    Column(Modifier.width(100.dp).fillMaxHeight()) {
+                    Row(Modifier.fillMaxSize()) {
+                        var currentPage by remember { mutableStateOf("Theme") }
+                        Column(Modifier.width(100.dp).fillMaxHeight()) {
 
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clickable { currentPage = "Theme" }
-                                .fillMaxWidth()
-                                .height(48.dp)) {
-                            Text("主题", modifier = Modifier.padding(start = 16.dp))
-                            if (currentPage == "Theme") {
-                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .clickable { currentPage = "Theme" }
+                                    .fillMaxWidth()
+                                    .height(48.dp)) {
+                                Text("主题", modifier = Modifier.padding(start = 16.dp))
+                                if (currentPage == "Theme") {
+                                    Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                                }
                             }
-                        }
 
-                        Row(
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clickable { currentPage = "TextStyle" }
-                                .fillMaxWidth()
-                                .height(48.dp)) {
-                            Text("字体样式", modifier = Modifier.padding(start = 16.dp))
-                            if (currentPage == "TextStyle") {
-                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .clickable { currentPage = "TextStyle" }
+                                    .fillMaxWidth()
+                                    .height(48.dp)) {
+                                Text("字体样式", modifier = Modifier.padding(start = 16.dp))
+                                if (currentPage == "TextStyle") {
+                                    Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                                }
                             }
-                        }
-                        Row(horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clickable { currentPage = "ColorChooser" }
-                                .fillMaxWidth()
-                                .height(48.dp)) {
-                            Text("主色调", modifier = Modifier.padding(start = 16.dp))
-                            if (currentPage == "ColorChooser") {
-                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                            Row(horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .clickable { currentPage = "ColorChooser" }
+                                    .fillMaxWidth()
+                                    .height(48.dp)) {
+                                Text("主色调", modifier = Modifier.padding(start = 16.dp))
+                                if (currentPage == "ColorChooser") {
+                                    Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                                }
                             }
-                        }
 
+                        }
+                        Divider(Modifier.fillMaxHeight().width(1.dp))
+                        when (currentPage) {
+                            "Theme" -> {
+                                SettingTheme(state)
+                            }
+                            "TextStyle" -> {
+                                SettingTextStyle(state,typingWordState)
+                            }
+                            "ColorChooser" -> {
+                                PrimaryColorChooser(
+                                    close = { close() },
+                                    state = state
+                                )
+                            }
+
+                        }
                     }
-                    Divider(Modifier.fillMaxHeight().width(1.dp))
-                    when (currentPage) {
-                        "Theme" -> {
-                            SettingTheme(state)
-                        }
-                        "TextStyle" -> {
-                            SettingTextStyle(state,typingWordState)
-                        }
-                        "ColorChooser" -> {
-                            PrimaryColorChooser(
-                                close = { close() },
-                                state = state
-                            )
-                        }
-
-                    }
-                }
-                Divider(Modifier.align(Alignment.TopCenter))
-                Column(
-                    Modifier.align(Alignment.BottomCenter)
-                        .fillMaxWidth().height(60.dp)
-                ) {
-                    Divider()
-                    Row(
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.surface)
+                    Divider(Modifier.align(Alignment.TopCenter))
+                    Column(
+                        Modifier.align(Alignment.BottomCenter)
+                            .fillMaxWidth().height(60.dp)
                     ) {
-                        OutlinedButton(
-                            onClick = { close() },
-                            modifier = Modifier.padding(end = 10.dp)
+                        Divider()
+                        Row(
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background)
                         ) {
-                            Text("关闭")
+                            OutlinedButton(
+                                onClick = { close() },
+                                modifier = Modifier.padding(end = 10.dp)
+                            ) {
+                                Text("关闭")
+                            }
                         }
                     }
                 }
-            }
 
+            }
         }
+
     }
 }
 
@@ -158,7 +159,10 @@ fun PrimaryColorChooser(
     val initialColor = state.global.primaryColor.toAwt()
     val colorChooser = JColorChooser(initialColor)
     val colorModel = colorChooser.selectionModel
-
+    val chooserPanels = colorChooser.chooserPanels
+    chooserPanels.forEach { panel ->
+       panel.background = MaterialTheme.colors.background.toAwt()
+    }
     colorModel.addChangeListener {
         selectedColor = colorModel.selectedColor.toCompose()
     }
@@ -179,7 +183,7 @@ fun PrimaryColorChooser(
             Column(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxSize()
-                    .background(if (MaterialTheme.colors.isLight) Color.LightGray else Color.DarkGray)
+                    .background(MaterialTheme.colors.background)
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
@@ -280,7 +284,7 @@ fun PrimaryColorChooser(
                     OutlinedButton(
                         onClick = {
                             state.global.primaryColor = selectedColor
-                            state.colors = createColors(state.global.isDarkTheme, state.global.primaryColor)
+                            state.colors = createColors(state.global.isDarkTheme, state.global.primaryColor,state.global.backgroundColor,state.global.onBackgroundColor)
                             state.saveGlobalState()
                             close()
                         },
@@ -304,7 +308,7 @@ fun PrimaryColorChooser(
     previewPanel.size = Dimension(1200, 220)
     colorChooser.previewPanel = previewPanel
     SwingPanel(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background),
         factory = { colorChooser }
     )
 }
@@ -332,8 +336,8 @@ fun SettingTextStyle(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize().padding(top = 48.dp,bottom = 60.dp)
         ) {
-            val background = if (MaterialTheme.colors.isLight) Color.LightGray else MaterialTheme.colors.background
-            Column (Modifier.width(600.dp).background(background)){
+//            val background = if (MaterialTheme.colors.isLight) Color.LightGray else MaterialTheme.colors.background
+            Column (Modifier.width(600.dp)){
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
@@ -458,7 +462,7 @@ fun SettingTextStyle(
             }
 
             Spacer(Modifier.height(30.dp))
-            Column (Modifier.width(600.dp).background(background)){
+            Column (Modifier.width(600.dp)){
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
@@ -659,25 +663,164 @@ fun TextStyleChooser(
 fun SettingTheme(
     state: AppState,
 ){
-    Row(
-        horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = Modifier.fillMaxSize()
+    ){
         val scope = rememberCoroutineScope()
-        Text("深色模式", color = MaterialTheme.colors.onBackground,modifier = Modifier.padding(start = 20.dp))
-        Spacer(Modifier.width(15.dp))
-        Switch(
-            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-            checked = state.global.isDarkTheme,
-            onCheckedChange = {
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().padding(top = 20.dp)
+        ) {
+
+            Text("深色模式", color = MaterialTheme.colors.onBackground,modifier = Modifier.padding(start = 10.dp))
+            Spacer(Modifier.width(15.dp))
+            Switch(
+                colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                checked = state.global.isDarkTheme,
+                onCheckedChange = {
+                    scope.launch {
+                        state.global.isDarkTheme = it
+                        state.colors = createColors(state.global.isDarkTheme, state.global.primaryColor,state.global.backgroundColor,state.global.onBackgroundColor)
+                        state.saveGlobalState()
+                    }
+
+                },
+            )
+            Spacer(Modifier.width(80.dp))
+        }
+
+        if(!state.global.isDarkTheme){
+            var dialogVisiable by remember { mutableStateOf(false) }
+            var chooserModel by remember { mutableStateOf("background") }
+
+            OutlinedButton(onClick = {
+                dialogVisiable = true
+                chooserModel = "background"
+            }, Modifier.padding(end = 80.dp)) {
+                Text("设置背景颜色")
+            }
+            OutlinedButton(onClick = {
+                dialogVisiable = true
+                chooserModel = "onBackground"
+
+            }, Modifier.padding(end = 80.dp)) {
+                Text("设置前景颜色")
+            }
+            OutlinedButton(onClick = {
                 scope.launch {
-                    state.global.isDarkTheme = it
-                    state.colors = createColors(state.global.isDarkTheme, state.global.primaryColor)
+                    state.global.backgroundColor = Color.White
+                    state.global.onBackgroundColor = Color.Black
+                    state.colors = createColors(state.global.isDarkTheme, state.global.primaryColor,state.global.backgroundColor,state.global.onBackgroundColor)
+                    updateFlatLaf(state.global.isDarkTheme,state.global.backgroundColor.toAwt(),state.global.onBackgroundColor.toAwt())
                     state.saveGlobalState()
                 }
 
-            },
-        )
+
+            }, Modifier.padding(end = 80.dp)) {
+                Text("恢复默认设置")
+            }
+
+            ColorChooserDialog(
+                state = state,
+                model = chooserModel,
+                visiable = dialogVisiable,
+                close = {dialogVisiable = false}
+            )
+        }
+
     }
+
+}
+
+
+@OptIn(ExperimentalSerializationApi::class)
+@Composable
+fun ColorChooserDialog(
+    state: AppState,
+    model: String,
+    close: () -> Unit,
+    visiable:Boolean
+) {
+    if(visiable){
+        Dialog(
+            title = if(model == "background")"设置背景颜色" else "设置前景颜色",
+            icon = painterResource("logo/logo.png"),
+            onCloseRequest = { close() },
+            resizable = true,
+            state = rememberDialogState(
+                position = WindowPosition(Alignment.Center),
+                size = DpSize(800.dp, 550.dp)
+            ),
+        ) {
+            val scope = rememberCoroutineScope()
+            var selectedColor by remember { mutableStateOf(if(model == "background") state.global.backgroundColor else state.global.onBackgroundColor ) }
+            val initialColor = if(model == "background") MaterialTheme.colors.background.toAwt() else MaterialTheme.colors.onBackground.toAwt()
+            val colorChooser = JColorChooser(initialColor)
+            val chooserPanels = colorChooser.chooserPanels
+            chooserPanels.forEach { panel ->
+                panel.background = MaterialTheme.colors.background.toAwt()
+            }
+            val colorModel = colorChooser.selectionModel
+            colorModel.addChangeListener {
+                scope.launch {
+                    selectedColor = colorModel.selectedColor.toCompose()
+                }
+            }
+            val previewPanel = ComposePanel()
+            previewPanel.size = Dimension(1200, 220)
+            previewPanel.setContent {
+
+                MaterialTheme(colors = state.colors) {
+                    Box(
+                        contentAlignment = Alignment.Center,
+                        modifier = Modifier.fillMaxSize().background(Color(242, 242, 242))
+                    ){
+                        Row{
+                            Box(Modifier.size(300.dp,100.dp).background(if(model == "background") selectedColor else MaterialTheme.colors.background)){
+                                Text(text = "Language",
+                                    color = if(model == "onBackground") selectedColor else MaterialTheme.colors.onBackground,
+                                    fontSize =  MaterialTheme.typography.h2.fontSize,
+                                    modifier = Modifier.align(Alignment.Center))
+                            }
+                            Spacer(Modifier.width(25.dp))
+                            Row(horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.height(100.dp)){
+                                OutlinedButton(onClick = {
+                                    scope.launch {
+                                        if(model == "background"){
+                                            state.global.backgroundColor = selectedColor
+                                        }else{
+                                            state.global.onBackgroundColor = selectedColor
+                                        }
+                                        state.colors = createColors(state.global.isDarkTheme, state.global.primaryColor,state.global.backgroundColor,state.global.onBackgroundColor)
+                                        updateFlatLaf(state.global.isDarkTheme,state.global.backgroundColor.toAwt(),state.global.onBackgroundColor.toAwt())
+                                        state.saveGlobalState()
+                                        close()
+                                    }
+                                }){
+                                    Text("确定")
+                                }
+                                Spacer(Modifier.width(15.dp))
+                                OutlinedButton(onClick = { close()}){
+                                    Text("取消")
+                                }
+                            }
+
+                        }
+
+                    }
+                }
+
+            }
+            colorChooser.previewPanel = previewPanel
+            SwingPanel(
+                modifier = Modifier.fillMaxSize(),
+                factory = { colorChooser }
+            )
+        }
+    }
+
 }

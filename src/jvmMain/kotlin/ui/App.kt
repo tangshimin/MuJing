@@ -277,7 +277,7 @@ fun App() {
 
     // 改变主题后，更新菜单栏、标题栏的样式
     LaunchedEffect(appState.global.isDarkTheme){
-        updateFlatLaf(appState.global.isDarkTheme)
+        updateFlatLaf(appState.global.isDarkTheme,appState.global.backgroundColor.toAwt(),appState.global.onBackgroundColor.toAwt())
         appState.futureFileChooser = setupFileChooser()
     }
 }
