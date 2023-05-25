@@ -42,11 +42,8 @@ import data.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
-import state.AppState
+import state.*
 import state.MemoryStrategy.*
-import state.TypingType
-import state.WordState
-import state.getResourcesFile
 import ui.dialog.ChapterFinishedDialog
 import ui.dialog.ConfirmDialog
 import ui.dialog.EditWordDialog
@@ -106,7 +103,8 @@ fun TypingWord(
 
     Box(Modifier.background(MaterialTheme.colors.background)) {
         Row {
-            TypingWordSidebar(appState,typingWord)
+            val dictationState = rememberDictationState()
+            TypingWordSidebar(appState,typingWord,dictationState)
             if (appState.openSettings) {
                 val topPadding = if (isMacOS()) 30.dp else 0.dp
                 Divider(Modifier.fillMaxHeight().width(1.dp).padding(top = topPadding))
@@ -121,6 +119,7 @@ fun TypingWord(
                     MainContent(
                         appState =appState,
                         typingWord = typingWord,
+                        dictationState = dictationState,
                         currentWord = currentWord,
                         videoBounds = videoBounds,
                         resetVideoBounds = resetVideoBounds,
@@ -312,6 +311,7 @@ fun Header(
 fun MainContent(
     appState: AppState,
     typingWord: WordState,
+    dictationState:  DictationState,
     currentWord:Word,
     videoBounds: Rectangle,
     resetVideoBounds :() -> Rectangle,
@@ -1056,7 +1056,7 @@ fun MainContent(
                             shuffleNormal()
                             typingWord.memoryStrategy = Dictation
                             typingWord.dictationIndex = 0
-                            typingWord.hiddenInfo()
+                            typingWord.hiddenInfo(dictationState)
                         }
                         // 正常记忆单词时选择再次听写
                         Dictation ->{
@@ -1070,7 +1070,7 @@ fun MainContent(
                             typingWord.wrongWords.clear()
                             shuffleNormal()
                             typingWord.dictationIndex = 0
-                            typingWord.hiddenInfo()
+                            typingWord.hiddenInfo(dictationState)
                         }
                         // 一种是从听写复习进入到复习错误单词，复习完毕后，再次听写
                         DictationReviewWrong ->{
@@ -1078,7 +1078,7 @@ fun MainContent(
                             typingWord.wrongWords.clear()
                             shuffleDictationReview()
                             typingWord.dictationIndex = 0
-                            typingWord.hiddenInfo()
+                            typingWord.hiddenInfo(dictationState)
                         }
                         // 在听写复习时选择再次听写
                         Review ->{

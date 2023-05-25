@@ -23,6 +23,7 @@ import data.Word
 import player.isWindows
 import state.MemoryStrategy
 import state.WordState
+import state.rememberDictationState
 
 /**
  * 选择章节
@@ -144,12 +145,13 @@ fun SelectChapterDialog(
                         },
                     )
                 }
+                val dictationState = rememberDictationState()
                 Footer(
                     modifier = Modifier.align(Alignment.BottomCenter),
                     confirm = {
                         if(isMultiple){
                             if(typingWordState.memoryStrategy != MemoryStrategy.Review && typingWordState.memoryStrategy != MemoryStrategy.Dictation){
-                                typingWordState.hiddenInfo()
+                                typingWordState.hiddenInfo(dictationState)
                             }
 
                             typingWordState.memoryStrategy = MemoryStrategy.Review

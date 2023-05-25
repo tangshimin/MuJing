@@ -19,6 +19,8 @@ import kotlinx.coroutines.launch
 import player.isMacOS
 import player.isWindows
 import state.AppState
+import state.DictationState
+import state.MemoryStrategy
 import state.WordState
 import ui.dialog.SelectChapterDialog
 
@@ -32,6 +34,7 @@ import ui.dialog.SelectChapterDialog
 fun TypingWordSidebar(
     state: AppState,
     typingWordState: WordState,
+    dictationState: DictationState,
 ) {
 
     if (state.openSettings) {
@@ -143,6 +146,10 @@ fun TypingWordSidebar(
                         checked = typingWordState.phoneticVisible,
                         onCheckedChange = {
                             scope.launch {
+                                if(typingWordState.memoryStrategy== MemoryStrategy.Dictation || typingWordState.memoryStrategy== MemoryStrategy.Review ){
+                                    dictationState.phoneticVisible = it
+                                    dictationState.saveDictationState()
+                                }
                                 typingWordState.phoneticVisible = it
                                 typingWordState.saveTypingWordState()
                             }
@@ -170,6 +177,10 @@ fun TypingWordSidebar(
                         checked = typingWordState.morphologyVisible,
                         onCheckedChange = {
                             scope.launch {
+                                if(typingWordState.memoryStrategy== MemoryStrategy.Dictation || typingWordState.memoryStrategy== MemoryStrategy.Review ){
+                                    dictationState.morphologyVisible = it
+                                    dictationState.saveDictationState()
+                                }
                                 typingWordState.morphologyVisible = it
                                 typingWordState.saveTypingWordState()
                             }
@@ -197,6 +208,10 @@ fun TypingWordSidebar(
                         checked = typingWordState.definitionVisible,
                         onCheckedChange = {
                             scope.launch {
+                                if(typingWordState.memoryStrategy== MemoryStrategy.Dictation || typingWordState.memoryStrategy== MemoryStrategy.Review ){
+                                    dictationState.definitionVisible = it
+                                    dictationState.saveDictationState()
+                                }
                                 typingWordState.definitionVisible = it
                                 typingWordState.saveTypingWordState()
                             }
@@ -223,6 +238,10 @@ fun TypingWordSidebar(
                         checked = typingWordState.translationVisible,
                         onCheckedChange = {
                             scope.launch {
+                                if(typingWordState.memoryStrategy== MemoryStrategy.Dictation || typingWordState.memoryStrategy== MemoryStrategy.Review ){
+                                    dictationState.translationVisible = it
+                                    dictationState.saveDictationState()
+                                }
                                 typingWordState.translationVisible = it
                                 typingWordState.saveTypingWordState()
                             }
@@ -250,6 +269,10 @@ fun TypingWordSidebar(
                         checked = typingWordState.subtitlesVisible,
                         onCheckedChange = {
                             scope.launch {
+                                if(typingWordState.memoryStrategy== MemoryStrategy.Dictation || typingWordState.memoryStrategy== MemoryStrategy.Review ){
+                                    dictationState.subtitlesVisible = it
+                                    dictationState.saveDictationState()
+                                }
                                 typingWordState.subtitlesVisible = it
                                 typingWordState.saveTypingWordState()
                             }

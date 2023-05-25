@@ -204,7 +204,9 @@ class WordState(dataWordState: DataWordState) {
     }
 
     /** 进入听写模式，进入听写模式要保存好当前的状态，退出听写模式后再恢复 */
-    fun hiddenInfo() {
+    fun hiddenInfo(
+        dictationState: DictationState
+    ) {
         // 先保存状态
         typingWordStateMap["isAuto"] = isAuto
         typingWordStateMap["wordVisible"] = wordVisible
@@ -216,11 +218,11 @@ class WordState(dataWordState: DataWordState) {
         // 再改变状态
         isAuto = true
         wordVisible = false
-        phoneticVisible = false
-        definitionVisible = false
-        morphologyVisible = false
-        translationVisible = false
-        subtitlesVisible = false
+        phoneticVisible = dictationState.phoneticVisible
+        definitionVisible = dictationState.definitionVisible
+        morphologyVisible = dictationState.morphologyVisible
+        translationVisible = dictationState.translationVisible
+        subtitlesVisible = dictationState.subtitlesVisible
 
     }
 
