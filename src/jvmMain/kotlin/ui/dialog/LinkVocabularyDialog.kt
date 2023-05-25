@@ -1,17 +1,16 @@
 package ui.dialog
 
-import androidx.compose.foundation.LocalScrollbarStyle
-import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +23,7 @@ import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -52,7 +52,7 @@ import javax.swing.filechooser.FileSystemView
  * 链接字幕词库窗口
  * 把字幕词库链接到文档词库
  */
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalSerializationApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalSerializationApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun LinkVocabularyDialog(
     state: AppState,
@@ -526,7 +526,50 @@ fun LinkVocabularyDialog(
                             }
                         }
 
-                        Text("提示：不要把词库保存到应用程序的安装目录", modifier = Modifier.align(Alignment.TopCenter).padding(top = 10.dp))
+                        Column (
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.align(Alignment.TopCenter).padding(top = 10.dp)){
+                            Text("提示：不要把词库保存到应用程序的安装目录")
+                            TooltipArea(
+                                tooltip = {
+                                    Surface(
+                                        elevation = 4.dp,
+                                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                        shape = RectangleShape
+                                    ) {
+                                        Text(text = "帮助", modifier = Modifier.padding(10.dp))
+                                    }
+                                },
+                                delayMillis = 50,
+                                tooltipPlacement = TooltipPlacement.ComponentRect(
+                                    anchor = Alignment.BottomCenter,
+                                    alignment = Alignment.BottomCenter,
+                                    offset = DpOffset.Zero
+                                )
+                            ) {
+                                var documentDialogVisible by remember { mutableStateOf(false) }
+                                var currentPage by remember { mutableStateOf("linkVocabulary") }
+                                IconButton(onClick = {
+                                    documentDialogVisible = true
+                                }){
+                                    Icon(
+                                        Icons.Filled.Help,
+                                        contentDescription = "Localized description",
+                                        tint =if(MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground,
+                                    )
+                                }
+
+
+                                if(documentDialogVisible){
+                                    DocumentDialog(
+                                        close = {documentDialogVisible = false},
+                                        currentPage = currentPage,
+                                        setCurrentPage = {currentPage = it}
+
+                                    )
+                                }
+                            }
+                        }
                     } else {
                         Column(Modifier.fillMaxSize().align(Alignment.Center)) {
                             Row(
