@@ -999,10 +999,10 @@ fun MainContent(
                     }else{
                         typingWord.memoryStrategy = NormalReviewWrong
                     }
-
-                    typingWord.wrongWords.addAll(reviewList)
+                    if( typingWord.wrongWords.isEmpty()){
+                        typingWord.wrongWords.addAll(reviewList)
+                    }
                     typingWord.dictationIndex = 0
-                    resetChapterTime()
                     showChapterFinishedDialog = false
                 }
             }

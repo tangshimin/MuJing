@@ -276,7 +276,9 @@ fun ChapterFinishedDialog(
                         }
                     }
                     Spacer(Modifier.width(15.dp))
-                    if ((memoryStrategy == MemoryStrategy.Dictation || memoryStrategy == MemoryStrategy.Review)  &&  correctRate < 100F ) {
+                    if ((memoryStrategy == MemoryStrategy.Dictation || memoryStrategy == MemoryStrategy.Review ||
+                                memoryStrategy == MemoryStrategy.NormalReviewWrong ||  memoryStrategy == MemoryStrategy.DictationReviewWrong
+                            )  &&  correctRate < 100F ) {
                         TooltipArea(
                             tooltip = {
                                 Surface(
@@ -294,9 +296,10 @@ fun ChapterFinishedDialog(
                                 offset = DpOffset.Zero
                             )
                         ) {
+                            val text = if(memoryStrategy == MemoryStrategy.NormalReviewWrong ||  memoryStrategy == MemoryStrategy.DictationReviewWrong) "(N)再复习一次" else "(N)复习错误单词"
                             OutlinedButton(onClick = {
                                 reviewWrongWords()
-                            }) { Text("(N)复习错误单词", color = textColor) }
+                            }) { Text(text, color = textColor) }
                         }
                     }
 
