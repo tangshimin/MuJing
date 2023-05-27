@@ -1325,7 +1325,7 @@ fun BasicFilter(
                     modifier = Modifier
                         .focusable()
                         .width(IntrinsicSize.Max)
-                        .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
+                        .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.6f)))
                 )
                 Text(" 的单词", color = MaterialTheme.colors.onBackground)
             }
@@ -1368,7 +1368,7 @@ fun BasicFilter(
                         },
                         modifier = Modifier
                             .width(IntrinsicSize.Max)
-                            .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
+                            .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.6f)))
                     )
                 }
                 Text(" 的单词", color = MaterialTheme.colors.onBackground)
