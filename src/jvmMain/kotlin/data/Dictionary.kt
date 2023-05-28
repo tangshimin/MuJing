@@ -171,10 +171,56 @@ object Dictionary {
         return results
     }
 
+    /** 根据 BNC 词频区间查询单词 */
+    fun queryByBncRange(start:Int,end:Int):List<Word>{
+        val sql = "SELECT * FROM ecdict WHERE bnc != 0  AND bnc >= $start AND bnc <= $end" +
+                "ORDER BY bnc"
+        val results = mutableListOf<Word>()
+        try{
+            Class.forName(JDBC_DRIVER)
+            val url = getURL()
+            DriverManager.getConnection(url,USER,PASS).use{conn ->
+                conn.createStatement().use { statement ->
+                    val result = statement.executeQuery(sql)
+                    while(result.next()){
+                        val word = mapToWord(result)
+                        results.add(word)
+                    }
+                }
+            }
+        }catch (se:SQLException){
+            se.printStackTrace()
+        }
+        return results
+    }
+
     /** 查询所有 BNC 词频小于 num 的单词 */
     fun queryByBncLessThan(num:Int):List<Word>{
         val sql = "SELECT * FROM ecdict WHERE bnc < $num AND bnc != 0 " +
                   "ORDER BY bnc"
+        val results = mutableListOf<Word>()
+        try{
+            Class.forName(JDBC_DRIVER)
+            val url = getURL()
+            DriverManager.getConnection(url,USER,PASS).use{conn ->
+                conn.createStatement().use { statement ->
+                    val result = statement.executeQuery(sql)
+                    while(result.next()){
+                        val word = mapToWord(result)
+                        results.add(word)
+                    }
+                }
+            }
+        }catch (se:SQLException){
+            se.printStackTrace()
+        }
+        return results
+    }
+
+    /** 根据 FRQ 词频区间查询单词 */
+    fun queryByFrqRange(start:Int,end: Int):List<Word>{
+        val sql = "SELECT * FROM ecdict WHERE frq != 0   AND frq >= $start AND frq <= $end" +
+                  "ORDER BY frq"
         val results = mutableListOf<Word>()
         try{
             Class.forName(JDBC_DRIVER)

@@ -54,7 +54,8 @@ fun WordFrequencyDialog(
 
             /** 新词库 */
             var newVocabulary by remember { mutableStateOf<Vocabulary?>(null) }
-            var num by remember { mutableStateOf(1000) }
+            var start by remember { mutableStateOf(1) }
+            var end by remember { mutableStateOf(1000) }
             var saveEnable by remember { mutableStateOf(false) }
             var waiting by remember { mutableStateOf(false) }
             var done by remember { mutableStateOf(false) }
@@ -63,33 +64,25 @@ fun WordFrequencyDialog(
                 Thread {
                     done = false
                     waiting = true
-                    // 词频数据并不是连续的，中间有断开，但是用户选择 1000 时，想要 1000 个单词，
-                    // 生成词库时，如果用户选择生成最熟悉的 1000 词，先生成一个大于1000列表，然后再截取前面 1000 个单词。
-                    val actualNum = if (num < 100) {
-                        num + 20
-                    } else if (num in 100 until 1000) {
-                        num + 100
-                    } else if (num in 1000 until 7000) {
-                        num + 1000
-                    } else if (num in 7000 until 16000) {
-                        num + 2000
-                    } else num + 4000
 
-                    val list = if (selectState == "BNC") {
-                        Dictionary.queryByBncLessThan(actualNum)
-                    } else {
-                        Dictionary.queryByFrqLessThan(actualNum)
+                    if(start >= end){
+                        JOptionPane.showMessageDialog(window,"开始值必须小于结束值")
                     }
 
-                    val subList = list.subList(0, num).toMutableList()
+                    val list = if (selectState == "BNC") {
+                        Dictionary.queryByBncRange(start,end)
+                    } else {
+                        Dictionary.queryByFrqRange(start,end)
+                    }
+
                     newVocabulary = Vocabulary(
                         name = "",
                         type = VocabularyType.DOCUMENT,
                         language = "english",
-                        size = subList.size,
+                        size = list.size,
                         relateVideoPath = "",
                         subtitlesTrackId = 0,
-                        wordList = subList
+                        wordList = list.toMutableList()
                     )
                     done = true
                     waiting = false
@@ -103,7 +96,7 @@ fun WordFrequencyDialog(
                     fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                     fileChooser.dialogTitle = "保存词库"
                     val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                    fileChooser.selectedFile = File("$myDocuments${File.separator}list_$num.json")
+                    fileChooser.selectedFile = File("$myDocuments${File.separator}$selectState list $start - $end.json")
                     val userSelection = fileChooser.showSaveDialog(window)
                     if (userSelection == JFileChooser.APPROVE_OPTION) {
                         val fileToSave = fileChooser.selectedFile
@@ -136,25 +129,25 @@ fun WordFrequencyDialog(
                     Row(verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.align(Alignment.Center)){
                         if(selectState == "BNC") {
-                            Text("提取 BNC 词频前 ")
+                            Text("提取 BNC 词频 ")
                         }else{
-                            Text("提取 COCA 词频前 ")
+                            Text("提取 COCA 词频 ")
                         }
 
 
                         BasicTextField(
-                            value = "$num",
+                            value = "$start",
                             onValueChange = {
                                 val input = it.toIntOrNull()
                                 if (input != null) {
                                     if(input>30000){
-                                        num = 30000
+                                        start = 30000
                                         JOptionPane.showMessageDialog(window,"不能超过最大值 30000")
                                     }else if(input < 0){
                                         JOptionPane.showMessageDialog(window,"不能为负数")
-                                        num = 0
-                                    }else{
-                                        num = input
+                                        start = 0
+                                    }else {
+                                        start = input
                                     }
                                 }
                             },
@@ -172,8 +165,42 @@ fun WordFrequencyDialog(
                             },
                             modifier = Modifier
                                 .focusable()
-                                .width(IntrinsicSize.Max)
-                                .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
+                                .width(50.dp)
+                                .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.6f)))
+                        )
+                        Text(" - ")
+                        BasicTextField(
+                            value = "$end",
+                            onValueChange = {
+                                val input = it.toIntOrNull()
+                                if (input != null) {
+                                    if(input>30000){
+                                        end = 30000
+                                        JOptionPane.showMessageDialog(window,"不能超过最大值 30000")
+                                    }else if(input < 0){
+                                        JOptionPane.showMessageDialog(window,"不能为负数")
+                                        end = 0
+                                    }else{
+                                        end = input
+                                    }
+                                }
+                            },
+                            singleLine = true,
+                            cursorBrush = SolidColor(MaterialTheme.colors.primary),
+                            textStyle = TextStyle(
+                                lineHeight = LocalTextStyle.current.lineHeight,
+                                fontSize = LocalTextStyle.current.fontSize,
+                                color = MaterialTheme.colors.onBackground
+                            ),
+                            decorationBox = { innerTextField ->
+                                Row(Modifier.padding(start = 2.dp, top = 2.dp, end = 4.dp, bottom = 2.dp)) {
+                                    innerTextField()
+                                }
+                            },
+                            modifier = Modifier
+                                .focusable()
+                                .width(50.dp)
+                                .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.6f)))
                         )
                         Text(" 词生成词库")
                         Spacer(Modifier.width(20.dp))
