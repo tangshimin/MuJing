@@ -11,11 +11,14 @@ import androidx.compose.material.icons.filled.RateReview
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
 import player.isMacOS
 import player.isWindows
 import state.AppState
@@ -28,7 +31,7 @@ import ui.dialog.SelectChapterDialog
  * 侧边菜单
  */
 @OptIn(
-    kotlinx.serialization.ExperimentalSerializationApi::class, androidx.compose.ui.ExperimentalComposeUiApi::class
+    ExperimentalSerializationApi::class, ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class
 )
 @Composable
 fun TypingWordSidebar(
@@ -327,18 +330,38 @@ fun TypingWordSidebar(
                 ) {
                     Text(text = "自动切换", color = MaterialTheme.colors.onBackground)
                     Spacer(Modifier.width(15.dp))
-                    Switch(
-                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = typingWordState.isAuto,
-                        onCheckedChange = {
-                            scope.launch {
-                                typingWordState.isAuto = it
-                                typingWordState.saveTypingWordState()
+                    val tooltip = if(typingWordState.isAuto) "关闭之后使用 Enter 键切换到下一个单词" else "打开之后会自动切换到下一个单词"
+                    TooltipArea(
+                        tooltip = {
+                            Surface(
+                                elevation = 4.dp,
+                                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                shape = RectangleShape
+                            ) {
+                                Text(text = tooltip, modifier = Modifier.padding(10.dp))
                             }
-
                         },
-
+                        delayMillis = 300,
+                        tooltipPlacement = TooltipPlacement.ComponentRect(
+                            anchor = Alignment.CenterEnd,
+                            alignment = Alignment.CenterEnd,
+                            offset = DpOffset.Zero
                         )
+                    ) {
+                        Switch(
+                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                            checked = typingWordState.isAuto,
+                            onCheckedChange = {
+                                scope.launch {
+                                    typingWordState.isAuto = it
+                                    typingWordState.saveTypingWordState()
+                                }
+
+                            },
+
+                            )
+                    }
+
                 }
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
