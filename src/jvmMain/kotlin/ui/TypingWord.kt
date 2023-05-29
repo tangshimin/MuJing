@@ -679,13 +679,7 @@ fun MainContent(
                 .focusable(true)
         ) {
 
-            /** 当前章节的正确数，主要用于听写模式计算正确率 */
-            var chapterCorrectTime by remember { mutableStateOf(0F)}
-
-            /** 当前章节的错误数，主要用于听写模式计算正确率 */
-            var chapterWrongTime by remember { mutableStateOf(0F)}
-
-            /** 听写模式的错误单词，主要用于听写模式计算正确率*/
+            /** 听写模式的错误单词 */
             val dictationWrongWords = remember { mutableStateMapOf<Word, Int>()}
 
             /** 显示本章节已经完成对话框 */
@@ -699,10 +693,8 @@ fun MainContent(
 
 
 
-            /** 重置章节计数器,清空听写模式存储的错误单词 */
+            /** 清空听写模式存储的错误单词 */
             val resetChapterTime: () -> Unit = {
-                chapterCorrectTime = 0F
-                chapterWrongTime = 0F
                 dictationWrongWords.clear()
             }
 
@@ -742,7 +734,6 @@ fun MainContent(
              */
             val dictationSkipCurrentWord: () -> Unit = {
                 if (wordCorrectTime == 0) {
-                    chapterWrongTime++
                     val dictationWrongTime = dictationWrongWords[currentWord]
                     if (dictationWrongTime == null) {
                         dictationWrongWords[currentWord] = 1
@@ -873,7 +864,6 @@ fun MainContent(
                                 wordWrongTime++
                                 // 如果是听写测试，或听写复习，需要汇总错误单词
                                 if (typingWord.memoryStrategy == Dictation || typingWord.memoryStrategy == Review) {
-                                    chapterWrongTime++
                                     val dictationWrongTime = dictationWrongWords[currentWord]
                                     if (dictationWrongTime != null) {
                                         dictationWrongWords[currentWord] = dictationWrongTime + 1
@@ -893,7 +883,6 @@ fun MainContent(
                         if (wordTypingResult.size == currentWord.value.length && done) {
                             // 输入完全正确
                             playSuccessSound()
-                            if (typingWord.memoryStrategy == Dictation || typingWord.memoryStrategy == Review) chapterCorrectTime++
                             if (typingWord.isAuto) {
 
                                 Timer("input correct to next", false).schedule(50) {
@@ -966,15 +955,8 @@ fun MainContent(
 
             /** 计算正确率 */
             val correctRate: () -> Float = {
-                if (chapterCorrectTime == 0F) {
-                    0F
-                } else {
-                    val rateDouble = chapterCorrectTime.div(chapterCorrectTime + chapterWrongTime).toDouble()
-                    val rateD = BigDecimal(rateDouble).setScale(3, RoundingMode.HALF_EVEN)
-
-                    rateD.times(BigDecimal(100)).toFloat()
-                }
-
+                val rate =  (typingWord.dictationWords.size - dictationWrongWords.size).div(typingWord.dictationWords.size.toFloat()) .times(100)
+                rate
             }
 
             /** 重复学习本章 */
