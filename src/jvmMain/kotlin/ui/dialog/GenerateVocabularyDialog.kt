@@ -1963,10 +1963,10 @@ fun SelectFile(
                         offset = DpOffset.Zero
                     )
                 ) {
-                    var documentDialogVisible by remember { mutableStateOf(false) }
+                    var documentWindowVisible by remember { mutableStateOf(false) }
                     var currentPage by remember { mutableStateOf("document") }
                     IconButton(onClick = {
-                        documentDialogVisible = true
+                        documentWindowVisible = true
                         currentPage = when(type){
                             DOCUMENT  -> "document"
                             SUBTITLES -> "subtitles"
@@ -1981,9 +1981,9 @@ fun SelectFile(
                     }
 
 
-                    if(documentDialogVisible){
-                        DocumentDialog(
-                            close = {documentDialogVisible = false},
+                    if(documentWindowVisible){
+                        DocumentWindow(
+                            close = {documentWindowVisible = false},
                             currentPage = currentPage,
                             setCurrentPage = {currentPage = it}
 

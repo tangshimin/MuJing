@@ -563,12 +563,12 @@ private fun FrameWindowScope.WindowMenuBar(
         )
     }
     Menu("帮助(H)", mnemonic = 'H') {
-        var documentDialogVisible by remember { mutableStateOf(false) }
+        var documentWindowVisible by remember { mutableStateOf(false) }
         var currentPage by remember { mutableStateOf("tips") }
-        Item("文档D)", mnemonic = 'D', onClick = { documentDialogVisible = true})
-        if(documentDialogVisible){
-            DocumentDialog(
-                close = {documentDialogVisible = false},
+        Item("文档D)", mnemonic = 'D', onClick = { documentWindowVisible = true})
+        if(documentWindowVisible){
+            DocumentWindow(
+                close = {documentWindowVisible = false},
                 currentPage = currentPage,
                 setCurrentPage = {currentPage = it}
             )

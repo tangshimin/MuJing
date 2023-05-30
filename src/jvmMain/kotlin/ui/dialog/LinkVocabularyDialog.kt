@@ -547,10 +547,10 @@ fun LinkVocabularyDialog(
                                     offset = DpOffset.Zero
                                 )
                             ) {
-                                var documentDialogVisible by remember { mutableStateOf(false) }
+                                var documentWindowVisible by remember { mutableStateOf(false) }
                                 var currentPage by remember { mutableStateOf("linkVocabulary") }
                                 IconButton(onClick = {
-                                    documentDialogVisible = true
+                                    documentWindowVisible = true
                                 }){
                                     Icon(
                                         Icons.Filled.Help,
@@ -560,9 +560,9 @@ fun LinkVocabularyDialog(
                                 }
 
 
-                                if(documentDialogVisible){
-                                    DocumentDialog(
-                                        close = {documentDialogVisible = false},
+                                if(documentWindowVisible){
+                                    DocumentWindow(
+                                        close = {documentWindowVisible = false},
                                         currentPage = currentPage,
                                         setCurrentPage = {currentPage = it}
 

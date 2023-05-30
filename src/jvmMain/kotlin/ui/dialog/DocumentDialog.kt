@@ -2,7 +2,6 @@ package ui.dialog
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -13,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.PointerIcon.Companion.Hand
@@ -28,26 +26,24 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.WindowPosition
-import androidx.compose.ui.window.rememberDialogState
+import androidx.compose.ui.window.*
 import player.isWindows
 import ui.LocalCtrl
 import java.util.*
 import kotlin.concurrent.schedule
 
 @Composable
-fun DocumentDialog(
+fun DocumentWindow(
     close: () -> Unit,
     currentPage:String,
     setCurrentPage:(String) -> Unit
 ) {
-    Dialog(
+    Window(
         title = "文档",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },
         resizable = true,
-        state = rememberDialogState(
+        state = rememberWindowState(
             position = WindowPosition(Alignment.Center),
             size = DpSize(1140.dp, 700.dp)
         ),
