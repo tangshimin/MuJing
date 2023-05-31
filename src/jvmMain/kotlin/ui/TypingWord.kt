@@ -536,6 +536,11 @@ fun MainContent(
                     scope.launch {
                         typingWord.phoneticVisible = !typingWord.phoneticVisible
                         typingWord.saveTypingWordState()
+                        if(typingWord.memoryStrategy== Dictation || typingWord.memoryStrategy== Review ){
+                            dictationState.phoneticVisible = typingWord.phoneticVisible
+                            dictationState.saveDictationState()
+                        }
+
                     }
                     true
                 }
@@ -543,6 +548,10 @@ fun MainContent(
                     scope.launch {
                         typingWord.morphologyVisible = !typingWord.morphologyVisible
                         typingWord.saveTypingWordState()
+                        if(typingWord.memoryStrategy== Dictation || typingWord.memoryStrategy== Review ){
+                            dictationState.morphologyVisible = typingWord.morphologyVisible
+                            dictationState.saveDictationState()
+                        }
                     }
                     true
                 }
@@ -550,6 +559,10 @@ fun MainContent(
                     scope.launch {
                         typingWord.definitionVisible = !typingWord.definitionVisible
                         typingWord.saveTypingWordState()
+                        if(typingWord.memoryStrategy== Dictation || typingWord.memoryStrategy== Review ){
+                            dictationState.definitionVisible = typingWord.definitionVisible
+                            dictationState.saveDictationState()
+                        }
                     }
                     true
                 }
@@ -557,6 +570,10 @@ fun MainContent(
                     scope.launch {
                         typingWord.translationVisible = !typingWord.translationVisible
                         typingWord.saveTypingWordState()
+                        if(typingWord.memoryStrategy== Dictation || typingWord.memoryStrategy== Review ){
+                            dictationState.translationVisible = typingWord.translationVisible
+                            dictationState.saveDictationState()
+                        }
                     }
                     true
                 }
@@ -586,6 +603,10 @@ fun MainContent(
                     scope.launch {
                         typingWord.subtitlesVisible = !typingWord.subtitlesVisible
                         typingWord.saveTypingWordState()
+                        if(typingWord.memoryStrategy== Dictation || typingWord.memoryStrategy== Review ){
+                            dictationState.subtitlesVisible = typingWord.subtitlesVisible
+                            dictationState.saveDictationState()
+                        }
                     }
                     true
                 }
