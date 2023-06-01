@@ -51,8 +51,6 @@ import ui.dialog.SelectChapterDialog
 import java.awt.Component
 import java.awt.Rectangle
 import java.io.File
-import java.math.BigDecimal
-import java.math.RoundingMode
 import java.nio.file.Paths
 import java.time.Duration
 import java.util.*
@@ -275,16 +273,29 @@ fun Header(
                 DictationReviewWrong -> { "听写复习 - 复习错误单词   ${wordState.dictationIndex + 1}/${wordState.wrongWords.size}"}
             }
 
-            val top = if(wordState.memoryStrategy == Review || wordState.memoryStrategy == DictationReviewWrong) 0.dp else 12.dp
+            val top = if(wordState.memoryStrategy != Normal) 0.dp else 12.dp
             Text(
                 text = text,
                 style = MaterialTheme.typography.h6,
                 color = MaterialTheme.colors.onBackground,
                 modifier = Modifier.padding(top = top )
             )
-            if(wordState.memoryStrategy == Review || wordState.memoryStrategy == DictationReviewWrong){
+            if(wordState.memoryStrategy != Normal){
                 Spacer(Modifier.width(20.dp))
-                ExitButton(onClick = {
+                val tooltip = when (wordState.memoryStrategy) {
+                    Review, DictationReviewWrong -> {
+                        "退出听写复习"
+                    }
+                    Dictation -> {
+                        "退出听写"
+                    }
+                    else -> {
+                        "退出复习"
+                    }
+                }
+                ExitButton(
+                    tooltip = tooltip,
+                    onClick = {
                     wordState.showInfo()
                     wordState.memoryStrategy = Normal
                     if( wordState.wrongWords.isNotEmpty()){
@@ -2524,7 +2535,10 @@ fun CopyButton(wordValue:String){
 /** 退出按钮*/
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
-fun ExitButton(onClick: () -> Unit){
+fun ExitButton(
+    tooltip: String,
+    onClick: () -> Unit
+){
     TooltipArea(
         tooltip = {
             Surface(
@@ -2532,7 +2546,7 @@ fun ExitButton(onClick: () -> Unit){
                 border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                 shape = RectangleShape
             ) {
-                Text(text = "退出听写复习", modifier = Modifier.padding(10.dp))
+                Text(text = tooltip, modifier = Modifier.padding(10.dp))
             }
         },
         delayMillis = 300,
