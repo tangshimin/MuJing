@@ -289,16 +289,6 @@ class AppState {
         return set
     }
 
-    val changeTheme: (Boolean) -> Unit = {
-        runBlocking {
-            launch {
-                global.isDarkTheme = it
-                colors = createColors(global.isDarkTheme, global.primaryColor,global.backgroundColor,global.onBackgroundColor)
-                saveGlobalState()
-            }
-        }
-
-    }
 
 
     /** 搜索 */
