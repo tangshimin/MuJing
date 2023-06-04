@@ -124,6 +124,31 @@ class WordState(dataWordState: DataWordState) {
 
     // 可持久化的状态 结束
 
+    /** 单词输入框输入的结果*/
+    val wordTypingResult =  mutableStateListOf<Pair<Char, Boolean>>()
+
+    /** 单词输入框里的字符串*/
+    var wordTextFieldValue by  mutableStateOf("")
+
+    /** 当前单词的正确次数 */
+    var wordCorrectTime by mutableStateOf(0)
+
+    /** 当前单词的错误次数 */
+    var wordWrongTime by mutableStateOf(0)
+
+    /** 第一条字幕的输入字符串*/
+    var captionsTextFieldValue1 by  mutableStateOf("")
+
+    /** 第二条字幕的输入字符串*/
+    var captionsTextFieldValue2 by  mutableStateOf("")
+
+    /** 第三条字幕的输入字符串*/
+    var captionsTextFieldValue3 by mutableStateOf("")
+
+    /** 字幕输入框的结果 */
+    val captionsTypingResultMap =
+        mutableStateMapOf<Int, MutableList<Pair<Char, Boolean>>>()
+
     /** 当前正在学习的词库 */
     var vocabulary = loadMutableVocabulary(vocabularyPath)
 
@@ -241,6 +266,18 @@ class WordState(dataWordState: DataWordState) {
             dictationWords.clear()
         }
 
+    }
+
+    /** 清除当前单词的状态 */
+    val clearInputtedState:() -> Unit = {
+        wordTypingResult.clear()
+        wordTextFieldValue = ""
+        captionsTypingResultMap.clear()
+        captionsTextFieldValue1 = ""
+        captionsTextFieldValue2 = ""
+        captionsTextFieldValue3 = ""
+        wordCorrectTime = 0
+        wordWrongTime = 0
     }
 
 

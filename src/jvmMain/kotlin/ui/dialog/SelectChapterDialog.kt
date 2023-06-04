@@ -167,7 +167,12 @@ fun SelectChapterDialog(
                             typingWordState.index = (chapter - 1) * 20
                             typingWordState.saveTypingWordState()
                         }
-                            close()
+                        typingWordState.clearInputtedState()
+                        if(typingWordState.memoryStrategy == MemoryStrategy.Dictation || typingWordState.memoryStrategy == MemoryStrategy.Review){
+                            typingWordState.memoryStrategy = MemoryStrategy.Normal
+                            typingWordState.showInfo()
+                        }
+                        close()
 
                     },
                     exit = { close() })

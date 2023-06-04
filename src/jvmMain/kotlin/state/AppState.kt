@@ -172,6 +172,12 @@ class AppState {
         val newVocabulary = loadMutableVocabulary(vocabularyFile.absolutePath)
         if(newVocabulary.wordList.size>0){
 
+            typingWord.clearInputtedState()
+            if(typingWord.memoryStrategy == MemoryStrategy.Dictation || typingWord.memoryStrategy == MemoryStrategy.Review){
+                typingWord.memoryStrategy = MemoryStrategy.Normal
+                typingWord.showInfo()
+            }
+
             // 把困难词库的索引保存在 typingWord.
             if(typingWord.vocabulary.name == "HardVocabulary"){
                 typingWord.hardVocabularyIndex = typingWord.index

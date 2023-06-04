@@ -297,6 +297,7 @@ fun Header(
                     tooltip = tooltip,
                     onClick = {
                     wordState.showInfo()
+                    wordState.clearInputtedState()
                     wordState.memoryStrategy = Normal
                     if( wordState.wrongWords.isNotEmpty()){
                         wordState.wrongWords.clear()
@@ -336,33 +337,33 @@ fun MainContent(
         /** 协程构建器 */
         val scope = rememberCoroutineScope()
 
-        /** 当前单词的正确次数 */
-        var wordCorrectTime by remember {mutableStateOf(0)}
-
-        /** 当前单词的错误次数 */
-        var wordWrongTime by remember {mutableStateOf(0)}
+//        /** 当前单词的正确次数 */
+//        var wordCorrectTime by remember {mutableStateOf(0)}
+//
+//        /** 当前单词的错误次数 */
+//        var wordWrongTime by remember {mutableStateOf(0)}
 
         /** 单词输入错误*/
         var isWrong by remember { mutableStateOf(false) }
 
-        /** 单词输入框里的字符串*/
-        var wordTextFieldValue by remember { mutableStateOf("") }
+//        /** 单词输入框里的字符串*/
+//        var wordTextFieldValue by remember { mutableStateOf("") }
 
-        /** 第一条字幕的输入字符串*/
-        var captionsTextFieldValue1 by remember { mutableStateOf("") }
+//        /** 第一条字幕的输入字符串*/
+//        var captionsTextFieldValue1 by remember { mutableStateOf("") }
+//
+//        /** 第二条字幕的输入字符串*/
+//        var captionsTextFieldValue2 by remember { mutableStateOf("") }
+//
+//        /** 第三条字幕的输入字符串*/
+//        var captionsTextFieldValue3 by remember { mutableStateOf("") }
 
-        /** 第二条字幕的输入字符串*/
-        var captionsTextFieldValue2 by remember { mutableStateOf("") }
+//        /** 单词输入框输入的结果*/
+//        val wordTypingResult = remember { mutableStateListOf<Pair<Char, Boolean>>() }
 
-        /** 第三条字幕的输入字符串*/
-        var captionsTextFieldValue3 by remember { mutableStateOf("") }
-
-        /** 单词输入框输入的结果*/
-        val wordTypingResult = remember { mutableStateListOf<Pair<Char, Boolean>>() }
-
-        /** 字幕输入框的结果 */
-        val captionsTypingResultMap =
-            remember { mutableStateMapOf<Int, MutableList<Pair<Char, Boolean>>>() }
+//        /** 字幕输入框的结果 */
+//        val captionsTypingResultMap =
+//            remember { mutableStateMapOf<Int, MutableList<Pair<Char, Boolean>>>() }
 
         /** 是否正在播放视频 */
         var isPlaying by remember { mutableStateOf(false) }
@@ -435,17 +436,17 @@ fun MainContent(
             }
         }
 
-        /** 清除当前单词的状态 */
-        val clear:() -> Unit = {
-            wordTypingResult.clear()
-            wordTextFieldValue = ""
-            captionsTypingResultMap.clear()
-            captionsTextFieldValue1 = ""
-            captionsTextFieldValue2 = ""
-            captionsTextFieldValue3 = ""
-            wordCorrectTime = 0
-            wordWrongTime = 0
-        }
+//        /** 清除当前单词的状态 */
+//        val clear:() -> Unit = {
+//            wordTypingResult.clear()
+//            wordTextFieldValue = ""
+//            captionsTypingResultMap.clear()
+//            captionsTextFieldValue1 = ""
+//            captionsTextFieldValue2 = ""
+//            captionsTextFieldValue3 = ""
+//            wordCorrectTime = 0
+//            wordWrongTime = 0
+//        }
 
 
 
@@ -458,7 +459,7 @@ fun MainContent(
                 appState.hardVocabulary.wordList.remove(currentWord)
                 appState.hardVocabulary.size = appState.hardVocabulary.wordList.size
             }
-            clear()
+            typingWord.clearInputtedState()
             typingWord.saveCurrentVocabulary()
         }
 
@@ -765,7 +766,7 @@ fun MainContent(
              * 在听写测试跳过单词也算一次错误
              */
             val dictationSkipCurrentWord: () -> Unit = {
-                if (wordCorrectTime == 0) {
+                if (typingWord.wordCorrectTime == 0) {
                     val dictationWrongTime = dictationWrongWords[currentWord]
                     if (dictationWrongTime == null) {
                         dictationWrongWords[currentWord] = 1
@@ -810,7 +811,7 @@ fun MainContent(
             /** 切换到下一个单词 */
             val toNext: () -> Unit = {
                 scope.launch {
-                    clear()
+                    typingWord.clearInputtedState()
                 }
                 scope.launch {
                     when (typingWord.memoryStrategy) {
@@ -852,14 +853,14 @@ fun MainContent(
                 scope.launch {
                     // 正常记忆单词
                     if(typingWord.memoryStrategy == Normal){
-                        clear()
+                        typingWord.clearInputtedState()
                         if((typingWord.index) % 20 != 0 ){
                             typingWord.index -= 1
                             typingWord.saveTypingWordState()
                         }
                         // 复习错误单词
                     }else if (typingWord.memoryStrategy == NormalReviewWrong || typingWord.memoryStrategy == DictationReviewWrong ){
-                        clear()
+                        typingWord.clearInputtedState()
                         if(typingWord.dictationIndex > 0 ){
                             typingWord.dictationIndex -= 1
                         }
@@ -870,30 +871,30 @@ fun MainContent(
             /** 检查输入的单词 */
             val checkWordInput: (String) -> Unit = { input ->
                 if(!isWrong){
-                    wordTextFieldValue = input
-                    wordTypingResult.clear()
+                    typingWord.wordTextFieldValue = input
+                    typingWord.wordTypingResult.clear()
                     var done = true
                     /**
                      *  防止用户粘贴内容过长，如果粘贴的内容超过 word.value 的长度，
                      * 会改变 BasicTextField 宽度，和 Text 的宽度不匹配
                      */
                     if (input.length > currentWord.value.length) {
-                        wordTypingResult.clear()
-                        wordTextFieldValue = ""
+                        typingWord.wordTypingResult.clear()
+                        typingWord.wordTextFieldValue = ""
                     } else {
                         val inputChars = input.toList()
                         for (i in inputChars.indices) {
                             val inputChar = inputChars[i]
                             val wordChar = currentWord.value[i]
                             if (inputChar == wordChar) {
-                                wordTypingResult.add(Pair(inputChar, true))
+                                typingWord.wordTypingResult.add(Pair(inputChar, true))
                             } else {
                                 // 字母输入错误
-                                wordTypingResult.add(Pair(wordChar, false))
+                                typingWord.wordTypingResult.add(Pair(wordChar, false))
                                 done = false
                                 playBeepSound()
                                 isWrong = true
-                                wordWrongTime++
+                                typingWord.wordWrongTime++
                                 // 如果是听写测试，或听写复习，需要汇总错误单词
                                 if (typingWord.memoryStrategy == Dictation || typingWord.memoryStrategy == Review) {
                                     val dictationWrongTime = dictationWrongWords[currentWord]
@@ -905,14 +906,14 @@ fun MainContent(
                                 }
 
                                 Timer("input wrong cleanInputChar", false).schedule(500) {
-                                    wordTextFieldValue = ""
-                                    wordTypingResult.clear()
+                                    typingWord.wordTextFieldValue = ""
+                                    typingWord.wordTypingResult.clear()
                                     isWrong = false
                                 }
                             }
                         }
                         // 用户输入的单词完全正确
-                        if (wordTypingResult.size == currentWord.value.length && done) {
+                        if (typingWord.wordTypingResult.size == currentWord.value.length && done) {
                             // 输入完全正确
                             playSuccessSound()
                             if (typingWord.isAuto) {
@@ -921,11 +922,11 @@ fun MainContent(
                                     toNext()
                                 }
                             } else {
-                                wordCorrectTime++
+                                typingWord.wordCorrectTime++
 
                                 Timer("input correct clean InputChar", false).schedule(50){
-                                    wordTypingResult.clear()
-                                    wordTextFieldValue = ""
+                                    typingWord.wordTypingResult.clear()
+                                    typingWord.wordTextFieldValue = ""
                                 }
                             }
                         }
@@ -938,11 +939,11 @@ fun MainContent(
             /** 检查输入的字幕 */
             val checkCaptionsInput: (Int, String, String) -> Unit = { index, input, captionContent ->
                 when(index){
-                    0 -> captionsTextFieldValue1 = input
-                    1 -> captionsTextFieldValue2 = input
-                    2 -> captionsTextFieldValue3 = input
+                    0 -> typingWord.captionsTextFieldValue1 = input
+                    1 -> typingWord.captionsTextFieldValue2 = input
+                    2 -> typingWord.captionsTextFieldValue3 = input
                 }
-                val typingResult = captionsTypingResultMap[index]
+                val typingResult = typingWord.captionsTypingResultMap[index]
                 typingResult!!.clear()
                 val inputChars = input.toMutableList()
                 for (i in inputChars.indices) {
@@ -961,9 +962,9 @@ fun MainContent(
                             inputChars.removeAt(i+1)
                             val textFieldValue = String(inputChars.toCharArray())
                             when(index){
-                                0 -> captionsTextFieldValue1 = textFieldValue
-                                1 -> captionsTextFieldValue2 = textFieldValue
-                                2 -> captionsTextFieldValue3 = textFieldValue
+                                0 -> typingWord.captionsTextFieldValue1 = textFieldValue
+                                1 -> typingWord.captionsTextFieldValue2 = textFieldValue
+                                2 -> typingWord.captionsTextFieldValue3 = textFieldValue
                             }
                         } else {
                             typingResult.add(Pair(inputChar, false))
@@ -1227,7 +1228,7 @@ fun MainContent(
 
             LaunchedEffect(appState.vocabularyChanged){
                 if(appState.vocabularyChanged){
-                    clear()
+                    typingWord.clearInputtedState()
                     if(typingWord.memoryStrategy == NormalReviewWrong ||
                         typingWord.memoryStrategy == DictationReviewWrong
                     ){
@@ -1289,10 +1290,10 @@ fun MainContent(
                         isDictation = (typingWord.memoryStrategy == Dictation ||typingWord.memoryStrategy == Review),
                         fontFamily = monospace,
                         audioPath = audioPath,
-                        correctTime = wordCorrectTime,
-                        wrongTime = wordWrongTime,
-                        textFieldValue = wordTextFieldValue,
-                        typingResult = wordTypingResult,
+                        correctTime = typingWord.wordCorrectTime,
+                        wrongTime = typingWord.wordWrongTime,
+                        textFieldValue = typingWord.wordTextFieldValue,
+                        typingResult = typingWord.wordTypingResult,
                         checkTyping = { checkWordInput(it) },
                         focusRequester = wordFocusRequester,
                         textFieldKeyEvent = {wordKeyEvent(it)},
@@ -1366,10 +1367,10 @@ fun MainContent(
                 setIsPlaying = { isPlaying = it },
                 word = currentWord,
                 bounds = videoBounds,
-                textFieldValueList = listOf(captionsTextFieldValue1,captionsTextFieldValue2,captionsTextFieldValue3),
-                typingResultMap = captionsTypingResultMap,
+                textFieldValueList = listOf(typingWord.captionsTextFieldValue1,typingWord.captionsTextFieldValue2,typingWord.captionsTextFieldValue3),
+                typingResultMap = typingWord.captionsTypingResultMap,
                 putTypingResultMap = { index, list ->
-                    captionsTypingResultMap[index] = list
+                    typingWord.captionsTypingResultMap[index] = list
                 },
                 checkTyping = { index, input, captionContent ->
                     checkCaptionsInput(index, input, captionContent)
