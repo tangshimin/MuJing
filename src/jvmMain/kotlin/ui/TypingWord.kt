@@ -337,33 +337,8 @@ fun MainContent(
         /** 协程构建器 */
         val scope = rememberCoroutineScope()
 
-//        /** 当前单词的正确次数 */
-//        var wordCorrectTime by remember {mutableStateOf(0)}
-//
-//        /** 当前单词的错误次数 */
-//        var wordWrongTime by remember {mutableStateOf(0)}
-
         /** 单词输入错误*/
         var isWrong by remember { mutableStateOf(false) }
-
-//        /** 单词输入框里的字符串*/
-//        var wordTextFieldValue by remember { mutableStateOf("") }
-
-//        /** 第一条字幕的输入字符串*/
-//        var captionsTextFieldValue1 by remember { mutableStateOf("") }
-//
-//        /** 第二条字幕的输入字符串*/
-//        var captionsTextFieldValue2 by remember { mutableStateOf("") }
-//
-//        /** 第三条字幕的输入字符串*/
-//        var captionsTextFieldValue3 by remember { mutableStateOf("") }
-
-//        /** 单词输入框输入的结果*/
-//        val wordTypingResult = remember { mutableStateListOf<Pair<Char, Boolean>>() }
-
-//        /** 字幕输入框的结果 */
-//        val captionsTypingResultMap =
-//            remember { mutableStateMapOf<Int, MutableList<Pair<Char, Boolean>>>() }
 
         /** 是否正在播放视频 */
         var isPlaying by remember { mutableStateOf(false) }
@@ -435,19 +410,6 @@ fun MainContent(
                 }
             }
         }
-
-//        /** 清除当前单词的状态 */
-//        val clear:() -> Unit = {
-//            wordTypingResult.clear()
-//            wordTextFieldValue = ""
-//            captionsTypingResultMap.clear()
-//            captionsTextFieldValue1 = ""
-//            captionsTextFieldValue2 = ""
-//            captionsTextFieldValue3 = ""
-//            wordCorrectTime = 0
-//            wordWrongTime = 0
-//        }
-
 
 
         /** 删除当前单词 */
