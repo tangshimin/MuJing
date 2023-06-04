@@ -24,7 +24,7 @@ import player.isWindows
 import state.AppState
 import state.DictationState
 import state.MemoryStrategy
-import state.WordState
+import state.TypingWordState
 import ui.dialog.SelectChapterDialog
 
 /**
@@ -36,7 +36,7 @@ import ui.dialog.SelectChapterDialog
 @Composable
 fun TypingWordSidebar(
     state: AppState,
-    typingWordState: WordState,
+    typingWordState: TypingWordState,
     dictationState: DictationState,
 ) {
 

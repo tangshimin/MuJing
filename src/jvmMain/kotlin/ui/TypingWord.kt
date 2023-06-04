@@ -78,7 +78,7 @@ fun TypingWord(
     window: ComposeWindow,
     title: String,
     appState: AppState,
-    typingWord: WordState,
+    typingWord: TypingWordState,
     videoBounds: Rectangle,
     resetVideoBounds :() -> Rectangle,
     showPlayer :(Boolean) -> Unit,
@@ -92,7 +92,7 @@ fun TypingWord(
         setWindowTransferHandler(
             window = window,
             state = appState,
-            wordState = typingWord,
+            typingWordState = typingWord,
             showVideoPlayer = showPlayer,
             setVideoPath = setVideoPath,
             vocabularyPathChanged = vocabularyPathChanged
@@ -130,7 +130,7 @@ fun TypingWord(
                 }
 
                 Header(
-                    wordState = typingWord,
+                    typingWordState = typingWord,
                     title = title,
                     window = window,
                     modifier = Modifier.align(Alignment.TopCenter)
@@ -242,7 +242,7 @@ fun TypingWord(
 @ExperimentalComposeUiApi
 @Composable
 fun Header(
-    wordState: WordState,
+    typingWordState: TypingWordState,
     title:String,
     window: ComposeWindow,
     modifier: Modifier
@@ -265,24 +265,24 @@ fun Header(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center){
             // 记忆单词时的状态信息
-            val text = when(wordState.memoryStrategy){
-                Normal -> { if(wordState.vocabulary.size>0) "${wordState.index + 1}/${wordState.vocabulary.size}" else ""}
-                Dictation -> { "听写测试   ${wordState.dictationIndex + 1}/${wordState.dictationWords.size}"}
-                Review -> {"听写复习   ${wordState.dictationIndex + 1}/${wordState.reviewWords.size}"}
-                NormalReviewWrong -> { "复习错误单词   ${wordState.dictationIndex + 1}/${wordState.wrongWords.size}"}
-                DictationReviewWrong -> { "听写复习 - 复习错误单词   ${wordState.dictationIndex + 1}/${wordState.wrongWords.size}"}
+            val text = when(typingWordState.memoryStrategy){
+                Normal -> { if(typingWordState.vocabulary.size>0) "${typingWordState.index + 1}/${typingWordState.vocabulary.size}" else ""}
+                Dictation -> { "听写测试   ${typingWordState.dictationIndex + 1}/${typingWordState.dictationWords.size}"}
+                Review -> {"听写复习   ${typingWordState.dictationIndex + 1}/${typingWordState.reviewWords.size}"}
+                NormalReviewWrong -> { "复习错误单词   ${typingWordState.dictationIndex + 1}/${typingWordState.wrongWords.size}"}
+                DictationReviewWrong -> { "听写复习 - 复习错误单词   ${typingWordState.dictationIndex + 1}/${typingWordState.wrongWords.size}"}
             }
 
-            val top = if(wordState.memoryStrategy != Normal) 0.dp else 12.dp
+            val top = if(typingWordState.memoryStrategy != Normal) 0.dp else 12.dp
             Text(
                 text = text,
                 style = MaterialTheme.typography.h6,
                 color = MaterialTheme.colors.onBackground,
                 modifier = Modifier.padding(top = top )
             )
-            if(wordState.memoryStrategy != Normal){
+            if(typingWordState.memoryStrategy != Normal){
                 Spacer(Modifier.width(20.dp))
-                val tooltip = when (wordState.memoryStrategy) {
+                val tooltip = when (typingWordState.memoryStrategy) {
                     Review, DictationReviewWrong -> {
                         "退出听写复习"
                     }
@@ -296,14 +296,14 @@ fun Header(
                 ExitButton(
                     tooltip = tooltip,
                     onClick = {
-                    wordState.showInfo()
-                    wordState.clearInputtedState()
-                    wordState.memoryStrategy = Normal
-                    if( wordState.wrongWords.isNotEmpty()){
-                        wordState.wrongWords.clear()
+                    typingWordState.showInfo()
+                    typingWordState.clearInputtedState()
+                    typingWordState.memoryStrategy = Normal
+                    if( typingWordState.wrongWords.isNotEmpty()){
+                        typingWordState.wrongWords.clear()
                     }
-                    if(wordState.reviewWords.isNotEmpty()){
-                        wordState.reviewWords.clear()
+                    if(typingWordState.reviewWords.isNotEmpty()){
+                        typingWordState.reviewWords.clear()
                     }
 
                 })
@@ -322,7 +322,7 @@ fun Header(
 @Composable
 fun MainContent(
     appState: AppState,
-    typingWord: WordState,
+    typingWord: TypingWordState,
     dictationState:  DictationState,
     currentWord:Word,
     videoBounds: Rectangle,
@@ -1416,7 +1416,7 @@ fun MainContent(
                 EditWordDialog(
                     word = currentWord,
                     state = appState,
-                    wordState = typingWord,
+                    typingWordState = typingWord,
                     save = { newWord ->
                         scope.launch {
                             val current = typingWord.getCurrentWord()
@@ -2025,10 +2025,10 @@ fun Captions(
  * - Triple 的 String   -> 字幕对应的视频地址
  * - Triple 的 Int      -> 字幕的轨道
  */
-fun getPlayTripleMap(wordState: WordState, word: Word): MutableMap<Int, Triple<Caption, String, Int>> {
+fun getPlayTripleMap(typingWordState: TypingWordState, word: Word): MutableMap<Int, Triple<Caption, String, Int>> {
 
     val playTripleMap = mutableMapOf<Int, Triple<Caption, String, Int>>()
-    if (wordState.vocabulary.type == VocabularyType.DOCUMENT) {
+    if (typingWordState.vocabulary.type == VocabularyType.DOCUMENT) {
         if (word.externalCaptions.isNotEmpty()) {
             word.externalCaptions.forEachIndexed { index, externalCaption ->
                 val caption = Caption(externalCaption.start, externalCaption.end, externalCaption.content)
@@ -2041,7 +2041,7 @@ fun getPlayTripleMap(wordState: WordState, word: Word): MutableMap<Int, Triple<C
         if (word.captions.isNotEmpty()) {
             word.captions.forEachIndexed { index, caption ->
                 val playTriple =
-                    Triple(caption, wordState.vocabulary.relateVideoPath, wordState.vocabulary.subtitlesTrackId)
+                    Triple(caption, typingWordState.vocabulary.relateVideoPath, typingWordState.vocabulary.subtitlesTrackId)
                 playTripleMap[index] = playTriple
             }
 
@@ -2622,7 +2622,7 @@ fun RemoveButton(
 fun SearchResultInfo(
     word: Word,
     appState: AppState,
-    typingState: WordState,
+    typingState: TypingWordState,
 ){
     Row(verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
@@ -2681,7 +2681,7 @@ fun getPayTriple(currentWord: Word, index: Int): Triple<Caption, String, Int>? {
 fun setWindowTransferHandler(
     window: ComposeWindow,
     state: AppState,
-    wordState: WordState,
+    typingWordState: TypingWordState,
     showVideoPlayer:(Boolean) -> Unit,
     setVideoPath:(String) -> Unit,
     vocabularyPathChanged:(String) -> Unit
@@ -2693,9 +2693,9 @@ fun setWindowTransferHandler(
         parseImportFile = {files ->
             val file = files.first()
             if (file.extension == "json") {
-                if (wordState.vocabularyPath != file.absolutePath) {
+                if (typingWordState.vocabularyPath != file.absolutePath) {
                     val index = state.findVocabularyIndex(file)
-                    state.changeVocabulary(file,wordState,index)
+                    state.changeVocabulary(file,typingWordState,index)
                 } else {
                     JOptionPane.showMessageDialog(window, "词库已打开")
                 }
@@ -2703,7 +2703,7 @@ fun setWindowTransferHandler(
             } else if (file.extension == "mkv" || file.extension == "mp4") {
                 showVideoPlayer(true)
                 setVideoPath(file.absolutePath)
-                vocabularyPathChanged(wordState.vocabularyPath)
+                vocabularyPathChanged(typingWordState.vocabularyPath)
             } else {
                 JOptionPane.showMessageDialog(window, "文件格式不支持")
             }

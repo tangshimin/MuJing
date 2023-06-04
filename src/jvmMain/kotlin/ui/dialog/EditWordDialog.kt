@@ -38,7 +38,7 @@ import data.Word
 import kotlinx.coroutines.launch
 import player.isWindows
 import state.AppState
-import state.WordState
+import state.TypingWordState
 import java.awt.Component
 import java.awt.Point
 import java.awt.Rectangle
@@ -60,7 +60,7 @@ import java.time.format.DateTimeFormatter
 fun EditWordDialog(
     word: Word,
     state: AppState,
-    wordState: WordState,
+    typingWordState: TypingWordState,
     save: (Word) -> Unit,
     close: () -> Unit
 ) {
@@ -188,18 +188,18 @@ fun EditWordDialog(
                     var linkSize by remember { mutableStateOf(word.externalCaptions.size) }
                     EditingCaptions(
                         state = state,
-                        typingWordState = wordState,
+                        typingWordState = typingWordState,
                         setLinkSize = { linkSize = it },
                         word = word
                     )
 
-                    if (wordState.vocabulary.type == VocabularyType.DOCUMENT && linkSize <= 3) {
+                    if (typingWordState.vocabulary.type == VocabularyType.DOCUMENT && linkSize <= 3) {
                         var isLink by remember { mutableStateOf(false) }
                         if (isLink && linkSize <= 3) {
                             LinkCaptionDialog(
                                 word = word,
                                 state = state,
-                                typingWordState = wordState,
+                                typingWordState = typingWordState,
                                 setLinkSize = { linkSize = it },
                                 close = { isLink = false }
                             )
@@ -281,7 +281,7 @@ fun EditWordDialog(
 @Composable
 fun EditingCaptions(
     state: AppState,
-    typingWordState: WordState,
+    typingWordState: TypingWordState,
     setLinkSize: (Int) -> Unit,
     word: Word
 ) {

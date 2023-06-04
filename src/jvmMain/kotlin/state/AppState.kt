@@ -166,7 +166,7 @@ class AppState {
     /** 改变词库 */
     fun changeVocabulary(
         vocabularyFile: File,
-        typingWord: WordState,
+        typingWord: TypingWordState,
         index: Int
     ) {
         val newVocabulary = loadMutableVocabulary(vocabularyFile.absolutePath)

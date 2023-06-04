@@ -33,7 +33,7 @@ import data.*
 import kotlinx.coroutines.launch
 import player.play
 import state.AppState
-import state.WordState
+import state.TypingWordState
 import java.awt.Point
 import java.awt.Rectangle
 import java.io.File
@@ -52,7 +52,7 @@ import javax.swing.filechooser.FileSystemView
 fun LinkCaptionDialog(
     word: Word,
     state: AppState,
-    typingWordState: WordState,
+    typingWordState: TypingWordState,
     setLinkSize: (Int) -> Unit,
     close: () -> Unit
 ) {

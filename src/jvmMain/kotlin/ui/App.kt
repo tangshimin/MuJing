@@ -357,7 +357,7 @@ private fun computeTitle(textState: TextState) :String{
 @Composable
 private fun FrameWindowScope.WindowMenuBar(
     appState: AppState,
-    typingState:WordState,
+    typingState:TypingWordState,
     close: () -> Unit,
 ) = MenuBar {
     Menu("词库(V)", mnemonic = 'V') {

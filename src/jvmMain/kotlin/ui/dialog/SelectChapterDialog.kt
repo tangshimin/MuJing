@@ -22,7 +22,7 @@ import androidx.compose.ui.window.rememberDialogState
 import data.Word
 import player.isWindows
 import state.MemoryStrategy
-import state.WordState
+import state.TypingWordState
 import state.rememberDictationState
 
 /**
@@ -32,7 +32,7 @@ import state.rememberDictationState
 @Composable
 fun SelectChapterDialog(
     close:() -> Unit,
-    typingWordState: WordState,
+    typingWordState: TypingWordState,
     isMultiple:Boolean
 ) {
     Dialog(

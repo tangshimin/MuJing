@@ -22,7 +22,7 @@ import data.Word
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
-import state.WordState
+import state.TypingWordState
 import state.getAudioDirectory
 import tts.MSTTSpeech
 import tts.MacTTS
@@ -48,7 +48,7 @@ fun rememberAudioPlayerComponent(): AudioPlayerComponent = remember {
  * @param pronunciation 音音 或 美音
  * @param paddingTop 顶部填充
  */
-@OptIn(androidx.compose.foundation.ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AudioButton(
     audioPath: String,
@@ -150,7 +150,7 @@ fun AudioButton(
 fun AudioButton(
     word: Word,
     state:AppState,
-    typingState: WordState,
+    typingState: TypingWordState,
     volume: Float,
     pronunciation: String,
 ) {

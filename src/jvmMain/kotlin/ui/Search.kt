@@ -34,14 +34,14 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.platform.Font
 import kotlinx.serialization.ExperimentalSerializationApi
-import state.WordState
+import state.TypingWordState
 import java.awt.Point
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalSerializationApi::class)
 @Composable
 fun Search(
     appState: AppState,
-    typingWordState: WordState,
+    typingWordState: TypingWordState,
 ){
 
     val vocabulary = typingWordState.vocabulary

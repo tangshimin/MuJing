@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 import ui.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
-import state.WordState
+import state.TypingWordState
 import theme.createColors
 import ui.flatlaf.updateFlatLaf
 import java.awt.Dimension
@@ -44,7 +44,7 @@ import javax.swing.JColorChooser
 fun SettingsDialog(
     close: () -> Unit,
     state: AppState,
-    typingWordState: WordState,
+    typingWordState: TypingWordState,
 ) {
     Dialog(
         title = "设置",
@@ -317,7 +317,7 @@ fun PrimaryColorChooser(
 @Composable
 fun SettingTextStyle(
     state: AppState,
-    typingState: WordState,
+    typingState: TypingWordState,
 ) {
     val fontFamily by remember {
         mutableStateOf(
