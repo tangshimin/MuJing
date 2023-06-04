@@ -245,16 +245,16 @@ fun playAudio(
     // 如果单词发音为 local TTS 或者由于网络问题，没有获取到发音
     // 就自动使用本地的 TTS
     if (pronunciation == "local TTS" || audioPath.isEmpty()) {
-        Thread(Runnable {
+        Thread {
 
             if (isWindows()) {
                 val speech = MSTTSpeech()
                 speech.speak(word)
-            }else if (isMacOS()) {
+            } else if (isMacOS()) {
                 MacTTS().speakAndWait(word)
             }
 
-        }).start()
+        }.start()
 
 
     }else if (audioPath.isNotEmpty()) {
