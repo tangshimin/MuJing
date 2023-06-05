@@ -121,9 +121,7 @@ fun TypingWord(
                         currentWord = currentWord,
                         videoBounds = videoBounds,
                         resetVideoBounds = resetVideoBounds,
-                        window = window,
-                        modifier = Modifier.align(Alignment.Center)
-                            .padding(end = 0.dp,bottom = 58.dp)
+                        window = window
                     )
                 } else {
                     VocabularyEmpty()
@@ -315,7 +313,8 @@ fun Header(
 @OptIn(
     ExperimentalComposeUiApi::class,
     ExperimentalAnimationApi::class,
-    ExperimentalSerializationApi::class
+    ExperimentalSerializationApi::class, ExperimentalFoundationApi::class, ExperimentalFoundationApi::class,
+    ExperimentalFoundationApi::class
 )
 @ExperimentalAnimationApi
 @ExperimentalComposeUiApi
@@ -328,10 +327,12 @@ fun MainContent(
     videoBounds: Rectangle,
     resetVideoBounds :() -> Rectangle,
     window: ComposeWindow,
-    modifier: Modifier
 ){
+    var nextButtonVisible by remember{ mutableStateOf(false) }
     Box(
-        modifier = modifier
+        modifier = Modifier.fillMaxSize()
+            .onPointerEvent(PointerEventType.Move){nextButtonVisible = true}
+            .onPointerEvent(PointerEventType.Exit){nextButtonVisible = false}
     ) {
 
         /** 协程构建器 */
@@ -663,6 +664,101 @@ fun MainContent(
                 else -> false
             }
         }
+
+        /** 显示本章节已经完成对话框 */
+        var showChapterFinishedDialog by remember { mutableStateOf(false) }
+
+        /** 显示整个词库已经学习完成对话框 */
+        var isVocabularyFinished by remember { mutableStateOf(false) }
+
+        /** 播放整个章节完成时音效 */
+        val playChapterFinished = {
+            if (typingWord.isPlaySoundTips) {
+                playSound("audio/Success!!.wav", typingWord.soundTipsVolume)
+            }
+        }
+
+        /**
+         * 在听写模式，闭着眼睛听写单词时，刚拼写完单词，就播放这个声音感觉不好，
+         * 在非听写模式下按Enter键就不会有这种感觉，因为按Enter键，
+         * 自己已经输入完成了，有一种期待，预测到了将会播放提示音。
+         */
+        val delayPlaySound:() -> Unit = {
+            Timer("playChapterFinishedSound", false).schedule(1000) {
+                playChapterFinished()
+            }
+            showChapterFinishedDialog = true
+        }
+
+
+        /** 增加复习错误单词时的索引 */
+        val increaseWrongIndex:() -> Unit = {
+            if (typingWord.dictationIndex + 1 == typingWord.wrongWords.size) {
+                delayPlaySound()
+            } else typingWord.dictationIndex++
+        }
+
+
+        /** 切换到下一个单词 */
+        val toNext: () -> Unit = {
+            scope.launch {
+                typingWord.clearInputtedState()
+            }
+            scope.launch {
+                when (typingWord.memoryStrategy) {
+                    Normal -> {
+                        when {
+                            (typingWord.index == typingWord.vocabulary.size - 1) -> {
+                                isVocabularyFinished = true
+                                playChapterFinished()
+                                showChapterFinishedDialog = true
+                            }
+                            ((typingWord.index + 1) % 20 == 0) -> {
+                                playChapterFinished()
+                                showChapterFinishedDialog = true
+                            }
+                            else -> typingWord.index += 1
+                        }
+                        typingWord.saveTypingWordState()
+                    }
+                    Dictation -> {
+                        if (typingWord.dictationIndex + 1 == typingWord.dictationWords.size) {
+                            delayPlaySound()
+                        } else typingWord.dictationIndex++
+                    }
+                    Review -> {
+                        if (typingWord.dictationIndex + 1 == typingWord.reviewWords.size) {
+                            delayPlaySound()
+                        } else typingWord.dictationIndex++
+                    }
+                    NormalReviewWrong -> { increaseWrongIndex() }
+                    DictationReviewWrong -> { increaseWrongIndex() }
+                }
+
+                wordFocusRequester.requestFocus()
+            }
+        }
+
+        /** 切换到上一个单词,听写时不允许切换到上一个单词 */
+        val previous :() -> Unit = {
+            scope.launch {
+                // 正常记忆单词
+                if(typingWord.memoryStrategy == Normal){
+                    typingWord.clearInputtedState()
+                    if((typingWord.index) % 20 != 0 ){
+                        typingWord.index -= 1
+                        typingWord.saveTypingWordState()
+                    }
+                    // 复习错误单词
+                }else if (typingWord.memoryStrategy == NormalReviewWrong || typingWord.memoryStrategy == DictationReviewWrong ){
+                    typingWord.clearInputtedState()
+                    if(typingWord.dictationIndex > 0 ){
+                        typingWord.dictationIndex -= 1
+                    }
+                }
+            }
+        }
+
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
@@ -672,27 +768,20 @@ fun MainContent(
                 .width(intrinsicSize = IntrinsicSize.Max)
                 .background(MaterialTheme.colors.background)
                 .focusable(true)
+                .align(Alignment.Center)
+                .padding(end = 0.dp,bottom = 58.dp)
         ) {
 
             /** 听写模式的错误单词 */
             val dictationWrongWords = remember { mutableStateMapOf<Word, Int>()}
 
-            /** 显示本章节已经完成对话框 */
-            var showChapterFinishedDialog by remember { mutableStateOf(false) }
-
-            /** 显示整个词库已经学习完成对话框 */
-            var isVocabularyFinished by remember { mutableStateOf(false) }
-
             /** 显示编辑单词对话框 */
             var showEditWordDialog by remember { mutableStateOf(false) }
-
-
 
             /** 清空听写模式存储的错误单词 */
             val resetChapterTime: () -> Unit = {
                 dictationWrongWords.clear()
             }
-
 
 
             /** 播放错误音效 */
@@ -709,12 +798,6 @@ fun MainContent(
                 }
             }
 
-            /** 播放整个章节完成时音效 */
-            val playChapterFinished = {
-                if (typingWord.isPlaySoundTips) {
-                    playSound("audio/Success!!.wav", typingWord.soundTipsVolume)
-                }
-            }
 
             /** 播放按键音效 */
             val playKeySound = {
@@ -747,86 +830,6 @@ fun MainContent(
                     typingWord.subtitlesVisible && (currentWord.captions.isNotEmpty() || currentWord.externalCaptions.isNotEmpty())
                 ){
                     focusRequester1.requestFocus()
-                }
-            }
-
-
-            /**
-             * 在听写模式，闭着眼睛听写单词时，刚拼写完单词，就播放这个声音感觉不好，
-             * 在非听写模式下按Enter键就不会有这种感觉，因为按Enter键，
-             * 自己已经输入完成了，有一种期待，预测到了将会播放提示音。
-             */
-            val delayPlaySound:() -> Unit = {
-                Timer("playChapterFinishedSound", false).schedule(1000) {
-                    playChapterFinished()
-                }
-                showChapterFinishedDialog = true
-            }
-
-            /** 增加复习错误单词时的索引 */
-            val increaseWrongIndex:() -> Unit = {
-                if (typingWord.dictationIndex + 1 == typingWord.wrongWords.size) {
-                    delayPlaySound()
-                } else typingWord.dictationIndex++
-            }
-
-            /** 切换到下一个单词 */
-            val toNext: () -> Unit = {
-                scope.launch {
-                    typingWord.clearInputtedState()
-                }
-                scope.launch {
-                    when (typingWord.memoryStrategy) {
-                        Normal -> {
-                            when {
-                                (typingWord.index == typingWord.vocabulary.size - 1) -> {
-                                    isVocabularyFinished = true
-                                    playChapterFinished()
-                                    showChapterFinishedDialog = true
-                                }
-                                ((typingWord.index + 1) % 20 == 0) -> {
-                                    playChapterFinished()
-                                    showChapterFinishedDialog = true
-                                }
-                                else -> typingWord.index += 1
-                            }
-                            typingWord.saveTypingWordState()
-                        }
-                        Dictation -> {
-                            if (typingWord.dictationIndex + 1 == typingWord.dictationWords.size) {
-                                delayPlaySound()
-                            } else typingWord.dictationIndex++
-                        }
-                        Review -> {
-                            if (typingWord.dictationIndex + 1 == typingWord.reviewWords.size) {
-                                delayPlaySound()
-                            } else typingWord.dictationIndex++
-                        }
-                        NormalReviewWrong -> { increaseWrongIndex() }
-                        DictationReviewWrong -> { increaseWrongIndex() }
-                    }
-
-                    wordFocusRequester.requestFocus()
-                }
-            }
-
-            /** 切换到上一个单词,听写时不允许切换到上一个单词 */
-            val previous :() -> Unit = {
-                scope.launch {
-                    // 正常记忆单词
-                    if(typingWord.memoryStrategy == Normal){
-                        typingWord.clearInputtedState()
-                        if((typingWord.index) % 20 != 0 ){
-                            typingWord.index -= 1
-                            typingWord.saveTypingWordState()
-                        }
-                        // 复习错误单词
-                    }else if (typingWord.memoryStrategy == NormalReviewWrong || typingWord.memoryStrategy == DictationReviewWrong ){
-                        typingWord.clearInputtedState()
-                        if(typingWord.dictationIndex > 0 ){
-                            typingWord.dictationIndex -= 1
-                        }
-                    }
                 }
             }
 
@@ -1435,6 +1438,83 @@ fun MainContent(
                 )
             }
         }
+
+
+        if (nextButtonVisible) {
+            TooltipArea(
+                tooltip = {
+                    Surface(
+                        elevation = 4.dp,
+                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                        shape = RectangleShape
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(10.dp)
+                        ) {
+                            Text(text = "上一个")
+                            CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                Text(text = " PgUp")
+                            }
+                        }
+                    }
+                },
+                delayMillis = 300,
+                modifier = Modifier.align(Alignment.CenterStart).padding(start = 10.dp),
+                tooltipPlacement = TooltipPlacement.ComponentRect(
+                    anchor = Alignment.CenterEnd,
+                    alignment = Alignment.CenterEnd,
+                    offset = DpOffset.Zero
+                )
+            ) {
+                IconButton(
+                    onClick = { previous() },
+                ) {
+                    Icon(
+                        Icons.Filled.ArrowBackIosNew,
+                        contentDescription = "Localized description",
+                        tint = MaterialTheme.colors.primary
+                    )
+                }
+            }
+            TooltipArea(
+                tooltip = {
+                    Surface(
+                        elevation = 4.dp,
+                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                        shape = RectangleShape
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(10.dp)
+                        ) {
+                            Text(text = "下一个")
+                            CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                Text(text = " PgDn")
+                            }
+                        }
+                    }
+                },
+                delayMillis = 300,
+                modifier = Modifier.align(Alignment.CenterEnd).padding(end = 10.dp),
+                tooltipPlacement = TooltipPlacement.ComponentRect(
+                    anchor = Alignment.CenterStart,
+                    alignment = Alignment.CenterStart,
+                    offset = DpOffset.Zero
+                )
+            ) {
+                IconButton(
+                    onClick = { toNext()},
+                ) {
+                    Icon(
+                        Icons.Filled.ArrowForwardIos,
+                        contentDescription = "Localized description",
+                        tint = MaterialTheme.colors.primary
+                    )
+                }
+            }
+        }
+
 
     }
 }
