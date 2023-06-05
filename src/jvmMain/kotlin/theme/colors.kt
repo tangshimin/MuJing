@@ -23,6 +23,7 @@ fun createColors(
         lightColors(
             primary = primary,
             background = background,
+            surface = background,
             onBackground = onBackground
         )
     }
