@@ -1540,7 +1540,7 @@ fun VocabularyEmpty() {
                 ) {
                     val annotatedString = buildAnnotatedString {
                         withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                            append("如果要记忆高考单词四六级单词，请从")
+                            append("如果要记忆高考单词、四六级单词，请从")
                         }
                         withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
                             append("词库菜单栏")
@@ -1552,7 +1552,7 @@ fun VocabularyEmpty() {
                             append("选择内置词库")
                         }
                         withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                            append("，选择词库到本地文件系统。")
+                            append("，保存词库到本地文件系统后再打开。")
                         }
                     }
                     Text(annotatedString, style = MaterialTheme.typography.h6)
