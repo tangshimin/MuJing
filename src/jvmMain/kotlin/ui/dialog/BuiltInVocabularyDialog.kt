@@ -98,7 +98,7 @@ fun BuiltInVocabularyDialog(
                                 save = save
                             )
                             VocabularyCategory(
-                                directory = getResourcesFile("vocabulary/其它"),
+                                directory = getResourcesFile("vocabulary/出国"),
                                 save = save
                             )
                             VocabularyCategory(
