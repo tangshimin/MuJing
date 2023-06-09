@@ -812,7 +812,7 @@ fun GenerateVocabularyDialog(
                                                 bncZeroFilter,
                                                 frqZeroFilter,
                                                 replaceToLemma,
-                                                selectedFileList.isEmpty()
+                                                selectedFileList.isNotEmpty()
                                             )
                                             previewList.clear()
                                             // 根据选择的词库过滤单词
@@ -2188,93 +2188,99 @@ fun filterDocumentWords(
             resultList.remove(word)
         }
 
-        val lemma = getWordLemma(word)
-        if (replaceToLemma && lemma.isNotEmpty()) {
-            lemmaMap[word] = lemma
-            // 处理内部字幕，批量的用 MKV 生成词库时，字幕保存在外部字幕列表
+
+        if (replaceToLemma) {
+            val lemma = getWordLemma(word)
+            if(lemma.isNotEmpty()){
+                lemmaMap[word] = lemma
+                // 处理内部字幕，批量的用 MKV 生成词库时，字幕保存在外部字幕列表
+                if(!isBatchMKV){
+                    if (captionsMap[lemma].isNullOrEmpty()) {
+                        captionsMap[lemma] = word.captions
+                    } else {
+                        // do 有四个派生词，四个派生词可能在文件的不同位置，可能有四个不同的字幕列表
+                        val list = mutableListOf<Caption>()
+                        list.addAll(captionsMap[lemma]!!)
+                        for (caption in word.captions) {
+                            if(list.size<3){
+                                list.add(caption)
+                            }
+                        }
+                        captionsMap[lemma] = list
+                    }
+                    // 处理外部字幕，批量的用 MKV 生成词库时，字幕保存在外部字幕列表
+                }else{
+                    if (externalCaptionsMap[lemma].isNullOrEmpty()) {
+                        externalCaptionsMap[lemma] = word.externalCaptions
+                    } else {
+                        // do 有四个派生词，四个派生词可能在文件的不同位置，可能有四个不同的字幕列表
+                        val list = mutableListOf<ExternalCaption>()
+                        list.addAll(externalCaptionsMap[lemma]!!)
+                        for (externalCaption in word.externalCaptions) {
+                            if(list.size<3){
+                                list.add(externalCaption)
+                            }
+                        }
+                        externalCaptionsMap[lemma] = list
+                    }
+                }
+            }
+        }
+    }
+
+    if (replaceToLemma) {
+        // 查询单词原型
+        val queryList = lemmaMap.values.toList()
+        val lemmaList = Dictionary.queryList(queryList)
+        val validLemmaMap = HashMap<String,Word>()
+        lemmaList.forEach { word ->
+
+            // 处理内部字幕
             if(!isBatchMKV){
-                if (captionsMap[lemma].isNullOrEmpty()) {
-                    captionsMap[lemma] = word.captions
-                } else {
-                    // do 有四个派生词，四个派生词可能在文件的不同位置，可能有四个不同的字幕列表
-                    val list = mutableListOf<Caption>()
-                    list.addAll(captionsMap[lemma]!!)
-                    for (caption in word.captions) {
-                        if(list.size<3){
-                            list.add(caption)
-                        }
-                    }
-                    captionsMap[lemma] = list
-                }
-            // 处理外部字幕，批量的用 MKV 生成词库时，字幕保存在外部字幕列表
+                val captions = captionsMap[word.value]!!
+                word.captions = captions
+                // 处理外部字幕
             }else{
-                if (externalCaptionsMap[lemma].isNullOrEmpty()) {
-                    externalCaptionsMap[lemma] = word.externalCaptions
-                } else {
-                    // do 有四个派生词，四个派生词可能在文件的不同位置，可能有四个不同的字幕列表
-                    val list = mutableListOf<ExternalCaption>()
-                    list.addAll(externalCaptionsMap[lemma]!!)
-                    for (externalCaption in word.externalCaptions) {
-                        if(list.size<3){
-                            list.add(externalCaption)
+                val externalCaptions = externalCaptionsMap[word.value]!!
+                word.externalCaptions = externalCaptions
+            }
+            validLemmaMap[word.value] = word
+        }
+
+        val toLemmaList = lemmaMap.keys
+        for (word in toLemmaList) {
+            val index = resultList.indexOf(word)
+            // 有一些词可能 属于 BNC 或 FRQ 为 0 的词，已经被过滤了，所以 index 为 -1
+            if(index != -1){
+                val lemmaStr = lemmaMap[word]
+                val validLemma = validLemmaMap[lemmaStr]
+                if(validLemma != null){
+                    resultList.remove(word)
+                    if (!resultList.contains(validLemma)){
+                        // 默认 add 为真
+                        var add = true
+                        // 但是，如果单词的词频为 0 或者是最常见的单词就不添加
+                        if(bncNumFilter && (validLemma.bnc!! in 1 until bncNum)){
+                            add = false
+                        }else if(frqNumFilter && (validLemma.frq!! in 1 until frqNum)){
+                            add = false
+                        }else if (bncZeroFilter && validLemma.bnc == 0){
+                            add = false
+                        }else if (frqZeroFilter && validLemma.frq == 0){
+                            add = false
+                        }
+
+                        if(add){
+                            resultList.add(index,validLemma)
                         }
                     }
-                    externalCaptionsMap[lemma] = list
                 }
+
             }
 
         }
     }
-    // 查询单词原型
-    val queryList = lemmaMap.values.toList()
-    val result = Dictionary.queryList(queryList)
-    val validLemmaMap = HashMap<String,Word>()
-    result.forEach { word ->
-        // 处理内部字幕
-        if(!isBatchMKV){
-            val captions = captionsMap[word.value]!!
-            word.captions = captions
-        // 处理外部字幕
-        }else{
-            val externalCaptions = externalCaptionsMap[word.value]!!
-            word.externalCaptions = externalCaptions
-        }
 
-        validLemmaMap[word.value] = word
-    }
-
-    val toLemmaList = lemmaMap.keys
-    for (word in toLemmaList) {
-        val index = resultList.indexOf(word)
-        // 有一些词可能 属于 BNC 或 FRQ 为 0 的词，已经被过滤了，所以 index 为 -1
-        if(index != -1){
-            val lemmaStr = lemmaMap[word]
-            val validLemma = validLemmaMap[lemmaStr]
-            if(validLemma != null){
-                resultList.remove(word)
-                if (!resultList.contains(validLemma)){
-                    // 默认 add 为真
-                    var add = true
-                    // 但是，如果单词的词频为 0 或者是最常见的单词就不添加
-                    if(bncNumFilter && (validLemma.bnc!! in 1 until bncNum)){
-                        add = false
-                    }else if(frqNumFilter && (validLemma.frq!! in 1 until frqNum)){
-                        add = false
-                    }else if (bncZeroFilter && validLemma.bnc == 0){
-                        add = false
-                    }else if (frqZeroFilter && validLemma.frq == 0){
-                        add = false
-                    }
-
-                    if(add){
-                        resultList.add(index,validLemma)
-                    }
-                }
-            }
-
-        }
-
-    }
     return resultList
 }
 
