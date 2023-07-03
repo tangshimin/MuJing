@@ -115,7 +115,6 @@ fun FamiliarDialog(
 
         /** 打开文件对话框 */
         val openFileChooser:()-> Unit = {
-            Thread {
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogTitle = "选择词库"
                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -133,7 +132,6 @@ fun FamiliarDialog(
                 fileChooser.selectedFile = null
                 fileChooser.isMultiSelectionEnabled = false
                 fileChooser.removeChoosableFileFilter(fileFilter)
-            }.start()
         }
 
         /**  处理拖放文件的函数 */
@@ -143,10 +141,8 @@ fun FamiliarDialog(
                 JOptionPane.showMessageDialog(window, message)
             },
             parseImportFile = { files ->
-                Thread {
                     importing = true
                     import(files)
-                }.start()
             }
         )
         window.transferHandler = transferHandler
