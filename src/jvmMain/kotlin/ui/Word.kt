@@ -1,8 +1,11 @@
 package ui
 
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.text.LocalTextContextMenu
+import androidx.compose.foundation.text.TextContextMenu
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.MaterialTheme
@@ -20,11 +23,9 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.text.SpanStyle
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.platform.LocalLocalization
+import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import data.Word
@@ -92,26 +93,29 @@ fun Word(
                     }
                 }) {
                 val fontSize = global.wordFontSize
-                BasicTextField(
-                    value = textFieldValue,
-                    onValueChange = { input ->
+                EmptyTextMenuProvider{
+                    BasicTextField(
+                        value = textFieldValue,
+                        onValueChange = { input ->
                             checkTyping(input)
-                    },
-                    singleLine = true,
-                    cursorBrush = SolidColor(MaterialTheme.colors.primary),
-                    textStyle = TextStyle(
-                        color = Color.Transparent,
-                        fontSize = fontSize,
-                        letterSpacing =  global.letterSpacing,
-                        fontFamily =fontFamily
-                    ),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = bottom)
-                        .align(Alignment.Center)
-                        .focusRequester(focusRequester)
-                        .onKeyEvent { textFieldKeyEvent(it) }
-                )
+                        },
+                        singleLine = true,
+                        cursorBrush = SolidColor(MaterialTheme.colors.primary),
+                        textStyle = TextStyle(
+                            color = Color.Transparent,
+                            fontSize = fontSize,
+                            letterSpacing =  global.letterSpacing,
+                            fontFamily =fontFamily
+                        ),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = bottom)
+                            .align(Alignment.Center)
+                            .focusRequester(focusRequester)
+                            .onKeyEvent { textFieldKeyEvent(it) }
+                    )
+                }
+
                 LaunchedEffect(Unit) {
                     focusRequester.requestFocus()
                 }
@@ -266,8 +270,52 @@ fun Phonetic(
 }
 
 
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun EmptyTextMenuProvider(content: @Composable () -> Unit) {
+    CompositionLocalProvider(
+        LocalTextContextMenu provides object : TextContextMenu {
+            @Composable
+            override fun Area(
+                textManager: TextContextMenu.TextManager,
+                state: ContextMenuState,
+                content: @Composable () -> Unit
+            )  {
+                val items = {listOf<ContextMenuItem>()}
+                ContextMenuArea(items, state, content = content)
+            }
+        },
+        content = content
+    )
+}
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun CustomTextMenuProvider(content: @Composable () -> Unit) {
+    CompositionLocalProvider(
+        LocalTextContextMenu provides object : TextContextMenu {
+            @Composable
+            override fun Area(
+                textManager: TextContextMenu.TextManager,
+                state: ContextMenuState,
+                content: @Composable () -> Unit
+            )  {
+                val localization = LocalLocalization.current
+                val items = {
+                    listOfNotNull(
+                        textManager.copy?.let {
+                            ContextMenuItem(localization.copy, it)
+                        }
+                    )
+                }
 
+                ContextMenuArea(items, state, content = content)
+            }
+        },
+        content = content
+    )
+}
 
+private fun AnnotatedString.crop() = if (length <= 5) toString() else "${take(5)}..."
 /**
  * 播放音效
  * @param path 路径

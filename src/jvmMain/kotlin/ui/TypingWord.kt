@@ -2169,21 +2169,23 @@ fun Caption(
             val dropMenuFocusRequester = remember { FocusRequester() }
             Box(Modifier.width(IntrinsicSize.Max).padding(top = 8.dp, bottom = 8.dp)) {
                 val textHeight = rowHeight -4.dp
-                BasicTextField(
-                    value = textFieldValue,
-                    onValueChange = { input ->
+                CustomTextMenuProvider {
+                    BasicTextField(
+                        value = textFieldValue,
+                        onValueChange = { input ->
                             checkTyping(index, input, captionContent)
-                    },
-                    singleLine = true,
-                    cursorBrush = SolidColor(MaterialTheme.colors.primary),
-                    textStyle = LocalTextStyle.current.copy(color = Color.Transparent,fontSize = fontSize),
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(textHeight)
-                        .align(Alignment.CenterStart)
-                        .focusRequester(focusRequester)
-                        .onKeyEvent { captionKeyEvent(it) }
-                )
+                        },
+                        singleLine = true,
+                        cursorBrush = SolidColor(MaterialTheme.colors.primary),
+                        textStyle = LocalTextStyle.current.copy(color = Color.Transparent, fontSize = fontSize),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(textHeight)
+                            .align(Alignment.CenterStart)
+                            .focusRequester(focusRequester)
+                            .onKeyEvent { captionKeyEvent(it) }
+                    )
+                }
                 Text(
                     textAlign = TextAlign.Start,
                     color = MaterialTheme.colors.onBackground,
