@@ -1,7 +1,10 @@
 package ui
 
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.*
+import androidx.compose.foundation.ContextMenuArea
+import androidx.compose.foundation.ContextMenuItem
+import androidx.compose.foundation.ContextMenuState
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.LocalTextContextMenu
@@ -23,6 +26,8 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.ClipboardManager
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalLocalization
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontFamily
@@ -32,6 +37,9 @@ import data.Word
 import player.AudioButton
 import state.GlobalState
 import state.getResourcesFile
+import java.awt.Toolkit
+import java.awt.datatransfer.DataFlavor
+import java.awt.datatransfer.StringSelection
 import java.util.*
 import javax.sound.sampled.*
 import kotlin.concurrent.schedule
@@ -281,9 +289,17 @@ fun EmptyTextMenuProvider(content: @Composable () -> Unit) {
                 state: ContextMenuState,
                 content: @Composable () -> Unit
             )  {
+
                 val items = {listOf<ContextMenuItem>()}
                 ContextMenuArea(items, state, content = content)
             }
+        },
+        LocalClipboardManager provides object :  ClipboardManager {
+            override fun getText(): AnnotatedString {
+                return AnnotatedString("")
+            }
+
+            override fun setText(text: AnnotatedString) {}
         },
         content = content
     )
@@ -311,11 +327,20 @@ fun CustomTextMenuProvider(content: @Composable () -> Unit) {
                 ContextMenuArea(items, state, content = content)
             }
         },
+        LocalClipboardManager provides object :  ClipboardManager {
+            // paste
+            override fun getText(): AnnotatedString? {
+                return AnnotatedString("")
+            }
+            // copy
+            override fun setText(text: AnnotatedString) {
+                 Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(text.text), null)
+            }
+        },
         content = content
     )
 }
 
-private fun AnnotatedString.crop() = if (length <= 5) toString() else "${take(5)}..."
 /**
  * 播放音效
  * @param path 路径
