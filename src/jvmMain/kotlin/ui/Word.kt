@@ -38,7 +38,6 @@ import player.AudioButton
 import state.GlobalState
 import state.getResourcesFile
 import java.awt.Toolkit
-import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
 import java.util.*
 import javax.sound.sampled.*
@@ -101,7 +100,7 @@ fun Word(
                     }
                 }) {
                 val fontSize = global.wordFontSize
-                EmptyTextMenuProvider{
+                DisableTextMenuAndClipboardProvider{
                     BasicTextField(
                         value = textFieldValue,
                         onValueChange = { input ->
@@ -277,10 +276,12 @@ fun Phonetic(
     }
 }
 
-
+/**
+ * 禁用文本菜单和剪贴板
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun EmptyTextMenuProvider(content: @Composable () -> Unit) {
+fun DisableTextMenuAndClipboardProvider(content: @Composable () -> Unit) {
     CompositionLocalProvider(
         LocalTextContextMenu provides object : TextContextMenu {
             @Composable
@@ -304,6 +305,10 @@ fun EmptyTextMenuProvider(content: @Composable () -> Unit) {
         content = content
     )
 }
+
+/**
+ * 自定义文本菜单和剪贴板，文本菜单只保留复制
+ */
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CustomTextMenuProvider(content: @Composable () -> Unit) {
