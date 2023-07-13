@@ -34,7 +34,9 @@ kotlin {
                 implementation ("org.jetbrains.compose.material:material-icons-extended:1.0.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
                 implementation("io.github.microutils:kotlin-logging:2.1.21")
-                implementation("uk.co.caprica:vlcj:4.7.2")
+                implementation("uk.co.caprica:vlcj:4.8.2")
+//               如果不添加这个库，字幕描述会出现乱码，native-streams 3.0.0 有问题，暂时使用 2.0.0
+                implementation("uk.co.caprica:native-streams:2.0.0")
                 implementation("com.formdev:flatlaf:3.1")
                 implementation("com.formdev:flatlaf-extras:2.6")
                 implementation("org.apache.opennlp:opennlp-tools:1.9.4")
