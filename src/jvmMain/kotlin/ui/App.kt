@@ -1,14 +1,17 @@
 package ui
 
+import CustomLocalProvider
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Subtitles
+import androidx.compose.material.icons.filled.Title
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -94,11 +97,7 @@ fun App() {
 
     var showMainWindow by remember { mutableStateOf(true) }
     if (showMainWindow) {
-        CompositionLocalProvider(
-            LocalAudioPlayerComponent provides rememberAudioPlayerComponent(),
-            LocalCtrl provides rememberCtrl(),
-            LocalTextSelectionColors provides textSelectionColors()
-        ) {
+        CustomLocalProvider{
             val audioPlayerComponent = LocalAudioPlayerComponent.current
 
             val close: () -> Unit = {
@@ -239,11 +238,7 @@ fun App() {
     }
 
     if(showPlayerWindow){
-        CompositionLocalProvider(
-            LocalAudioPlayerComponent provides rememberAudioPlayerComponent(),
-            LocalCtrl provides rememberCtrl(),
-            LocalTextSelectionColors provides textSelectionColors()
-        ) {
+        CustomLocalProvider {
             MaterialTheme(colors = appState.colors) {
                 val closePlayerWindow:() -> Unit = {
                     showPlayerWindow = false
