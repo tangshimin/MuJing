@@ -454,9 +454,24 @@ private fun FrameWindowScope.WindowMenuBar(
             )
         }
 
+        var showLinkVocabulary by remember { mutableStateOf(false) }
+        if (showLinkVocabulary) {
+            LinkVocabularyDialog(
+                state = appState,
+                close = {
+                    showLinkVocabulary = false
+                }
+            )
+        }
+
+        Item(
+            "链接字幕词库(L)", mnemonic = 'L',
+            onClick = { showLinkVocabulary = true },
+        )
         Item("导入词库到熟悉词库(I)", mnemonic = 'F', onClick = {
             appState.importFamiliarVocabulary = true
         })
+
         Separator()
         var showWordFrequency by remember { mutableStateOf(false) }
         Item("根据词频生成词库(C)", mnemonic = 'C', onClick = {showWordFrequency = true })
@@ -504,20 +519,7 @@ private fun FrameWindowScope.WindowMenuBar(
                 appState.saveGlobalState()
             },
         )
-        var showLinkVocabulary by remember { mutableStateOf(false) }
-        if (showLinkVocabulary) {
-            LinkVocabularyDialog(
-                state = appState,
-                close = {
-                    showLinkVocabulary = false
-                }
-            )
-        }
 
-        Item(
-            "链接字幕词库(L)", mnemonic = 'L',
-            onClick = { showLinkVocabulary = true },
-        )
         var showLyricDialog by remember{ mutableStateOf(false) }
         if(showLyricDialog){
             LyricToSubtitlesDialog(
