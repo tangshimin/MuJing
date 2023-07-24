@@ -5,11 +5,11 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.res.ResourceLoader
 import com.formdev.flatlaf.FlatLightLaf
+import data.RecentItem
 import ui.flatlaf.initializeFileChooser
 import data.getHardVocabularyFile
 import data.loadMutableVocabulary
 import data.loadMutableVocabularyByName
-import ui.dialog.RecentItem
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
