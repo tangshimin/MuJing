@@ -57,7 +57,6 @@ import data.Dictionary
 import data.VocabularyType.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
 import opennlp.tools.langdetect.LanguageDetector
 import opennlp.tools.langdetect.LanguageDetectorME
 import opennlp.tools.langdetect.LanguageDetectorModel
