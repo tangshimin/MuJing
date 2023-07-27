@@ -204,8 +204,14 @@ fun Player(
     /** 字幕列表 */
     val subtitleTrackList = remember{mutableStateListOf<Pair<Int,String>>()}
 
+    /** 字幕轨道列表 */
+    val audioTrackList = remember{mutableStateListOf<Pair<Int,String>>()}
+
     /** 当前正在显示的字幕轨道 */
     var currentSubtitleTrack by remember{mutableStateOf(0)}
+
+    /** 当前正在播放的音频轨道 */
+    var currentAudioTrack by remember{mutableStateOf(0)}
 
     /** 使弹幕从右往左移动的定时器 */
     val danmakuTimer by remember {
@@ -365,6 +371,11 @@ fun Player(
     val setCurrentSubtitleTrack:(Int)-> Unit = {
         currentSubtitleTrack = it
         videoPlayerComponent.mediaPlayer().subpictures().setTrack(it)
+    }
+
+    val setCurrentAudioTrack:(Int)-> Unit = {
+        currentAudioTrack = it
+        videoPlayerComponent.mediaPlayer().audio().setTrack(it)
     }
 
     val addSubtitle:(String) -> Unit = {path->
@@ -747,15 +758,35 @@ fun Player(
 
                                     }
 
-                                    // 字幕选择按钮
                                     var showSubtitleMenu by remember{mutableStateOf(false)}
-                                    IconButton(onClick = {showSubtitleMenu = !showSubtitleMenu  }) {
-                                        Icon(
-                                            Icons.Filled.Subtitles,
-                                            contentDescription = "Localized description",
-                                            tint = Color.White,
+                                    // 字幕和声音选择按钮
+                                    TooltipArea(
+                                        tooltip = {
+                                            Surface(
+                                                elevation = 4.dp,
+                                                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                                shape = RectangleShape
+                                            ) {
+                                                Text(text = "字幕和声音", modifier = Modifier.padding(10.dp))
+                                            }
+                                        },
+                                        delayMillis = 100,
+                                        tooltipPlacement = TooltipPlacement.ComponentRect(
+                                            anchor = Alignment.TopCenter,
+                                            alignment = Alignment.TopCenter,
+                                            offset = DpOffset.Zero
                                         )
+                                    ) {
+                                        IconButton(onClick = {showSubtitleMenu = !showSubtitleMenu  },
+                                            enabled = videoPath.isNotEmpty()) {
+                                            Icon(
+                                                Icons.Filled.Subtitles,
+                                                contentDescription = "Localized description",
+                                                tint = if(videoPath.isNotEmpty()) Color.White else Color.Gray
+                                            )
+                                        }
                                     }
+
                                     var height = (subtitleTrackList.size * 40 + 60).dp
                                     if(height>740.dp) height = 740.dp
                                     DropdownMenu(
@@ -770,78 +801,141 @@ fun Player(
                                             },
                                         offset = DpOffset(x = 170.dp, y = (-20).dp),
                                     ){
-                                        Column{
-                                            DropdownMenuItem(
-                                                onClick = {
-                                                    if(isWindows()){
-                                                        showSubtitlePicker = true
-                                                    }else if(isMacOS()){
-                                                        Thread {
-                                                            val fileChooser = futureFileChooser.get()
-                                                            fileChooser.dialogTitle = "添加字幕"
-                                                            fileChooser.fileSystemView =
-                                                                FileSystemView.getFileSystemView()
-                                                            fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                                                            fileChooser.selectedFile = null
-                                                            if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                                                                val path = fileChooser.selectedFile.absolutePath
-                                                                if (!path.isNullOrEmpty()) {
-                                                                    addSubtitle(path)
+                                        var state by remember { mutableStateOf(0) }
+                                        TabRow(
+                                            selectedTabIndex = state,
+                                            backgroundColor = Color.Transparent,
+                                            modifier = Modifier.width(282.dp).height(40.dp)
+                                        ) {
+                                            Tab(
+                                                text = { Text("字幕") },
+                                                selected = state == 0,
+                                                onClick = { state = 0 }
+                                            )
+                                            Tab(
+                                                text = { Text("声音") },
+                                                selected = state == 1,
+                                                onClick = { state = 1 }
+                                            )
+                                        }
+                                        when (state) {
+                                            0 -> {
+                                                Column (Modifier.width(282.dp).height(700.dp)){
+                                                    DropdownMenuItem(
+                                                        onClick = {
+                                                            if(isWindows()){
+                                                                showSubtitlePicker = true
+                                                            }else if(isMacOS()){
+                                                                Thread {
+                                                                    val fileChooser = futureFileChooser.get()
+                                                                    fileChooser.dialogTitle = "添加字幕"
+                                                                    fileChooser.fileSystemView =
+                                                                        FileSystemView.getFileSystemView()
+                                                                    fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+                                                                    fileChooser.selectedFile = null
+                                                                    if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
+                                                                        val path = fileChooser.selectedFile.absolutePath
+                                                                        if (!path.isNullOrEmpty()) {
+                                                                            addSubtitle(path)
+                                                                        }
+                                                                    }
+                                                                }.start()
+                                                            }
+
+                                                        },
+                                                        modifier = Modifier.width(282.dp).height(40.dp)
+                                                    ) {
+                                                        Text(
+                                                            text = "添加字幕",
+                                                            fontSize = 12.sp,
+                                                            modifier = Modifier.fillMaxWidth()
+                                                        )
+                                                    }
+                                                    Divider()
+                                                    Box(Modifier.width(282.dp).height(650.dp)){
+                                                        val scrollState = rememberLazyListState()
+                                                        LazyColumn(Modifier.fillMaxSize(),scrollState){
+                                                            items(subtitleTrackList){(track,description) ->
+                                                                DropdownMenuItem(
+                                                                    onClick = {
+                                                                        showSubtitleMenu = false
+                                                                        setCurrentSubtitleTrack(track)
+                                                                    },
+                                                                    modifier = Modifier.width(282.dp).height(40.dp)
+                                                                ){
+
+                                                                    Row(
+                                                                        verticalAlignment = Alignment.CenterVertically,
+                                                                        modifier = Modifier.fillMaxWidth()) {
+                                                                        val color = if(currentSubtitleTrack == track)  MaterialTheme.colors.primary else  Color.Transparent
+                                                                        Spacer(Modifier
+                                                                            .background(color)
+                                                                            .height(16.dp)
+                                                                            .width(2.dp)
+                                                                        )
+
+                                                                        Text(
+                                                                            text = description,
+                                                                            color = if(currentSubtitleTrack == track) MaterialTheme.colors.primary else  Color.Unspecified,
+                                                                            fontSize = 12.sp,
+                                                                            modifier = Modifier.padding(start = 10.dp)
+                                                                        )
+                                                                    }
+
                                                                 }
                                                             }
-                                                        }.start()
-                                                    }
-
-                                                },
-                                                modifier = Modifier.width(282.dp).height(40.dp)
-                                            ) {
-                                                Text(
-                                                    text = "添加字幕",
-                                                    fontSize = 12.sp,
-                                                    modifier = Modifier.fillMaxWidth()
-                                                )
-                                            }
-                                            Divider()
-                                            Box(Modifier.width(282.dp).height(700.dp)){
-                                                val scrollState = rememberLazyListState()
-                                                LazyColumn(Modifier.fillMaxSize(),scrollState){
-                                                    items(subtitleTrackList){(track,description) ->
-                                                        DropdownMenuItem(
-                                                            onClick = {
-                                                                showSubtitleMenu = false
-                                                                setCurrentSubtitleTrack(track)
-                                                            },
-                                                            modifier = Modifier.width(282.dp).height(40.dp)
-                                                        ){
-
-                                                            Row(
-                                                                verticalAlignment = Alignment.CenterVertically,
-                                                                modifier = Modifier.fillMaxWidth()) {
-                                                                val color = if(currentSubtitleTrack == track)  MaterialTheme.colors.primary else  Color.Transparent
-                                                                Spacer(Modifier
-                                                                    .background(color)
-                                                                    .height(16.dp)
-                                                                    .width(2.dp)
-                                                                )
-
-                                                                Text(
-                                                                    text = description,
-                                                                    color = if(currentSubtitleTrack == track) MaterialTheme.colors.primary else  Color.Unspecified,
-                                                                    fontSize = 12.sp,
-                                                                    modifier = Modifier.padding(start = 10.dp)
-                                                                )
-                                                            }
-
                                                         }
+                                                        VerticalScrollbar(
+                                                            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                                                            adapter = rememberScrollbarAdapter(scrollState = scrollState),
+                                                            style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
+                                                        )
                                                     }
                                                 }
-                                                VerticalScrollbar(
-                                                    modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                                                    adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                                                    style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
-                                                )
+                                            }
+                                            1 -> {
+                                                Box(Modifier.width(282.dp).height(650.dp)){
+                                                    val scrollState = rememberLazyListState()
+                                                    LazyColumn(Modifier.fillMaxSize(),scrollState){
+                                                        items(audioTrackList){(track,description) ->
+                                                            DropdownMenuItem(
+                                                                onClick = {
+                                                                    showSubtitleMenu = false
+                                                                    setCurrentAudioTrack(track)
+                                                                },
+                                                                modifier = Modifier.width(282.dp).height(40.dp)
+                                                            ){
+
+                                                                Row(
+                                                                    verticalAlignment = Alignment.CenterVertically,
+                                                                    modifier = Modifier.fillMaxWidth()) {
+                                                                    val color = if(currentAudioTrack == track)  MaterialTheme.colors.primary else  Color.Transparent
+                                                                    Spacer(Modifier
+                                                                        .background(color)
+                                                                        .height(16.dp)
+                                                                        .width(2.dp)
+                                                                    )
+
+                                                                    Text(
+                                                                        text = description,
+                                                                        color = if(currentAudioTrack == track) MaterialTheme.colors.primary else  Color.Unspecified,
+                                                                        fontSize = 12.sp,
+                                                                        modifier = Modifier.padding(start = 10.dp)
+                                                                    )
+                                                                }
+
+                                                            }
+                                                        }
+                                                    }
+                                                    VerticalScrollbar(
+                                                        modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                                                        adapter = rememberScrollbarAdapter(scrollState = scrollState),
+                                                        style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
+                                                    )
+                                                }
                                             }
                                         }
+
 
                                     }
 
@@ -1044,8 +1138,16 @@ fun Player(
                     override fun mediaPlayerReady(mediaPlayer: MediaPlayer) {
                         mediaPlayer.audio().setVolume(videoVolume.toInt())
                         currentSubtitleTrack = mediaPlayer.subpictures().track()
+                        currentAudioTrack = mediaPlayer.audio().track()
+
+                        if(subtitleTrackList.isNotEmpty()) subtitleTrackList.clear()
+                        if(audioTrackList.isNotEmpty()) audioTrackList.clear()
+
                         mediaPlayer.subpictures().trackDescriptions().forEach { trackDescription ->
                             subtitleTrackList.add(Pair(trackDescription.id(),trackDescription.description()))
+                        }
+                        mediaPlayer.audio().trackDescriptions().forEach { trackDescription ->
+                            audioTrackList.add(Pair(trackDescription.id(),trackDescription.description()))
                         }
                     }
 
