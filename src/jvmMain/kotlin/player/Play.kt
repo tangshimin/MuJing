@@ -421,6 +421,9 @@ fun play(
         .play(videoPath,  ":start-time=$start",  ":stop-time=$end")
 }
 
+/**
+ * 解析时间,返回秒
+ */
 fun parseTime(time:String):Double{
     var duration = LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm:ss.SSS")).toNanoOfDay().toDouble()
     duration = duration.div(1000_000_000)

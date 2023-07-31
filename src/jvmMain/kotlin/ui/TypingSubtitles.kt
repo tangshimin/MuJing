@@ -44,6 +44,8 @@ import kotlinx.coroutines.launch
 import player.*
 import state.GlobalState
 import state.SubtitlesState
+import uk.co.caprica.vlcj.player.base.MediaPlayer
+import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import java.awt.Component
 import java.awt.GraphicsEnvironment
 import java.awt.Point
@@ -88,7 +90,7 @@ fun TypingSubtitles(
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
     val focusRequester = remember { FocusRequester() }
-    val captionList = remember { mutableStateListOf<Caption>() }
+    val timedCaption = rememberTimedCaption()
     var isPlaying by remember { mutableStateOf(false) }
     var showOpenFile by remember { mutableStateOf(false) }
     var selectedPath by remember { mutableStateOf("") }
@@ -107,13 +109,26 @@ fun TypingSubtitles(
     /** 如果移动了播放器的位置，用这个变量保存计算的位置，点击恢复按钮的时候用这个临时的变量恢复,多行模式的位置 */
     var playerPoint2 by remember{mutableStateOf(Point(0,0))}
     var charWidth by remember{ mutableStateOf(computeCharWidth(subtitlesState.trackDescription)) }
-    // 一次播放多条字幕
+    /** 一次播放多条字幕 */
     val multipleLines = rememberMultipleLines()
-    // 启动播放多行字幕后，在这一行显示播放按钮
+    /** 启动播放多行字幕后，在这一行显示播放按钮 */
     var playIconIndex  by remember{mutableStateOf(0)}
 
+
+    val eventListener = object:MediaPlayerEventAdapter() {
+        override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
+            subtitlesState.currentIndex = timedCaption.getCaptionIndex(newTime,subtitlesState.currentIndex)
+        }
+    }
+
+    LaunchedEffect(Unit){
+        mediaPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(eventListener)
+    }
+
+
+
     /** 读取字幕文件*/
-    if (subtitlesState.subtitlesPath.isNotEmpty() && captionList.isEmpty()) {
+    if (subtitlesState.subtitlesPath.isNotEmpty() && timedCaption.isEmpty()) {
         parseSubtitles(
             subtitlesPath = subtitlesState.subtitlesPath,
             setMaxLength = {
@@ -123,8 +138,7 @@ fun TypingSubtitles(
                 }
             },
             setCaptionList = {
-                captionList.clear()
-                captionList.addAll(it)
+                timedCaption.setCaptionList(it)
             },
             resetSubtitlesState = {
                 subtitlesState.mediaPath = ""
@@ -205,7 +219,7 @@ fun TypingSubtitles(
                 subtitlesState.subtitlesPath = first.absolutePath
                 subtitlesState.mediaPath = last.absolutePath
                 subtitlesState.trackDescription = first.nameWithoutExtension
-                captionList.clear()
+                timedCaption.clear()
                 mediaType = computeMediaType(subtitlesState.mediaPath)
                 if(openMode == OpenMode.Open) showOpenFile = false
                 if(showOpenFile) showOpenFile = false
@@ -217,7 +231,7 @@ fun TypingSubtitles(
                 subtitlesState.mediaPath = first.absolutePath
                 subtitlesState.subtitlesPath = last.absolutePath
                 subtitlesState.trackDescription = last.nameWithoutExtension
-                captionList.clear()
+                timedCaption.clear()
                 mediaType = computeMediaType(subtitlesState.mediaPath)
                 if(openMode == OpenMode.Open) showOpenFile = false
                 if(showOpenFile) showOpenFile = false
@@ -291,7 +305,7 @@ fun TypingSubtitles(
         subtitlesState.subtitlesPath = ""
         subtitlesState.mediaPath = ""
         subtitlesState.trackDescription = ""
-        captionList.clear()
+        timedCaption.clear()
         subtitlesState.saveTypingSubtitlesState()
     }
 
@@ -406,7 +420,7 @@ fun TypingSubtitles(
             // 清除 focus 后，当前正在抄写的字幕数据会被清除
             focusManager.clearFocus()
             /** 把之前的字幕列表清除才能触发解析字幕的函数重新运行 */
-            captionList.clear()
+            timedCaption.clear()
             saveSubtitlesState()
         }
     }
@@ -505,7 +519,7 @@ fun TypingSubtitles(
                     val playItem = Caption(multipleLines.startTime ,multipleLines.endTime ,"")
                     playCaption(playItem)
                 }else{
-                    val caption = captionList[subtitlesState.currentIndex]
+                    val caption =  timedCaption.captionList[subtitlesState.currentIndex]
                     playCaption(caption)
                 }
 
@@ -557,8 +571,8 @@ fun TypingSubtitles(
             }
             Box(Modifier.fillMaxSize().padding(top = topPadding)) {
 
-                if (captionList.isNotEmpty()) {
-
+                if (timedCaption.isNotEmpty()) {
+                    val captionList = timedCaption.captionList
                     val listState = rememberLazyListState(subtitlesState.firstVisibleItemIndex)
                     val stateHorizontal = rememberScrollState(0)
                     val isAtTop by remember {
@@ -757,7 +771,9 @@ fun TypingSubtitles(
                                 val lineColor =  if(index <  subtitlesState.currentIndex){
                                     MaterialTheme.colors.primary.copy(alpha = if(MaterialTheme.colors.isLight) ContentAlpha.high else ContentAlpha.medium)
                                 }else if(subtitlesState.currentIndex == index){
-                                    if(subtitlesState.currentCaptionVisible){
+                                    if(multipleLines.enabled) {
+                                        MaterialTheme.colors.primary.copy(alpha = if(MaterialTheme.colors.isLight) ContentAlpha.high else ContentAlpha.medium)
+                                    }else if(subtitlesState.currentCaptionVisible){
                                         MaterialTheme.colors.onBackground.copy(alpha = alpha)
                                     }else{
                                         Color.Transparent
@@ -971,10 +987,13 @@ fun TypingSubtitles(
                                             .onFocusChanged {
                                                 if (it.isFocused) {
                                                     scope.launch {
-                                                        subtitlesState.currentIndex = index
-                                                        subtitlesState.firstVisibleItemIndex =
-                                                            listState.firstVisibleItemIndex
-                                                        saveSubtitlesState()
+                                                        if (!multipleLines.enabled) {
+                                                            subtitlesState.currentIndex = index
+                                                            subtitlesState.firstVisibleItemIndex =
+                                                                listState.firstVisibleItemIndex
+                                                            saveSubtitlesState()
+                                                        }
+
                                                     }
                                                 } else if (textFieldValue.isNotEmpty()) {
                                                     typingResult.clear()
@@ -1216,12 +1235,12 @@ fun TypingSubtitles(
                     }
                 }
 
-                if (showOpenFile || selectedPath.isNotEmpty() || captionList.isEmpty()) {
+                if (showOpenFile || selectedPath.isNotEmpty() || timedCaption.isEmpty()) {
                     OpenFileComponent(
                         parentComponent = window,
                         cancel = { showOpenFile = false },
                         openFileChooser = { openFileChooser() },
-                        showCancel = captionList.isNotEmpty(),
+                        showCancel = timedCaption.isNotEmpty(),
                         setTrackId = { saveTrackID(it) },
                         setTrackDescription = { saveTrackDescription(it) },
                         trackList = trackList,
