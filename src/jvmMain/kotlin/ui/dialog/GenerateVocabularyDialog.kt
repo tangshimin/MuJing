@@ -3083,7 +3083,8 @@ fun removeItalicSymbol(content: String): String {
     return string
 }
 
-fun replaceNewLine(content: String): String {
+/** 删除换行符，换行符替换为空格 */
+fun removeNewLine(content: String): String {
     var string = content
     if (string.contains("\r\n")) {
         string = string.replace("\r\n", " ")
@@ -3096,6 +3097,15 @@ fun replaceNewLine(content: String): String {
     }
     if (string.endsWith(" ")){
         string = string.substring(0,string.length-1)
+    }
+    return string
+}
+
+/** <br /> 替换为 \n  */
+fun replaceNewLine(content: String): String {
+    var string = content
+    if (string.contains("<br />")) {
+        string = string.replace("<br />", "\n")
     }
     return string
 }
