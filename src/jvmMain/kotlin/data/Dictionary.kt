@@ -375,7 +375,37 @@ object Dictionary {
         return words
     }
 
+    fun insertWords(words:List<Word>){
+        try {
+            Class.forName(JDBC_DRIVER)
+            val url = getURL()
+            DriverManager.getConnection(url, USER, PASS).use { conn ->
+                val sql = "INSERT INTO ecdict(word,british_phonetic,american_phonetic,definition,translation,pos,collins,oxford,tag,bnc,frq,exchange) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
+                conn.prepareStatement(sql).use { statement ->
+                    words.forEach { word ->
+                        statement.setString(1,word.value)
+                        statement.setString(2,word.ukphone)
+                        statement.setString(3,word.usphone)
+                        statement.setString(4,word.definition)
+                        statement.setString(5,word.translation)
+                        statement.setString(6,word.pos)
+                        statement.setInt(7,word.collins)
+                        statement.setBoolean(8,word.oxford)
+                        statement.setString(9,word.tag)
+                        statement.setInt(10, word.bnc!!)
+                        statement.setInt(11, word.frq!!)
+                        statement.setString(12,word.exchange)
+                        statement.addBatch()
+                    }
+                    statement.executeBatch()
+                }
+            }
 
+        } catch (e: Exception) {
+            //Handle errors for Class.forName
+            e.printStackTrace()
+        }
+    }
 
 }
 
