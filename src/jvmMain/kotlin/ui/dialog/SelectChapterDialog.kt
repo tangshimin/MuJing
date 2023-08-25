@@ -149,29 +149,41 @@ fun SelectChapterDialog(
                 Footer(
                     modifier = Modifier.align(Alignment.BottomCenter),
                     confirm = {
+                        // 听写复习，可以选择多个章节
                         if(isMultiple){
                             if(typingWordState.memoryStrategy != MemoryStrategy.Review && typingWordState.memoryStrategy != MemoryStrategy.Dictation){
                                 typingWordState.hiddenInfo(dictationState)
                             }
-
                             typingWordState.memoryStrategy = MemoryStrategy.Review
                             typingWordState.wrongWords.clear()
                             typingWordState.reviewWords.clear()
                             typingWordState.reviewWords.addAll(selectedWords.value.shuffled())
                             typingWordState.dictationIndex = 0
-
+                        // 非听写复习，只能选择一个章节
                         }else{
                             val chapter = selectedChapters.first()
                             if (chapter == 0) typingWordState.chapter = 1
                             typingWordState.chapter = chapter
                             typingWordState.index = (chapter - 1) * 20
                             typingWordState.saveTypingWordState()
+                            // 如果正在听写复习单词，又重新选择了章节，所以就取消听写复习
+                            if(typingWordState.memoryStrategy == MemoryStrategy.Review){
+                                typingWordState.memoryStrategy = MemoryStrategy.Normal
+                                typingWordState.showInfo()
+                            }
+                        }
+                        // 如果是非听写复习，同时正在听写单词，又重新选择了章节，所以就退出听写
+                        if(typingWordState.memoryStrategy == MemoryStrategy.Dictation && !isMultiple){
+                            typingWordState.showInfo()
+                            typingWordState.memoryStrategy = MemoryStrategy.Normal
+                            if( typingWordState.wrongWords.isNotEmpty()){
+                                typingWordState.wrongWords.clear()
+                            }
+                            if(typingWordState.reviewWords.isNotEmpty()){
+                                typingWordState.reviewWords.clear()
+                            }
                         }
                         typingWordState.clearInputtedState()
-                        if(typingWordState.memoryStrategy == MemoryStrategy.Dictation || typingWordState.memoryStrategy == MemoryStrategy.Review){
-                            typingWordState.memoryStrategy = MemoryStrategy.Normal
-                            typingWordState.showInfo()
-                        }
                         close()
 
                     },
