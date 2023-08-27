@@ -65,6 +65,7 @@ fun Word(
     isDictation:Boolean,
     wordVisible:Boolean,
     pronunciation: String,
+    playTimes: Int,
     fontFamily: FontFamily,
     audioPath: String,
     correctTime: Int,
@@ -235,6 +236,7 @@ fun Word(
                 word = wordValue,
                 volume = global.audioVolume,
                 pronunciation = pronunciation,
+                playTimes = playTimes,
                 paddingTop = paddingTop,
             )
         }

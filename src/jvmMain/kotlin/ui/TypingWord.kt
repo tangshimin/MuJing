@@ -869,12 +869,24 @@ fun MainContent(
                                         dictationWrongWords[currentWord] = 1
                                     }
                                 }
-
                                 Timer("input wrong cleanInputChar", false).schedule(500) {
                                     typingWord.wordTextFieldValue = ""
                                     typingWord.wordTypingResult.clear()
                                     isWrong = false
                                 }
+                                // 再播放一次单词发音
+                                if (!isPlayingAudio && typingWord.playTimes == 2) {
+                                    playAudio(
+                                        word = currentWord.value,
+                                        audioPath = audioPath,
+                                        pronunciation =  typingWord.pronunciation,
+                                        volume = appState.global.audioVolume,
+                                        audioPlayerComponent = audioPlayerComponent,
+                                        changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
+                                        setIsAutoPlay = {}
+                                    )
+                                }
+
                             }
                         }
                         // 用户输入的单词完全正确
@@ -887,11 +899,24 @@ fun MainContent(
                                     toNext()
                                 }
                             } else {
-                                typingWord.wordCorrectTime++
 
+                                typingWord.wordCorrectTime++
                                 Timer("input correct clean InputChar", false).schedule(50){
                                     typingWord.wordTypingResult.clear()
                                     typingWord.wordTextFieldValue = ""
+                                }
+
+                                // 再播放一次单词发音
+                                if (!isPlayingAudio && typingWord.playTimes == 2) {
+                                    playAudio(
+                                        word = currentWord.value,
+                                        audioPath = audioPath,
+                                        pronunciation =  typingWord.pronunciation,
+                                        volume = appState.global.audioVolume,
+                                        audioPlayerComponent = audioPlayerComponent,
+                                        changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
+                                        setIsAutoPlay = {}
+                                    )
                                 }
                             }
                         }
@@ -1252,6 +1277,7 @@ fun MainContent(
                         global = appState.global,
                         wordVisible = typingWord.wordVisible,
                         pronunciation = typingWord.pronunciation,
+                        playTimes = typingWord.playTimes,
                         isDictation = (typingWord.memoryStrategy == Dictation ||typingWord.memoryStrategy == Review),
                         fontFamily = monospace,
                         audioPath = audioPath,

@@ -27,6 +27,7 @@ data class DataTypingWordState(
     val isPlaySoundTips: Boolean = true,
     val soundTipsVolume: Float = 0.6F,
     val pronunciation: String = "us",
+    val playTimes:Int = 1,
     val isAuto: Boolean = false,
     val index: Int = 0,
     val hardVocabularyIndex: Int = 0,
@@ -85,6 +86,11 @@ class TypingWordState(dataTypingWordState: DataTypingWordState) {
      * 选择发音，有英音、美音、日语
      */
     var pronunciation by mutableStateOf(dataTypingWordState.pronunciation)
+
+    /**
+     * 单词发音的播放次数
+     */
+    var playTimes by mutableStateOf(dataTypingWordState.playTimes)
 
     /**
      * 是否是自动切换
@@ -317,6 +323,7 @@ class TypingWordState(dataTypingWordState: DataTypingWordState) {
                         isPlaySoundTips,
                         soundTipsVolume,
                         pronunciation,
+                        playTimes,
                         isAuto,
                         index,
                         hardVocabularyIndex,

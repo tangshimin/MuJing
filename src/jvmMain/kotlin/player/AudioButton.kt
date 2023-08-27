@@ -55,9 +55,10 @@ fun AudioButton(
     word:String,
     volume: Float,
     pronunciation: String,
+    playTimes: Int,
     paddingTop: Dp,
 ) {
-    if (pronunciation != "false") {
+    if (playTimes != 0) {
         val scope = rememberCoroutineScope()
         val audioPlayerComponent = LocalAudioPlayerComponent.current
         var isPlaying by remember { mutableStateOf(false) }
@@ -154,82 +155,79 @@ fun AudioButton(
     volume: Float,
     pronunciation: String,
 ) {
-    if (pronunciation != "false") {
-        val scope = rememberCoroutineScope()
-        val audioPlayerComponent = LocalAudioPlayerComponent.current
-        var isPlaying by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
+    val audioPlayerComponent = LocalAudioPlayerComponent.current
+    var isPlaying by remember { mutableStateOf(false) }
 
-        val playAudio = {
-            val audioPath = getAudioPath(
-                word = word.value,
-                audioSet = state.localAudioSet,
-                addToAudioSet = {state.localAudioSet.add(it)},
-                pronunciation = typingState.pronunciation
-            )
-            playAudio(
-                word.value,
-                audioPath,
-                pronunciation = pronunciation,
-                volume,
-                audioPlayerComponent,
-                changePlayerState = { isPlaying = it },
-                setIsAutoPlay = { })
-        }
+    val playAudio = {
+        val audioPath = getAudioPath(
+            word = word.value,
+            audioSet = state.localAudioSet,
+            addToAudioSet = {state.localAudioSet.add(it)},
+            pronunciation = typingState.pronunciation
+        )
+        playAudio(
+            word.value,
+            audioPath,
+            pronunciation = pronunciation,
+            volume,
+            audioPlayerComponent,
+            changePlayerState = { isPlaying = it },
+            setIsAutoPlay = { })
+    }
 
-        Column(
-            verticalArrangement = Arrangement.Center,
-            modifier = Modifier
-                .height(48.dp)
-                .width(IntrinsicSize.Max)
-        ) {
-            TooltipArea(
-                tooltip = {
-                    Surface(
-                        elevation = 4.dp,
-                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
-                        shape = RectangleShape
-                    ) {
-                        val ctrl = LocalCtrl.current
-                        Text(text = "朗读发音 $ctrl+J", modifier = Modifier.padding(10.dp))
-                    }
-                },
-                delayMillis = 300,
-                tooltipPlacement = TooltipPlacement.ComponentRect(
-                    anchor = Alignment.CenterEnd,
-                    alignment = Alignment.CenterEnd,
-                    offset = DpOffset.Zero
-                ),
-            ) {
-                val tint by animateColorAsState(if (isPlaying) MaterialTheme.colors.primary else MaterialTheme.colors.onBackground)
-                IconToggleButton(
-                    checked = isPlaying,
-                    onCheckedChange = {
-                        if (!isPlaying) {
-                            scope.launch {
-                                playAudio()
-                            }
-                        }
-                    }) {
-                    Crossfade(isPlaying) { isPlaying ->
-                        if (isPlaying) {
-                            Icon(
-                                Icons.Filled.VolumeUp,
-                                contentDescription = "Localized description",
-                                tint = tint
-                            )
-                        } else {
-                            Icon(
-                                Icons.Filled.VolumeDown,
-                                contentDescription = "Localized description",
-                                tint = tint
-                            )
-                        }
-                    }
-
+    Column(
+        verticalArrangement = Arrangement.Center,
+        modifier = Modifier
+            .height(48.dp)
+            .width(IntrinsicSize.Max)
+    ) {
+        TooltipArea(
+            tooltip = {
+                Surface(
+                    elevation = 4.dp,
+                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                    shape = RectangleShape
+                ) {
+                    val ctrl = LocalCtrl.current
+                    Text(text = "朗读发音 $ctrl+J", modifier = Modifier.padding(10.dp))
                 }
+            },
+            delayMillis = 300,
+            tooltipPlacement = TooltipPlacement.ComponentRect(
+                anchor = Alignment.CenterEnd,
+                alignment = Alignment.CenterEnd,
+                offset = DpOffset.Zero
+            ),
+        ) {
+            val tint by animateColorAsState(if (isPlaying) MaterialTheme.colors.primary else MaterialTheme.colors.onBackground)
+            IconToggleButton(
+                checked = isPlaying,
+                onCheckedChange = {
+                    if (!isPlaying) {
+                        scope.launch {
+                            playAudio()
+                        }
+                    }
+                }) {
+                Crossfade(isPlaying) { isPlaying ->
+                    if (isPlaying) {
+                        Icon(
+                            Icons.Filled.VolumeUp,
+                            contentDescription = "Localized description",
+                            tint = tint
+                        )
+                    } else {
+                        Icon(
+                            Icons.Filled.VolumeDown,
+                            contentDescription = "Localized description",
+                            tint = tint
+                        )
+                    }
+                }
+
             }
         }
-
     }
 
 }

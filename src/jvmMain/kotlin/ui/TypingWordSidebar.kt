@@ -5,10 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Apps
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.RateReview
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -399,20 +396,21 @@ fun TypingWordSidebar(
                         },
                     )
                 }
-                var expanded by remember { mutableStateOf(false) }
+                var audioExpanded by remember { mutableStateOf(false) }
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().height(48.dp)
-                        .clickable {  expanded = true }.padding(start = 16.dp, end = 8.dp)
+                        .clickable {  audioExpanded = true }.padding(start = 16.dp, end = 8.dp)
                 ) {
+
                     Row {
                         Text("音量控制", color = MaterialTheme.colors.onBackground)
                     }
                     Spacer(Modifier.width(15.dp))
                     CursorDropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
+                        expanded = audioExpanded,
+                        onDismissRequest = { audioExpanded = false },
                     ) {
                         Surface(
                             elevation = 4.dp,
@@ -469,108 +467,147 @@ fun TypingWordSidebar(
                         modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
                     )
                 }
+
+                var expanded by remember { mutableStateOf(false) }
                 Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().padding(start = 16.dp, end = 8.dp)
+                    modifier = Modifier.fillMaxWidth().height(48.dp)
+                        .clickable {  expanded = true }
+                        .padding(start = 16.dp, end = 8.dp)
                 ) {
                     Text("发音设置", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(5.dp))
-                    var expand by remember { mutableStateOf(false) }
-                    val selectedText = when (typingWordState.pronunciation) {
-                        "us" -> "美式发音"
-                        "uk" -> "英式发音"
-                        "jp" -> "日语"
-                        "local TTS" -> "语音合成"
-                        else -> "关闭"
-                    }
-                    Box {
-                        OutlinedButton(
-                            onClick = { expand = true },
-                            modifier = Modifier
-                                .width(120.dp)
-                                .background(Color.Transparent)
-                                .border(1.dp, Color.Transparent)
+                    Spacer(Modifier.width(15.dp))
+                    CursorDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false },
+                    ) {
+                        Surface(
+                            elevation = 4.dp,
+                            shape = RectangleShape,
                         ) {
-                            Text(text = selectedText)
-                            Icon(Icons.Default.ExpandMore, contentDescription = "Localized description")
-                        }
-                        DropdownMenu(
-                            expanded = expand,
-                            onDismissRequest = { expand = false },
-                            modifier = Modifier.width(120.dp)
-                                .height(180.dp)
-                        ) {
-                            if (typingWordState.vocabulary.language == "english") {
-                                DropdownMenuItem(
-                                    onClick = {
-                                        scope.launch {
-                                            typingWordState.pronunciation = "uk"
-                                            typingWordState.saveTypingWordState()
-                                            expand = false
+                            Row(Modifier.width(240.dp).height(120.dp)){
+                                Column {
+                                    if (typingWordState.vocabulary.language == "english") {
+                                        DropdownMenuItem(
+                                            onClick = {
+                                                scope.launch {
+                                                    typingWordState.pronunciation = "uk"
+                                                    typingWordState.saveTypingWordState()
+                                                }
+                                            },
+                                            modifier = Modifier.width(120.dp).height(40.dp)
+                                        ) {
+                                            Text("英式发音")
+                                            if(typingWordState.pronunciation == "uk"){
+                                                RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                            }
                                         }
-                                    },
-                                    modifier = Modifier.width(120.dp).height(40.dp)
-                                ) {
-                                    Text("英式发音")
-                                }
-                                DropdownMenuItem(
-                                    onClick = {
-                                        scope.launch {
-                                            typingWordState.pronunciation = "us"
-                                            typingWordState.saveTypingWordState()
-                                            expand = false
+                                        DropdownMenuItem(
+                                            onClick = {
+                                                scope.launch {
+                                                    typingWordState.pronunciation = "us"
+                                                    typingWordState.saveTypingWordState()
+                                                }
+                                            },
+                                            modifier = Modifier.width(120.dp).height(40.dp)
+                                        ) {
+                                            Text("美式发音")
+                                            if(typingWordState.pronunciation == "us"){
+                                                RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                            }
                                         }
-                                    },
-                                    modifier = Modifier.width(120.dp).height(40.dp)
-                                ) {
-                                    Text("美式发音")
-                                }
-                            }
-
-                            if (typingWordState.vocabulary.language == "japanese") {
-                                DropdownMenuItem(
-                                    onClick = {
-                                        scope.launch {
-                                            typingWordState.pronunciation = "jp"
-                                            typingWordState.saveTypingWordState()
-                                            expand = false
-                                        }
-                                    },
-                                    modifier = Modifier.width(120.dp).height(40.dp)
-                                ) {
-                                    Text("日语")
-                                }
-                            }
-
-                            DropdownMenuItem(
-                                onClick = {
-                                    scope.launch {
-                                        typingWordState.pronunciation = "local TTS"
-                                        typingWordState.saveTypingWordState()
-                                        expand = false
                                     }
-                                },
-                                modifier = Modifier.width(120.dp).height(40.dp)
-                            ) {
-                                Text("语音合成")
-                            }
 
-                            DropdownMenuItem(
-                                onClick = {
-                                    scope.launch {
-                                        typingWordState.pronunciation = "false"
-                                        typingWordState.saveTypingWordState()
-                                        expand = false
+                                    if (typingWordState.vocabulary.language == "japanese") {
+                                        DropdownMenuItem(
+                                            onClick = {
+                                                scope.launch {
+                                                    typingWordState.pronunciation = "jp"
+                                                    typingWordState.saveTypingWordState()
+                                                }
+                                            },
+                                            modifier = Modifier.width(120.dp).height(40.dp)
+                                        ) {
+                                            Text("日语")
+                                            if(typingWordState.pronunciation == "jp"){
+                                                RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                            }
+                                        }
                                     }
-                                },
-                                modifier = Modifier.width(120.dp).height(40.dp)
-                            ) {
-                                Text("关闭")
+
+                                    DropdownMenuItem(
+                                        onClick = {
+                                            scope.launch {
+                                                typingWordState.pronunciation = "local TTS"
+                                                typingWordState.saveTypingWordState()
+                                            }
+                                        },
+                                        modifier = Modifier.width(120.dp).height(40.dp)
+                                    ) {
+                                        Text("语音合成")
+                                        if(typingWordState.pronunciation == "local TTS"){
+                                            RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                        }
+                                    }
+                                }
+                                Divider(Modifier.width(1.dp).fillMaxHeight())
+                                Column {
+                                    DropdownMenuItem(
+                                        onClick = {
+                                            scope.launch {
+                                                typingWordState.playTimes = 0
+                                                typingWordState.saveTypingWordState()
+                                            }
+                                        },
+                                        modifier = Modifier.width(120.dp).height(40.dp)
+                                    ) {
+                                        Text("关闭发音")
+                                        if( typingWordState.playTimes == 0){
+                                            RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                        }
+                                    }
+                                    DropdownMenuItem(
+                                        onClick = {
+                                            scope.launch {
+                                                typingWordState.playTimes = 1
+                                                typingWordState.saveTypingWordState()
+                                            }
+                                        },
+                                        modifier = Modifier.width(120.dp).height(40.dp)
+                                    ) {
+                                        Text("播放一次")
+                                        if( typingWordState.playTimes == 1){
+                                            RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                        }
+                                    }
+                                    DropdownMenuItem(
+                                        onClick = {
+                                            scope.launch {
+                                                typingWordState.playTimes = 2
+                                                typingWordState.saveTypingWordState()
+                                            }
+                                        },
+                                        modifier = Modifier.width(120.dp).height(40.dp)
+                                    ) {
+                                        Text("播放多次")
+                                        if( typingWordState.playTimes == 2){
+                                            RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                        }
+                                    }
+                                }
                             }
                         }
-
                     }
+
+                    Icon(
+                        imageVector = Icons.Filled.InterpreterMode,
+                        contentDescription = "",
+                        tint = MaterialTheme.colors.onBackground,
+                        modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
+                    )
                 }
+
 
             }
 
