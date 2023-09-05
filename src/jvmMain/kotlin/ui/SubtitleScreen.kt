@@ -69,7 +69,7 @@ val videoFormatList = listOf("mp4","mkv")
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun TypingSubtitles(
+fun SubtitleScreen(
     subtitlesState: SubtitlesState,
     globalState: GlobalState,
     saveSubtitlesState: () -> Unit,

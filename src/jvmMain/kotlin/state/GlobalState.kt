@@ -16,7 +16,7 @@ import kotlinx.serialization.Serializable
 @ExperimentalSerializationApi
 @Serializable
 data class GlobalData(
-    val type: TypingType = TypingType.WORD,
+    val type: ScreenType = ScreenType.WORD,
     val isDarkTheme: Boolean = true,
     val audioVolume: Float = 0.8F,
     val videoVolume: Float = 80F,

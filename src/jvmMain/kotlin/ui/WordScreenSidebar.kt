@@ -31,7 +31,7 @@ import ui.dialog.SelectChapterDialog
     ExperimentalSerializationApi::class, ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class
 )
 @Composable
-fun TypingWordSidebar(
+fun WordScreenSidebar(
     state: AppState,
     typingWordState: TypingWordState,
     dictationState: DictationState,

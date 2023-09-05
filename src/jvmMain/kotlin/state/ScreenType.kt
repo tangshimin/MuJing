@@ -1,5 +1,5 @@
 package state
 
-enum class TypingType {
+enum class ScreenType {
     WORD, SUBTITLES,TEXT
 }

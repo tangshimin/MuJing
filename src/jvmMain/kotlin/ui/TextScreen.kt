@@ -55,7 +55,7 @@ import javax.swing.filechooser.FileSystemView
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun TypingText(
+fun TextScreen(
     title: String,
     window: ComposeWindow,
     globalState: GlobalState,
@@ -232,7 +232,7 @@ fun TypingText(
         }
 
         Row(Modifier.fillMaxSize()){
-            TypingTextSidebar(
+            TextSidebar(
                 isOpen = isOpenSettings,
                 openFileChooser = { openFileChooser() },
             )
@@ -683,7 +683,7 @@ fun TypingText(
 
 
 @Composable
-fun TypingTextSidebar(
+fun TextSidebar(
     isOpen:Boolean,
     openFileChooser: () -> Unit,
 ){

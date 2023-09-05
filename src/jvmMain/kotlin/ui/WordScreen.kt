@@ -74,7 +74,7 @@ import kotlin.concurrent.schedule
 @ExperimentalAnimationApi
 @ExperimentalComposeUiApi
 @Composable
-fun TypingWord(
+fun WordScreen(
     window: ComposeWindow,
     title: String,
     appState: AppState,
@@ -102,7 +102,7 @@ fun TypingWord(
     Box(Modifier.background(MaterialTheme.colors.background)) {
         Row {
             val dictationState = rememberDictationState()
-            TypingWordSidebar(appState,typingWord,dictationState)
+            WordScreenSidebar(appState,typingWord,dictationState)
             if (appState.openSettings) {
                 val topPadding = if (isMacOS()) 30.dp else 0.dp
                 Divider(Modifier.fillMaxHeight().width(1.dp).padding(top = topPadding))
@@ -186,7 +186,7 @@ fun TypingWord(
                                         typingWord,
                                         index
                                     )
-                                    appState.global.type = TypingType.WORD
+                                    appState.global.type = ScreenType.WORD
                                     appState.saveGlobalState()
                                 }
                             }.start()
@@ -224,7 +224,7 @@ fun TypingWord(
                         typingWord,
                         index
                     )
-                    appState.global.type = TypingType.WORD
+                    appState.global.type = ScreenType.WORD
                     appState.saveGlobalState()
                 }
                 showFilePicker = false
