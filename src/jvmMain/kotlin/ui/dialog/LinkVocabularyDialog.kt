@@ -340,23 +340,7 @@ fun LinkVocabularyDialog(
                 clear()
             }.start()
         }
-        /** 选择词库*/
-        val openVocabulary:(String) -> Unit = {title ->
-            vocabularyWrong = false
-            Thread {
-                val fileChooser = state.futureFileChooser.get()
-                fileChooser.dialogTitle = title
-                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
-                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                fileChooser.selectedFile = null
-                fileChooser.fileFilter = FileNameExtensionFilter("词库", "json")
-                if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
-                    val file = fileChooser.selectedFile
-                    handleInputFile(file)
-                }
-            }.start()
-        }
+
         WindowDraggableArea {
             Surface(
                 elevation = 5.dp,
@@ -476,12 +460,8 @@ fun LinkVocabularyDialog(
                                 OutlinedButton(
                                     enabled = Objects.isNull(vocabulary),
                                     onClick = {
-                                        if(isMacOS()){
-                                            openVocabulary("选择词库")
-                                        }else{
-                                            showFilePicker = true
-                                            vocabularyWrong = false
-                                        }
+                                        showFilePicker = true
+                                        vocabularyWrong = false
 
                                 }) {
                                     Text("1 选择词库")
@@ -490,12 +470,8 @@ fun LinkVocabularyDialog(
                                 OutlinedButton(
                                     enabled = !Objects.isNull(vocabulary),
                                     onClick = {
-                                        if(isMacOS()){
-                                            openVocabulary("选择字幕词库")
-                                        }else{
-                                            showFilePicker = true
-                                            vocabularyWrong = false
-                                        }
+                                        showFilePicker = true
+                                        vocabularyWrong = false
 
                                 }) {
                                     Text("2 选择字幕词库")
@@ -515,12 +491,14 @@ fun LinkVocabularyDialog(
 
                             FilePicker(
                                 show = showFilePicker,
-                                fileExtension = "json",
+                                fileExtensions = listOf("json"),
                                 initialDirectory = ""
-                            ){path ->
-                                if(!path.isNullOrEmpty()){
-                                    val file = File(path)
-                                    handleInputFile(file)
+                            ){pickFile ->
+                                if(pickFile != null){
+                                    if(pickFile.path.isNotEmpty()){
+                                        val file = File(pickFile.path)
+                                        handleInputFile(file)
+                                    }
                                 }
                                 showFilePicker = false
                             }

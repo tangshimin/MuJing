@@ -297,46 +297,7 @@ fun Player(
             setIsAutoPlay = { })
     }
 
-    /** 打开视频 */
-    val openVideo:() -> Unit = {
-        if(isWindows()) {
-            showFilePicker = true
-        }else if(isMacOS()){
-            Thread {
-                val fileChooser = futureFileChooser.get()
-                fileChooser.dialogTitle = "打开视频"
-                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                fileChooser.selectedFile = null
-                if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                    val path = fileChooser.selectedFile.absolutePath
-                    if (!path.isNullOrEmpty()) {
-                        videoPathChanged(path)
-                    }
-                }
-            }.start()
-        }
-    }
 
-    val addVocabulary:() -> Unit = {
-        if(isWindows()) {
-            showVocabularyPicker = true
-        }else if(isMacOS()){
-            Thread {
-                val fileChooser = futureFileChooser.get()
-                fileChooser.dialogTitle = "添加词库"
-                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                fileChooser.selectedFile = null
-                if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                    val path = fileChooser.selectedFile.absolutePath
-                    if (!path.isNullOrEmpty()) {
-                        vocabularyPathChanged(path)
-                    }
-                }
-            }.start()
-        }
-    }
 
     /** 使用这个函数处理拖放的文件 */
     val parseImportFile: (List<File>) -> Unit = { files ->
@@ -823,24 +784,7 @@ fun Player(
                                                 Column (Modifier.width(282.dp).height(700.dp)){
                                                     DropdownMenuItem(
                                                         onClick = {
-                                                            if(isWindows()){
-                                                                showSubtitlePicker = true
-                                                            }else if(isMacOS()){
-                                                                Thread {
-                                                                    val fileChooser = futureFileChooser.get()
-                                                                    fileChooser.dialogTitle = "添加字幕"
-                                                                    fileChooser.fileSystemView =
-                                                                        FileSystemView.getFileSystemView()
-                                                                    fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                                                                    fileChooser.selectedFile = null
-                                                                    if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                                                                        val path = fileChooser.selectedFile.absolutePath
-                                                                        if (!path.isNullOrEmpty()) {
-                                                                            addSubtitle(path)
-                                                                        }
-                                                                    }
-                                                                }.start()
-                                                            }
+                                                            showSubtitlePicker = true
 
                                                         },
                                                         modifier = Modifier.width(282.dp).height(40.dp)
@@ -1036,7 +980,7 @@ fun Player(
                         if(videoPath.isEmpty()){
                             MaterialTheme(colors = darkColors(primary = Color.LightGray)) {
                                 Row( modifier = Modifier.align(Alignment.Center)){
-                                    OutlinedButton(onClick = { openVideo() }){
+                                    OutlinedButton(onClick = { showFilePicker = true }){
                                         Text("打开视频")
                                     }
                                 }
@@ -1046,31 +990,36 @@ fun Player(
                         FilePicker(
                             show = showFilePicker,
                             initialDirectory = ""
-                        ){path ->
-                            if(!path.isNullOrEmpty()){
-                                videoPathChanged(path)
+                        ){file ->
+                            if (file != null) {
+                                if(file.path.isNotEmpty()){
+                                    videoPathChanged(file.path)
+                                }
                             }
                             showFilePicker = false
                         }
                         // 词库文件选择器
                         FilePicker(
                             show = showVocabularyPicker,
-                            fileExtension = "json",
+                            fileExtensions = listOf("json"),
                             initialDirectory = ""
-                        ){path ->
-                            if(!path.isNullOrEmpty()){
-                                vocabularyPathChanged(path)
+                        ){file ->
+                            if (file != null) {
+                                if(file.path.isNotEmpty()){
+                                    vocabularyPathChanged(file.path)
+                                }
                             }
                             showVocabularyPicker = false
                         }
                         // 字幕文件选择器
                         FilePicker(
                             show = showSubtitlePicker,
-//                        fileExtension = "srt",
                             initialDirectory = ""
-                        ){path ->
-                            if(!path.isNullOrEmpty()){
-                                addSubtitle(path)
+                        ){file ->
+                            if (file != null) {
+                                if(!file.path.isNullOrEmpty()){
+                                    addSubtitle(file.path)
+                                }
                             }
                             showSubtitlePicker = false
                         }
@@ -1081,7 +1030,7 @@ fun Player(
                             onDismissRequest = {showDropdownMenu = false},
                         ){
                             DropdownMenuItem(onClick = {
-                                openVideo()
+                                showFilePicker = true
                                 showDropdownMenu = false
                             }) {
                                 Text("打开视频")
@@ -1089,7 +1038,7 @@ fun Player(
                             DropdownMenuItem(
                                 enabled = videoPath.isNotEmpty(),
                                 onClick = {
-                                    addVocabulary()
+                                    showVocabularyPicker = true
                                     showDropdownMenu = false
                                 }) {
                                 Text("添加词库")
