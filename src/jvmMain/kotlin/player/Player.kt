@@ -641,7 +641,6 @@ fun Player(
                                     Row(
                                         modifier = Modifier
                                             .onPointerEvent(PointerEventType.Enter) { volumeSliderVisible = true }
-                                            .onPointerEvent(PointerEventType.Exit) { volumeSliderVisible = false }
                                     ) {
                                         IconButton(onClick = {
                                             volumeOff = !volumeOff
