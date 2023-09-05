@@ -430,6 +430,18 @@ fun parseTime(time:String):Double{
     return duration
 }
 
+/**
+ * 解析时间，返回毫秒
+ */
+fun parseTime2(time:String):Long{
+    val millis = time.substringAfter(".").toLong()
+    val list = time.substringBefore(".").split(":")
+    val hours = list[0].toLong()
+    val minutes = list[1].toLong()
+    val second = list[2].toLong()
+    return (hours * 3600 + minutes * 60 + second) * 1000 + millis
+}
+
 
 fun Component.videoSurfaceComponent(): Component {
     return when (this) {
