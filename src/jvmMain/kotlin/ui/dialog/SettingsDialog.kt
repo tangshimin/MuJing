@@ -283,6 +283,19 @@ fun PrimaryColorChooser(
                 ) {
                     OutlinedButton(
                         onClick = {
+                            // 恢复默认颜色,绿色
+                            state.global.primaryColor = Color(18377412168996880384UL)
+                            state.colors = createColors(state.global.isDarkTheme, state.global.primaryColor,state.global.backgroundColor,state.global.onBackgroundColor)
+                            state.saveGlobalState()
+                            close()
+                        },
+                        colors = ButtonDefaults.outlinedButtonColors(contentColor = selectedColor)
+                    ) {
+                        Text("恢复默认")
+                    }
+                    Spacer(Modifier.width(10.dp))
+                    OutlinedButton(
+                        onClick = {
                             state.global.primaryColor = selectedColor
                             state.colors = createColors(state.global.isDarkTheme, state.global.primaryColor,state.global.backgroundColor,state.global.onBackgroundColor)
                             state.saveGlobalState()
