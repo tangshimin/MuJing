@@ -45,9 +45,7 @@ import ui.flatlaf.updateFlatLaf
 import java.awt.Rectangle
 import java.io.File
 import java.util.*
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileSystemView
 import kotlin.concurrent.schedule
 
 
@@ -133,7 +131,7 @@ fun App() {
                         Search(appState = appState,typingWordState = wordState)
                     }
                     when (appState.global.type) {
-                        TypingType.WORD -> {
+                        ScreenType.WORD -> {
                             title = computeTitle(wordState.vocabularyName,wordState.vocabulary.wordList.isNotEmpty())
 
                             // 显示器缩放
@@ -146,7 +144,7 @@ fun App() {
                                 computeVideoBounds(windowState, appState.openSettings,density)
                             }
 
-                            TypingWord(
+                            WordScreen(
                                 window = window,
                                 title = title,
                                 appState = appState,
@@ -158,10 +156,10 @@ fun App() {
                                 vocabularyPathChanged = vocabularyPathChanged
                             )
                         }
-                        TypingType.SUBTITLES -> {
+                        ScreenType.SUBTITLES -> {
                             val subtitlesState = rememberSubtitlesState()
                             title = computeTitle(subtitlesState)
-                            TypingSubtitles(
+                            SubtitleScreen(
                                 subtitlesState = subtitlesState,
                                 globalState = appState.global,
                                 saveSubtitlesState = { subtitlesState.saveTypingSubtitlesState() },
@@ -181,10 +179,10 @@ fun App() {
                             )
                         }
 
-                        TypingType.TEXT -> {
+                        ScreenType.TEXT -> {
                             val textState = rememberTextState()
                             title = computeTitle(textState)
-                            TypingText(
+                            TextScreen(
                                 title = title,
                                 window = window,
                                 globalState = appState.global,
@@ -357,47 +355,25 @@ private fun FrameWindowScope.WindowMenuBar(
 ) = MenuBar {
     Menu("词库(V)", mnemonic = 'V') {
         var showFilePicker by remember {mutableStateOf(false)}
-        Item("打开词库(O)", mnemonic = 'O') {
-
-            if (isWindows()) {
-                showFilePicker = true
-            } else if (isMacOS()) {
-                Thread {
-                    val fileChooser = appState.futureFileChooser.get()
-                    fileChooser.dialogTitle = "选择词库"
-                    fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                    fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                    fileChooser.selectedFile = null
-                    if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
-                        val file = fileChooser.selectedFile
-                        val index = appState.findVocabularyIndex(file)
-                        appState.changeVocabulary(
-                            vocabularyFile = file,
-                            typingState,
-                            index
-                        )
-                        appState.global.type = TypingType.WORD
-                        appState.saveGlobalState()
-                    }
-                }.start()
-            }
-
-        }
+        Item("打开词库(O)", mnemonic = 'O') { showFilePicker = true }
         FilePicker(
             show = showFilePicker,
-            fileExtension = "json",
-            initialDirectory = ""){path ->
-            if(!path.isNullOrEmpty()){
-                val file = File(path)
-                val index = appState.findVocabularyIndex(file)
-                appState.changeVocabulary(
-                    vocabularyFile = file,
-                    typingState,
-                    index
-                )
-                appState.global.type = TypingType.WORD
-                appState.saveGlobalState()
+            fileExtensions = listOf("json"),
+            initialDirectory = ""){pickFile ->
+            if(pickFile != null){
+                if(pickFile.path.isNotEmpty()){
+                    val file = File(pickFile.path)
+                    val index = appState.findVocabularyIndex(file)
+                    appState.changeVocabulary(
+                        vocabularyFile = file,
+                        typingState,
+                        index
+                    )
+                    appState.global.type = ScreenType.WORD
+                    appState.saveGlobalState()
+                }
             }
+
             showFilePicker = false
         }
         var showBuiltInVocabulary by remember{mutableStateOf(false)}
@@ -410,7 +386,7 @@ private fun FrameWindowScope.WindowMenuBar(
         Item("困难词库(K)", enabled = appState.hardVocabulary.wordList.isNotEmpty(), mnemonic = 'K',onClick = {
             val file = getHardVocabularyFile()
             appState.changeVocabulary(file, typingState,typingState.hardVocabularyIndex)
-            appState.global.type = TypingType.WORD
+            appState.global.type = ScreenType.WORD
             appState.saveGlobalState()
         })
 
@@ -422,7 +398,7 @@ private fun FrameWindowScope.WindowMenuBar(
                         val recentFile = File(recentItem.path)
                         if (recentFile.exists()) {
                             appState.changeVocabulary(recentFile,typingState, recentItem.index)
-                            appState.global.type = TypingType.WORD
+                            appState.global.type = ScreenType.WORD
                             appState.saveGlobalState()
                             appState.loadingFileChooserVisible = false
                         } else {
@@ -510,12 +486,12 @@ private fun FrameWindowScope.WindowMenuBar(
 
     }
     Menu("字幕(S)", mnemonic = 'S') {
-        val enableTypingSubtitles = (appState.global.type != TypingType.SUBTITLES)
+        val enableTypingSubtitles = (appState.global.type != ScreenType.SUBTITLES)
         Item(
             "字幕浏览器(T)", mnemonic = 'T',
             enabled = enableTypingSubtitles,
             onClick = {
-                appState.global.type = TypingType.SUBTITLES
+                appState.global.type = ScreenType.SUBTITLES
                 appState.saveGlobalState()
             },
         )
@@ -536,12 +512,12 @@ private fun FrameWindowScope.WindowMenuBar(
         )
     }
     Menu("文本(T)", mnemonic = 'T') {
-        val enable = appState.global.type != TypingType.TEXT
+        val enable = appState.global.type != ScreenType.TEXT
         Item(
             "抄写文本(T)", mnemonic = 'T',
             enabled = enable,
             onClick = {
-                appState.global.type = TypingType.TEXT
+                appState.global.type = ScreenType.TEXT
                 appState.saveGlobalState()
             },
         )
@@ -645,7 +621,7 @@ fun Toolbar(
         ) {
             IconButton(onClick = {
                 scope.launch {
-                    globalState.type = TypingType.WORD
+                    globalState.type = ScreenType.WORD
                     saveGlobalState()
                 }
             }) {
@@ -654,7 +630,7 @@ fun Toolbar(
                     style = MaterialTheme.typography.h6,
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
-                    color = if (globalState.type == TypingType.WORD) MaterialTheme.colors.primary else tint,
+                    color = if (globalState.type == ScreenType.WORD) MaterialTheme.colors.primary else tint,
                     modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
                 )
             }
@@ -681,14 +657,14 @@ fun Toolbar(
 
             IconButton(onClick = {
                 scope.launch {
-                    globalState.type = TypingType.SUBTITLES
+                    globalState.type = ScreenType.SUBTITLES
                     saveGlobalState()
                 }
             }) {
                 Icon(
                     Icons.Filled.Subtitles,
                     contentDescription = "Localized description",
-                    tint = if (globalState.type == TypingType.SUBTITLES) MaterialTheme.colors.primary else tint,
+                    tint = if (globalState.type == ScreenType.SUBTITLES) MaterialTheme.colors.primary else tint,
                     modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
                 )
             }
@@ -717,14 +693,14 @@ fun Toolbar(
         ) {
             IconButton(onClick = {
                 scope.launch {
-                    globalState.type = TypingType.TEXT
+                    globalState.type = ScreenType.TEXT
                     saveGlobalState()
                 }
             }) {
                 Icon(
                     Icons.Filled.Title,
                     contentDescription = "Localized description",
-                    tint = if (globalState.type == TypingType.TEXT) MaterialTheme.colors.primary else tint,
+                    tint = if (globalState.type == ScreenType.TEXT) MaterialTheme.colors.primary else tint,
                     modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
                 )
             }
