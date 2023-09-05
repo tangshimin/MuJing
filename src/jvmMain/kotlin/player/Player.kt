@@ -177,6 +177,8 @@ fun Player(
     /** 展开设置菜单 */
     var settingsExpanded by remember { mutableStateOf(false) }
 
+    var showSubtitleMenu by remember{mutableStateOf(false)}
+
     /** 弹幕从右到左需要的时间，单位为毫秒 */
     var widthDuration by remember { mutableStateOf(playerWindowState.size.width.value.div(3).times(30).toInt()) }
 
@@ -520,7 +522,7 @@ fun Player(
                         }
                     }
                     .onPointerEvent(PointerEventType.Exit) {
-                        if (isPlaying && !settingsExpanded) {
+                        if (isPlaying && !settingsExpanded && !showSubtitleMenu) {
                             controlBoxVisible = false
                         }
                     }
@@ -758,7 +760,6 @@ fun Player(
 
                                     }
 
-                                    var showSubtitleMenu by remember{mutableStateOf(false)}
                                     // 字幕和声音选择按钮
                                     TooltipArea(
                                         tooltip = {
