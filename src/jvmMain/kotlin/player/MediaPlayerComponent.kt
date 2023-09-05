@@ -7,14 +7,15 @@ import com.matthewn4444.ebml.subtitles.SRTSubtitles
 import com.matthewn4444.ebml.subtitles.SSASubtitles
 import com.sun.jna.NativeLibrary
 import data.Caption
-import ui.dialog.removeItalicSymbol
-import ui.dialog.removeLocationInfo
-import ui.dialog.replaceNewLine
 import org.mozilla.universalchardet.UniversalDetector
 import state.getResourcesFile
 import state.getSettingsDirectory
 import subtitleFile.FormatSRT
 import subtitleFile.TimedTextObject
+import ui.dialog.removeItalicSymbol
+import ui.dialog.removeLocationInfo
+import ui.dialog.removeNewLine
+import ui.dialog.replaceNewLine
 import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery
@@ -231,7 +232,7 @@ fun parseSubtitles(
             for (caption in captions.values) {
                 var content = removeLocationInfo(caption.content)
                 content = removeItalicSymbol(content)
-                content = replaceNewLine(content)
+                content = removeNewLine(content)
 
                 val newCaption = Caption(
                     start = caption.start.getTime("hh:mm:ss.ms"),
@@ -256,6 +257,49 @@ fun parseSubtitles(
         resetSubtitlesState()
     }
 
+}
+
+
+fun parseSubtitles(subtitlesPath: String):List<PlayerCaption>{
+    val formatSRT = FormatSRT()
+    val file = File(subtitlesPath)
+    val captionList = mutableListOf<PlayerCaption>()
+    if(file.exists()){
+        try {
+            val encoding = UniversalDetector.detectCharset(file)
+            val charset =  if(encoding != null){
+                Charset.forName(encoding)
+            }else{
+                Charset.defaultCharset()
+            }
+            val inputStream: InputStream = FileInputStream(file)
+            val timedTextObject: TimedTextObject = formatSRT.parseFile(file.name, inputStream,charset)
+            val captions: TreeMap<Int, subtitleFile.Caption> = timedTextObject.captions
+
+            var maxLength = 0
+            for (caption in captions.values) {
+                var content = removeLocationInfo(caption.content)
+                content = removeItalicSymbol(content)
+                content = replaceNewLine(content)
+                val newCaption = PlayerCaption(
+                    start = parseTime2(caption.start.getTime("hh:mm:ss.ms")),
+                    end = parseTime2(caption.end.getTime("hh:mm:ss.ms")),
+                    content = content
+                )
+                if (caption.content.length > maxLength) {
+                    maxLength = caption.content.length
+                }
+                captionList.add(newCaption)
+            }
+
+        }catch (exception: IOException){
+            exception.printStackTrace()
+        }
+
+    }else{
+        println("找不到字幕文件")
+    }
+    return captionList
 }
 
 /**

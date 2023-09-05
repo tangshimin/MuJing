@@ -1,14 +1,21 @@
 package ffmpeg
 
+import player.PlayerCaption
+import net.bramp.ffmpeg.FFmpeg
+import net.bramp.ffmpeg.FFmpegExecutor
+import net.bramp.ffmpeg.builder.FFmpegBuilder
+import net.bramp.ffmpeg.job.FFmpegJob
 import player.isMacOS
 import player.isWindows
+import player.parseSubtitles
 import state.getResourcesFile
+import state.getSettingsDirectory
 import java.io.File
 
 fun findFFmpegPath(): String {
     var path = ""
     if(isWindows()){
-        path =  getResourcesFile("ffmpeg.exe").absolutePath
+        path =  getResourcesFile("FFmpeg/ffmpeg.exe").absolutePath
     }else if(isMacOS()){
         path =  getResourcesFile("ffmpeg").absolutePath
         if(!File(path).exists()){
@@ -33,4 +40,24 @@ fun findFFmpegPath(): String {
         }
     }
     return path
+}
+
+fun readCaptionList(videoPath: String, subtitleId: Int): List<PlayerCaption> {
+    val captionList = mutableListOf<PlayerCaption>()
+    val applicationDir = getSettingsDirectory()
+    val ffmpeg = FFmpeg(findFFmpegPath())
+    val builder = FFmpegBuilder()
+        .setInput(videoPath)
+        .addOutput("$applicationDir/temp.srt")
+        .addExtraArgs("-map", "0:s:$subtitleId") //  -map 0:s:0 表示提取第一个字幕，-map 0:s:1 表示提取第二个字幕。
+        .done()
+    val executor = FFmpegExecutor(ffmpeg)
+    val job = executor.createJob(builder)
+    job.run()
+    if (job.state == FFmpegJob.State.FINISHED) {
+        println("extractSubtitle success")
+        captionList.addAll(parseSubtitles("$applicationDir/temp.srt"))
+        File("$applicationDir/temp.srt").delete()
+    }
+    return captionList
 }
