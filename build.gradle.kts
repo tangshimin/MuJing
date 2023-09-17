@@ -21,7 +21,7 @@ repositories {
 kotlin {
     jvm {
         compilations.all {
-            kotlinOptions.jvmTarget = "17"
+            kotlinOptions.jvmTarget = "18"
         }
         withJava()
     }
@@ -69,8 +69,8 @@ tasks.withType<KotlinCompile>().configureEach {
     }
 }
 java {
-    sourceCompatibility = JavaVersion.VERSION_17
-    targetCompatibility = JavaVersion.VERSION_17
+    sourceCompatibility = JavaVersion.VERSION_18
+    targetCompatibility = JavaVersion.VERSION_18
 }
 
 
@@ -88,21 +88,17 @@ compose.desktop {
         jvmArgs += listOf("-Dapple.awt.application.appearance=system")
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-//            packageName = "幕境"
-            // windows 暂时不能打包中文名称，所有用拼音替代
-            packageName = "MuJing"
+            packageName = "幕境"
             packageVersion = version.toString()
             modules("java.instrument", "java.sql", "jdk.unsupported")
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
             copyright = "Copyright 2023 Shimin Tang. All rights reserved."
-//            vendor = "深圳市龙华区幕境网络工作室"
+            vendor = "深圳市龙华区幕境网络工作室"
             licenseFile.set(project.file("LICENSE"))
             windows{
 //                console = true
                 dirChooser = true
-//                menuGroup = "幕境"
-                // windows 暂时不能打包中文名称，所有用拼音替代
-                menuGroup = "MuJing"
+                menuGroup = "幕境"
                 iconFile.set(project.file("src/jvmMain/resources/logo/logo.ico"))
             }
             macOS{
