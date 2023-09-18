@@ -24,6 +24,7 @@ data class DataSubtitlesState(
     val currentIndex: Int = 0,
     val firstVisibleItemIndex: Int = 0,
     var sentenceMaxLength: Int = 0,
+    var transcriptionCaption: Boolean = false,
     var currentCaptionVisible: Boolean = true,
     var notWroteCaptionVisible: Boolean = true,
     var externalSubtitlesVisible: Boolean = true,
@@ -64,6 +65,9 @@ class SubtitlesState(dataSubtitlesState: DataSubtitlesState) {
     var sentenceMaxLength by mutableStateOf(dataSubtitlesState.sentenceMaxLength)
 
     /** 当前字幕的可见性 */
+    var transcriptionCaption by mutableStateOf(dataSubtitlesState.transcriptionCaption)
+
+    /** 当前字幕的可见性 */
     var currentCaptionVisible by mutableStateOf(dataSubtitlesState.currentCaptionVisible)
 
     /** 未抄写字幕的可见性 */
@@ -90,6 +94,7 @@ class SubtitlesState(dataSubtitlesState: DataSubtitlesState) {
                     currentIndex,
                     firstVisibleItemIndex,
                     sentenceMaxLength,
+                    transcriptionCaption,
                     currentCaptionVisible,
                     notWroteCaptionVisible,
                     externalSubtitlesVisible,

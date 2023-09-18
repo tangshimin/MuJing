@@ -461,6 +461,14 @@ fun SubtitleScreen(
         }
     }
 
+
+    val setTranscriptionCaption: (Boolean) -> Unit = {
+        scope.launch {
+            subtitlesState.transcriptionCaption = it
+            saveSubtitlesState()
+        }
+    }
+
     /** 设置当前字幕的可见性 */
     val setCurrentCaptionVisible: (Boolean) -> Unit = {
         scope.launch {
@@ -554,6 +562,8 @@ fun SubtitleScreen(
         Row(Modifier.fillMaxSize()) {
             SubtitlesSidebar(
                 isOpen = isOpenSettings,
+                transcriptionCaption = subtitlesState.transcriptionCaption,
+                setTranscriptionCaption = {setTranscriptionCaption(it)},
                 currentCaptionVisible = subtitlesState.currentCaptionVisible,
                 setCurrentCaptionVisible = {setCurrentCaptionVisible(it)},
                 notWroteCaptionVisible = subtitlesState.notWroteCaptionVisible,
@@ -728,7 +738,11 @@ fun SubtitleScreen(
                                         true
                                     }
                                     (it.isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) -> {
-                                        scope.launch { selectable = !selectable }
+                                        scope.launch {
+                                            if(subtitlesState.transcriptionCaption){
+                                                selectable = !selectable
+                                            }
+                                        }
                                         true
                                     }
                                     (it.isCtrlPressed && it.key == Key.N && it.type == KeyEventType.KeyUp) -> {
@@ -771,7 +785,7 @@ fun SubtitleScreen(
                                 val lineColor =  if(index <  subtitlesState.currentIndex){
                                     MaterialTheme.colors.primary.copy(alpha = if(MaterialTheme.colors.isLight) ContentAlpha.high else ContentAlpha.medium)
                                 }else if(subtitlesState.currentIndex == index){
-                                    if(multipleLines.enabled) {
+                                    if(multipleLines.enabled || !subtitlesState.transcriptionCaption) {
                                         MaterialTheme.colors.primary.copy(alpha = if(MaterialTheme.colors.isLight) ContentAlpha.high else ContentAlpha.medium)
                                     }else if(subtitlesState.currentCaptionVisible){
                                         MaterialTheme.colors.onBackground.copy(alpha = alpha)
@@ -779,7 +793,7 @@ fun SubtitleScreen(
                                         Color.Transparent
                                     }
                                 }else{
-                                    if(subtitlesState.notWroteCaptionVisible){
+                                    if(subtitlesState.notWroteCaptionVisible || !subtitlesState.transcriptionCaption){
                                         MaterialTheme.colors.onBackground.copy(alpha = alpha)
                                     }else{
                                         Color.Transparent
@@ -969,19 +983,20 @@ fun SubtitleScreen(
                                     }
 
                                     BasicTextField(
-                                        value = textFieldValue,
+                                        value =  if(subtitlesState.transcriptionCaption) textFieldValue else captionContent,
                                         onValueChange = { checkTyping(it) },
                                         singleLine = true,
+                                        readOnly = !subtitlesState.transcriptionCaption,
                                         cursorBrush = SolidColor(MaterialTheme.colors.primary),
                                         textStyle = MaterialTheme.typography.h5.copy(
-                                            color = Color.Transparent,
+                                            color =  if(!subtitlesState.transcriptionCaption) lineColor else Color.Transparent,
                                             fontFamily = monospace
                                         ),
                                         modifier = Modifier
                                             .fillMaxWidth()
                                             .padding(bottom = 5.dp)
                                             .align(Alignment.CenterStart)
-                                            .focusable()
+                                            .focusable(subtitlesState.transcriptionCaption)
                                             .onKeyEvent { textFieldKeyEvent(it) }
                                             .focusRequester(textFieldRequester)
                                             .onFocusChanged {
@@ -1014,68 +1029,72 @@ fun SubtitleScreen(
                                             textFieldRequester.requestFocus()
                                         }
                                     }
-                                    Text(
-                                        text = buildAnnotatedString {
 
-                                            typingResult.forEach { (char, correct) ->
-                                                if (correct) {
-                                                    withStyle(
-                                                        style = SpanStyle(
-                                                            color = MaterialTheme.colors.primary.copy(alpha = alpha),
-                                                            fontSize = MaterialTheme.typography.h5.fontSize,
-                                                            letterSpacing = MaterialTheme.typography.h5.letterSpacing,
-                                                            fontFamily = monospace,
-                                                        )
-                                                    ) {
-                                                        append(char)
-                                                    }
-                                                } else {
-                                                    withStyle(
-                                                        style = SpanStyle(
-                                                            color = Color.Red,
-                                                            fontSize = MaterialTheme.typography.h5.fontSize,
-                                                            letterSpacing = MaterialTheme.typography.h5.letterSpacing,
-                                                            fontFamily = monospace,
-                                                        )
-                                                    ) {
-                                                        if (char == ' ') {
-                                                            append("_")
-                                                        } else {
+                                    if(subtitlesState.transcriptionCaption){
+                                        Text(
+                                            text = buildAnnotatedString {
+
+                                                typingResult.forEach { (char, correct) ->
+                                                    if (correct) {
+                                                        withStyle(
+                                                            style = SpanStyle(
+                                                                color = MaterialTheme.colors.primary.copy(alpha = alpha),
+                                                                fontSize = MaterialTheme.typography.h5.fontSize,
+                                                                letterSpacing = MaterialTheme.typography.h5.letterSpacing,
+                                                                fontFamily = monospace,
+                                                            )
+                                                        ) {
                                                             append(char)
                                                         }
+                                                    } else {
+                                                        withStyle(
+                                                            style = SpanStyle(
+                                                                color = Color.Red,
+                                                                fontSize = MaterialTheme.typography.h5.fontSize,
+                                                                letterSpacing = MaterialTheme.typography.h5.letterSpacing,
+                                                                fontFamily = monospace,
+                                                            )
+                                                        ) {
+                                                            if (char == ' ') {
+                                                                append("_")
+                                                            } else {
+                                                                append(char)
+                                                            }
 
+                                                        }
                                                     }
                                                 }
-                                            }
-                                            val remainChars = captionContent.substring(typingResult.size)
+                                                val remainChars = captionContent.substring(typingResult.size)
 
 
-                                            withStyle(
-                                                style = SpanStyle(
-                                                    color = lineColor,
-                                                    fontSize = MaterialTheme.typography.h5.fontSize,
-                                                    letterSpacing = MaterialTheme.typography.h5.letterSpacing,
-                                                    fontFamily = monospace,
-                                                )
-                                            ) {
-                                                append(remainChars)
-                                            }
-                                        },
-                                        textAlign = TextAlign.Start,
-                                        color = MaterialTheme.colors.onBackground,
-                                        overflow = TextOverflow.Ellipsis,
-                                        maxLines = 1,
-                                        modifier = Modifier
-                                            .align(Alignment.CenterStart)
-                                            .padding(bottom = 5.dp)
-                                            .onGloballyPositioned { coordinates ->
-                                            if (subtitlesState.currentIndex == index) {
-                                                // 如果视频播放按钮被遮挡，就使用这个位置计算出视频播放器的位置
-                                                textRect = coordinates.boundsInWindow()
-                                            }
+                                                withStyle(
+                                                    style = SpanStyle(
+                                                        color = lineColor,
+                                                        fontSize = MaterialTheme.typography.h5.fontSize,
+                                                        letterSpacing = MaterialTheme.typography.h5.letterSpacing,
+                                                        fontFamily = monospace,
+                                                    )
+                                                ) {
+                                                    append(remainChars)
+                                                }
+                                            },
+                                            textAlign = TextAlign.Start,
+                                            color = MaterialTheme.colors.onBackground,
+                                            overflow = TextOverflow.Ellipsis,
+                                            maxLines = 1,
+                                            modifier = Modifier
+                                                .align(Alignment.CenterStart)
+                                                .padding(bottom = 5.dp)
+                                                .onGloballyPositioned { coordinates ->
+                                                    if (subtitlesState.currentIndex == index) {
+                                                        // 如果视频播放按钮被遮挡，就使用这个位置计算出视频播放器的位置
+                                                        textRect = coordinates.boundsInWindow()
+                                                    }
 
-                                        }
-                                    )
+                                                }
+                                        )
+                                    }
+
 
 
                                     DropdownMenu(
@@ -1100,7 +1119,11 @@ fun SubtitleScreen(
                                                 .focusRequester(selectRequester)
                                                 .onKeyEvent {
                                                     if (it.isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) {
-                                                        scope.launch { selectable = !selectable }
+                                                        scope.launch {
+                                                            if(subtitlesState.transcriptionCaption){
+                                                                selectable = !selectable
+                                                            }
+                                                        }
                                                         true
                                                     }else if (it.isCtrlPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) {
                                                         scope.launch { openSearch() }
@@ -1539,9 +1562,12 @@ fun Settings(
     )
 }
 
+
 @Composable
 fun SubtitlesSidebar(
     isOpen: Boolean,
+    transcriptionCaption: Boolean,
+    setTranscriptionCaption:(Boolean) -> Unit,
     currentCaptionVisible: Boolean,
     setCurrentCaptionVisible:(Boolean) -> Unit,
     notWroteCaptionVisible: Boolean,
@@ -1598,30 +1624,47 @@ fun SubtitlesSidebar(
                 modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
             ) {
 
-                Text("当前字幕", color = MaterialTheme.colors.onBackground)
+                Text("抄写字幕", color = MaterialTheme.colors.onBackground)
                 Spacer(Modifier.width(15.dp))
 
                 Switch(
                     colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                    checked = currentCaptionVisible,
-                    onCheckedChange = { setCurrentCaptionVisible(!currentCaptionVisible) },
+                    checked = transcriptionCaption,
+                    onCheckedChange = { setTranscriptionCaption(!transcriptionCaption) },
                 )
             }
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
-            ) {
+            if(transcriptionCaption){
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
+                ) {
+                    Text("当前字幕", color = MaterialTheme.colors.onBackground)
+                    Spacer(Modifier.width(15.dp))
 
-                Text("未写字幕", color = MaterialTheme.colors.onBackground)
-                Spacer(Modifier.width(15.dp))
+                    Switch(
+                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                        checked = currentCaptionVisible,
+                        onCheckedChange = { setCurrentCaptionVisible(!currentCaptionVisible) },
+                    )
+                }
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
+                ) {
 
-                Switch(
-                    colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                    checked = notWroteCaptionVisible,
-                    onCheckedChange = {setNotWroteCaptionVisible(!notWroteCaptionVisible) },
-                )
+                    Text("未写字幕", color = MaterialTheme.colors.onBackground)
+                    Spacer(Modifier.width(15.dp))
+
+                    Switch(
+                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                        checked = notWroteCaptionVisible,
+                        onCheckedChange = {setNotWroteCaptionVisible(!notWroteCaptionVisible) },
+                    )
+                }
             }
+            Divider()
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
