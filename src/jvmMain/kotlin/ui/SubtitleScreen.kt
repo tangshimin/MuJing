@@ -117,7 +117,9 @@ fun SubtitleScreen(
 
     val eventListener = object:MediaPlayerEventAdapter() {
         override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
-            subtitlesState.currentIndex = timedCaption.getCaptionIndex(newTime,subtitlesState.currentIndex)
+            if(multipleLines.enabled) {
+                subtitlesState.currentIndex = timedCaption.getCaptionIndex(newTime, subtitlesState.currentIndex)
+            }
         }
     }
 
