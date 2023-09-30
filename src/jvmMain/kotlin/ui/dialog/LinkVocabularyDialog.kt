@@ -488,10 +488,10 @@ fun LinkVocabularyDialog(
                                     Text("取消")
                                 }
                             }
-
+                            val extensions = if(isMacOS()) listOf("public.json") else listOf("json")
                             FilePicker(
                                 show = showFilePicker,
-                                fileExtensions = listOf("json"),
+                                fileExtensions = extensions,
                                 initialDirectory = ""
                             ){pickFile ->
                                 if(pickFile != null){

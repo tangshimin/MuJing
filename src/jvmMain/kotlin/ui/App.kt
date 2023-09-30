@@ -356,9 +356,10 @@ private fun FrameWindowScope.WindowMenuBar(
     Menu("词库(V)", mnemonic = 'V') {
         var showFilePicker by remember {mutableStateOf(false)}
         Item("打开词库(O)", mnemonic = 'O') { showFilePicker = true }
+        val extensions = if(isMacOS()) listOf("public.json") else listOf("json")
         FilePicker(
             show = showFilePicker,
-            fileExtensions = listOf("json"),
+            fileExtensions = extensions,
             initialDirectory = ""){pickFile ->
             if(pickFile != null){
                 if(pickFile.path.isNotEmpty()){

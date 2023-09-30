@@ -188,9 +188,10 @@ fun WordScreen(
                 typingWord.vocabularyPath = ""
                 typingWord.saveTypingWordState()
             }, toolTip = "移除当前词库")
+            val extensions = if(isMacOS()) listOf("public.json") else listOf("json")
             FilePicker(
                 show = showFilePicker,
-                fileExtensions = listOf("json"),
+                fileExtensions = extensions,
                 initialDirectory = ""){file ->
                 if(file != null){
                     if(file.path.isNotEmpty()){

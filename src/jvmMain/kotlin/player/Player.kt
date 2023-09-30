@@ -998,10 +998,11 @@ fun Player(
                             }
                             showFilePicker = false
                         }
+                        val extensions = if(isMacOS()) listOf("public.json") else listOf("json")
                         // 词库文件选择器
                         FilePicker(
                             show = showVocabularyPicker,
-                            fileExtensions = listOf("json"),
+                            fileExtensions = extensions,
                             initialDirectory = ""
                         ){file ->
                             if (file != null) {
