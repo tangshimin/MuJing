@@ -1342,7 +1342,7 @@ fun SubtitleScreen(
                         border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                         shape = RectangleShape
                     ) {
-                        Text(text = "打开字幕文件 $ctrl + O", modifier = Modifier.padding(10.dp))
+                        Text(text = "打开文件 $ctrl + O", modifier = Modifier.padding(10.dp))
                     }
                 },
                 delayMillis = 50,
