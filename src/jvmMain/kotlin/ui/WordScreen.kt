@@ -958,7 +958,8 @@ fun MainContent(
 
             /** 计算正确率 */
             val correctRate: () -> Float = {
-                var rate =  (typingWord.dictationWords.size - dictationWrongWords.size).div(typingWord.dictationWords.size.toFloat()) .times(1000)
+                val size = if(typingWord.memoryStrategy == Dictation ) typingWord.dictationWords.size else typingWord.reviewWords.size
+                var rate =  (size - dictationWrongWords.size).div(size.toFloat()) .times(1000)
                 rate = rate.toInt().toFloat().div(10)
                 rate
             }
