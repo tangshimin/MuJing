@@ -343,7 +343,7 @@ fun CustomTextMenuProvider(content: @Composable () -> Unit) {
         },
         LocalClipboardManager provides object :  ClipboardManager {
             // paste
-            override fun getText(): AnnotatedString? {
+            override fun getText(): AnnotatedString {
                 return AnnotatedString("")
             }
             // copy

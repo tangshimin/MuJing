@@ -55,11 +55,8 @@ import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Toolkit
 import java.io.File
-import java.util.concurrent.FutureTask
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane
 import javax.swing.Timer
-import javax.swing.filechooser.FileSystemView
 import kotlin.concurrent.schedule
 import kotlin.math.floor
 import kotlin.time.Duration.Companion.milliseconds
@@ -83,7 +80,6 @@ fun Player(
     audioVolume: Float,
     videoVolume: Float,
     videoVolumeChanged: (Float) -> Unit,
-    futureFileChooser: FutureTask<JFileChooser>,
 ) {
 
     /** 窗口的大小和位置 */
@@ -1018,7 +1014,7 @@ fun Player(
                             initialDirectory = ""
                         ){file ->
                             if (file != null) {
-                                if(!file.path.isNullOrEmpty()){
+                                if(file.path.isNotEmpty()){
                                     addSubtitle(file.path)
                                 }
                             }

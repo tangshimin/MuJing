@@ -260,7 +260,6 @@ fun App() {
                         appState.global.videoVolume = it
                         appState.saveGlobalState()
                     },
-                    futureFileChooser = appState.futureFileChooser,
                 )
 
             }

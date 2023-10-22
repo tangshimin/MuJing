@@ -192,10 +192,10 @@ fun WordScreen(
             FilePicker(
                 show = showFilePicker,
                 fileExtensions = extensions,
-                initialDirectory = ""){file ->
-                if(file != null){
-                    if(file.path.isNotEmpty()){
-                        val file = File(file.path)
+                initialDirectory = ""){pfile ->
+                if(pfile != null){
+                    if(pfile.path.isNotEmpty()){
+                        val file = File(pfile.path)
                         val index = appState.findVocabularyIndex(file)
                         appState.changeVocabulary(
                             vocabularyFile = file,
