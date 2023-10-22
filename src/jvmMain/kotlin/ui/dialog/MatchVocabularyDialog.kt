@@ -326,17 +326,45 @@ fun MatchVocabularyDialog(
                     if(result!=null){
                         Text(text = "共匹配到${result!!.size}个单词",modifier = Modifier.padding(top = 30.dp))
                     }
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().padding(top = 5.dp,bottom = 5.dp)
-                    ) {
-                        Text("匹配原型词")
-                        Checkbox(
-                            checked =matchLemma,
-                            onCheckedChange = {matchLemma = it  }
+
+                    TooltipArea(
+                        tooltip = {
+                            Surface(
+                                elevation = 4.dp,
+                                border = BorderStroke(
+                                    1.dp,
+                                    MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+                                ),
+                                shape = RectangleShape
+                            ) {
+                                Row(modifier = Modifier.padding(10.dp)){
+                                    Text(text = "比如某个单词不属于四级词库里的单词\n" +
+                                            "但是属于四级词库里的某个单词的派生词\n" +
+                                            "那么这个单词也会被匹配到。" )
+                                }
+
+                            }
+                        },
+                        delayMillis = 300,
+                        tooltipPlacement = TooltipPlacement.ComponentRect(
+                            anchor = Alignment.TopCenter,
+                            alignment = Alignment.TopCenter,
+                            offset = DpOffset(0.dp,(-2).dp)
                         )
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth().padding(top = 5.dp,bottom = 5.dp)
+                        ) {
+                            Text("匹配原型词")
+                            Checkbox(
+                                checked =matchLemma,
+                                onCheckedChange = {matchLemma = it  }
+                            )
+                        }
                     }
+
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth().padding(top = 0.dp)
