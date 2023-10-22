@@ -549,7 +549,6 @@ fun MainContent(
                             volume = appState.global.audioVolume,
                             audioPlayerComponent = audioPlayerComponent,
                             changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
-                            setIsAutoPlay = {}
                         )
                     }
                     true
@@ -683,8 +682,6 @@ fun MainContent(
         val toNext: () -> Unit = {
             scope.launch {
                 typingWord.clearInputtedState()
-            }
-            scope.launch {
                 when (typingWord.memoryStrategy) {
                     Normal -> {
                         when {
@@ -716,6 +713,7 @@ fun MainContent(
                 }
 
                 wordFocusRequester.requestFocus()
+
             }
         }
 
@@ -849,7 +847,7 @@ fun MainContent(
                                         dictationWrongWords[currentWord] = 1
                                     }
                                 }
-                                Timer("input wrong cleanInputChar", false).schedule(500) {
+                                Timer("input wrong cleanInputChar", false).schedule(50) {
                                     typingWord.wordTextFieldValue = ""
                                     typingWord.wordTypingResult.clear()
                                     isWrong = false
@@ -863,7 +861,7 @@ fun MainContent(
                                         volume = appState.global.audioVolume,
                                         audioPlayerComponent = audioPlayerComponent,
                                         changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
-                                        setIsAutoPlay = {}
+//                                        setIsAutoPlay = {}
                                     )
                                 }
 
@@ -895,7 +893,7 @@ fun MainContent(
                                         volume = appState.global.audioVolume,
                                         audioPlayerComponent = audioPlayerComponent,
                                         changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
-                                        setIsAutoPlay = {}
+//                                        setIsAutoPlay = {}
                                     )
                                 }
                             }
@@ -1259,6 +1257,8 @@ fun MainContent(
                         wordVisible = typingWord.wordVisible,
                         pronunciation = typingWord.pronunciation,
                         playTimes = typingWord.playTimes,
+                        isPlaying = isPlayingAudio,
+                        setIsPlaying = { isPlayingAudio = it },
                         isDictation = (typingWord.memoryStrategy == Dictation ||typingWord.memoryStrategy == Review),
                         fontFamily = monospace,
                         audioPath = audioPath,

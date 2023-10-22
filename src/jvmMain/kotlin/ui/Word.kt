@@ -48,6 +48,9 @@ import kotlin.concurrent.schedule
  * @param global 全局状态
  * @param wordVisible 单词可见性
  * @param pronunciation 单词发音
+ * @param playTimes 单词播放次数
+ * @param isPlaying 是否正在播放单词发音
+ * @param setIsPlaying 设置单词发音播放状态
  * @param isDictation 是否是听写模式
  * @param correctTime 单词的正确数
  * @param wrongTime 单词的错误数
@@ -66,6 +69,8 @@ fun Word(
     wordVisible:Boolean,
     pronunciation: String,
     playTimes: Int,
+    isPlaying: Boolean,
+    setIsPlaying: (Boolean) -> Unit,
     fontFamily: FontFamily,
     audioPath: String,
     correctTime: Int,
@@ -235,6 +240,8 @@ fun Word(
                 audioPath = audioPath,
                 word = wordValue,
                 volume = global.audioVolume,
+                isPlaying = isPlaying,
+                setIsPlaying = setIsPlaying,
                 pronunciation = pronunciation,
                 playTimes = playTimes,
                 paddingTop = paddingTop,

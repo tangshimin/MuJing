@@ -45,6 +45,8 @@ fun rememberAudioPlayerComponent(): AudioPlayerComponent = remember {
 /** 记忆单词界面的播放按钮
  * @param audioPath 发音的绝对路径
  * @param volume 音量
+ * @param isPlaying 是否正在播放单词发音
+ * @param setIsPlaying 设置是否正在播放单词发音
  * @param pronunciation 音音 或 美音
  * @param paddingTop 顶部填充
  */
@@ -54,6 +56,8 @@ fun AudioButton(
     audioPath: String,
     word:String,
     volume: Float,
+    isPlaying: Boolean,
+    setIsPlaying: (Boolean) -> Unit,
     pronunciation: String,
     playTimes: Int,
     paddingTop: Dp,
@@ -61,12 +65,6 @@ fun AudioButton(
     if (playTimes != 0) {
         val scope = rememberCoroutineScope()
         val audioPlayerComponent = LocalAudioPlayerComponent.current
-        var isPlaying by remember { mutableStateOf(false) }
-
-        /**
-         * 防止用户频繁按 Enter 键，频繁的调用 VLC 导致程序崩溃
-         */
-        var isAutoPlay by remember { mutableStateOf(true) }
 
         val playAudio = {
             playAudio(
@@ -75,8 +73,8 @@ fun AudioButton(
                 pronunciation = pronunciation,
                 volume,
                 audioPlayerComponent,
-                changePlayerState = { isPlaying = it },
-                setIsAutoPlay = { isAutoPlay = it })
+                changePlayerState = setIsPlaying,
+                )
         }
         Column(
             verticalArrangement = Arrangement.Center,
@@ -133,8 +131,8 @@ fun AudioButton(
             }
         }
 
-        SideEffect {
-            if (isAutoPlay) {
+        LaunchedEffect(word) {
+            if (!isPlaying) {
                 playAudio()
             }
 
@@ -173,7 +171,7 @@ fun AudioButton(
             volume,
             audioPlayerComponent,
             changePlayerState = { isPlaying = it },
-            setIsAutoPlay = { })
+        )
     }
 
     Column(
@@ -238,7 +236,6 @@ fun playAudio(
     volume: Float,
     audioPlayerComponent: AudioPlayerComponent,
     changePlayerState: (Boolean) -> Unit,
-    setIsAutoPlay: (Boolean) -> Unit,
 ) {
     // 如果单词发音为 local TTS 或者由于网络问题，没有获取到发音
     // 就自动使用本地的 TTS
@@ -258,7 +255,6 @@ fun playAudio(
     }else if (audioPath.isNotEmpty()) {
 
         changePlayerState(true)
-        setIsAutoPlay(false)
         audioPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(object : MediaPlayerEventAdapter() {
             override fun mediaPlayerReady(mediaPlayer: MediaPlayer) {
                 mediaPlayer.audio().setVolume((volume * 100).toInt())
@@ -266,7 +262,6 @@ fun playAudio(
 
             override fun finished(mediaPlayer: MediaPlayer) {
                 changePlayerState(false)
-                setIsAutoPlay(true)
                 audioPlayerComponent.mediaPlayer().events().removeMediaPlayerEventListener(this)
             }
         })

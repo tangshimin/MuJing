@@ -294,7 +294,7 @@ fun Player(
             audioVolume,
             audioPlayerComponent,
             changePlayerState = { },
-            setIsAutoPlay = { })
+        )
     }
 
 
