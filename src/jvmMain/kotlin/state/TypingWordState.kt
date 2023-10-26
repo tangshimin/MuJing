@@ -194,6 +194,10 @@ class TypingWordState(dataTypingWordState: DataTypingWordState) {
 
     }
 
+    fun getVocabularyDir():File{
+        return File(vocabularyPath).parentFile
+    }
+
     /** 根据索引返回单词 */
     private fun getWord(index: Int): Word {
         val size = vocabulary.wordList.size

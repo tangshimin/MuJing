@@ -1357,7 +1357,8 @@ fun MainContent(
                 resetVideoBounds = resetVideoBounds,
                 isVideoBoundsChanged = appState.isChangeVideoBounds,
                 setIsChangeBounds = { appState.isChangeVideoBounds = it },
-                isWriteSubtitles = typingWord.isWriteSubtitles
+                isWriteSubtitles = typingWord.isWriteSubtitles,
+                vocabularyDir = typingWord.getVocabularyDir()
             )
             if (isPlaying && !appState.isChangeVideoBounds) Spacer(
                 Modifier.height((videoSize.height).dp).width(videoSize.width.dp)
@@ -1929,6 +1930,7 @@ fun Captions(
     isVideoBoundsChanged:Boolean,
     setIsChangeBounds:(Boolean) -> Unit = {},
     isWriteSubtitles:Boolean,
+    vocabularyDir:File
 ) {
     if (captionsVisible) {
         val horizontalArrangement = if (isPlaying && !isVideoBoundsChanged) Arrangement.Center else Arrangement.Start
@@ -1954,8 +1956,16 @@ fun Captions(
                     var isPathWrong by remember { mutableStateOf(false) }
                     val playCurrentCaption:()-> Unit = {
                         if (!isPlaying) {
-                            val file = File(playTriple.second)
-                            if (file.exists()) {
+                            // 视频文件的绝对地址
+                            val absFile = File(playTriple.second)
+                            // 如果绝对位置找不到，就在词库所在的文件夹寻找
+                            val relFile = File(vocabularyDir,absFile.name)
+                            if (absFile.exists() || relFile.exists()) {
+                               val newTriple =  if(!absFile.exists()){
+                                   Triple(playTriple.first,relFile.absolutePath,playTriple.third)
+                                } else {
+                                   playTriple
+                               }
                                 setIsPlaying(true)
                                 scope.launch {
                                     setPlayingIndex(index)
@@ -1963,7 +1973,7 @@ fun Captions(
                                         window = videoPlayerWindow,
                                         setIsPlaying = { setIsPlaying(it) },
                                         volume = volume,
-                                        playTriple = playTriple,
+                                        playTriple = newTriple,
                                         videoPlayerComponent = videoPlayerComponent,
                                         bounds = bounds,
                                         externalSubtitlesVisible = externalVisible,
