@@ -1498,7 +1498,7 @@ fun MainContent(
                         ) {
                             Text(text = "下一个")
                             CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
-                                Text(text = " PgDn")
+                                Text(text = " Enter")
                             }
                         }
                     }
