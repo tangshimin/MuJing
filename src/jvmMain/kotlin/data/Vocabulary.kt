@@ -20,7 +20,7 @@ data class Vocabulary(
     val type: VocabularyType = VocabularyType.DOCUMENT,
     val language: String,
     var size: Int,
-    val relateVideoPath: String = "",
+    var relateVideoPath: String = "",
     val subtitlesTrackId: Int = 0,
     var wordList: MutableList<Word> = mutableListOf(),
 )
@@ -184,6 +184,7 @@ fun loadVocabulary(path: String): Vocabulary {
     val file = getResourcesFile(path)
     if (file.exists()) {
         return try {
+            //  TODO 链接字幕词库时选取了一个错误文件，导致程序卡死。定位到这里  error:  Required array length 2147483638 + 16142 is too large
             Json.decodeFromString(file.readText())
         } catch (exception: Exception) {
             JOptionPane.showMessageDialog(null, "词库解析错误：\n地址：$path\n" + exception.message)

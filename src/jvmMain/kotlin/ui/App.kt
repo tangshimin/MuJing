@@ -40,6 +40,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
 import state.*
 import ui.dialog.*
+import ui.edit.ChooseEditVocabulary
+import ui.edit.EditVocabulary
 import ui.flatlaf.setupFileChooser
 import ui.flatlaf.updateFlatLaf
 import java.awt.Rectangle
@@ -128,7 +130,12 @@ fun App() {
                     )
                     MenuDialogs(appState)
                     if(appState.searching){
-                        Search(appState = appState,typingWordState = wordState)
+                        Search(
+                            appState = appState,
+                            typingWordState = wordState,
+                            vocabulary = wordState.vocabulary,
+                            vocabularyDir = wordState.getVocabularyDir(),
+                        )
                     }
                     when (appState.global.type) {
                         ScreenType.WORD -> {
@@ -265,6 +272,31 @@ fun App() {
             }
 
         }
+    }
+
+    var showEditVocabulary by remember { mutableStateOf(false) }
+    var choosedPath by remember { mutableStateOf("") }
+    if(appState.editVocabulary){
+        ChooseEditVocabulary(
+            close = {appState.editVocabulary = false},
+            recentList = appState.recentList,
+            openEditVocabulary = {
+                choosedPath = it
+                showEditVocabulary = true
+                appState.editVocabulary = false
+                },
+            colors = appState.colors,
+        )
+    }
+    if(showEditVocabulary){
+        EditVocabulary(
+            close = {showEditVocabulary = false},
+            vocabularyPath = choosedPath,
+            isDarkTheme = appState.global.isDarkTheme,
+            updateFlatLaf = {
+                updateFlatLaf(appState.global.isDarkTheme,appState.global.backgroundColor.toAwt(),appState.global.onBackgroundColor.toAwt())
+            }
+        )
     }
 
     // 改变主题后，更新菜单栏、标题栏的样式
@@ -413,6 +445,9 @@ private fun FrameWindowScope.WindowMenuBar(
         }
 
         Separator()
+        Item("编辑词库(E)", mnemonic = 'M', onClick = {
+            appState.editVocabulary = true
+        })
         Item("合并词库(M)", mnemonic = 'M', onClick = {
             appState.mergeVocabulary = true
         })
@@ -433,7 +468,7 @@ private fun FrameWindowScope.WindowMenuBar(
         var showLinkVocabulary by remember { mutableStateOf(false) }
         if (showLinkVocabulary) {
             LinkVocabularyDialog(
-                state = appState,
+                appState = appState,
                 close = {
                     showLinkVocabulary = false
                 }

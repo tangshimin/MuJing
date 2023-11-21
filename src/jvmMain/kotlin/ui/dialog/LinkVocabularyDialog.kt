@@ -45,7 +45,6 @@ import java.io.File
 import java.util.*
 import javax.swing.JFileChooser
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.filechooser.FileSystemView
 
 /**
@@ -55,7 +54,7 @@ import javax.swing.filechooser.FileSystemView
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalSerializationApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun LinkVocabularyDialog(
-    state: AppState,
+    appState: AppState,
     close: () -> Unit
 ) {
     /**
@@ -68,8 +67,15 @@ fun LinkVocabularyDialog(
      */
     var vocabulary by remember{ mutableStateOf<MutableVocabulary?>(null) }
 
+
+
     /**
-     * 要链接的词库所在的文件夹的绝对路径
+     * 选择的字幕词库所在的文件夹的绝对路径
+     */
+    var vocabularyDir by remember { mutableStateOf("") }
+
+    /**
+     * 要链接的词库所在的文件夹的绝对路径,比如要给四级词库链接字幕，这个地址就是四级词库所在的文件夹
      */
     var directoryPath by remember { mutableStateOf("") }
 
@@ -270,6 +276,7 @@ fun LinkVocabularyDialog(
             directoryPath = file.parentFile.absolutePath
             // 选择字幕词库
         }else{
+            vocabularyDir = file.parentFile.absolutePath
             extractCaption(file)
         }
     }
@@ -317,7 +324,7 @@ fun LinkVocabularyDialog(
         val save:() -> Unit = {
             Thread {
 
-                val fileChooser = state.futureFileChooser.get()
+                val fileChooser = appState.futureFileChooser.get()
                 fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                 fileChooser.dialogTitle = "保存词库"
                 val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
@@ -617,17 +624,23 @@ fun LinkVocabularyDialog(
                                                                         }
 
                                                                         isPlaying = true
-                                                                        val file = File(externalCaption.relateVideoPath)
-                                                                        if (file.exists()) {
+                                                                        val absFile = File(externalCaption.relateVideoPath)
+                                                                        val relFile = File(vocabularyDir, absFile.name)
+                                                                        if (absFile.exists() || relFile.exists()) {
+                                                                            val playParams = if(!absFile.exists()){
+                                                                                Triple(playTriple.first,relFile.absolutePath,playTriple.third)
+                                                                            }else {
+                                                                                playTriple
+                                                                            }
                                                                             scope.launch {
                                                                                 play(
-                                                                                    window = state.videoPlayerWindow,
+                                                                                    window = appState.videoPlayerWindow,
                                                                                     setIsPlaying = {
                                                                                         isPlaying = it
                                                                                     },
-                                                                                    volume = state.global.videoVolume,
-                                                                                    playTriple = playTriple,
-                                                                                    videoPlayerComponent = state.videoPlayerComponent,
+                                                                                    volume = appState.global.videoVolume,
+                                                                                    playTriple = playParams,
+                                                                                    videoPlayerComponent = appState.videoPlayerComponent,
                                                                                     bounds = playerBounds,
                                                                                     resetVideoBounds = resetVideoBounds,
                                                                                     isVideoBoundsChanged = isVideoBoundsChanged,

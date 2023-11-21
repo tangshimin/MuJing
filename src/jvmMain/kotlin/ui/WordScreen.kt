@@ -1329,7 +1329,7 @@ fun MainContent(
                 }
             Captions(
                 captionsVisible = typingWord.subtitlesVisible,
-                playTripleMap = getPlayTripleMap(typingWord, currentWord),
+                playTripleMap = getPlayTripleMap(typingWord.vocabulary.type,typingWord.vocabulary.subtitlesTrackId,typingWord.vocabulary.relateVideoPath,  currentWord),
                 videoPlayerWindow = appState.videoPlayerWindow,
                 videoPlayerComponent = appState.videoPlayerComponent,
                 isPlaying = isPlaying,
@@ -1388,20 +1388,18 @@ fun MainContent(
             if (showEditWordDialog) {
                 EditWordDialog(
                     word = currentWord,
-                    state = appState,
-                    typingWordState = typingWord,
+                    title = "编辑单词",
+                    appState = appState,
+                    vocabulary = typingWord.vocabulary,
+                    vocabularyDir = typingWord.getVocabularyDir(),
                     save = { newWord ->
                         scope.launch {
-                            val current = typingWord.getCurrentWord()
                             val index = typingWord.index
-                            newWord.captions = current.captions
-                            newWord.externalCaptions = current.externalCaptions
                             typingWord.vocabulary.wordList.removeAt(index)
                             typingWord.vocabulary.wordList.add(index, newWord)
                             typingWord.saveCurrentVocabulary()
                             showEditWordDialog = false
                         }
-
                     },
                     close = { showEditWordDialog = false }
                 )
@@ -1807,7 +1805,7 @@ fun Definition(
             .height(260.dp)
             .padding(start = 50.dp, top = 5.dp, bottom = 5.dp)
         Column {
-            Box(modifier = if (rows > 5) greaterThen10Modifier else normalModifier) {
+            Box(modifier = if (rows > 8) greaterThen10Modifier else normalModifier) {
                 val stateVertical = rememberScrollState(0)
                 Box(Modifier.verticalScroll(stateVertical)) {
                     SelectionContainer {
@@ -1821,7 +1819,7 @@ fun Definition(
                         )
                     }
                 }
-                if (rows > 5) {
+                if (rows > 8) {
                     VerticalScrollbar(
                         style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
                         modifier = Modifier.align(Alignment.CenterEnd)
@@ -2084,10 +2082,15 @@ fun Captions(
  * - Triple 的 String   -> 字幕对应的视频地址
  * - Triple 的 Int      -> 字幕的轨道
  */
-fun getPlayTripleMap(typingWordState: TypingWordState, word: Word): MutableMap<Int, Triple<Caption, String, Int>> {
+fun getPlayTripleMap(
+    vocabularyType: VocabularyType,
+    subtitlesTrackId: Int,
+    relateVideoPath:String,
+    word: Word
+): MutableMap<Int, Triple<Caption, String, Int>> {
 
     val playTripleMap = mutableMapOf<Int, Triple<Caption, String, Int>>()
-    if (typingWordState.vocabulary.type == VocabularyType.DOCUMENT) {
+    if (vocabularyType == VocabularyType.DOCUMENT) {
         if (word.externalCaptions.isNotEmpty()) {
             word.externalCaptions.forEachIndexed { index, externalCaption ->
                 val caption = Caption(externalCaption.start, externalCaption.end, externalCaption.content)
@@ -2100,7 +2103,7 @@ fun getPlayTripleMap(typingWordState: TypingWordState, word: Word): MutableMap<I
         if (word.captions.isNotEmpty()) {
             word.captions.forEachIndexed { index, caption ->
                 val playTriple =
-                    Triple(caption, typingWordState.vocabulary.relateVideoPath, typingWordState.vocabulary.subtitlesTrackId)
+                    Triple(caption, relateVideoPath, subtitlesTrackId)
                 playTripleMap[index] = playTriple
             }
 
@@ -2331,7 +2334,6 @@ fun Caption(
             ) {
                 IconButton(onClick = {
                     playCurrentCaption()
-//                    focusRequester.requestFocus()
                 }) {
                     val tint = if(isPlaying && playingIndex == index) MaterialTheme.colors.primary else MaterialTheme.colors.onBackground
                     Icon(

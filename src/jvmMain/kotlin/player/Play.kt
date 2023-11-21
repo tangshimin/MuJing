@@ -41,7 +41,6 @@ fun play(
     setIsVideoBoundsChanged:(Boolean) -> Unit = {}
 ) {
 
-
     val playIcon = FlatSVGIcon(getResourcesFile("icon/play_arrow_white_24dp.svg"))
     val pauseIcon = FlatSVGIcon(getResourcesFile("icon/pause_white_24dp.svg"))
     val stopIcon = FlatSVGIcon(getResourcesFile("icon/stop_white_24dp.svg"))

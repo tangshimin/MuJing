@@ -250,8 +250,10 @@ fun parseSubtitles(
         }catch (exception: IOException){
             exception.printStackTrace()
             resetSubtitlesState()
+        }catch (exception: NullPointerException) {
+            exception.printStackTrace()
+            resetSubtitlesState()
         }
-
     }else{
         println("找不到正在抄写的字幕")
         resetSubtitlesState()

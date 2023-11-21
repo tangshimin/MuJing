@@ -42,9 +42,10 @@ import java.awt.Point
 fun Search(
     appState: AppState,
     typingWordState: TypingWordState,
+    vocabularyDir : File,
+    vocabulary:  MutableVocabulary
 ){
 
-    val vocabulary = typingWordState.vocabulary
     var searchResult by remember{ mutableStateOf<Word?>(null) }
     var isPlayingAudio by remember { mutableStateOf(false) }
     /** 等宽字体*/
@@ -221,8 +222,18 @@ fun Search(
                                                     }
 
                                                     isPlaying = true
-                                                    val file = File(vocabulary.relateVideoPath)
-                                                    if (file.exists()) {
+                                                    val absFile = File(vocabulary.relateVideoPath)
+                                                    val relFile = File(vocabularyDir,absFile.name)
+                                                    if (absFile.exists() || relFile.exists()) {
+                                                        val playParams = if (!absFile.exists()) {
+                                                            Triple(
+                                                                playTriple.first,
+                                                                relFile.absolutePath,
+                                                                playTriple.third
+                                                            )
+                                                        } else {
+                                                            playTriple
+                                                        }
                                                         scope.launch {
                                                             play(
                                                                 window = appState.videoPlayerWindow,
@@ -230,7 +241,7 @@ fun Search(
                                                                     isPlaying = it
                                                                 },
                                                                 volume = appState.global.videoVolume,
-                                                                playTriple = playTriple,
+                                                                playTriple = playParams,
                                                                 videoPlayerComponent = appState.videoPlayerComponent,
                                                                 bounds = playerBounds,
                                                                 resetVideoBounds = resetVideoBounds,
@@ -303,8 +314,15 @@ fun Search(
                                                         playerBounds.y = location.y - 320
                                                     }
                                                     isPlaying = true
-                                                    val file = File(externalCaption.relateVideoPath)
-                                                    if (file.exists()) {
+                                                    val absFile = File(externalCaption.relateVideoPath)
+                                                    val relFile = File(vocabularyDir,absFile.name)
+
+                                                    if (absFile.exists() || relFile.exists()) {
+                                                        val playParams = if(!absFile.exists()){
+                                                            Triple(playTriple.first,relFile.absolutePath,playTriple.third)
+                                                        }else {
+                                                            playTriple
+                                                        }
                                                         scope.launch {
                                                             play(
                                                                 window = appState.videoPlayerWindow,
@@ -312,7 +330,7 @@ fun Search(
                                                                     isPlaying = it
                                                                 },
                                                                 volume = appState.global.videoVolume,
-                                                                playTriple = playTriple,
+                                                                playTriple = playParams,
                                                                 videoPlayerComponent = appState.videoPlayerComponent,
                                                                 bounds = playerBounds,
                                                                 resetVideoBounds = resetVideoBounds,
