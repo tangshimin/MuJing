@@ -33,7 +33,7 @@ import kotlinx.coroutines.launch
 import ui.*
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
-import state.TypingWordState
+import state.WordScreenState
 import theme.createColors
 import ui.flatlaf.updateFlatLaf
 import java.awt.Dimension
@@ -44,7 +44,7 @@ import javax.swing.JColorChooser
 fun SettingsDialog(
     close: () -> Unit,
     state: AppState,
-    typingWordState: TypingWordState,
+    wordScreenState: WordScreenState,
 ) {
     Dialog(
         title = "设置",
@@ -111,7 +111,7 @@ fun SettingsDialog(
                                 SettingTheme(state)
                             }
                             "TextStyle" -> {
-                                SettingTextStyle(state,typingWordState)
+                                SettingTextStyle(state,wordScreenState)
                             }
                             "ColorChooser" -> {
                                 PrimaryColorChooser(
@@ -330,7 +330,7 @@ fun PrimaryColorChooser(
 @Composable
 fun SettingTextStyle(
     state: AppState,
-    typingState: TypingWordState,
+    wordScreenState: WordScreenState,
 ) {
     val fontFamily by remember {
         mutableStateOf(
@@ -343,7 +343,7 @@ fun SettingTextStyle(
             )
         )
     }
-    if(typingState.vocabulary.size>1){
+    if(wordScreenState.vocabulary.size>1){
         Column(
             verticalArrangement = Arrangement.Top,
             horizontalAlignment = Alignment.CenterHorizontally,
@@ -418,7 +418,7 @@ fun SettingTextStyle(
                     val smallStyleList =
                         listOf("H5", "H6", "Subtitle1", "Subtitle2", "Body1", "Body2", "Button", "Caption", "Overline")
                     val bottom = computeBottom(textStyle = state.global.wordTextStyle, textHeight = textHeight)
-                    var previewWord = typingState.getCurrentWord().value
+                    var previewWord = wordScreenState.getCurrentWord().value
                     if (previewWord.isEmpty()) {
                         previewWord = "Typing"
                     }
@@ -492,7 +492,7 @@ fun SettingTextStyle(
                         }
                     )
                 }
-                val currentWord = typingState.getCurrentWord()
+                val currentWord = wordScreenState.getCurrentWord()
                 Morphology(
                     word = currentWord,
                     isPlaying = false,

@@ -63,7 +63,7 @@ import kotlin.concurrent.schedule
 /**
  * 应用程序的核心组件，记忆单词界面
  * @param appState 应用程序的全局状态
- * @param typingWord 记忆单词界面的状态容器
+ * @param wordScreenState 记忆单词界面的状态容器
  * @param videoBounds 视频播放窗口的位置和大小
  */
 @OptIn(
@@ -78,7 +78,7 @@ fun WordScreen(
     window: ComposeWindow,
     title: String,
     appState: AppState,
-    typingWord: TypingWordState,
+    wordScreenState: WordScreenState,
     videoBounds: Rectangle,
     resetVideoBounds :() -> Rectangle,
     showPlayer :(Boolean) -> Unit,
@@ -92,7 +92,7 @@ fun WordScreen(
         setWindowTransferHandler(
             window = window,
             state = appState,
-            typingWordState = typingWord,
+            wordScreenState = wordScreenState,
             showVideoPlayer = showPlayer,
             setVideoPath = setVideoPath,
             vocabularyPathChanged = vocabularyPathChanged
@@ -102,21 +102,21 @@ fun WordScreen(
     Box(Modifier.background(MaterialTheme.colors.background)) {
         Row {
             val dictationState = rememberDictationState()
-            WordScreenSidebar(appState,typingWord,dictationState)
+            WordScreenSidebar(appState,wordScreenState,dictationState)
             if (appState.openSettings) {
                 val topPadding = if (isMacOS()) 30.dp else 0.dp
                 Divider(Modifier.fillMaxHeight().width(1.dp).padding(top = topPadding))
             }
             Box(Modifier.fillMaxSize()) {
                 /** 当前正在记忆的单词 */
-                val currentWord = if(typingWord.vocabulary.wordList.isNotEmpty()){
-                    typingWord.getCurrentWord()
+                val currentWord = if(wordScreenState.vocabulary.wordList.isNotEmpty()){
+                    wordScreenState.getCurrentWord()
                 }else  null
 
                 if (currentWord != null) {
                     MainContent(
                         appState =appState,
-                        typingWord = typingWord,
+                        wordScreenState = wordScreenState,
                         dictationState = dictationState,
                         currentWord = currentWord,
                         videoBounds = videoBounds,
@@ -128,7 +128,7 @@ fun WordScreen(
                 }
 
                 Header(
-                    typingWordState = typingWord,
+                    wordScreenState = wordScreenState,
                     title = title,
                     window = window,
                     modifier = Modifier.align(Alignment.TopCenter)
@@ -179,14 +179,14 @@ fun WordScreen(
                 }
             }
             RemoveButton(onClick = {
-                typingWord.index = 0
-                typingWord.vocabulary.size = 0
-                typingWord.vocabulary.name = ""
-                typingWord.vocabulary.relateVideoPath = ""
-                typingWord.vocabulary.wordList.clear()
-                typingWord.vocabularyName = ""
-                typingWord.vocabularyPath = ""
-                typingWord.saveTypingWordState()
+                wordScreenState.index = 0
+                wordScreenState.vocabulary.size = 0
+                wordScreenState.vocabulary.name = ""
+                wordScreenState.vocabulary.relateVideoPath = ""
+                wordScreenState.vocabulary.wordList.clear()
+                wordScreenState.vocabularyName = ""
+                wordScreenState.vocabularyPath = ""
+                wordScreenState.saveWordScreenState()
             }, toolTip = "移除当前词库")
             val extensions = if(isMacOS()) listOf("public.json") else listOf("json")
             FilePicker(
@@ -199,7 +199,7 @@ fun WordScreen(
                         val index = appState.findVocabularyIndex(file)
                         appState.changeVocabulary(
                             vocabularyFile = file,
-                            typingWord,
+                            wordScreenState,
                             index
                         )
                         appState.global.type = ScreenType.WORD
@@ -220,7 +220,7 @@ fun WordScreen(
 @ExperimentalComposeUiApi
 @Composable
 fun Header(
-    typingWordState: TypingWordState,
+    wordScreenState: WordScreenState,
     title:String,
     window: ComposeWindow,
     modifier: Modifier
@@ -243,24 +243,24 @@ fun Header(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center){
             // 记忆单词时的状态信息
-            val text = when(typingWordState.memoryStrategy){
-                Normal -> { if(typingWordState.vocabulary.size>0) "${typingWordState.index + 1}/${typingWordState.vocabulary.size}" else ""}
-                Dictation -> { "听写测试   ${typingWordState.dictationIndex + 1}/${typingWordState.dictationWords.size}"}
-                Review -> {"听写复习   ${typingWordState.dictationIndex + 1}/${typingWordState.reviewWords.size}"}
-                NormalReviewWrong -> { "复习错误单词   ${typingWordState.dictationIndex + 1}/${typingWordState.wrongWords.size}"}
-                DictationReviewWrong -> { "听写复习 - 复习错误单词   ${typingWordState.dictationIndex + 1}/${typingWordState.wrongWords.size}"}
+            val text = when(wordScreenState.memoryStrategy){
+                Normal -> { if(wordScreenState.vocabulary.size>0) "${wordScreenState.index + 1}/${wordScreenState.vocabulary.size}" else ""}
+                Dictation -> { "听写测试   ${wordScreenState.dictationIndex + 1}/${wordScreenState.dictationWords.size}"}
+                Review -> {"听写复习   ${wordScreenState.dictationIndex + 1}/${wordScreenState.reviewWords.size}"}
+                NormalReviewWrong -> { "复习错误单词   ${wordScreenState.dictationIndex + 1}/${wordScreenState.wrongWords.size}"}
+                DictationReviewWrong -> { "听写复习 - 复习错误单词   ${wordScreenState.dictationIndex + 1}/${wordScreenState.wrongWords.size}"}
             }
 
-            val top = if(typingWordState.memoryStrategy != Normal) 0.dp else 12.dp
+            val top = if(wordScreenState.memoryStrategy != Normal) 0.dp else 12.dp
             Text(
                 text = text,
                 style = MaterialTheme.typography.h6,
                 color = MaterialTheme.colors.onBackground,
                 modifier = Modifier.padding(top = top )
             )
-            if(typingWordState.memoryStrategy != Normal){
+            if(wordScreenState.memoryStrategy != Normal){
                 Spacer(Modifier.width(20.dp))
-                val tooltip = when (typingWordState.memoryStrategy) {
+                val tooltip = when (wordScreenState.memoryStrategy) {
                     Review, DictationReviewWrong -> {
                         "退出听写复习"
                     }
@@ -274,14 +274,14 @@ fun Header(
                 ExitButton(
                     tooltip = tooltip,
                     onClick = {
-                    typingWordState.showInfo()
-                    typingWordState.clearInputtedState()
-                    typingWordState.memoryStrategy = Normal
-                    if( typingWordState.wrongWords.isNotEmpty()){
-                        typingWordState.wrongWords.clear()
+                    wordScreenState.showInfo()
+                    wordScreenState.clearInputtedState()
+                    wordScreenState.memoryStrategy = Normal
+                    if( wordScreenState.wrongWords.isNotEmpty()){
+                        wordScreenState.wrongWords.clear()
                     }
-                    if(typingWordState.reviewWords.isNotEmpty()){
-                        typingWordState.reviewWords.clear()
+                    if(wordScreenState.reviewWords.isNotEmpty()){
+                        wordScreenState.reviewWords.clear()
                     }
 
                 })
@@ -301,7 +301,7 @@ fun Header(
 @Composable
 fun MainContent(
     appState: AppState,
-    typingWord: TypingWordState,
+    wordScreenState: WordScreenState,
     dictationState:  DictationState,
     currentWord:Word,
     videoBounds: Rectangle,
@@ -356,7 +356,7 @@ fun MainContent(
                     word = currentWord.value,
                     audioSet = appState.localAudioSet,
                     addToAudioSet = {appState.localAudioSet.add(it)},
-                    pronunciation = typingWord.pronunciation
+                    pronunciation = wordScreenState.pronunciation
                 )
             }
         }
@@ -382,7 +382,7 @@ fun MainContent(
                             playTriple,
                             appState.videoPlayerComponent,
                             videoBounds,
-                            typingWord.externalSubtitlesVisible,
+                            wordScreenState.externalSubtitlesVisible,
                             resetVideoBounds = resetVideoBounds,
                             isVideoBoundsChanged = appState.isChangeVideoBounds,
                             setIsVideoBoundsChanged = {appState.isChangeVideoBounds = it}
@@ -395,15 +395,15 @@ fun MainContent(
 
         /** 删除当前单词 */
         val deleteWord:() -> Unit = {
-            val index = typingWord.index
-            typingWord.vocabulary.wordList.removeAt(index)
-            typingWord.vocabulary.size = typingWord.vocabulary.wordList.size
-            if(typingWord.vocabulary.name == "HardVocabulary"){
+            val index = wordScreenState.index
+            wordScreenState.vocabulary.wordList.removeAt(index)
+            wordScreenState.vocabulary.size = wordScreenState.vocabulary.wordList.size
+            if(wordScreenState.vocabulary.name == "HardVocabulary"){
                 appState.hardVocabulary.wordList.remove(currentWord)
                 appState.hardVocabulary.size = appState.hardVocabulary.wordList.size
             }
-            typingWord.clearInputtedState()
-            typingWord.saveCurrentVocabulary()
+            wordScreenState.clearInputtedState()
+            wordScreenState.saveCurrentVocabulary()
         }
 
         /** 把当前单词加入到熟悉词库 */
@@ -411,14 +411,14 @@ fun MainContent(
             val file = getFamiliarVocabularyFile()
             val familiar =  loadVocabulary(file.absolutePath)
             // 如果当前词库是 MKV 或 SUBTITLES 类型的词库，需要把内置词库转换成外部词库。
-            if (typingWord.vocabulary.type == VocabularyType.MKV ||
-                typingWord.vocabulary.type == VocabularyType.SUBTITLES
+            if (wordScreenState.vocabulary.type == VocabularyType.MKV ||
+                wordScreenState.vocabulary.type == VocabularyType.SUBTITLES
             ) {
                 currentWord.captions.forEach{caption ->
                     val externalCaption = ExternalCaption(
-                        relateVideoPath = typingWord.vocabulary.relateVideoPath,
-                        subtitlesTrackId = typingWord.vocabulary.subtitlesTrackId,
-                        subtitlesName = typingWord.vocabulary.name,
+                        relateVideoPath = wordScreenState.vocabulary.relateVideoPath,
+                        subtitlesTrackId = wordScreenState.vocabulary.subtitlesTrackId,
+                        subtitlesName = wordScreenState.vocabulary.name,
                         start = caption.start,
                         end = caption.end,
                         content = caption.content
@@ -442,16 +442,16 @@ fun MainContent(
             val contains = appState.hardVocabulary.wordList.contains(currentWord)
             if(contains){
                 appState.hardVocabulary.wordList.remove(currentWord)
-                if(typingWord.vocabulary.name == "HardVocabulary"){
-                    typingWord.vocabulary.wordList.remove(currentWord)
-                    typingWord.vocabulary.size = typingWord.vocabulary.wordList.size
-                    typingWord.saveCurrentVocabulary()
+                if(wordScreenState.vocabulary.name == "HardVocabulary"){
+                    wordScreenState.vocabulary.wordList.remove(currentWord)
+                    wordScreenState.vocabulary.size = wordScreenState.vocabulary.wordList.size
+                    wordScreenState.saveCurrentVocabulary()
                 }
             }else{
-                val relateVideoPath = typingWord.vocabulary.relateVideoPath
-                val subtitlesTrackId = typingWord.vocabulary.subtitlesTrackId
+                val relateVideoPath = wordScreenState.vocabulary.relateVideoPath
+                val subtitlesTrackId = wordScreenState.vocabulary.subtitlesTrackId
                 val subtitlesName =
-                    if (typingWord.vocabulary.type == VocabularyType.SUBTITLES) typingWord.vocabulary.name else ""
+                    if (wordScreenState.vocabulary.type == VocabularyType.SUBTITLES) wordScreenState.vocabulary.name else ""
                 val hardWord = currentWord.deepCopy()
 
                 currentWord.captions.forEach { caption ->
@@ -489,10 +489,10 @@ fun MainContent(
                 }
                 (it.isCtrlPressed && it.key == Key.P && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
-                        typingWord.phoneticVisible = !typingWord.phoneticVisible
-                        typingWord.saveTypingWordState()
-                        if(typingWord.memoryStrategy== Dictation || typingWord.memoryStrategy== Review ){
-                            dictationState.phoneticVisible = typingWord.phoneticVisible
+                        wordScreenState.phoneticVisible = !wordScreenState.phoneticVisible
+                        wordScreenState.saveWordScreenState()
+                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== Review ){
+                            dictationState.phoneticVisible = wordScreenState.phoneticVisible
                             dictationState.saveDictationState()
                         }
 
@@ -501,10 +501,10 @@ fun MainContent(
                 }
                 (it.isCtrlPressed && it.key == Key.L && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
-                        typingWord.morphologyVisible = !typingWord.morphologyVisible
-                        typingWord.saveTypingWordState()
-                        if(typingWord.memoryStrategy== Dictation || typingWord.memoryStrategy== Review ){
-                            dictationState.morphologyVisible = typingWord.morphologyVisible
+                        wordScreenState.morphologyVisible = !wordScreenState.morphologyVisible
+                        wordScreenState.saveWordScreenState()
+                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== Review ){
+                            dictationState.morphologyVisible = wordScreenState.morphologyVisible
                             dictationState.saveDictationState()
                         }
                     }
@@ -512,10 +512,10 @@ fun MainContent(
                 }
                 (it.isCtrlPressed && it.key == Key.E && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
-                        typingWord.definitionVisible = !typingWord.definitionVisible
-                        typingWord.saveTypingWordState()
-                        if(typingWord.memoryStrategy== Dictation || typingWord.memoryStrategy== Review ){
-                            dictationState.definitionVisible = typingWord.definitionVisible
+                        wordScreenState.definitionVisible = !wordScreenState.definitionVisible
+                        wordScreenState.saveWordScreenState()
+                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== Review ){
+                            dictationState.definitionVisible = wordScreenState.definitionVisible
                             dictationState.saveDictationState()
                         }
                     }
@@ -523,10 +523,10 @@ fun MainContent(
                 }
                 (it.isCtrlPressed && it.key == Key.K && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
-                        typingWord.translationVisible = !typingWord.translationVisible
-                        typingWord.saveTypingWordState()
-                        if(typingWord.memoryStrategy== Dictation || typingWord.memoryStrategy== Review ){
-                            dictationState.translationVisible = typingWord.translationVisible
+                        wordScreenState.translationVisible = !wordScreenState.translationVisible
+                        wordScreenState.saveWordScreenState()
+                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== Review ){
+                            dictationState.translationVisible = wordScreenState.translationVisible
                             dictationState.saveDictationState()
                         }
                     }
@@ -534,8 +534,8 @@ fun MainContent(
                 }
                 (it.isCtrlPressed && it.key == Key.V && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
-                        typingWord.wordVisible = !typingWord.wordVisible
-                        typingWord.saveTypingWordState()
+                        wordScreenState.wordVisible = !wordScreenState.wordVisible
+                        wordScreenState.saveWordScreenState()
                     }
                     true
                 }
@@ -545,7 +545,7 @@ fun MainContent(
                         playAudio(
                             word = currentWord.value,
                             audioPath = audioPath,
-                            pronunciation =  typingWord.pronunciation,
+                            pronunciation =  wordScreenState.pronunciation,
                             volume = appState.global.audioVolume,
                             audioPlayerComponent = audioPlayerComponent,
                             changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
@@ -555,10 +555,10 @@ fun MainContent(
                 }
                 (it.isCtrlPressed && it.key == Key.S && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
-                        typingWord.subtitlesVisible = !typingWord.subtitlesVisible
-                        typingWord.saveTypingWordState()
-                        if(typingWord.memoryStrategy== Dictation || typingWord.memoryStrategy== Review ){
-                            dictationState.subtitlesVisible = typingWord.subtitlesVisible
+                        wordScreenState.subtitlesVisible = !wordScreenState.subtitlesVisible
+                        wordScreenState.saveWordScreenState()
+                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== Review ){
+                            dictationState.subtitlesVisible = wordScreenState.subtitlesVisible
                             dictationState.saveDictationState()
                         }
                     }
@@ -578,7 +578,7 @@ fun MainContent(
                     true
                 }
                 (it.isCtrlPressed && it.key == Key.Y && it.type == KeyEventType.KeyUp) -> {
-                    if(typingWord.vocabulary.name == "FamiliarVocabulary"){
+                    if(wordScreenState.vocabulary.name == "FamiliarVocabulary"){
                         JOptionPane.showMessageDialog(window, "不能把熟悉词库的单词添加到熟悉词库")
                     }else{
                         showFamiliarDialog = true
@@ -599,43 +599,43 @@ fun MainContent(
         val globalPreviewKeyEvent: (KeyEvent) -> Boolean = {
             when{
                 (it.isCtrlPressed && it.isShiftPressed && it.key == Key.Z && it.type == KeyEventType.KeyUp) -> {
-                    if(typingWord.memoryStrategy != Dictation && typingWord.memoryStrategy != Review ){
-                        val playTriple = if (typingWord.vocabulary.type == VocabularyType.DOCUMENT) {
+                    if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != Review ){
+                        val playTriple = if (wordScreenState.vocabulary.type == VocabularyType.DOCUMENT) {
                             getPayTriple(currentWord, 0)
                         } else {
-                            val caption = typingWord.getCurrentWord().captions[0]
-                            Triple(caption, typingWord.vocabulary.relateVideoPath, typingWord.vocabulary.subtitlesTrackId)
+                            val caption = wordScreenState.getCurrentWord().captions[0]
+                            Triple(caption, wordScreenState.vocabulary.relateVideoPath, wordScreenState.vocabulary.subtitlesTrackId)
                         }
                         plyingIndex = 0
-                        if (playTriple != null && typingWord.subtitlesVisible &&  typingWord.isWriteSubtitles ) focusRequester1.requestFocus()
+                        if (playTriple != null && wordScreenState.subtitlesVisible &&  wordScreenState.isWriteSubtitles ) focusRequester1.requestFocus()
                         shortcutPlay(playTriple)
                     }
                     true
                 }
                 (it.isCtrlPressed && it.isShiftPressed && it.key == Key.X && it.type == KeyEventType.KeyUp) -> {
-                    if(typingWord.memoryStrategy != Dictation && typingWord.memoryStrategy != Review){
-                        val playTriple = if (typingWord.getCurrentWord().externalCaptions.size >= 2) {
+                    if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != Review){
+                        val playTriple = if (wordScreenState.getCurrentWord().externalCaptions.size >= 2) {
                             getPayTriple(currentWord, 1)
-                        } else if (typingWord.getCurrentWord().captions.size >= 2) {
-                            val caption = typingWord.getCurrentWord().captions[1]
-                            Triple(caption, typingWord.vocabulary.relateVideoPath, typingWord.vocabulary.subtitlesTrackId)
+                        } else if (wordScreenState.getCurrentWord().captions.size >= 2) {
+                            val caption = wordScreenState.getCurrentWord().captions[1]
+                            Triple(caption, wordScreenState.vocabulary.relateVideoPath, wordScreenState.vocabulary.subtitlesTrackId)
                         }else null
                         plyingIndex = 1
-                        if (playTriple != null && typingWord.subtitlesVisible && typingWord.isWriteSubtitles) focusRequester2.requestFocus()
+                        if (playTriple != null && wordScreenState.subtitlesVisible && wordScreenState.isWriteSubtitles) focusRequester2.requestFocus()
                         shortcutPlay(playTriple)
                     }
                     true
                 }
                 (it.isCtrlPressed && it.isShiftPressed && it.key == Key.C && it.type == KeyEventType.KeyUp) -> {
-                    if(typingWord.memoryStrategy != Dictation && typingWord.memoryStrategy != Review){
-                        val playTriple = if (typingWord.getCurrentWord().externalCaptions.size >= 3) {
+                    if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != Review){
+                        val playTriple = if (wordScreenState.getCurrentWord().externalCaptions.size >= 3) {
                             getPayTriple(currentWord, 2)
-                        } else if (typingWord.getCurrentWord().captions.size >= 3) {
-                            val caption = typingWord.getCurrentWord().captions[2]
-                            Triple(caption, typingWord.vocabulary.relateVideoPath, typingWord.vocabulary.subtitlesTrackId)
+                        } else if (wordScreenState.getCurrentWord().captions.size >= 3) {
+                            val caption = wordScreenState.getCurrentWord().captions[2]
+                            Triple(caption, wordScreenState.vocabulary.relateVideoPath, wordScreenState.vocabulary.subtitlesTrackId)
                         }else null
                         plyingIndex = 2
-                        if (playTriple != null && typingWord.subtitlesVisible && typingWord.isWriteSubtitles) focusRequester3.requestFocus()
+                        if (playTriple != null && wordScreenState.subtitlesVisible && wordScreenState.isWriteSubtitles) focusRequester3.requestFocus()
                         shortcutPlay(playTriple)
                     }
                     true
@@ -652,8 +652,8 @@ fun MainContent(
 
         /** 播放整个章节完成时音效 */
         val playChapterFinished = {
-            if (typingWord.isPlaySoundTips) {
-                playSound("audio/Success!!.wav", typingWord.soundTipsVolume)
+            if (wordScreenState.isPlaySoundTips) {
+                playSound("audio/Success!!.wav", wordScreenState.soundTipsVolume)
             }
         }
 
@@ -672,41 +672,41 @@ fun MainContent(
 
         /** 增加复习错误单词时的索引 */
         val increaseWrongIndex:() -> Unit = {
-            if (typingWord.dictationIndex + 1 == typingWord.wrongWords.size) {
+            if (wordScreenState.dictationIndex + 1 == wordScreenState.wrongWords.size) {
                 delayPlaySound()
-            } else typingWord.dictationIndex++
+            } else wordScreenState.dictationIndex++
         }
 
 
         /** 切换到下一个单词 */
         val toNext: () -> Unit = {
             scope.launch {
-                typingWord.clearInputtedState()
-                when (typingWord.memoryStrategy) {
+                wordScreenState.clearInputtedState()
+                when (wordScreenState.memoryStrategy) {
                     Normal -> {
                         when {
-                            (typingWord.index == typingWord.vocabulary.size - 1) -> {
+                            (wordScreenState.index == wordScreenState.vocabulary.size - 1) -> {
                                 isVocabularyFinished = true
                                 playChapterFinished()
                                 showChapterFinishedDialog = true
                             }
-                            ((typingWord.index + 1) % 20 == 0) -> {
+                            ((wordScreenState.index + 1) % 20 == 0) -> {
                                 playChapterFinished()
                                 showChapterFinishedDialog = true
                             }
-                            else -> typingWord.index += 1
+                            else -> wordScreenState.index += 1
                         }
-                        typingWord.saveTypingWordState()
+                        wordScreenState.saveWordScreenState()
                     }
                     Dictation -> {
-                        if (typingWord.dictationIndex + 1 == typingWord.dictationWords.size) {
+                        if (wordScreenState.dictationIndex + 1 == wordScreenState.dictationWords.size) {
                             delayPlaySound()
-                        } else typingWord.dictationIndex++
+                        } else wordScreenState.dictationIndex++
                     }
                     Review -> {
-                        if (typingWord.dictationIndex + 1 == typingWord.reviewWords.size) {
+                        if (wordScreenState.dictationIndex + 1 == wordScreenState.reviewWords.size) {
                             delayPlaySound()
-                        } else typingWord.dictationIndex++
+                        } else wordScreenState.dictationIndex++
                     }
                     NormalReviewWrong -> { increaseWrongIndex() }
                     DictationReviewWrong -> { increaseWrongIndex() }
@@ -721,17 +721,17 @@ fun MainContent(
         val previous :() -> Unit = {
             scope.launch {
                 // 正常记忆单词
-                if(typingWord.memoryStrategy == Normal){
-                    typingWord.clearInputtedState()
-                    if((typingWord.index) % 20 != 0 ){
-                        typingWord.index -= 1
-                        typingWord.saveTypingWordState()
+                if(wordScreenState.memoryStrategy == Normal){
+                    wordScreenState.clearInputtedState()
+                    if((wordScreenState.index) % 20 != 0 ){
+                        wordScreenState.index -= 1
+                        wordScreenState.saveWordScreenState()
                     }
                     // 复习错误单词
-                }else if (typingWord.memoryStrategy == NormalReviewWrong || typingWord.memoryStrategy == DictationReviewWrong ){
-                    typingWord.clearInputtedState()
-                    if(typingWord.dictationIndex > 0 ){
-                        typingWord.dictationIndex -= 1
+                }else if (wordScreenState.memoryStrategy == NormalReviewWrong || wordScreenState.memoryStrategy == DictationReviewWrong ){
+                    wordScreenState.clearInputtedState()
+                    if(wordScreenState.dictationIndex > 0 ){
+                        wordScreenState.dictationIndex -= 1
                     }
                 }
             }
@@ -764,15 +764,15 @@ fun MainContent(
 
             /** 播放错误音效 */
             val playBeepSound = {
-                if (typingWord.isPlaySoundTips) {
-                    playSound("audio/beep.wav", typingWord.soundTipsVolume)
+                if (wordScreenState.isPlaySoundTips) {
+                    playSound("audio/beep.wav", wordScreenState.soundTipsVolume)
                 }
             }
 
             /** 播放成功音效 */
             val playSuccessSound = {
-                if (typingWord.isPlaySoundTips) {
-                    playSound("audio/hint.wav", typingWord.soundTipsVolume)
+                if (wordScreenState.isPlaySoundTips) {
+                    playSound("audio/hint.wav", wordScreenState.soundTipsVolume)
                 }
             }
 
@@ -789,7 +789,7 @@ fun MainContent(
              * 在听写测试跳过单词也算一次错误
              */
             val dictationSkipCurrentWord: () -> Unit = {
-                if (typingWord.wordCorrectTime == 0) {
+                if (wordScreenState.wordCorrectTime == 0) {
                     val dictationWrongTime = dictationWrongWords[currentWord]
                     if (dictationWrongTime == null) {
                         dictationWrongWords[currentWord] = 1
@@ -804,8 +804,8 @@ fun MainContent(
 
             /** 焦点切换到抄写字幕 */
             val jumpToCaptions:() -> Unit = {
-                if((typingWord.memoryStrategy != Dictation && typingWord.memoryStrategy != Review) &&
-                    typingWord.subtitlesVisible && (currentWord.captions.isNotEmpty() || currentWord.externalCaptions.isNotEmpty())
+                if((wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != Review) &&
+                    wordScreenState.subtitlesVisible && (currentWord.captions.isNotEmpty() || currentWord.externalCaptions.isNotEmpty())
                 ){
                     focusRequester1.requestFocus()
                 }
@@ -814,32 +814,32 @@ fun MainContent(
             /** 检查输入的单词 */
             val checkWordInput: (String) -> Unit = { input ->
                 if(!isWrong){
-                    typingWord.wordTextFieldValue = input
-                    typingWord.wordTypingResult.clear()
+                    wordScreenState.wordTextFieldValue = input
+                    wordScreenState.wordTypingResult.clear()
                     var done = true
                     /**
                      *  防止用户粘贴内容过长，如果粘贴的内容超过 word.value 的长度，
                      * 会改变 BasicTextField 宽度，和 Text 的宽度不匹配
                      */
                     if (input.length > currentWord.value.length) {
-                        typingWord.wordTypingResult.clear()
-                        typingWord.wordTextFieldValue = ""
+                        wordScreenState.wordTypingResult.clear()
+                        wordScreenState.wordTextFieldValue = ""
                     } else {
                         val inputChars = input.toList()
                         for (i in inputChars.indices) {
                             val inputChar = inputChars[i]
                             val wordChar = currentWord.value[i]
                             if (inputChar == wordChar) {
-                                typingWord.wordTypingResult.add(Pair(inputChar, true))
+                                wordScreenState.wordTypingResult.add(Pair(inputChar, true))
                             } else {
                                 // 字母输入错误
-                                typingWord.wordTypingResult.add(Pair(wordChar, false))
+                                wordScreenState.wordTypingResult.add(Pair(wordChar, false))
                                 done = false
                                 playBeepSound()
                                 isWrong = true
-                                typingWord.wordWrongTime++
+                                wordScreenState.wordWrongTime++
                                 // 如果是听写测试，或听写复习，需要汇总错误单词
-                                if (typingWord.memoryStrategy == Dictation || typingWord.memoryStrategy == Review) {
+                                if (wordScreenState.memoryStrategy == Dictation || wordScreenState.memoryStrategy == Review) {
                                     val dictationWrongTime = dictationWrongWords[currentWord]
                                     if (dictationWrongTime != null) {
                                         dictationWrongWords[currentWord] = dictationWrongTime + 1
@@ -848,16 +848,16 @@ fun MainContent(
                                     }
                                 }
                                 Timer("input wrong cleanInputChar", false).schedule(50) {
-                                    typingWord.wordTextFieldValue = ""
-                                    typingWord.wordTypingResult.clear()
+                                    wordScreenState.wordTextFieldValue = ""
+                                    wordScreenState.wordTypingResult.clear()
                                     isWrong = false
                                 }
                                 // 再播放一次单词发音
-                                if (!isPlayingAudio && typingWord.playTimes == 2) {
+                                if (!isPlayingAudio && wordScreenState.playTimes == 2) {
                                     playAudio(
                                         word = currentWord.value,
                                         audioPath = audioPath,
-                                        pronunciation =  typingWord.pronunciation,
+                                        pronunciation =  wordScreenState.pronunciation,
                                         volume = appState.global.audioVolume,
                                         audioPlayerComponent = audioPlayerComponent,
                                         changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
@@ -868,28 +868,28 @@ fun MainContent(
                             }
                         }
                         // 用户输入的单词完全正确
-                        if (typingWord.wordTypingResult.size == currentWord.value.length && done) {
+                        if (wordScreenState.wordTypingResult.size == currentWord.value.length && done) {
                             // 输入完全正确
                             playSuccessSound()
-                            if (typingWord.isAuto) {
+                            if (wordScreenState.isAuto) {
 
                                 Timer("input correct to next", false).schedule(50) {
                                     toNext()
                                 }
                             } else {
 
-                                typingWord.wordCorrectTime++
+                                wordScreenState.wordCorrectTime++
                                 Timer("input correct clean InputChar", false).schedule(50){
-                                    typingWord.wordTypingResult.clear()
-                                    typingWord.wordTextFieldValue = ""
+                                    wordScreenState.wordTypingResult.clear()
+                                    wordScreenState.wordTextFieldValue = ""
                                 }
 
                                 // 再播放一次单词发音
-                                if (!isPlayingAudio && typingWord.playTimes == 2) {
+                                if (!isPlayingAudio && wordScreenState.playTimes == 2) {
                                     playAudio(
                                         word = currentWord.value,
                                         audioPath = audioPath,
-                                        pronunciation =  typingWord.pronunciation,
+                                        pronunciation =  wordScreenState.pronunciation,
                                         volume = appState.global.audioVolume,
                                         audioPlayerComponent = audioPlayerComponent,
                                         changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
@@ -907,11 +907,11 @@ fun MainContent(
             /** 检查输入的字幕 */
             val checkCaptionsInput: (Int, String, String) -> Unit = { index, input, captionContent ->
                 when(index){
-                    0 -> typingWord.captionsTextFieldValue1 = input
-                    1 -> typingWord.captionsTextFieldValue2 = input
-                    2 -> typingWord.captionsTextFieldValue3 = input
+                    0 -> wordScreenState.captionsTextFieldValue1 = input
+                    1 -> wordScreenState.captionsTextFieldValue2 = input
+                    2 -> wordScreenState.captionsTextFieldValue3 = input
                 }
-                val typingResult = typingWord.captionsTypingResultMap[index]
+                val typingResult = wordScreenState.captionsTypingResultMap[index]
                 typingResult!!.clear()
                 val inputChars = input.toMutableList()
                 for (i in inputChars.indices) {
@@ -930,9 +930,9 @@ fun MainContent(
                             inputChars.removeAt(i+1)
                             val textFieldValue = String(inputChars.toCharArray())
                             when(index){
-                                0 -> typingWord.captionsTextFieldValue1 = textFieldValue
-                                1 -> typingWord.captionsTextFieldValue2 = textFieldValue
-                                2 -> typingWord.captionsTextFieldValue3 = textFieldValue
+                                0 -> wordScreenState.captionsTextFieldValue1 = textFieldValue
+                                1 -> wordScreenState.captionsTextFieldValue2 = textFieldValue
+                                2 -> wordScreenState.captionsTextFieldValue3 = textFieldValue
                             }
                         } else {
                             typingResult.add(Pair(inputChar, false))
@@ -947,16 +947,16 @@ fun MainContent(
 
             /** 索引递减 */
             val decreaseIndex = {
-                if(typingWord.index == typingWord.vocabulary.size - 1){
-                    val mod = typingWord.vocabulary.size % 20
-                    typingWord.index -= (mod-1)
-                }else if (typingWord.vocabulary.size > 19) typingWord.index -= 19
-                else typingWord.index = 0
+                if(wordScreenState.index == wordScreenState.vocabulary.size - 1){
+                    val mod = wordScreenState.vocabulary.size % 20
+                    wordScreenState.index -= (mod-1)
+                }else if (wordScreenState.vocabulary.size > 19) wordScreenState.index -= 19
+                else wordScreenState.index = 0
             }
 
             /** 计算正确率 */
             val correctRate: () -> Float = {
-                val size = if(typingWord.memoryStrategy == Dictation ) typingWord.dictationWords.size else typingWord.reviewWords.size
+                val size = if(wordScreenState.memoryStrategy == Dictation ) wordScreenState.dictationWords.size else wordScreenState.reviewWords.size
                 var rate =  (size - dictationWrongWords.size).div(size.toFloat()) .times(1000)
                 rate = rate.toInt().toFloat().div(10)
                 rate
@@ -966,7 +966,7 @@ fun MainContent(
             val learnAgain: () -> Unit = {
                 decreaseIndex()
                 resetChapterTime()
-                typingWord.saveTypingWordState()
+                wordScreenState.saveWordScreenState()
                 showChapterFinishedDialog = false
                 isVocabularyFinished = false
             }
@@ -976,18 +976,18 @@ fun MainContent(
             val reviewWrongWords: () -> Unit = {
                 val reviewList = dictationWrongWords.keys.toList()
                 if (reviewList.isNotEmpty()) {
-                    typingWord.showInfo(clear = false)
-                    if (typingWord.memoryStrategy == Review ||
-                        typingWord.memoryStrategy == DictationReviewWrong
+                    wordScreenState.showInfo(clear = false)
+                    if (wordScreenState.memoryStrategy == Review ||
+                        wordScreenState.memoryStrategy == DictationReviewWrong
                     ) {
-                        typingWord.memoryStrategy = DictationReviewWrong
+                        wordScreenState.memoryStrategy = DictationReviewWrong
                     }else{
-                        typingWord.memoryStrategy = NormalReviewWrong
+                        wordScreenState.memoryStrategy = NormalReviewWrong
                     }
-                    if( typingWord.wrongWords.isEmpty()){
-                        typingWord.wrongWords.addAll(reviewList)
+                    if( wordScreenState.wrongWords.isEmpty()){
+                        wordScreenState.wrongWords.addAll(reviewList)
                     }
-                    typingWord.dictationIndex = 0
+                    wordScreenState.dictationIndex = 0
                     showChapterFinishedDialog = false
                 }
             }
@@ -995,80 +995,80 @@ fun MainContent(
             /** 下一章 */
             val nextChapter: () -> Unit = {
 
-                if (typingWord.memoryStrategy == NormalReviewWrong ||
-                    typingWord.memoryStrategy == DictationReviewWrong
+                if (wordScreenState.memoryStrategy == NormalReviewWrong ||
+                    wordScreenState.memoryStrategy == DictationReviewWrong
                 ) {
-                    typingWord.wrongWords.clear()
+                    wordScreenState.wrongWords.clear()
                 }
 
-                if( typingWord.memoryStrategy == Dictation){
-                    typingWord.showInfo()
+                if( wordScreenState.memoryStrategy == Dictation){
+                    wordScreenState.showInfo()
                 }
 
-                typingWord.index += 1
-                typingWord.chapter++
+                wordScreenState.index += 1
+                wordScreenState.chapter++
                 resetChapterTime()
-                typingWord.memoryStrategy = Normal
-                typingWord.saveTypingWordState()
+                wordScreenState.memoryStrategy = Normal
+                wordScreenState.saveWordScreenState()
                 showChapterFinishedDialog = false
             }
 
 
             /** 正常记忆单词，进入到听写测试，需要的单词 */
             val shuffleNormal:() -> Unit = {
-                val wordValue = typingWord.getCurrentWord().value
-                val shuffledList = typingWord.generateDictationWords(wordValue)
-                typingWord.dictationWords.clear()
-                typingWord.dictationWords.addAll(shuffledList)
+                val wordValue = wordScreenState.getCurrentWord().value
+                val shuffledList = wordScreenState.generateDictationWords(wordValue)
+                wordScreenState.dictationWords.clear()
+                wordScreenState.dictationWords.addAll(shuffledList)
             }
             /** 从听写复习再次进入到听写测试时，需要的单词 */
             val shuffleDictationReview:() -> Unit = {
-                var shuffledList = typingWord.reviewWords.shuffled()
+                var shuffledList = wordScreenState.reviewWords.shuffled()
                 // 如果打乱顺序的列表的第一个单词，和当前章节的最后一个词相等，就不会触发重组
                 while(shuffledList.first() == currentWord){
-                    shuffledList = typingWord.reviewWords.shuffled()
+                    shuffledList = wordScreenState.reviewWords.shuffled()
                 }
-                typingWord.reviewWords.clear()
-                typingWord.reviewWords.addAll(shuffledList)
+                wordScreenState.reviewWords.clear()
+                wordScreenState.reviewWords.addAll(shuffledList)
             }
             /** 进入听写模式 */
             val enterDictation: () -> Unit = {
                 scope.launch {
-                    typingWord.saveTypingWordState()
-                    when(typingWord.memoryStrategy){
+                    wordScreenState.saveWordScreenState()
+                    when(wordScreenState.memoryStrategy){
                         // 从正常记忆单词第一次进入到听写测试
                         Normal -> {
                             shuffleNormal()
-                            typingWord.memoryStrategy = Dictation
-                            typingWord.dictationIndex = 0
-                            typingWord.hiddenInfo(dictationState)
+                            wordScreenState.memoryStrategy = Dictation
+                            wordScreenState.dictationIndex = 0
+                            wordScreenState.hiddenInfo(dictationState)
                         }
                         // 正常记忆单词时选择再次听写
                         Dictation ->{
                             shuffleNormal()
-                            typingWord.dictationIndex = 0
+                            wordScreenState.dictationIndex = 0
                         }
                         // 从复习错误单词进入到听写测试，这里有两种情况：
                         // 一种是从正常记忆单词进入到复习错误单词，复习完毕后，再次听写
                         NormalReviewWrong ->{
-                            typingWord.memoryStrategy = Dictation
-                            typingWord.wrongWords.clear()
+                            wordScreenState.memoryStrategy = Dictation
+                            wordScreenState.wrongWords.clear()
                             shuffleNormal()
-                            typingWord.dictationIndex = 0
-                            typingWord.hiddenInfo(dictationState)
+                            wordScreenState.dictationIndex = 0
+                            wordScreenState.hiddenInfo(dictationState)
                         }
                         // 一种是从听写复习进入到复习错误单词，复习完毕后，再次听写
                         DictationReviewWrong ->{
-                            typingWord.memoryStrategy = Review
-                            typingWord.wrongWords.clear()
+                            wordScreenState.memoryStrategy = Review
+                            wordScreenState.wrongWords.clear()
                             shuffleDictationReview()
-                            typingWord.dictationIndex = 0
-                            typingWord.hiddenInfo(dictationState)
+                            wordScreenState.dictationIndex = 0
+                            wordScreenState.hiddenInfo(dictationState)
                         }
                         // 在听写复习时选择再次听写
                         Review ->{
                             shuffleDictationReview()
-                            typingWord.dictationIndex = 0
+                            wordScreenState.dictationIndex = 0
                         }
                     }
                     wordFocusRequester.requestFocus()
@@ -1090,12 +1090,12 @@ fun MainContent(
                     val path = getResourcesFile("vocabulary").absolutePath
                     // 如果要打乱的词库是内置词库，要选择一个地址，保存打乱后的词库，
                     // 如果不选择地址的话，软件升级后词库会被重置。
-                    if(typingWord.vocabularyPath.startsWith(path)){
+                    if(wordScreenState.vocabularyPath.startsWith(path)){
                         val fileChooser = appState.futureFileChooser.get()
                         fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                         fileChooser.dialogTitle = "保存重置后的词库"
                         val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                        val fileName = File(typingWord.vocabularyPath).nameWithoutExtension
+                        val fileName = File(wordScreenState.vocabularyPath).nameWithoutExtension
                         fileChooser.selectedFile = File("$myDocuments${File.separator}$fileName.json")
                         val userSelection = fileChooser.showSaveDialog(window)
                         if (userSelection == JFileChooser.APPROVE_OPTION) {
@@ -1105,26 +1105,26 @@ fun MainContent(
                             if(savePath.startsWith(vocabularyDirPath)){
                                 JOptionPane.showMessageDialog(null,"不能把词库保存到应用程序安装目录，因为软件更新或卸载时，词库会被重置或者被删除")
                             }else{
-                                typingWord.vocabulary.wordList.shuffle()
-                                val shuffledList = typingWord.vocabulary.wordList
+                                wordScreenState.vocabulary.wordList.shuffle()
+                                val shuffledList = wordScreenState.vocabulary.wordList
                                 val vocabulary = Vocabulary(
                                     name = selectedFile.nameWithoutExtension,
                                     type = VocabularyType.DOCUMENT,
                                     language = "english",
-                                    size = typingWord.vocabulary.size,
-                                    relateVideoPath = typingWord.vocabulary.relateVideoPath,
-                                    subtitlesTrackId = typingWord.vocabulary.subtitlesTrackId,
+                                    size = wordScreenState.vocabulary.size,
+                                    relateVideoPath = wordScreenState.vocabulary.relateVideoPath,
+                                    subtitlesTrackId = wordScreenState.vocabulary.subtitlesTrackId,
                                     wordList = shuffledList
                                 )
 
                                 saveVocabulary(vocabulary, selectedFile.absolutePath)
-                                appState.changeVocabulary(selectedFile,typingWord,0)
+                                appState.changeVocabulary(selectedFile,wordScreenState,0)
                                 // changeVocabulary 会把内置词库保存到最近列表，
                                 // 保存后，如果再切换列表，就会有两个名字相同的词库，
                                 // 所以需要把刚刚添加的词库从最近列表删除
                                 for(i in 0 until appState.recentList.size){
                                     val recentItem = appState.recentList[i]
-                                    if(recentItem.name == typingWord.vocabulary.name){
+                                    if(recentItem.name == wordScreenState.vocabulary.name){
                                         appState.removeRecentItem(recentItem)
                                         break
                                     }
@@ -1132,15 +1132,15 @@ fun MainContent(
                             }
                         }
                     }else{
-                        typingWord.vocabulary.wordList.shuffle()
-                        typingWord.saveCurrentVocabulary()
+                        wordScreenState.vocabulary.wordList.shuffle()
+                        wordScreenState.saveCurrentVocabulary()
                     }
 
                 }
 
-                typingWord.index = 0
-                typingWord.chapter = 1
-                typingWord.saveTypingWordState()
+                wordScreenState.index = 0
+                wordScreenState.chapter = 1
+                wordScreenState.saveWordScreenState()
                 resetChapterTime()
                 showChapterFinishedDialog = false
                 isVocabularyFinished = false
@@ -1150,7 +1150,7 @@ fun MainContent(
                     ((it.key == Key.Enter || it.key == Key.NumPadEnter || it.key == Key.PageDown)
                             && it.type == KeyEventType.KeyUp) -> {
                         toNext()
-                        if (typingWord.memoryStrategy == Dictation || typingWord.memoryStrategy == Review) {
+                        if (wordScreenState.memoryStrategy == Dictation || wordScreenState.memoryStrategy == Review) {
                             dictationSkipCurrentWord()
                         }
                         true
@@ -1197,18 +1197,18 @@ fun MainContent(
 
             LaunchedEffect(appState.vocabularyChanged){
                 if(appState.vocabularyChanged){
-                    typingWord.clearInputtedState()
-                    if(typingWord.memoryStrategy == NormalReviewWrong ||
-                        typingWord.memoryStrategy == DictationReviewWrong
+                    wordScreenState.clearInputtedState()
+                    if(wordScreenState.memoryStrategy == NormalReviewWrong ||
+                        wordScreenState.memoryStrategy == DictationReviewWrong
                     ){
-                        typingWord.wrongWords.clear()
+                        wordScreenState.wrongWords.clear()
                     }
-                    if (typingWord.memoryStrategy == Dictation) {
-                        typingWord.showInfo()
+                    if (wordScreenState.memoryStrategy == Dictation) {
+                        wordScreenState.showInfo()
                         resetChapterTime()
                     }
 
-                    if(typingWord.memoryStrategy == Review) typingWord.memoryStrategy = Normal
+                    if(wordScreenState.memoryStrategy == Review) wordScreenState.memoryStrategy = Normal
 
 
                     appState.vocabularyChanged = false
@@ -1226,7 +1226,7 @@ fun MainContent(
                         DeleteButton(onClick = { showDeleteDialog = true })
                         EditButton(onClick = { showEditWordDialog = true })
                         FamiliarButton(onClick = {
-                            if(typingWord.vocabulary.name == "FamiliarVocabulary"){
+                            if(wordScreenState.vocabulary.name == "FamiliarVocabulary"){
                                 JOptionPane.showMessageDialog(window, "不能把熟悉词库的单词添加到熟悉词库")
                             }else{
                                 showFamiliarDialog = true
@@ -1254,18 +1254,18 @@ fun MainContent(
                     Word(
                         word = currentWord,
                         global = appState.global,
-                        wordVisible = typingWord.wordVisible,
-                        pronunciation = typingWord.pronunciation,
-                        playTimes = typingWord.playTimes,
+                        wordVisible = wordScreenState.wordVisible,
+                        pronunciation = wordScreenState.pronunciation,
+                        playTimes = wordScreenState.playTimes,
                         isPlaying = isPlayingAudio,
                         setIsPlaying = { isPlayingAudio = it },
-                        isDictation = (typingWord.memoryStrategy == Dictation ||typingWord.memoryStrategy == Review),
+                        isDictation = (wordScreenState.memoryStrategy == Dictation ||wordScreenState.memoryStrategy == Review),
                         fontFamily = monospace,
                         audioPath = audioPath,
-                        correctTime = typingWord.wordCorrectTime,
-                        wrongTime = typingWord.wordWrongTime,
-                        textFieldValue = typingWord.wordTextFieldValue,
-                        typingResult = typingWord.wordTypingResult,
+                        correctTime = wordScreenState.wordCorrectTime,
+                        wrongTime = wordScreenState.wordWrongTime,
+                        textFieldValue = wordScreenState.wordTextFieldValue,
+                        typingResult = wordScreenState.wordTypingResult,
                         checkTyping = { checkWordInput(it) },
                         focusRequester = wordFocusRequester,
                         textFieldKeyEvent = {wordKeyEvent(it)},
@@ -1278,26 +1278,26 @@ fun MainContent(
 
             Phonetic(
                 word = currentWord,
-                phoneticVisible = typingWord.phoneticVisible,
+                phoneticVisible = wordScreenState.phoneticVisible,
             )
             Morphology(
                 word = currentWord,
                 isPlaying = isPlaying,
                 isChangeVideoBounds = appState.isChangeVideoBounds,
                 searching = false,
-                morphologyVisible = typingWord.morphologyVisible,
+                morphologyVisible = wordScreenState.morphologyVisible,
                 fontSize = appState.global.detailFontSize
             )
             Definition(
                 word = currentWord,
-                definitionVisible = typingWord.definitionVisible,
+                definitionVisible = wordScreenState.definitionVisible,
                 isPlaying = isPlaying,
                 isChangeVideoBounds = appState.isChangeVideoBounds,
                 fontSize = appState.global.detailFontSize
             )
             Translation(
                 word = currentWord,
-                translationVisible = typingWord.translationVisible,
+                translationVisible = wordScreenState.translationVisible,
                 isPlaying = isPlaying,
                 isChangeVideoBounds = appState.isChangeVideoBounds,
                 fontSize = appState.global.detailFontSize
@@ -1315,7 +1315,7 @@ fun MainContent(
                                 && it.type == KeyEventType.KeyUp
                                 ) -> {
                             toNext()
-                            if (typingWord.memoryStrategy == Dictation || typingWord.memoryStrategy == Review) {
+                            if (wordScreenState.memoryStrategy == Dictation || wordScreenState.memoryStrategy == Review) {
                                 dictationSkipCurrentWord()
                             }
                             true
@@ -1328,8 +1328,8 @@ fun MainContent(
                     }
                 }
             Captions(
-                captionsVisible = typingWord.subtitlesVisible,
-                playTripleMap = getPlayTripleMap(typingWord.vocabulary.type,typingWord.vocabulary.subtitlesTrackId,typingWord.vocabulary.relateVideoPath,  currentWord),
+                captionsVisible = wordScreenState.subtitlesVisible,
+                playTripleMap = getPlayTripleMap(wordScreenState.vocabulary.type,wordScreenState.vocabulary.subtitlesTrackId,wordScreenState.vocabulary.relateVideoPath,  currentWord),
                 videoPlayerWindow = appState.videoPlayerWindow,
                 videoPlayerComponent = appState.videoPlayerComponent,
                 isPlaying = isPlaying,
@@ -1339,10 +1339,10 @@ fun MainContent(
                 setIsPlaying = { isPlaying = it },
                 word = currentWord,
                 bounds = videoBounds,
-                textFieldValueList = listOf(typingWord.captionsTextFieldValue1,typingWord.captionsTextFieldValue2,typingWord.captionsTextFieldValue3),
-                typingResultMap = typingWord.captionsTypingResultMap,
+                textFieldValueList = listOf(wordScreenState.captionsTextFieldValue1,wordScreenState.captionsTextFieldValue2,wordScreenState.captionsTextFieldValue3),
+                typingResultMap = wordScreenState.captionsTypingResultMap,
                 putTypingResultMap = { index, list ->
-                    typingWord.captionsTypingResultMap[index] = list
+                    wordScreenState.captionsTypingResultMap[index] = list
                 },
                 checkTyping = { index, input, captionContent ->
                     checkCaptionsInput(index, input, captionContent)
@@ -1351,14 +1351,14 @@ fun MainContent(
                 modifier = captionsModifier,
                 focusRequesterList = listOf(focusRequester1,focusRequester2,focusRequester3),
                 jumpToWord = {jumpToWord()},
-                externalVisible = typingWord.externalSubtitlesVisible,
+                externalVisible = wordScreenState.externalSubtitlesVisible,
                 openSearch = {appState.openSearch()},
                 fontSize = appState.global.detailFontSize,
                 resetVideoBounds = resetVideoBounds,
                 isVideoBoundsChanged = appState.isChangeVideoBounds,
                 setIsChangeBounds = { appState.isChangeVideoBounds = it },
-                isWriteSubtitles = typingWord.isWriteSubtitles,
-                vocabularyDir = typingWord.getVocabularyDir()
+                isWriteSubtitles = wordScreenState.isWriteSubtitles,
+                vocabularyDir = wordScreenState.getVocabularyDir()
             )
             if (isPlaying && !appState.isChangeVideoBounds) Spacer(
                 Modifier.height((videoSize.height).dp).width(videoSize.width.dp)
@@ -1390,14 +1390,14 @@ fun MainContent(
                     word = currentWord,
                     title = "编辑单词",
                     appState = appState,
-                    vocabulary = typingWord.vocabulary,
-                    vocabularyDir = typingWord.getVocabularyDir(),
+                    vocabulary = wordScreenState.vocabulary,
+                    vocabularyDir = wordScreenState.getVocabularyDir(),
                     save = { newWord ->
                         scope.launch {
-                            val index = typingWord.index
-                            typingWord.vocabulary.wordList.removeAt(index)
-                            typingWord.vocabulary.wordList.add(index, newWord)
-                            typingWord.saveCurrentVocabulary()
+                            val index = wordScreenState.index
+                            wordScreenState.vocabulary.wordList.removeAt(index)
+                            wordScreenState.vocabulary.wordList.add(index, newWord)
+                            wordScreenState.saveCurrentVocabulary()
                             showEditWordDialog = false
                         }
                     },
@@ -1417,7 +1417,7 @@ fun MainContent(
             if(showChapterDialog){
                 SelectChapterDialog(
                     close = {showChapterDialog = false},
-                    typingWordState = typingWord,
+                    wordScreenState = wordScreenState,
                     isMultiple = true
                 )
             }
@@ -1432,9 +1432,9 @@ fun MainContent(
                     close = { close() },
                     isVocabularyFinished = isVocabularyFinished,
                     correctRate = correctRate(),
-                    memoryStrategy = typingWord.memoryStrategy,
+                    memoryStrategy = wordScreenState.memoryStrategy,
                     openReviewDialog = {openReviewDialog()},
-                    isReviewWrong = (typingWord.memoryStrategy == NormalReviewWrong || typingWord.memoryStrategy == DictationReviewWrong),
+                    isReviewWrong = (wordScreenState.memoryStrategy == NormalReviewWrong || wordScreenState.memoryStrategy == DictationReviewWrong),
                     dictationWrongWords = dictationWrongWords,
                     enterDictation = { enterDictation() },
                     learnAgain = { learnAgain() },
@@ -2685,7 +2685,7 @@ fun RemoveButton(
 fun SearchResultInfo(
     word: Word,
     appState: AppState,
-    typingState: TypingWordState,
+    wordScreenState: WordScreenState,
 ){
     Row(verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
@@ -2693,9 +2693,9 @@ fun SearchResultInfo(
         AudioButton(
             word = word,
             state = appState,
-            typingState = typingState,
+            wordScreenState = wordScreenState,
             volume = appState.global.audioVolume,
-            pronunciation = typingState.pronunciation,
+            pronunciation = wordScreenState.pronunciation,
         )
     }
     Divider()
@@ -2744,7 +2744,7 @@ fun getPayTriple(currentWord: Word, index: Int): Triple<Caption, String, Int>? {
 fun setWindowTransferHandler(
     window: ComposeWindow,
     state: AppState,
-    typingWordState: TypingWordState,
+    wordScreenState: WordScreenState,
     showVideoPlayer:(Boolean) -> Unit,
     setVideoPath:(String) -> Unit,
     vocabularyPathChanged:(String) -> Unit
@@ -2756,9 +2756,9 @@ fun setWindowTransferHandler(
         parseImportFile = {files ->
             val file = files.first()
             if (file.extension == "json") {
-                if (typingWordState.vocabularyPath != file.absolutePath) {
+                if (wordScreenState.vocabularyPath != file.absolutePath) {
                     val index = state.findVocabularyIndex(file)
-                    state.changeVocabulary(file,typingWordState,index)
+                    state.changeVocabulary(file,wordScreenState,index)
                 } else {
                     JOptionPane.showMessageDialog(window, "词库已打开")
                 }
@@ -2766,7 +2766,7 @@ fun setWindowTransferHandler(
             } else if (file.extension == "mkv" || file.extension == "mp4") {
                 showVideoPlayer(true)
                 setVideoPath(file.absolutePath)
-                vocabularyPathChanged(typingWordState.vocabularyPath)
+                vocabularyPathChanged(wordScreenState.vocabularyPath)
             } else {
                 JOptionPane.showMessageDialog(window, "文件格式不支持")
             }

@@ -34,14 +34,14 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.platform.Font
 import kotlinx.serialization.ExperimentalSerializationApi
-import state.TypingWordState
+import state.WordScreenState
 import java.awt.Point
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalSerializationApi::class)
 @Composable
 fun Search(
     appState: AppState,
-    typingWordState: TypingWordState,
+    wordScreenState: WordScreenState,
     vocabularyDir : File,
     vocabulary:  MutableVocabulary
 ){
@@ -64,12 +64,12 @@ fun Search(
                     word = searchResult!!.value,
                     audioSet = appState.localAudioSet,
                     addToAudioSet = {audioPath -> appState.localAudioSet.add(audioPath)},
-                    pronunciation = typingWordState.pronunciation
+                    pronunciation = wordScreenState.pronunciation
                 )
                 playAudio(
                     word = searchResult!!.value,
                     audioPath = audioPath,
-                    pronunciation =  typingWordState.pronunciation,
+                    pronunciation =  wordScreenState.pronunciation,
                     volume = appState.global.audioVolume,
                     audioPlayerComponent = audioPlayer,
                     changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
@@ -173,7 +173,7 @@ fun Search(
                         SearchResultInfo(
                             word = searchResult!!,
                             appState = appState,
-                            typingState = typingWordState
+                            wordScreenState = wordScreenState
                         )
 
                         if (searchResult!!.captions.isNotEmpty()) {

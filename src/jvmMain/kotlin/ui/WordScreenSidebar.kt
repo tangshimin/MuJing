@@ -21,7 +21,7 @@ import player.isWindows
 import state.AppState
 import state.DictationState
 import state.MemoryStrategy
-import state.TypingWordState
+import state.WordScreenState
 import ui.dialog.SelectChapterDialog
 
 /**
@@ -33,7 +33,7 @@ import ui.dialog.SelectChapterDialog
 @Composable
 fun WordScreenSidebar(
     state: AppState,
-    typingWordState: TypingWordState,
+    wordScreenState: WordScreenState,
     dictationState: DictationState,
 ) {
 
@@ -70,7 +70,7 @@ fun WordScreenSidebar(
                     if(showDictationDialog){
                         SelectChapterDialog(
                             close = {showDictationDialog = false},
-                            typingWordState = typingWordState,
+                            wordScreenState = wordScreenState,
                             isMultiple = true
                         )
                     }
@@ -93,7 +93,7 @@ fun WordScreenSidebar(
                     if(showChapterDialog){
                         SelectChapterDialog(
                             close = {showChapterDialog = false},
-                            typingWordState = typingWordState,
+                            wordScreenState = wordScreenState,
                             isMultiple = false
                         )
                     }
@@ -117,11 +117,11 @@ fun WordScreenSidebar(
                     Spacer(Modifier.width(15.dp))
                     Switch(
                         colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = typingWordState.wordVisible,
+                        checked = wordScreenState.wordVisible,
                         onCheckedChange = {
                             scope.launch {
-                                typingWordState.wordVisible = it
-                                typingWordState.saveTypingWordState()
+                                wordScreenState.wordVisible = it
+                                wordScreenState.saveWordScreenState()
                             }
                         },
                     )
@@ -143,15 +143,15 @@ fun WordScreenSidebar(
                     Spacer(Modifier.width(15.dp))
                     Switch(
                         colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = typingWordState.phoneticVisible,
+                        checked = wordScreenState.phoneticVisible,
                         onCheckedChange = {
                             scope.launch {
-                                if(typingWordState.memoryStrategy== MemoryStrategy.Dictation || typingWordState.memoryStrategy== MemoryStrategy.Review ){
+                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.Review ){
                                     dictationState.phoneticVisible = it
                                     dictationState.saveDictationState()
                                 }
-                                typingWordState.phoneticVisible = it
-                                typingWordState.saveTypingWordState()
+                                wordScreenState.phoneticVisible = it
+                                wordScreenState.saveWordScreenState()
                             }
                         },
 
@@ -174,15 +174,15 @@ fun WordScreenSidebar(
                     Spacer(Modifier.width(15.dp))
                     Switch(
                         colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = typingWordState.morphologyVisible,
+                        checked = wordScreenState.morphologyVisible,
                         onCheckedChange = {
                             scope.launch {
-                                if(typingWordState.memoryStrategy== MemoryStrategy.Dictation || typingWordState.memoryStrategy== MemoryStrategy.Review ){
+                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.Review ){
                                     dictationState.morphologyVisible = it
                                     dictationState.saveDictationState()
                                 }
-                                typingWordState.morphologyVisible = it
-                                typingWordState.saveTypingWordState()
+                                wordScreenState.morphologyVisible = it
+                                wordScreenState.saveWordScreenState()
                             }
 
                         },
@@ -205,15 +205,15 @@ fun WordScreenSidebar(
                     Spacer(Modifier.width(15.dp))
                     Switch(
                         colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = typingWordState.definitionVisible,
+                        checked = wordScreenState.definitionVisible,
                         onCheckedChange = {
                             scope.launch {
-                                if(typingWordState.memoryStrategy== MemoryStrategy.Dictation || typingWordState.memoryStrategy== MemoryStrategy.Review ){
+                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.Review ){
                                     dictationState.definitionVisible = it
                                     dictationState.saveDictationState()
                                 }
-                                typingWordState.definitionVisible = it
-                                typingWordState.saveTypingWordState()
+                                wordScreenState.definitionVisible = it
+                                wordScreenState.saveWordScreenState()
                             }
                         },
                     )
@@ -235,15 +235,15 @@ fun WordScreenSidebar(
                     Spacer(Modifier.width(15.dp))
                     Switch(
                         colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = typingWordState.translationVisible,
+                        checked = wordScreenState.translationVisible,
                         onCheckedChange = {
                             scope.launch {
-                                if(typingWordState.memoryStrategy== MemoryStrategy.Dictation || typingWordState.memoryStrategy== MemoryStrategy.Review ){
+                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.Review ){
                                     dictationState.translationVisible = it
                                     dictationState.saveDictationState()
                                 }
-                                typingWordState.translationVisible = it
-                                typingWordState.saveTypingWordState()
+                                wordScreenState.translationVisible = it
+                                wordScreenState.saveWordScreenState()
                             }
 
                         },
@@ -266,15 +266,15 @@ fun WordScreenSidebar(
                     Spacer(Modifier.width(15.dp))
                     Switch(
                         colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = typingWordState.subtitlesVisible,
+                        checked = wordScreenState.subtitlesVisible,
                         onCheckedChange = {
                             scope.launch {
-                                if(typingWordState.memoryStrategy== MemoryStrategy.Dictation || typingWordState.memoryStrategy== MemoryStrategy.Review ){
+                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.Review ){
                                     dictationState.subtitlesVisible = it
                                     dictationState.saveDictationState()
                                 }
-                                typingWordState.subtitlesVisible = it
-                                typingWordState.saveTypingWordState()
+                                wordScreenState.subtitlesVisible = it
+                                wordScreenState.saveWordScreenState()
                             }
 
                         },
@@ -310,11 +310,11 @@ fun WordScreenSidebar(
                     Spacer(Modifier.width(15.dp))
                     Switch(
                         colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = typingWordState.isPlaySoundTips,
+                        checked = wordScreenState.isPlaySoundTips,
                         onCheckedChange = {
                             scope.launch {
-                                typingWordState.isPlaySoundTips = it
-                                typingWordState.saveTypingWordState()
+                                wordScreenState.isPlaySoundTips = it
+                                wordScreenState.saveWordScreenState()
                             }
                         },
 
@@ -327,7 +327,7 @@ fun WordScreenSidebar(
                 ) {
                     Text(text = "自动切换", color = MaterialTheme.colors.onBackground)
                     Spacer(Modifier.width(15.dp))
-                    val tooltip = if(typingWordState.isAuto) "关闭之后使用 Enter 键切换到下一个单词" else "打开之后会自动切换到下一个单词"
+                    val tooltip = if(wordScreenState.isAuto) "关闭之后使用 Enter 键切换到下一个单词" else "打开之后会自动切换到下一个单词"
                     TooltipArea(
                         tooltip = {
                             Surface(
@@ -347,11 +347,11 @@ fun WordScreenSidebar(
                     ) {
                         Switch(
                             colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                            checked = typingWordState.isAuto,
+                            checked = wordScreenState.isAuto,
                             onCheckedChange = {
                                 scope.launch {
-                                    typingWordState.isAuto = it
-                                    typingWordState.saveTypingWordState()
+                                    wordScreenState.isAuto = it
+                                    wordScreenState.saveWordScreenState()
                                 }
 
                             },
@@ -369,11 +369,11 @@ fun WordScreenSidebar(
                     Spacer(Modifier.width(15.dp))
                     Switch(
                         colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = typingWordState.externalSubtitlesVisible,
+                        checked = wordScreenState.externalSubtitlesVisible,
                         onCheckedChange = {
                             scope.launch {
-                                typingWordState.externalSubtitlesVisible = it
-                                typingWordState.saveTypingWordState()
+                                wordScreenState.externalSubtitlesVisible = it
+                                wordScreenState.saveWordScreenState()
                             }
                         },
                     )
@@ -387,11 +387,11 @@ fun WordScreenSidebar(
                     Spacer(Modifier.width(15.dp))
                     Switch(
                         colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = typingWordState.isWriteSubtitles,
+                        checked = wordScreenState.isWriteSubtitles,
                         onCheckedChange = {
                             scope.launch {
-                                typingWordState.isWriteSubtitles = it
-                                typingWordState.saveTypingWordState()
+                                wordScreenState.isWriteSubtitles = it
+                                wordScreenState.saveWordScreenState()
                             }
                         },
                     )
@@ -428,10 +428,10 @@ fun WordScreenSidebar(
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("提示音效")
-                                    Slider(value = typingWordState.soundTipsVolume, onValueChange = {
+                                    Slider(value = wordScreenState.soundTipsVolume, onValueChange = {
                                         Thread {
-                                            typingWordState.soundTipsVolume = it
-                                            typingWordState.saveTypingWordState()
+                                            wordScreenState.soundTipsVolume = it
+                                            wordScreenState.saveWordScreenState()
                                         }.start()
                                     })
                                 }
@@ -488,49 +488,49 @@ fun WordScreenSidebar(
                         ) {
                             Row(Modifier.width(240.dp).height(120.dp)){
                                 Column {
-                                    if (typingWordState.vocabulary.language == "english") {
+                                    if (wordScreenState.vocabulary.language == "english") {
                                         DropdownMenuItem(
                                             onClick = {
                                                 scope.launch {
-                                                    typingWordState.pronunciation = "uk"
-                                                    typingWordState.saveTypingWordState()
+                                                    wordScreenState.pronunciation = "uk"
+                                                    wordScreenState.saveWordScreenState()
                                                 }
                                             },
                                             modifier = Modifier.width(120.dp).height(40.dp)
                                         ) {
                                             Text("英式发音")
-                                            if(typingWordState.pronunciation == "uk"){
+                                            if(wordScreenState.pronunciation == "uk"){
                                                 RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
                                             }
                                         }
                                         DropdownMenuItem(
                                             onClick = {
                                                 scope.launch {
-                                                    typingWordState.pronunciation = "us"
-                                                    typingWordState.saveTypingWordState()
+                                                    wordScreenState.pronunciation = "us"
+                                                    wordScreenState.saveWordScreenState()
                                                 }
                                             },
                                             modifier = Modifier.width(120.dp).height(40.dp)
                                         ) {
                                             Text("美式发音")
-                                            if(typingWordState.pronunciation == "us"){
+                                            if(wordScreenState.pronunciation == "us"){
                                                 RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
                                             }
                                         }
                                     }
 
-                                    if (typingWordState.vocabulary.language == "japanese") {
+                                    if (wordScreenState.vocabulary.language == "japanese") {
                                         DropdownMenuItem(
                                             onClick = {
                                                 scope.launch {
-                                                    typingWordState.pronunciation = "jp"
-                                                    typingWordState.saveTypingWordState()
+                                                    wordScreenState.pronunciation = "jp"
+                                                    wordScreenState.saveWordScreenState()
                                                 }
                                             },
                                             modifier = Modifier.width(120.dp).height(40.dp)
                                         ) {
                                             Text("日语")
-                                            if(typingWordState.pronunciation == "jp"){
+                                            if(wordScreenState.pronunciation == "jp"){
                                                 RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
                                             }
                                         }
@@ -539,14 +539,14 @@ fun WordScreenSidebar(
                                     DropdownMenuItem(
                                         onClick = {
                                             scope.launch {
-                                                typingWordState.pronunciation = "local TTS"
-                                                typingWordState.saveTypingWordState()
+                                                wordScreenState.pronunciation = "local TTS"
+                                                wordScreenState.saveWordScreenState()
                                             }
                                         },
                                         modifier = Modifier.width(120.dp).height(40.dp)
                                     ) {
                                         Text("语音合成")
-                                        if(typingWordState.pronunciation == "local TTS"){
+                                        if(wordScreenState.pronunciation == "local TTS"){
                                             RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
                                         }
                                     }
@@ -556,42 +556,42 @@ fun WordScreenSidebar(
                                     DropdownMenuItem(
                                         onClick = {
                                             scope.launch {
-                                                typingWordState.playTimes = 0
-                                                typingWordState.saveTypingWordState()
+                                                wordScreenState.playTimes = 0
+                                                wordScreenState.saveWordScreenState()
                                             }
                                         },
                                         modifier = Modifier.width(120.dp).height(40.dp)
                                     ) {
                                         Text("关闭发音")
-                                        if( typingWordState.playTimes == 0){
+                                        if( wordScreenState.playTimes == 0){
                                             RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
                                         }
                                     }
                                     DropdownMenuItem(
                                         onClick = {
                                             scope.launch {
-                                                typingWordState.playTimes = 1
-                                                typingWordState.saveTypingWordState()
+                                                wordScreenState.playTimes = 1
+                                                wordScreenState.saveWordScreenState()
                                             }
                                         },
                                         modifier = Modifier.width(120.dp).height(40.dp)
                                     ) {
                                         Text("播放一次")
-                                        if( typingWordState.playTimes == 1){
+                                        if( wordScreenState.playTimes == 1){
                                             RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
                                         }
                                     }
                                     DropdownMenuItem(
                                         onClick = {
                                             scope.launch {
-                                                typingWordState.playTimes = 2
-                                                typingWordState.saveTypingWordState()
+                                                wordScreenState.playTimes = 2
+                                                wordScreenState.saveWordScreenState()
                                             }
                                         },
                                         modifier = Modifier.width(120.dp).height(40.dp)
                                     ) {
                                         Text("播放多次")
-                                        if( typingWordState.playTimes == 2){
+                                        if( wordScreenState.playTimes == 2){
                                             RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
                                         }
                                     }

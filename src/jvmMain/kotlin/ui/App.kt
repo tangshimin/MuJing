@@ -125,14 +125,14 @@ fun App() {
                     val wordState = rememberWordState()
                     WindowMenuBar(
                         appState = appState,
-                        typingState = wordState,
+                        wordScreenState = wordState,
                         close = {close()}
                     )
                     MenuDialogs(appState)
                     if(appState.searching){
                         Search(
                             appState = appState,
-                            typingWordState = wordState,
+                            wordScreenState = wordState,
                             vocabulary = wordState.vocabulary,
                             vocabularyDir = wordState.getVocabularyDir(),
                         )
@@ -155,7 +155,7 @@ fun App() {
                                 window = window,
                                 title = title,
                                 appState = appState,
-                                typingWord = wordState,
+                                wordScreenState = wordState,
                                 videoBounds = videoBounds,
                                 resetVideoBounds = resetVideoBounds,
                                 showPlayer = { showPlayerWindow = it },
@@ -381,7 +381,7 @@ private fun computeTitle(textState: TextState) :String{
 @Composable
 private fun FrameWindowScope.WindowMenuBar(
     appState: AppState,
-    typingState:TypingWordState,
+    wordScreenState:WordScreenState,
     close: () -> Unit,
 ) = MenuBar {
     Menu("词库(V)", mnemonic = 'V') {
@@ -398,7 +398,7 @@ private fun FrameWindowScope.WindowMenuBar(
                     val index = appState.findVocabularyIndex(file)
                     appState.changeVocabulary(
                         vocabularyFile = file,
-                        typingState,
+                        wordScreenState,
                         index
                     )
                     appState.global.type = ScreenType.WORD
@@ -417,7 +417,7 @@ private fun FrameWindowScope.WindowMenuBar(
         )
         Item("困难词库(K)", enabled = appState.hardVocabulary.wordList.isNotEmpty(), mnemonic = 'K',onClick = {
             val file = getHardVocabularyFile()
-            appState.changeVocabulary(file, typingState,typingState.hardVocabularyIndex)
+            appState.changeVocabulary(file, wordScreenState,wordScreenState.hardVocabularyIndex)
             appState.global.type = ScreenType.WORD
             appState.saveGlobalState()
         })
@@ -429,7 +429,7 @@ private fun FrameWindowScope.WindowMenuBar(
                     Item(text = recentItem.name, onClick = {
                         val recentFile = File(recentItem.path)
                         if (recentFile.exists()) {
-                            appState.changeVocabulary(recentFile,typingState, recentItem.index)
+                            appState.changeVocabulary(recentFile,wordScreenState, recentItem.index)
                             appState.global.type = ScreenType.WORD
                             appState.saveGlobalState()
                             appState.loadingFileChooserVisible = false
@@ -511,7 +511,7 @@ private fun FrameWindowScope.WindowMenuBar(
             SettingsDialog(
                 close = {showSettingsDialog = false},
                 state = appState,
-                typingWordState = typingState
+                wordScreenState = wordScreenState
             )
         }
         if(isWindows()){

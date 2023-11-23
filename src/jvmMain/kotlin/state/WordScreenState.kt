@@ -18,7 +18,7 @@ import javax.swing.JOptionPane
 // TODO 重命名为 WordScreenState
 @ExperimentalSerializationApi
 @Serializable
-data class DataTypingWordState(
+data class WordScreenData(
     val wordVisible: Boolean = true,
     val phoneticVisible: Boolean = true,
     val morphologyVisible: Boolean = true,
@@ -40,94 +40,94 @@ data class DataTypingWordState(
 
 /** 记忆单词的可观察状态 */
 @OptIn(ExperimentalSerializationApi::class)
-class TypingWordState(dataTypingWordState: DataTypingWordState) {
+class WordScreenState(wordScreenData: WordScreenData) {
 
     // 可持久化的状态 开始
     /**
      * 单词组件的可见性
      */
-    var wordVisible by mutableStateOf(dataTypingWordState.wordVisible)
+    var wordVisible by mutableStateOf(wordScreenData.wordVisible)
 
     /**
      * 音标组件的可见性
      */
-    var phoneticVisible by mutableStateOf(dataTypingWordState.phoneticVisible)
+    var phoneticVisible by mutableStateOf(wordScreenData.phoneticVisible)
 
     /**
      * 词型组件的可见性
      */
-    var morphologyVisible by mutableStateOf(dataTypingWordState.morphologyVisible)
+    var morphologyVisible by mutableStateOf(wordScreenData.morphologyVisible)
 
     /**
      * 定义组件的可见性
      */
-    var definitionVisible by mutableStateOf(dataTypingWordState.definitionVisible)
+    var definitionVisible by mutableStateOf(wordScreenData.definitionVisible)
 
     /**
      * 翻译组件的可见性
      */
-    var translationVisible by mutableStateOf(dataTypingWordState.translationVisible)
+    var translationVisible by mutableStateOf(wordScreenData.translationVisible)
 
     /**
      * 字幕组件的可见性
      */
-    var subtitlesVisible by mutableStateOf(dataTypingWordState.subtitlesVisible)
+    var subtitlesVisible by mutableStateOf(wordScreenData.subtitlesVisible)
 
     /**
      * 是否播放提示音
      */
-    var isPlaySoundTips by mutableStateOf(dataTypingWordState.isPlaySoundTips)
+    var isPlaySoundTips by mutableStateOf(wordScreenData.isPlaySoundTips)
 
     /**
      * 提示音音量
      */
-    var soundTipsVolume by mutableStateOf(dataTypingWordState.soundTipsVolume)
+    var soundTipsVolume by mutableStateOf(wordScreenData.soundTipsVolume)
 
     /**
      * 选择发音，有英音、美音、日语
      */
-    var pronunciation by mutableStateOf(dataTypingWordState.pronunciation)
+    var pronunciation by mutableStateOf(wordScreenData.pronunciation)
 
     /**
      * 单词发音的播放次数
      */
-    var playTimes by mutableStateOf(dataTypingWordState.playTimes)
+    var playTimes by mutableStateOf(wordScreenData.playTimes)
 
     /**
      * 是否是自动切换
      */
-    var isAuto by mutableStateOf(dataTypingWordState.isAuto)
+    var isAuto by mutableStateOf(wordScreenData.isAuto)
 
     /**
      * 当前单词的索引，从0开始，在标题栏显示的时候 +1
      */
-    var index by mutableStateOf(dataTypingWordState.index)
+    var index by mutableStateOf(wordScreenData.index)
 
     /**
      * 困难词库的索引，从0开始，在标题栏显示的时候 +1
      */
-    var hardVocabularyIndex by mutableStateOf(dataTypingWordState.hardVocabularyIndex)
+    var hardVocabularyIndex by mutableStateOf(wordScreenData.hardVocabularyIndex)
 
     /**
      * 当前单词的章节，从1开始
      */
-    var chapter by mutableStateOf((dataTypingWordState.index / 20) + 1)
+    var chapter by mutableStateOf((wordScreenData.index / 20) + 1)
 
     /**
      * 词库的名称
      */
-    var vocabularyName by mutableStateOf(dataTypingWordState.vocabularyName)
+    var vocabularyName by mutableStateOf(wordScreenData.vocabularyName)
 
     /**
      * 当前正在学习的词库的路径
      */
-    var vocabularyPath by mutableStateOf(dataTypingWordState.vocabularyPath)
+    var vocabularyPath by mutableStateOf(wordScreenData.vocabularyPath)
 
     /** 外部字幕的可见性 */
-    var externalSubtitlesVisible by mutableStateOf(dataTypingWordState.externalSubtitlesVisible)
+    var externalSubtitlesVisible by mutableStateOf(wordScreenData.externalSubtitlesVisible)
 
     /** 抄写字幕，打开后播放了某条字幕后，光标就切换到字幕，就可以抄写字幕了 */
-    var isWriteSubtitles by mutableStateOf(dataTypingWordState.isWriteSubtitles)
+    var isWriteSubtitles by mutableStateOf(wordScreenData.isWriteSubtitles)
 
     // 可持久化的状态 结束
 
@@ -175,8 +175,8 @@ class TypingWordState(dataTypingWordState: DataTypingWordState) {
     val wrongWords = mutableStateListOf<Word>()
 
     /** 进入听写模式之前需要保存变量 `typing` 的一些状态,退出听写模式后恢复 */
-    private val typingWordStateMap = mutableStateMapOf<String, Boolean>()
-
+    private val visibleMap = mutableStateMapOf<String, Boolean>()
+    // visible
     /** 获得当前单词 */
     fun getCurrentWord(): Word {
 
@@ -207,7 +207,7 @@ class TypingWordState(dataTypingWordState: DataTypingWordState) {
         } else {
             // 如果用户使用编辑器修改了索引，并且不在单词列表的范围以内，就把索引改成0。
             this.index = 0
-            saveTypingWordState()
+            saveWordScreenState()
             vocabulary.wordList[0]
         }
 
@@ -244,13 +244,13 @@ class TypingWordState(dataTypingWordState: DataTypingWordState) {
         dictationState: DictationState
     ) {
         // 先保存状态
-        typingWordStateMap["isAuto"] = isAuto
-        typingWordStateMap["wordVisible"] = wordVisible
-        typingWordStateMap["phoneticVisible"] = phoneticVisible
-        typingWordStateMap["definitionVisible"] = definitionVisible
-        typingWordStateMap["morphologyVisible"] = morphologyVisible
-        typingWordStateMap["translationVisible"] = translationVisible
-        typingWordStateMap["subtitlesVisible"] = subtitlesVisible
+        visibleMap["isAuto"] = isAuto
+        visibleMap["wordVisible"] = wordVisible
+        visibleMap["phoneticVisible"] = phoneticVisible
+        visibleMap["definitionVisible"] = definitionVisible
+        visibleMap["morphologyVisible"] = morphologyVisible
+        visibleMap["translationVisible"] = translationVisible
+        visibleMap["subtitlesVisible"] = subtitlesVisible
         // 再改变状态
         isAuto = true
         wordVisible = false
@@ -265,13 +265,13 @@ class TypingWordState(dataTypingWordState: DataTypingWordState) {
     /** 退出听写模式，恢复应用状态 */
     fun showInfo(clear:Boolean = true) {
         // 恢复状态
-        isAuto = typingWordStateMap["isAuto"]!!
-        wordVisible = typingWordStateMap["wordVisible"]!!
-        phoneticVisible = typingWordStateMap["phoneticVisible"]!!
-        definitionVisible = typingWordStateMap["definitionVisible"]!!
-        morphologyVisible = typingWordStateMap["morphologyVisible"]!!
-        translationVisible = typingWordStateMap["translationVisible"]!!
-        subtitlesVisible = typingWordStateMap["subtitlesVisible"]!!
+        isAuto = visibleMap["isAuto"]!!
+        wordVisible = visibleMap["wordVisible"]!!
+        phoneticVisible = visibleMap["phoneticVisible"]!!
+        definitionVisible = visibleMap["definitionVisible"]!!
+        morphologyVisible = visibleMap["morphologyVisible"]!!
+        translationVisible = visibleMap["translationVisible"]!!
+        subtitlesVisible = visibleMap["subtitlesVisible"]!!
 
         if(clear){
             dictationWords.clear()
@@ -309,7 +309,7 @@ class TypingWordState(dataTypingWordState: DataTypingWordState) {
 
 
     /** 保存记忆单词的设置信息 */
-    fun saveTypingWordState() {
+    fun saveWordScreenState() {
         val encodeBuilder = Json {
             prettyPrint = true
             encodeDefaults = true
@@ -318,7 +318,7 @@ class TypingWordState(dataTypingWordState: DataTypingWordState) {
         if (memoryStrategy != MemoryStrategy.Dictation && memoryStrategy != MemoryStrategy.Review) {
             runBlocking {
                 launch {
-                    val dataTypingWordState = DataTypingWordState(
+                    val wordScreenData = WordScreenData(
                         wordVisible,
                         phoneticVisible,
                         morphologyVisible,
@@ -338,7 +338,7 @@ class TypingWordState(dataTypingWordState: DataTypingWordState) {
                         isWriteSubtitles
                     )
 
-                    val json = encodeBuilder.encodeToString(dataTypingWordState)
+                    val json = encodeBuilder.encodeToString(wordScreenData)
                     val settings = getWordSettingsFile()
                     settings.writeText(json)
                 }
@@ -349,7 +349,7 @@ class TypingWordState(dataTypingWordState: DataTypingWordState) {
 }
 
 @Composable
-fun rememberWordState():TypingWordState = remember{
+fun rememberWordState():WordScreenState = remember{
     loadWordState()
 }
 @Composable
@@ -360,30 +360,30 @@ fun rememberPronunciation():String = remember{
 
 /** 加载应用记忆单词界面的设置信息 */
 @OptIn(ExperimentalSerializationApi::class)
-private fun loadWordState(): TypingWordState {
-    val typingWordSettings = getWordSettingsFile()
-    return if (typingWordSettings.exists()) {
+private fun loadWordState(): WordScreenState {
+    val wordScreenSettings = getWordSettingsFile()
+    return if (wordScreenSettings.exists()) {
         try {
             val decodeFormat = Json { ignoreUnknownKeys = true }
-            val dataTypingWordState = decodeFormat.decodeFromString<DataTypingWordState>(typingWordSettings.readText())
-            val typingWordState = TypingWordState(dataTypingWordState)
+            val wordScreenData = decodeFormat.decodeFromString<WordScreenData>(wordScreenSettings.readText())
+            val wordScreenState = WordScreenState(wordScreenData)
             // 主要是为了避免再次重启是出现”找不到词库"对话框
-            if(typingWordState.vocabulary.name.isEmpty() &&
-                typingWordState.vocabulary.relateVideoPath.isEmpty() &&
-                typingWordState.vocabulary.wordList.isEmpty()){
-                typingWordState.vocabularyName = ""
-                typingWordState.vocabularyPath = ""
-                typingWordState.saveTypingWordState()
+            if(wordScreenState.vocabulary.name.isEmpty() &&
+                wordScreenState.vocabulary.relateVideoPath.isEmpty() &&
+                wordScreenState.vocabulary.wordList.isEmpty()){
+                wordScreenState.vocabularyName = ""
+                wordScreenState.vocabularyPath = ""
+                wordScreenState.saveWordScreenState()
             }
-            typingWordState
+            wordScreenState
         } catch (exception: Exception) {
             FlatLightLaf.setup()
-            JOptionPane.showMessageDialog(null, "设置信息解析错误，将使用默认设置。\n地址：$typingWordSettings")
-            TypingWordState(DataTypingWordState())
+            JOptionPane.showMessageDialog(null, "设置信息解析错误，将使用默认设置。\n地址：$wordScreenSettings")
+            WordScreenState(WordScreenData())
         }
 
     } else {
-        TypingWordState(DataTypingWordState())
+        WordScreenState(WordScreenData())
     }
 }
 

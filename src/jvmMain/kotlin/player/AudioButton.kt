@@ -22,7 +22,7 @@ import data.Word
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
-import state.TypingWordState
+import state.WordScreenState
 import state.getAudioDirectory
 import tts.MSTTSpeech
 import tts.MacTTS
@@ -149,7 +149,7 @@ fun AudioButton(
 fun AudioButton(
     word: Word,
     state:AppState,
-    typingState: TypingWordState,
+    wordScreenState: WordScreenState,
     volume: Float,
     pronunciation: String,
 ) {
@@ -162,7 +162,7 @@ fun AudioButton(
             word = word.value,
             audioSet = state.localAudioSet,
             addToAudioSet = {state.localAudioSet.add(it)},
-            pronunciation = typingState.pronunciation
+            pronunciation = wordScreenState.pronunciation
         )
         playAudio(
             word.value,

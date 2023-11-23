@@ -169,33 +169,33 @@ class AppState {
     /** 改变词库 */
     fun changeVocabulary(
         vocabularyFile: File,
-        typingWord: TypingWordState,
+        wordScreenState: WordScreenState,
         index: Int
     ) {
         val newVocabulary = loadMutableVocabulary(vocabularyFile.absolutePath)
         if(newVocabulary.wordList.size>0){
 
-            typingWord.clearInputtedState()
-            if(typingWord.memoryStrategy == MemoryStrategy.Dictation || typingWord.memoryStrategy == MemoryStrategy.Review){
-                typingWord.memoryStrategy = MemoryStrategy.Normal
-                typingWord.showInfo()
+            wordScreenState.clearInputtedState()
+            if(wordScreenState.memoryStrategy == MemoryStrategy.Dictation || wordScreenState.memoryStrategy == MemoryStrategy.Review){
+                wordScreenState.memoryStrategy = MemoryStrategy.Normal
+                wordScreenState.showInfo()
             }
 
             // 把困难词库的索引保存在 typingWord.
-            if(typingWord.vocabulary.name == "HardVocabulary"){
-                typingWord.hardVocabularyIndex = typingWord.index
+            if(wordScreenState.vocabulary.name == "HardVocabulary"){
+                wordScreenState.hardVocabularyIndex = wordScreenState.index
             }else{
                 // 保存当前词库的索引到最近列表,
-                saveToRecentList(typingWord.vocabulary.name, typingWord.vocabularyPath,typingWord.index)
+                saveToRecentList(wordScreenState.vocabulary.name, wordScreenState.vocabularyPath,wordScreenState.index)
             }
 
-            typingWord.vocabulary = newVocabulary
-            typingWord.vocabularyName = vocabularyFile.nameWithoutExtension
-            typingWord.vocabularyPath = vocabularyFile.absolutePath
-            typingWord.chapter = (index / 20) + 1
-            typingWord.index = index
+            wordScreenState.vocabulary = newVocabulary
+            wordScreenState.vocabularyName = vocabularyFile.nameWithoutExtension
+            wordScreenState.vocabularyPath = vocabularyFile.absolutePath
+            wordScreenState.chapter = (index / 20) + 1
+            wordScreenState.index = index
             vocabularyChanged = true
-            typingWord.saveTypingWordState()
+            wordScreenState.saveWordScreenState()
         }
     }
 

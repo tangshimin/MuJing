@@ -22,7 +22,7 @@ import androidx.compose.ui.window.rememberDialogState
 import data.Word
 import player.isWindows
 import state.MemoryStrategy
-import state.TypingWordState
+import state.WordScreenState
 import state.rememberDictationState
 
 /**
@@ -32,7 +32,7 @@ import state.rememberDictationState
 @Composable
 fun SelectChapterDialog(
     close:() -> Unit,
-    typingWordState: TypingWordState,
+    wordScreenState: WordScreenState,
     isMultiple:Boolean
 ) {
     Dialog(
@@ -56,7 +56,7 @@ fun SelectChapterDialog(
             ) {
                 val chapterSize by remember {
                     derivedStateOf {
-                        val size = typingWordState.vocabulary.size
+                        val size = wordScreenState.vocabulary.size
                         var count = size / 20
                         val mod = size % 20
                         if (mod != 0 && size > 20) count += 1
@@ -68,7 +68,7 @@ fun SelectChapterDialog(
                     if(isMultiple){
                         mutableStateListOf()
                     }else{
-                        mutableStateListOf(typingWordState.chapter)
+                        mutableStateListOf(wordScreenState.chapter)
                     }
                 }
 
@@ -91,10 +91,10 @@ fun SelectChapterDialog(
                         selectedChapters.forEach { chapter ->
                             val start = chapter * 20 - 20
                             var end = chapter * 20
-                            if(end > typingWordState.vocabulary.wordList.size){
-                                end = typingWordState.vocabulary.wordList.size
+                            if(end > wordScreenState.vocabulary.wordList.size){
+                                end = wordScreenState.vocabulary.wordList.size
                             }
-                            val subList = typingWordState.vocabulary.wordList.subList(start, end)
+                            val subList = wordScreenState.vocabulary.wordList.subList(start, end)
                             list.addAll(subList)
                         }
                         list
@@ -129,7 +129,7 @@ fun SelectChapterDialog(
                 Row(modifier = Modifier.align(Alignment.Center).padding(top = 48.dp, bottom = 55.dp)) {
                     Chapters(
                         checkedChapters = selectedChapters,
-                        size = typingWordState.vocabulary.size,
+                        size = wordScreenState.vocabulary.size,
                         isMultiple = isMultiple,
                         onChapterSelected = {
                             if(!isMultiple){
@@ -151,39 +151,39 @@ fun SelectChapterDialog(
                     confirm = {
                         // 听写复习，可以选择多个章节
                         if(isMultiple){
-                            if(typingWordState.memoryStrategy != MemoryStrategy.Review && typingWordState.memoryStrategy != MemoryStrategy.Dictation){
-                                typingWordState.hiddenInfo(dictationState)
+                            if(wordScreenState.memoryStrategy != MemoryStrategy.Review && wordScreenState.memoryStrategy != MemoryStrategy.Dictation){
+                                wordScreenState.hiddenInfo(dictationState)
                             }
-                            typingWordState.memoryStrategy = MemoryStrategy.Review
-                            typingWordState.wrongWords.clear()
-                            typingWordState.reviewWords.clear()
-                            typingWordState.reviewWords.addAll(selectedWords.value.shuffled())
-                            typingWordState.dictationIndex = 0
+                            wordScreenState.memoryStrategy = MemoryStrategy.Review
+                            wordScreenState.wrongWords.clear()
+                            wordScreenState.reviewWords.clear()
+                            wordScreenState.reviewWords.addAll(selectedWords.value.shuffled())
+                            wordScreenState.dictationIndex = 0
                         // 非听写复习，只能选择一个章节
                         }else{
                             val chapter = selectedChapters.first()
-                            if (chapter == 0) typingWordState.chapter = 1
-                            typingWordState.chapter = chapter
-                            typingWordState.index = (chapter - 1) * 20
-                            typingWordState.saveTypingWordState()
+                            if (chapter == 0) wordScreenState.chapter = 1
+                            wordScreenState.chapter = chapter
+                            wordScreenState.index = (chapter - 1) * 20
+                            wordScreenState.saveWordScreenState()
                             // 如果正在听写复习单词，又重新选择了章节，所以就取消听写复习
-                            if(typingWordState.memoryStrategy == MemoryStrategy.Review){
-                                typingWordState.memoryStrategy = MemoryStrategy.Normal
-                                typingWordState.showInfo()
+                            if(wordScreenState.memoryStrategy == MemoryStrategy.Review){
+                                wordScreenState.memoryStrategy = MemoryStrategy.Normal
+                                wordScreenState.showInfo()
                             }
                         }
                         // 如果是非听写复习，同时正在听写单词，又重新选择了章节，所以就退出听写
-                        if(typingWordState.memoryStrategy == MemoryStrategy.Dictation && !isMultiple){
-                            typingWordState.showInfo()
-                            typingWordState.memoryStrategy = MemoryStrategy.Normal
-                            if( typingWordState.wrongWords.isNotEmpty()){
-                                typingWordState.wrongWords.clear()
+                        if(wordScreenState.memoryStrategy == MemoryStrategy.Dictation && !isMultiple){
+                            wordScreenState.showInfo()
+                            wordScreenState.memoryStrategy = MemoryStrategy.Normal
+                            if( wordScreenState.wrongWords.isNotEmpty()){
+                                wordScreenState.wrongWords.clear()
                             }
-                            if(typingWordState.reviewWords.isNotEmpty()){
-                                typingWordState.reviewWords.clear()
+                            if(wordScreenState.reviewWords.isNotEmpty()){
+                                wordScreenState.reviewWords.clear()
                             }
                         }
-                        typingWordState.clearInputtedState()
+                        wordScreenState.clearInputtedState()
                         close()
 
                     },
