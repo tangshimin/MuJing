@@ -180,13 +180,18 @@ class AppState {
                 wordScreenState.memoryStrategy = MemoryStrategy.Normal
                 wordScreenState.showInfo()
             }
-            val fileName = vocabularyFile.nameWithoutExtension
-            // 把困难词库的索引保存在 wordScreenState.
-            if(wordScreenState.vocabulary.name == "HardVocabulary"){
-                wordScreenState.hardVocabularyIndex = wordScreenState.index
-            }else if(fileName != "FamiliarVocabulary"){
-                // 保存当前词库的索引到最近列表,
-                saveToRecentList(wordScreenState.vocabulary.name, wordScreenState.vocabularyPath,wordScreenState.index)
+            // 把困难词库和熟悉词库的索引保存在 wordScreenState.
+            when (wordScreenState.vocabulary.name) {
+                "HardVocabulary" -> {
+                    wordScreenState.hardVocabularyIndex = wordScreenState.index
+                }
+                "FamiliarVocabulary" -> {
+                    wordScreenState.familiarVocabularyIndex = wordScreenState.index
+                }
+                else -> {
+                    // 保存当前词库的索引到最近列表,
+                    saveToRecentList(wordScreenState.vocabulary.name, wordScreenState.vocabularyPath,wordScreenState.index)
+                }
             }
 
             wordScreenState.vocabulary = newVocabulary

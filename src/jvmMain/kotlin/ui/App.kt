@@ -419,7 +419,7 @@ private fun FrameWindowScope.WindowMenuBar(
                 if(vocabulary.wordList.isEmpty()){
                     JOptionPane.showMessageDialog(null,"熟悉词库现在还没有单词")
                 }else{
-                    appState.changeVocabulary(file, wordScreenState,wordScreenState.hardVocabularyIndex)
+                    appState.changeVocabulary(file, wordScreenState,wordScreenState.familiarVocabularyIndex)
                     appState.global.type = ScreenType.WORD
                     appState.saveGlobalState()
                 }

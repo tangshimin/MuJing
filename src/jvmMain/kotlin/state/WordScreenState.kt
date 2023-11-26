@@ -33,6 +33,7 @@ data class WordScreenData(
     val repeatTimes: Int = 1,
     val index: Int = 0,
     val hardVocabularyIndex: Int = 0,
+    val familiarVocabularyIndex: Int = 0,
     var vocabularyName: String = "",
     var vocabularyPath: String = "",
     var externalSubtitlesVisible: Boolean = true,
@@ -113,6 +114,11 @@ class WordScreenState(wordScreenData: WordScreenData) {
      * 困难词库的索引，从0开始，在标题栏显示的时候 +1
      */
     var hardVocabularyIndex by mutableStateOf(wordScreenData.hardVocabularyIndex)
+
+    /**
+     * 熟悉词库的索引，从0开始，在标题栏显示的时候 +1
+     */
+    var familiarVocabularyIndex by mutableStateOf(wordScreenData.hardVocabularyIndex)
 
     /**
      * 当前单词的章节，从1开始
@@ -339,6 +345,7 @@ class WordScreenState(wordScreenData: WordScreenData) {
                         repeatTimes,
                         index,
                         hardVocabularyIndex,
+                        familiarVocabularyIndex,
                         vocabularyName,
                         vocabularyPath,
                         externalSubtitlesVisible,
