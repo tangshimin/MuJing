@@ -428,6 +428,9 @@ fun MainContent(
                 currentWord.captions.clear()
 
             }
+            if(familiar.name.isEmpty()){
+                familiar.name = "FamiliarVocabulary"
+            }
             if(!familiar.wordList.contains(currentWord)){
                 familiar.wordList.add(currentWord)
                 familiar.size = familiar.wordList.size

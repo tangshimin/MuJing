@@ -180,11 +180,11 @@ class AppState {
                 wordScreenState.memoryStrategy = MemoryStrategy.Normal
                 wordScreenState.showInfo()
             }
-
-            // 把困难词库的索引保存在 typingWord.
+            val fileName = vocabularyFile.nameWithoutExtension
+            // 把困难词库的索引保存在 wordScreenState.
             if(wordScreenState.vocabulary.name == "HardVocabulary"){
                 wordScreenState.hardVocabularyIndex = wordScreenState.index
-            }else{
+            }else if(fileName != "FamiliarVocabulary"){
                 // 保存当前词库的索引到最近列表,
                 saveToRecentList(wordScreenState.vocabulary.name, wordScreenState.vocabularyPath,wordScreenState.index)
             }

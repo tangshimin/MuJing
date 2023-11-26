@@ -55,17 +55,27 @@ fun EditVocabulary(
     updateFlatLaf:() -> Unit
 ) {
     val vocabulary = loadVocabulary(vocabularyPath)
+    val fileName = File(vocabularyPath).nameWithoutExtension
+    //v2.1.6和之前的版本，熟悉词库和困难词库 name 属性可能为空，所以这里需要判断一下
+    val name = when (fileName) {
+        "FamiliarVocabulary" -> {
+            "熟悉词库"
+        }
+        "HardVocabulary" -> {
+            "困难词库"
+        }
+        else -> {
+            vocabulary.name
+        }
+    }
+    val title = "编辑词库 - $name"
+
     /** 窗口的大小和位置 */
     val windowState = rememberWindowState(
         size = DpSize(1289.dp, 854.dp),
         position = WindowPosition(Alignment.Center)
     )
-    val title = "编辑词库 - ${vocabulary.name}"
 
-
-    LaunchedEffect(isDarkTheme){
-        updateFlatLaf()
-    }
     Window(
         title = title,
         state = windowState,
@@ -78,7 +88,9 @@ fun EditVocabulary(
             vocabularyPath = vocabularyPath,
         )
     }
-
+    LaunchedEffect(isDarkTheme){
+        updateFlatLaf()
+    }
 }
 
 

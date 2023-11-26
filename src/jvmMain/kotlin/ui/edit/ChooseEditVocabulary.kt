@@ -59,10 +59,21 @@ fun ChooseEditVocabulary(
                             val stateVertical = rememberScrollState(0)
                             Column(Modifier.verticalScroll(stateVertical)) {
                                 if(wordState.vocabularyName.isNotEmpty()){
+                                    val name = when (wordState.vocabularyName) {
+                                        "FamiliarVocabulary" -> {
+                                            "熟悉词库"
+                                        }
+                                        "HardVocabulary" -> {
+                                            "困难词库"
+                                        }
+                                        else -> {
+                                            wordState.vocabularyName
+                                        }
+                                    }
                                     ListItem(
                                         text = {
                                             Text(
-                                                wordState.vocabularyName,
+                                                name,
                                                 color = MaterialTheme.colors.onBackground
                                             )
                                         },

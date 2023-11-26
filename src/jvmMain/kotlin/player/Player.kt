@@ -1335,6 +1335,9 @@ fun DanmakuBox(
                 familiar.wordList.add(word)
                 familiar.size = familiar.wordList.size
             }
+            if(familiar.name.isEmpty()){
+                familiar.name = "FamiliarVocabulary"
+            }
             saveVocabulary(familiar, file.absolutePath)
             deleteWord(danmakuItem)
         }
