@@ -29,10 +29,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
-import data.MutableVocabulary
-import data.VocabularyType
-import data.getHardVocabularyFile
-import data.loadMutableVocabulary
+import data.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -415,6 +412,22 @@ private fun FrameWindowScope.WindowMenuBar(
             close = {showBuiltInVocabulary = false},
             futureFileChooser = appState.futureFileChooser
         )
+        Item("熟悉词库(I)", mnemonic = 'I',onClick = {
+            val file = getFamiliarVocabularyFile()
+            if(file.exists()){
+                val vocabulary =loadVocabulary(file.absolutePath)
+                if(vocabulary.wordList.isEmpty()){
+                    JOptionPane.showMessageDialog(null,"熟悉词库现在还没有单词")
+                }else{
+                    appState.changeVocabulary(file, wordScreenState,wordScreenState.hardVocabularyIndex)
+                    appState.global.type = ScreenType.WORD
+                    appState.saveGlobalState()
+                }
+
+            }else{
+                JOptionPane.showMessageDialog(null,"熟悉词库现在还没有单词")
+            }
+        })
         Item("困难词库(K)", enabled = appState.hardVocabulary.wordList.isNotEmpty(), mnemonic = 'K',onClick = {
             val file = getHardVocabularyFile()
             appState.changeVocabulary(file, wordScreenState,wordScreenState.hardVocabularyIndex)
