@@ -30,6 +30,7 @@ data class WordScreenData(
     val pronunciation: String = "us",
     val playTimes:Int = 1,
     val isAuto: Boolean = false,
+    val repeatTimes: Int = 1,
     val index: Int = 0,
     val hardVocabularyIndex: Int = 0,
     var vocabularyName: String = "",
@@ -97,6 +98,11 @@ class WordScreenState(wordScreenData: WordScreenData) {
      * 是否是自动切换
      */
     var isAuto by mutableStateOf(wordScreenData.isAuto)
+
+    /**
+     * 单词的重复次数
+     */
+    var repeatTimes by mutableStateOf(wordScreenData.repeatTimes)
 
     /**
      * 当前单词的索引，从0开始，在标题栏显示的时候 +1
@@ -330,6 +336,7 @@ class WordScreenState(wordScreenData: WordScreenData) {
                         pronunciation,
                         playTimes,
                         isAuto,
+                        repeatTimes,
                         index,
                         hardVocabularyIndex,
                         vocabularyName,

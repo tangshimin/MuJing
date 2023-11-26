@@ -3,6 +3,7 @@ package ui
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -12,8 +13,11 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.isMacOS
@@ -339,31 +343,35 @@ fun WordScreenSidebar(
 
                         )
                 }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
+                if(wordScreenState.isAuto){
+                    Divider()
+                }
+
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                            shape = RectangleShape
+                        ) {
+                            val tooltip = "拼写成功后，自动切换到下一个单词"
+                            Text(text = tooltip, modifier = Modifier.padding(10.dp))
+                        }
+                    },
+                    delayMillis = 300,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.CenterEnd,
+                        alignment = Alignment.CenterEnd,
+                        offset = DpOffset.Zero
+                    )
                 ) {
-                    Text(text = "自动切换", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(15.dp))
-                    val tooltip = if(wordScreenState.isAuto) "关闭之后使用 Enter 键切换到下一个单词" else "打开之后会自动切换到下一个单词"
-                    TooltipArea(
-                        tooltip = {
-                            Surface(
-                                elevation = 4.dp,
-                                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
-                                shape = RectangleShape
-                            ) {
-                                Text(text = tooltip, modifier = Modifier.padding(10.dp))
-                            }
-                        },
-                        delayMillis = 300,
-                        tooltipPlacement = TooltipPlacement.ComponentRect(
-                            anchor = Alignment.CenterEnd,
-                            alignment = Alignment.CenterEnd,
-                            offset = DpOffset.Zero
-                        )
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
                     ) {
+                        Text(text = "自动切换", color = MaterialTheme.colors.onBackground)
+                        Spacer(Modifier.width(15.dp))
                         Switch(
                             colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
                             checked = wordScreenState.isAuto,
@@ -377,7 +385,59 @@ fun WordScreenSidebar(
 
                             )
                     }
+                }
+                if (wordScreenState.isAuto) {
+                    var times by remember { mutableStateOf("${wordScreenState.repeatTimes}") }
+                    TooltipArea(
+                        tooltip = {
+                            Surface(
+                                elevation = 4.dp,
+                                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                shape = RectangleShape
+                            ) {
+                                val tooltip = "拼写成功 $times 次后，自动切换到下一个单词"
+                                Text(text = tooltip, modifier = Modifier.padding(10.dp))
+                            }
+                        },
+                        delayMillis = 300,
+                        tooltipPlacement = TooltipPlacement.ComponentRect(
+                            anchor = Alignment.CenterEnd,
+                            alignment = Alignment.CenterEnd,
+                            offset = DpOffset.Zero
+                        )
+                    ) {
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth().clickable { }.padding(top = 10.dp,start = 16.dp, end = 14.dp,bottom = 10.dp)
+                        ) {
+                            Text(text = "重复次数", color = MaterialTheme.colors.onBackground)
+                            val border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f))
+                            BasicTextField(
+                                value = times,
+                                onValueChange = {
+                                    scope.launch {
+                                        times = it
+                                        wordScreenState.repeatTimes = it.toIntOrNull() ?: 1
+                                        wordScreenState.saveWordScreenState()
+                                    }
 
+                                },
+                                singleLine = true,
+                                cursorBrush = SolidColor(MaterialTheme.colors.primary),
+                                textStyle = TextStyle(
+                                    fontSize = 17.sp,
+                                    color = MaterialTheme.colors.onBackground
+                                ),
+                                modifier = Modifier
+                                    .width(40.dp)
+                                    .border(border = border)
+                                    .padding(start = 10.dp, top = 8.dp, bottom = 8.dp)
+                            )
+
+                        }
+                    }
+                    Divider()
                 }
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,

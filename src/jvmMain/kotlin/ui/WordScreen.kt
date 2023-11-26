@@ -871,14 +871,12 @@ fun MainContent(
                         if (wordScreenState.wordTypingResult.size == currentWord.value.length && done) {
                             // 输入完全正确
                             playSuccessSound()
-                            if (wordScreenState.isAuto) {
-
+                            wordScreenState.wordCorrectTime++
+                            if (wordScreenState.isAuto && wordScreenState.wordCorrectTime == wordScreenState.repeatTimes ) {
                                 Timer("input correct to next", false).schedule(50) {
                                     toNext()
                                 }
                             } else {
-
-                                wordScreenState.wordCorrectTime++
                                 Timer("input correct clean InputChar", false).schedule(50){
                                     wordScreenState.wordTypingResult.clear()
                                     wordScreenState.wordTextFieldValue = ""
