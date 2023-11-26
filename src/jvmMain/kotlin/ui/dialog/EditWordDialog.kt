@@ -221,25 +221,39 @@ fun EditWordComposeContent(
     var definitionFieldValue by remember { mutableStateOf(TextFieldValue(tempWord.definition)) }
     var translationFieldValue by remember { mutableStateOf(TextFieldValue(tempWord.translation)) }
     var exchange by remember { mutableStateOf(tempWord.exchange) }
-    var addSuccess by remember { mutableStateOf(false) }
-
-    val save = {
-        tempWord.value = inputWordStr.text
-        tempWord.usphone = usphone.text
-        tempWord.ukphone = ukphone.text
-        tempWord.translation = translationFieldValue.text
-        tempWord.definition = definitionFieldValue.text
-        tempWord.exchange = exchange
-        save(tempWord)
-        if(title =="添加单词"){
-            addSuccess = true
-            tempWord = Word("")
-            inputWordStr = TextFieldValue("")
-            usphone = TextFieldValue("")
-            ukphone = TextFieldValue("")
-            translationFieldValue = TextFieldValue("")
-            definitionFieldValue = TextFieldValue("")
-            exchange = ""
+    var saveEnable by remember { mutableStateOf(false) }
+    LaunchedEffect(inputWordStr, usphone, ukphone, translationFieldValue, definitionFieldValue, exchange) {
+        // 单词不为空，并且任何一个字段发生变化，就激活保存按钮
+        saveEnable = (
+                inputWordStr.text.isNotEmpty() &&
+                        (
+                                (inputWordStr.text != word.value)
+                                        || (usphone.text != word.usphone)
+                                        || (ukphone.text != word.ukphone)
+                                        || (definitionFieldValue.text != word.definition)
+                                        || (translationFieldValue.text != word.translation)
+                                        || (exchange != word.exchange)
+                                )
+                )
+    }
+    val saveWord = {
+        if(saveEnable){
+            tempWord.value = inputWordStr.text
+            tempWord.usphone = usphone.text
+            tempWord.ukphone = ukphone.text
+            tempWord.translation = translationFieldValue.text
+            tempWord.definition = definitionFieldValue.text
+            tempWord.exchange = exchange
+            save(tempWord)
+            if(title =="添加单词"){
+                tempWord = Word("")
+                inputWordStr = TextFieldValue("")
+                usphone = TextFieldValue("")
+                ukphone = TextFieldValue("")
+                translationFieldValue = TextFieldValue("")
+                definitionFieldValue = TextFieldValue("")
+                exchange = ""
+            }
         }
     }
 
@@ -248,7 +262,7 @@ fun EditWordComposeContent(
             close()
             true
         }else if(it.key == Key.S && it.isCtrlPressed && it.type == KeyEventType.KeyUp){
-            save()
+            saveWord()
             true
 
         }else false
@@ -814,7 +828,8 @@ fun EditWordComposeContent(
                             offset = DpOffset.Zero
                         )
                     ) {
-                        OutlinedButton(onClick = { save() }, enabled = inputWordStr.text.isNotEmpty()) {
+
+                        OutlinedButton(onClick = { saveWord() }, enabled = saveEnable) {
                             Text("保存")
                         }
                     }
@@ -827,23 +842,23 @@ fun EditWordComposeContent(
             }
         }
 
-        if(addSuccess){
-            Box(
-                contentAlignment = Alignment.Center,
-                modifier = Modifier.align(Alignment.Center)
-                    .border(BorderStroke(1.dp,MaterialTheme.colors.onSurface.copy(0.12f)))){
-                Surface(
-                    elevation = 5.dp,
-                    shape = RectangleShape,
-                ) {
-                    Text("添加成功" ,color = MaterialTheme.colors.primary,modifier = Modifier.padding(20.dp))
-                }
-                LaunchedEffect(addSuccess){
-                    delay(2000)
-                    addSuccess = false
-                }
-            }
-        }
+//        if(addSuccess){
+//            Box(
+//                contentAlignment = Alignment.Center,
+//                modifier = Modifier.align(Alignment.Center)
+//                    .border(BorderStroke(1.dp,MaterialTheme.colors.onSurface.copy(0.12f)))){
+//                Surface(
+//                    elevation = 5.dp,
+//                    shape = RectangleShape,
+//                ) {
+//                    Text("添加成功" ,color = MaterialTheme.colors.primary,modifier = Modifier.padding(20.dp))
+//                }
+//                LaunchedEffect(addSuccess){
+//                    delay(2000)
+//                    addSuccess = false
+//                }
+//            }
+//        }
 
     }
 }

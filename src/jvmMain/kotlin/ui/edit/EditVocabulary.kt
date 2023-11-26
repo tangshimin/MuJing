@@ -105,7 +105,6 @@ fun Table(
     val searchState = loadSearchState()
     val appState = rememberAppState()
     var removedColumnSet = mutableSetOf<Pair<String, TableColumn>>()
-
     val columnNames = arrayOf(
         "  ",
         "单词",
@@ -163,6 +162,31 @@ fun Table(
     val resultRectangleList = mutableListOf<Pair<Cell, Rectangle>>()
     var resultIndex = 0
 
+    // 保存词库
+    var showSaveWindow = false
+    val saveVocabulary :(String) -> Unit = {text ->
+        if (!showSaveWindow) {
+            showSaveWindow = true
+
+            runBlocking {
+                val encodeBuilder = Json {
+                    prettyPrint = true
+                    encodeDefaults = true
+                }
+                launch {
+                    val json = encodeBuilder.encodeToString(vocabulary)
+                    val file = getResourcesFile(vocabularyPath)
+                    file.writeText(json)
+                    notification(
+                        text = text,
+                        close = { showSaveWindow = false },
+                        colors = appState.colors
+                    )
+                }
+            }
+        }
+    }
+
     var dialogOpen by remember { mutableStateOf(false) }
     var editRow by remember { mutableStateOf(-1) }
     table.addMouseListener(object : MouseAdapter() {
@@ -178,8 +202,7 @@ fun Table(
                         vocabulary = vocabulary,
                         vocabularyDir = File(vocabularyPath).parentFile!!,
                         save = {
-                            dialogOpen = false
-                             wordList[table.selectedRow] = it
+                            // 更新表格
                             val captions = displayCaptions(it, vocabulary.type)
                             val exchange = displayExchange(it.exchange)
                             model.setValueAt(it.value, editRow, 1)
@@ -189,6 +212,11 @@ fun Table(
                             model.setValueAt(it.ukphone, editRow, 5)
                             model.setValueAt(exchange, editRow, 6)
                             model.setValueAt(captions, editRow, 7)
+                            // 保存词库
+                            wordList[table.selectedRow] = it
+                            saveVocabulary("保存成功")
+                            // 关闭编辑单词窗口
+                            dialogOpen = false
                         },
                         close = { dialogOpen = false },
                     )
@@ -258,6 +286,7 @@ fun Table(
     val scrollPane =
         JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED)
 
+
     val addRow = {
         if (!dialogOpen) {
             dialogOpen = true
@@ -285,6 +314,7 @@ fun Table(
                     model.addRow(row)
                     wordList.add(it)
                     vocabulary.size = wordList.size
+                    saveVocabulary("添加成功")
                     // 滚动到最后以后,还差一点，第一次不会滚动到最底部，后面几次可以看到最后一行，但是没有完全显示。
                     table.changeSelection(table.getRowCount()-1, 1,false,false)
                 },
@@ -297,11 +327,12 @@ fun Table(
     val removeRow = {
         val rows = table.selectedRows
         if (rows.isNotEmpty()) {
-            for (row in rows) {
+            for (row in rows.reversed()) {
                 model.removeRow(row)
                 vocabulary.wordList.removeAt(row)
-                vocabulary.size = wordList.size
             }
+            vocabulary.size = wordList.size
+            saveVocabulary("保存成功")
         }
     }
 
@@ -310,8 +341,8 @@ fun Table(
 
     val settings = FlatButton()
     settings.toolTipText = "设置"
-    val saveButton = FlatButton()
-    saveButton.toolTipText = "保存"
+//    val saveButton = FlatButton()
+//    saveButton.toolTipText = "保存"
     val infoButton = FlatButton()
     infoButton.toolTipText = "基本信息"
     val addButton = FlatButton()
@@ -349,32 +380,6 @@ fun Table(
         }
     }
 
-    var showSaveWindow = false
-    saveButton.addActionListener {
-
-
-        if (!showSaveWindow) {
-            showSaveWindow = true
-            val encodeBuilder = Json {
-                prettyPrint = true
-                encodeDefaults = true
-            }
-            runBlocking {
-                launch {
-                    val json = encodeBuilder.encodeToString(vocabulary)
-                    val file = getResourcesFile(vocabularyPath)
-                    println(file.absolutePath)
-                    file.writeText(json)
-                }
-            }
-
-            notification(
-                text = "保存成功",
-                close = { showSaveWindow = false },
-                colors = appState.colors
-            )
-        }
-    }
 
     var showVocabularyInfo = false
     infoButton.addActionListener {
@@ -384,26 +389,29 @@ fun Table(
                 vocabulary = vocabulary,
                 vocabularyPath = vocabularyPath,
                 close = { showVocabularyInfo = false },
-                saveVideoPath = { vocabulary.relateVideoPath = it },
+                saveVideoPath = {
+                    vocabulary.relateVideoPath = it
+                    saveVocabulary("保存成功")
+                },
                 colors = appState.colors
             )
         }
     }
 
     settings.preferredSize = Dimension(48, 48)
-    saveButton.preferredSize = Dimension(48, 48)
+//    saveButton.preferredSize = Dimension(48, 48)
     infoButton.preferredSize = Dimension(48, 48)
     addButton.preferredSize = Dimension(48, 48)
     removeButton.preferredSize = Dimension(48, 48)
 
     settings.margin = Insets(10, 10, 10, 10)
-    saveButton.margin = Insets(10, 10, 10, 10)
+//    saveButton.margin = Insets(10, 10, 10, 10)
     infoButton.margin = Insets(10, 10, 10, 10)
     addButton.margin = Insets(10, 10, 10, 10)
     removeButton.margin = Insets(10, 10, 10, 10)
 
     settings.buttonType = FlatButton.ButtonType.borderless
-    saveButton.buttonType = FlatButton.ButtonType.borderless
+//    saveButton.buttonType = FlatButton.ButtonType.borderless
     infoButton.buttonType = FlatButton.ButtonType.borderless
     addButton.buttonType = FlatButton.ButtonType.borderless
     removeButton.buttonType = FlatButton.ButtonType.borderless
@@ -411,7 +419,7 @@ fun Table(
 
     val saveIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/save.svg"))
     saveIcon.colorFilter = FlatSVGIcon.ColorFilter { onBackgroundColor }
-    saveButton.icon = saveIcon
+//    saveButton.icon = saveIcon
 
     val settingsIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/tune.svg"))
     settingsIcon.colorFilter = FlatSVGIcon.ColorFilter { onBackgroundColor }
@@ -785,7 +793,7 @@ fun Table(
     compsTextField.border = BorderFactory.createMatteBorder(0, 1, 0, 1, table.gridColor)
     scrollPane.border = BorderFactory.createMatteBorder(1, 1, 1, 1, table.gridColor)
     toolPanel.add(settings)
-    toolPanel.add(saveButton)
+//    toolPanel.add(saveButton)
     toolPanel.add(infoButton)
     toolPanel.add(addButton)
     toolPanel.add(removeButton)

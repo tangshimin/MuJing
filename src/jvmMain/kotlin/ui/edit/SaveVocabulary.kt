@@ -1,16 +1,20 @@
 package ui.edit
 
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Colors
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
+import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -35,7 +39,7 @@ fun notification(
     colors: Colors,
 ) {
     val window = JFrame("")
-    window.size = Dimension(126, 43)
+    window.size = Dimension(206, 86)
     window.isUndecorated = true
     val iconFile = getResourcesFile("logo/logo.svg")
     val iconImages = FlatSVGUtils.createWindowIconImages(iconFile.toURI().toURL())
@@ -73,7 +77,7 @@ fun NotifactionContent(
     colors: Colors,
 ){
     val windowState = rememberWindowState(
-        size = DpSize(126.dp, 43.dp),
+        size = DpSize(206.dp, 83.dp),
         position = WindowPosition(parentWindow.location.x.dp,parentWindow.location.y.dp)
     )
     MaterialTheme(colors = colors){
@@ -86,14 +90,27 @@ fun NotifactionContent(
         ) {
             Surface(
                 elevation = 4.dp,
+                modifier = Modifier.fillMaxSize(),
                 border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                 shape = RectangleShape
             ) {
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxSize().padding(20.dp)){
+                    if(text == "保存成功" || text == "添加成功"){
+                        Icon(
+                            imageVector = Icons.Outlined.TaskAlt,
+                            contentDescription = "",
+                            tint = Color.Green
+                        )
+                    }
+                    Text(
+                        text = text,
+                        color = MaterialTheme.colors.onBackground,
+                        modifier = Modifier.padding(start = 20.dp)
+                    )
+                }
 
-                Text(text = text,
-                    modifier = Modifier.padding(10.dp),
-                    color = MaterialTheme.colors.onBackground,
-                )
             }
 
             LaunchedEffect(Unit){
