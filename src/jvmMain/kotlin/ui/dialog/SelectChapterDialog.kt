@@ -36,7 +36,7 @@ fun SelectChapterDialog(
     isMultiple:Boolean
 ) {
     Dialog(
-        title = if(isMultiple) "先听写测试，再复习错误的单词" else "选择章节",
+        title = if(isMultiple) "听写测试，可以选择多个章节" else "选择章节",
         onCloseRequest = { close() },
         resizable = true,
         state = rememberDialogState(
@@ -149,30 +149,30 @@ fun SelectChapterDialog(
                 Footer(
                     modifier = Modifier.align(Alignment.BottomCenter),
                     confirm = {
-                        // 听写复习，可以选择多个章节
+                        // 独立的听写测试，可以选择多个章节
                         if(isMultiple){
-                            if(wordScreenState.memoryStrategy != MemoryStrategy.Review && wordScreenState.memoryStrategy != MemoryStrategy.Dictation){
+                            if(wordScreenState.memoryStrategy != MemoryStrategy.DictationTest && wordScreenState.memoryStrategy != MemoryStrategy.Dictation){
                                 wordScreenState.hiddenInfo(dictationState)
                             }
-                            wordScreenState.memoryStrategy = MemoryStrategy.Review
+                            wordScreenState.memoryStrategy = MemoryStrategy.DictationTest
                             wordScreenState.wrongWords.clear()
                             wordScreenState.reviewWords.clear()
                             wordScreenState.reviewWords.addAll(selectedWords.value.shuffled())
                             wordScreenState.dictationIndex = 0
-                        // 非听写复习，只能选择一个章节
+                        // 非独立的听写测试，只能选择一个章节
                         }else{
                             val chapter = selectedChapters.first()
                             if (chapter == 0) wordScreenState.chapter = 1
                             wordScreenState.chapter = chapter
                             wordScreenState.index = (chapter - 1) * 20
                             wordScreenState.saveWordScreenState()
-                            // 如果正在听写复习单词，又重新选择了章节，所以就取消听写复习
-                            if(wordScreenState.memoryStrategy == MemoryStrategy.Review){
+                            // 如果是独立的听写测试单词，又重新选择了章节，所以就取消独立的听写测试
+                            if(wordScreenState.memoryStrategy == MemoryStrategy.DictationTest){
                                 wordScreenState.memoryStrategy = MemoryStrategy.Normal
                                 wordScreenState.showInfo()
                             }
                         }
-                        // 如果是非听写复习，同时正在听写单词，又重新选择了章节，所以就退出听写
+                        // 如果不是独立的听写测试，同时正在听写单词，又重新选择了章节，所以就退出听写
                         if(wordScreenState.memoryStrategy == MemoryStrategy.Dictation && !isMultiple){
                             wordScreenState.showInfo()
                             wordScreenState.memoryStrategy = MemoryStrategy.Normal

@@ -53,26 +53,45 @@ fun WordScreenSidebar(
                 val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
 
                 var showDictationDialog by remember { mutableStateOf(false) }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { showDictationDialog = true }.padding(start = 16.dp, end = 8.dp)
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                            shape = RectangleShape
+                        ) {
+                            val tooltip =  "听写测试，可以选择多个章节"
+                            Text(text = tooltip, modifier = Modifier.padding(10.dp))
+                        }
+                    },
+                    delayMillis = 300,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.CenterEnd,
+                        alignment = Alignment.CenterEnd,
+                        offset = DpOffset.Zero
+                    )
                 ) {
 
-                    Text("听写复习", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(15.dp))
-                    Icon(
-                        Icons.Filled.RateReview,
-                        contentDescription = "Localized description",
-                        tint = tint,
-                        modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
-                    )
-                    if(showDictationDialog){
-                        SelectChapterDialog(
-                            close = {showDictationDialog = false},
-                            wordScreenState = wordScreenState,
-                            isMultiple = true
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable { showDictationDialog = true }.padding(start = 16.dp, end = 8.dp)
+                    ) {
+                        Text("听写测试", color = MaterialTheme.colors.onBackground)
+                        Spacer(Modifier.width(15.dp))
+                        Icon(
+                            Icons.Filled.RateReview,
+                            contentDescription = "Localized description",
+                            tint = tint,
+                            modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
                         )
+                        if(showDictationDialog){
+                            SelectChapterDialog(
+                                close = {showDictationDialog = false},
+                                wordScreenState = wordScreenState,
+                                isMultiple = true
+                            )
+                        }
                     }
                 }
                 var showChapterDialog by remember { mutableStateOf(false) }
@@ -146,7 +165,7 @@ fun WordScreenSidebar(
                         checked = wordScreenState.phoneticVisible,
                         onCheckedChange = {
                             scope.launch {
-                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.Review ){
+                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
                                     dictationState.phoneticVisible = it
                                     dictationState.saveDictationState()
                                 }
@@ -177,7 +196,7 @@ fun WordScreenSidebar(
                         checked = wordScreenState.morphologyVisible,
                         onCheckedChange = {
                             scope.launch {
-                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.Review ){
+                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
                                     dictationState.morphologyVisible = it
                                     dictationState.saveDictationState()
                                 }
@@ -208,7 +227,7 @@ fun WordScreenSidebar(
                         checked = wordScreenState.definitionVisible,
                         onCheckedChange = {
                             scope.launch {
-                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.Review ){
+                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
                                     dictationState.definitionVisible = it
                                     dictationState.saveDictationState()
                                 }
@@ -238,7 +257,7 @@ fun WordScreenSidebar(
                         checked = wordScreenState.translationVisible,
                         onCheckedChange = {
                             scope.launch {
-                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.Review ){
+                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
                                     dictationState.translationVisible = it
                                     dictationState.saveDictationState()
                                 }
@@ -269,7 +288,7 @@ fun WordScreenSidebar(
                         checked = wordScreenState.subtitlesVisible,
                         onCheckedChange = {
                             scope.launch {
-                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.Review ){
+                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
                                     dictationState.subtitlesVisible = it
                                     dictationState.saveDictationState()
                                 }

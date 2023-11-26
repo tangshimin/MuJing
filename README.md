@@ -24,9 +24,9 @@
 
    https://user-images.githubusercontent.com/16540656/174944474-e5947df9-c8ed-4546-9c67-057fe52c2d51.mp4
 
-6. 听写复习，可以选择多个章节的单词一起复习，先听写测试，然后再复习错误的单词。
+6. 听写写测试，可以选择多个章节一起测试。
 
-   ![DictionReview](https://user-images.githubusercontent.com/16540656/184179317-f8c0ac99-9048-48da-b59b-5badbaae7c62.png)
+   ![DictionReview]()
 
 7. 抄写文本，可以抄写 [古腾堡计划](https://www.gutenberg.org/) 所有 txt 格式的电子书，非[古腾堡计划](https://www.gutenberg.org/) 的电子书，抄写前可能需要先格式化，把每行的字母数量限制在 75 个以内。
 

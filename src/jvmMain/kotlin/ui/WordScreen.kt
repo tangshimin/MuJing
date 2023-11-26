@@ -245,10 +245,10 @@ fun Header(
             // 记忆单词时的状态信息
             val text = when(wordScreenState.memoryStrategy){
                 Normal -> { if(wordScreenState.vocabulary.size>0) "${wordScreenState.index + 1}/${wordScreenState.vocabulary.size}" else ""}
-                Dictation -> { "听写测试   ${wordScreenState.dictationIndex + 1}/${wordScreenState.dictationWords.size}"}
-                Review -> {"听写复习   ${wordScreenState.dictationIndex + 1}/${wordScreenState.reviewWords.size}"}
+                Dictation -> { "听写单词   ${wordScreenState.dictationIndex + 1}/${wordScreenState.dictationWords.size}"}
+                DictationTest -> {"听写测试   ${wordScreenState.dictationIndex + 1}/${wordScreenState.reviewWords.size}"}
                 NormalReviewWrong -> { "复习错误单词   ${wordScreenState.dictationIndex + 1}/${wordScreenState.wrongWords.size}"}
-                DictationReviewWrong -> { "听写复习 - 复习错误单词   ${wordScreenState.dictationIndex + 1}/${wordScreenState.wrongWords.size}"}
+                DictationTestReviewWrong -> { "听写测试 - 复习错误单词   ${wordScreenState.dictationIndex + 1}/${wordScreenState.wrongWords.size}"}
             }
 
             val top = if(wordScreenState.memoryStrategy != Normal) 0.dp else 12.dp
@@ -261,8 +261,8 @@ fun Header(
             if(wordScreenState.memoryStrategy != Normal){
                 Spacer(Modifier.width(20.dp))
                 val tooltip = when (wordScreenState.memoryStrategy) {
-                    Review, DictationReviewWrong -> {
-                        "退出听写复习"
+                    DictationTest, DictationTestReviewWrong -> {
+                        "退出听写测试"
                     }
                     Dictation -> {
                         "退出听写"
@@ -491,7 +491,7 @@ fun MainContent(
                     scope.launch {
                         wordScreenState.phoneticVisible = !wordScreenState.phoneticVisible
                         wordScreenState.saveWordScreenState()
-                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== Review ){
+                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
                             dictationState.phoneticVisible = wordScreenState.phoneticVisible
                             dictationState.saveDictationState()
                         }
@@ -503,7 +503,7 @@ fun MainContent(
                     scope.launch {
                         wordScreenState.morphologyVisible = !wordScreenState.morphologyVisible
                         wordScreenState.saveWordScreenState()
-                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== Review ){
+                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
                             dictationState.morphologyVisible = wordScreenState.morphologyVisible
                             dictationState.saveDictationState()
                         }
@@ -514,7 +514,7 @@ fun MainContent(
                     scope.launch {
                         wordScreenState.definitionVisible = !wordScreenState.definitionVisible
                         wordScreenState.saveWordScreenState()
-                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== Review ){
+                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
                             dictationState.definitionVisible = wordScreenState.definitionVisible
                             dictationState.saveDictationState()
                         }
@@ -525,7 +525,7 @@ fun MainContent(
                     scope.launch {
                         wordScreenState.translationVisible = !wordScreenState.translationVisible
                         wordScreenState.saveWordScreenState()
-                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== Review ){
+                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
                             dictationState.translationVisible = wordScreenState.translationVisible
                             dictationState.saveDictationState()
                         }
@@ -557,7 +557,7 @@ fun MainContent(
                     scope.launch {
                         wordScreenState.subtitlesVisible = !wordScreenState.subtitlesVisible
                         wordScreenState.saveWordScreenState()
-                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== Review ){
+                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
                             dictationState.subtitlesVisible = wordScreenState.subtitlesVisible
                             dictationState.saveDictationState()
                         }
@@ -599,7 +599,7 @@ fun MainContent(
         val globalPreviewKeyEvent: (KeyEvent) -> Boolean = {
             when{
                 (it.isCtrlPressed && it.isShiftPressed && it.key == Key.Z && it.type == KeyEventType.KeyUp) -> {
-                    if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != Review ){
+                    if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest ){
                         val playTriple = if (wordScreenState.vocabulary.type == VocabularyType.DOCUMENT) {
                             getPayTriple(currentWord, 0)
                         } else {
@@ -613,7 +613,7 @@ fun MainContent(
                     true
                 }
                 (it.isCtrlPressed && it.isShiftPressed && it.key == Key.X && it.type == KeyEventType.KeyUp) -> {
-                    if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != Review){
+                    if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest){
                         val playTriple = if (wordScreenState.getCurrentWord().externalCaptions.size >= 2) {
                             getPayTriple(currentWord, 1)
                         } else if (wordScreenState.getCurrentWord().captions.size >= 2) {
@@ -627,7 +627,7 @@ fun MainContent(
                     true
                 }
                 (it.isCtrlPressed && it.isShiftPressed && it.key == Key.C && it.type == KeyEventType.KeyUp) -> {
-                    if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != Review){
+                    if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest){
                         val playTriple = if (wordScreenState.getCurrentWord().externalCaptions.size >= 3) {
                             getPayTriple(currentWord, 2)
                         } else if (wordScreenState.getCurrentWord().captions.size >= 3) {
@@ -703,13 +703,13 @@ fun MainContent(
                             delayPlaySound()
                         } else wordScreenState.dictationIndex++
                     }
-                    Review -> {
+                    DictationTest -> {
                         if (wordScreenState.dictationIndex + 1 == wordScreenState.reviewWords.size) {
                             delayPlaySound()
                         } else wordScreenState.dictationIndex++
                     }
                     NormalReviewWrong -> { increaseWrongIndex() }
-                    DictationReviewWrong -> { increaseWrongIndex() }
+                    DictationTestReviewWrong -> { increaseWrongIndex() }
                 }
 
                 wordFocusRequester.requestFocus()
@@ -728,7 +728,7 @@ fun MainContent(
                         wordScreenState.saveWordScreenState()
                     }
                     // 复习错误单词
-                }else if (wordScreenState.memoryStrategy == NormalReviewWrong || wordScreenState.memoryStrategy == DictationReviewWrong ){
+                }else if (wordScreenState.memoryStrategy == NormalReviewWrong || wordScreenState.memoryStrategy == DictationTestReviewWrong ){
                     wordScreenState.clearInputtedState()
                     if(wordScreenState.dictationIndex > 0 ){
                         wordScreenState.dictationIndex -= 1
@@ -804,7 +804,7 @@ fun MainContent(
 
             /** 焦点切换到抄写字幕 */
             val jumpToCaptions:() -> Unit = {
-                if((wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != Review) &&
+                if((wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest) &&
                     wordScreenState.subtitlesVisible && (currentWord.captions.isNotEmpty() || currentWord.externalCaptions.isNotEmpty())
                 ){
                     focusRequester1.requestFocus()
@@ -838,8 +838,8 @@ fun MainContent(
                                 playBeepSound()
                                 isWrong = true
                                 wordScreenState.wordWrongTime++
-                                // 如果是听写测试，或听写复习，需要汇总错误单词
-                                if (wordScreenState.memoryStrategy == Dictation || wordScreenState.memoryStrategy == Review) {
+                                // 如果是听写测试，或独立的听写测试，需要汇总错误单词
+                                if (wordScreenState.memoryStrategy == Dictation || wordScreenState.memoryStrategy == DictationTest) {
                                     val dictationWrongTime = dictationWrongWords[currentWord]
                                     if (dictationWrongTime != null) {
                                         dictationWrongWords[currentWord] = dictationWrongTime + 1
@@ -977,10 +977,10 @@ fun MainContent(
                 val reviewList = dictationWrongWords.keys.toList()
                 if (reviewList.isNotEmpty()) {
                     wordScreenState.showInfo(clear = false)
-                    if (wordScreenState.memoryStrategy == Review ||
-                        wordScreenState.memoryStrategy == DictationReviewWrong
+                    if (wordScreenState.memoryStrategy == DictationTest ||
+                        wordScreenState.memoryStrategy == DictationTestReviewWrong
                     ) {
-                        wordScreenState.memoryStrategy = DictationReviewWrong
+                        wordScreenState.memoryStrategy = DictationTestReviewWrong
                     }else{
                         wordScreenState.memoryStrategy = NormalReviewWrong
                     }
@@ -996,7 +996,7 @@ fun MainContent(
             val nextChapter: () -> Unit = {
 
                 if (wordScreenState.memoryStrategy == NormalReviewWrong ||
-                    wordScreenState.memoryStrategy == DictationReviewWrong
+                    wordScreenState.memoryStrategy == DictationTestReviewWrong
                 ) {
                     wordScreenState.wrongWords.clear()
                 }
@@ -1021,7 +1021,7 @@ fun MainContent(
                 wordScreenState.dictationWords.clear()
                 wordScreenState.dictationWords.addAll(shuffledList)
             }
-            /** 从听写复习再次进入到听写测试时，需要的单词 */
+            /** 从独立的听写测试再次进入到听写测试时，需要的单词 */
             val shuffleDictationReview:() -> Unit = {
                 var shuffledList = wordScreenState.reviewWords.shuffled()
                 // 如果打乱顺序的列表的第一个单词，和当前章节的最后一个词相等，就不会触发重组
@@ -1057,16 +1057,16 @@ fun MainContent(
                             wordScreenState.dictationIndex = 0
                             wordScreenState.hiddenInfo(dictationState)
                         }
-                        // 一种是从听写复习进入到复习错误单词，复习完毕后，再次听写
-                        DictationReviewWrong ->{
-                            wordScreenState.memoryStrategy = Review
+                        // 一种是从独立的听写测试进入到复习错误单词，复习完毕后，再次听写
+                        DictationTestReviewWrong ->{
+                            wordScreenState.memoryStrategy = DictationTest
                             wordScreenState.wrongWords.clear()
                             shuffleDictationReview()
                             wordScreenState.dictationIndex = 0
                             wordScreenState.hiddenInfo(dictationState)
                         }
-                        // 在听写复习时选择再次听写
-                        Review ->{
+                        // 在独立的听写测试时选择再次听写
+                        DictationTest ->{
                             shuffleDictationReview()
                             wordScreenState.dictationIndex = 0
                         }
@@ -1150,7 +1150,7 @@ fun MainContent(
                     ((it.key == Key.Enter || it.key == Key.NumPadEnter || it.key == Key.PageDown)
                             && it.type == KeyEventType.KeyUp) -> {
                         toNext()
-                        if (wordScreenState.memoryStrategy == Dictation || wordScreenState.memoryStrategy == Review) {
+                        if (wordScreenState.memoryStrategy == Dictation || wordScreenState.memoryStrategy == DictationTest) {
                             dictationSkipCurrentWord()
                         }
                         true
@@ -1199,7 +1199,7 @@ fun MainContent(
                 if(appState.vocabularyChanged){
                     wordScreenState.clearInputtedState()
                     if(wordScreenState.memoryStrategy == NormalReviewWrong ||
-                        wordScreenState.memoryStrategy == DictationReviewWrong
+                        wordScreenState.memoryStrategy == DictationTestReviewWrong
                     ){
                         wordScreenState.wrongWords.clear()
                     }
@@ -1208,7 +1208,7 @@ fun MainContent(
                         resetChapterTime()
                     }
 
-                    if(wordScreenState.memoryStrategy == Review) wordScreenState.memoryStrategy = Normal
+                    if(wordScreenState.memoryStrategy == DictationTest) wordScreenState.memoryStrategy = Normal
 
 
                     appState.vocabularyChanged = false
@@ -1259,7 +1259,7 @@ fun MainContent(
                         playTimes = wordScreenState.playTimes,
                         isPlaying = isPlayingAudio,
                         setIsPlaying = { isPlayingAudio = it },
-                        isDictation = (wordScreenState.memoryStrategy == Dictation ||wordScreenState.memoryStrategy == Review),
+                        isDictation = (wordScreenState.memoryStrategy == Dictation ||wordScreenState.memoryStrategy == DictationTest),
                         fontFamily = monospace,
                         audioPath = audioPath,
                         correctTime = wordScreenState.wordCorrectTime,
@@ -1315,7 +1315,7 @@ fun MainContent(
                                 && it.type == KeyEventType.KeyUp
                                 ) -> {
                             toNext()
-                            if (wordScreenState.memoryStrategy == Dictation || wordScreenState.memoryStrategy == Review) {
+                            if (wordScreenState.memoryStrategy == Dictation || wordScreenState.memoryStrategy == DictationTest) {
                                 dictationSkipCurrentWord()
                             }
                             true
@@ -1405,9 +1405,9 @@ fun MainContent(
                 )
             }
 
-            /** 显示听写复习的选择章节对话框 */
+            /** 显示独立的听写测试的选择章节对话框 */
             var showChapterDialog by remember { mutableStateOf(false) }
-            /** 打开听写复习的选择章节对话框 */
+            /** 打开独立的听写测试的选择章节对话框 */
             val openReviewDialog:() -> Unit = {
                 showChapterFinishedDialog = false
                 showChapterDialog = true
@@ -1434,7 +1434,7 @@ fun MainContent(
                     correctRate = correctRate(),
                     memoryStrategy = wordScreenState.memoryStrategy,
                     openReviewDialog = {openReviewDialog()},
-                    isReviewWrong = (wordScreenState.memoryStrategy == NormalReviewWrong || wordScreenState.memoryStrategy == DictationReviewWrong),
+                    isReviewWrong = (wordScreenState.memoryStrategy == NormalReviewWrong || wordScreenState.memoryStrategy == DictationTestReviewWrong),
                     dictationWrongWords = dictationWrongWords,
                     enterDictation = { enterDictation() },
                     learnAgain = { learnAgain() },

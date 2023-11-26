@@ -168,7 +168,7 @@ class WordScreenState(wordScreenData: WordScreenData) {
     /** 听写单词时的索引 */
     var dictationIndex by mutableStateOf(0)
 
-    /** 要听写复习的单词 */
+    /** 要单独听写测试的单词 */
     val reviewWords = mutableStateListOf<Word>()
 
     /** 听写错误的单词 */
@@ -186,11 +186,11 @@ class WordScreenState(wordScreenData: WordScreenData) {
 
             MemoryStrategy.Dictation -> dictationWords[dictationIndex]
 
-            MemoryStrategy.Review -> reviewWords[dictationIndex]
+            MemoryStrategy.DictationTest -> reviewWords[dictationIndex]
 
             MemoryStrategy.NormalReviewWrong -> wrongWords[dictationIndex]
 
-            MemoryStrategy.DictationReviewWrong -> wrongWords[dictationIndex]
+            MemoryStrategy.DictationTestReviewWrong -> wrongWords[dictationIndex]
         }
 
     }
@@ -315,7 +315,7 @@ class WordScreenState(wordScreenData: WordScreenData) {
             encodeDefaults = true
         }
         // 只有在正常记忆单词和复习错误单词时的状态改变才需要持久化
-        if (memoryStrategy != MemoryStrategy.Dictation && memoryStrategy != MemoryStrategy.Review) {
+        if (memoryStrategy != MemoryStrategy.Dictation && memoryStrategy != MemoryStrategy.DictationTest) {
             runBlocking {
                 launch {
                     val wordScreenData = WordScreenData(

@@ -176,7 +176,7 @@ class AppState {
         if(newVocabulary.wordList.size>0){
 
             wordScreenState.clearInputtedState()
-            if(wordScreenState.memoryStrategy == MemoryStrategy.Dictation || wordScreenState.memoryStrategy == MemoryStrategy.Review){
+            if(wordScreenState.memoryStrategy == MemoryStrategy.Dictation || wordScreenState.memoryStrategy == MemoryStrategy.DictationTest){
                 wordScreenState.memoryStrategy = MemoryStrategy.Normal
                 wordScreenState.showInfo()
             }

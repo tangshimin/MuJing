@@ -97,7 +97,7 @@ fun ChapterFinishedDialog(
                             ((it.key == Key.Enter || it.key == Key.NumPadEnter)
                                     && it.type == KeyEventType.KeyUp) -> {
 
-                                if(memoryStrategy == MemoryStrategy.Review || memoryStrategy == MemoryStrategy.DictationReviewWrong){
+                                if(memoryStrategy == MemoryStrategy.DictationTest || memoryStrategy == MemoryStrategy.DictationTestReviewWrong){
                                     openReviewDialog()
                                 }else if (isVocabularyFinished) resetIndex(false)
                                 else nextChapter()
@@ -120,7 +120,7 @@ fun ChapterFinishedDialog(
                         "您已完成最后一个章节"
                     } else if (memoryStrategy == MemoryStrategy.Dictation) {
                             "您已听写完本章节"
-                    } else if (memoryStrategy == MemoryStrategy.Review) {
+                    } else if (memoryStrategy == MemoryStrategy.DictationTest) {
                             "您已测试完本章节"
                     } else if (isReviewWrong){
                         "您已复习完错误单词"
@@ -129,7 +129,7 @@ fun ChapterFinishedDialog(
                     Text(text = title, color = MaterialTheme.colors.onBackground)
                 }
 
-                if (memoryStrategy == MemoryStrategy.Dictation || memoryStrategy == MemoryStrategy.Review) {
+                if (memoryStrategy == MemoryStrategy.Dictation || memoryStrategy == MemoryStrategy.DictationTest) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         modifier = Modifier.fillMaxWidth().padding(top = 10.dp)
@@ -205,7 +205,7 @@ fun ChapterFinishedDialog(
                             offset = DpOffset.Zero
                         )
                     ) {
-                        if(memoryStrategy == MemoryStrategy.Review || memoryStrategy == MemoryStrategy.DictationReviewWrong){
+                        if(memoryStrategy == MemoryStrategy.DictationTest || memoryStrategy == MemoryStrategy.DictationTestReviewWrong){
                             OutlinedButton(onClick = {
                                 openReviewDialog()
                             }) {
@@ -271,13 +271,13 @@ fun ChapterFinishedDialog(
                         OutlinedButton(
                             onClick = { enterDictation() }
                         ) {
-                            val text = if (memoryStrategy == MemoryStrategy.Dictation || memoryStrategy == MemoryStrategy.Review) "(V)再听写一次" else "(V)听写测试"
+                            val text = if (memoryStrategy == MemoryStrategy.Dictation || memoryStrategy == MemoryStrategy.DictationTest) "(V)再听写一次" else "(V)听写测试"
                             Text(text = text, color = textColor)
                         }
                     }
                     Spacer(Modifier.width(15.dp))
-                    if ((memoryStrategy == MemoryStrategy.Dictation || memoryStrategy == MemoryStrategy.Review ||
-                                memoryStrategy == MemoryStrategy.NormalReviewWrong ||  memoryStrategy == MemoryStrategy.DictationReviewWrong
+                    if ((memoryStrategy == MemoryStrategy.Dictation || memoryStrategy == MemoryStrategy.DictationTest ||
+                                memoryStrategy == MemoryStrategy.NormalReviewWrong ||  memoryStrategy == MemoryStrategy.DictationTestReviewWrong
                             )  &&  correctRate < 100F ) {
                         TooltipArea(
                             tooltip = {
@@ -296,7 +296,7 @@ fun ChapterFinishedDialog(
                                 offset = DpOffset.Zero
                             )
                         ) {
-                            val text = if(memoryStrategy == MemoryStrategy.NormalReviewWrong ||  memoryStrategy == MemoryStrategy.DictationReviewWrong) "(N)再复习一次" else "(N)复习错误单词"
+                            val text = if(memoryStrategy == MemoryStrategy.NormalReviewWrong ||  memoryStrategy == MemoryStrategy.DictationTestReviewWrong) "(N)再复习一次" else "(N)复习错误单词"
                             OutlinedButton(onClick = {
                                 reviewWrongWords()
                             }) { Text(text, color = textColor) }
