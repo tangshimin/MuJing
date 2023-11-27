@@ -143,14 +143,17 @@ fun SubtitleScreen(
                 timedCaption.setCaptionList(it)
             },
             resetSubtitlesState = {
+                selectedPath = ""
+                trackList.clear()
                 subtitlesState.mediaPath = ""
                 subtitlesState.subtitlesPath = ""
-                subtitlesState.trackID = 0
+                subtitlesState.trackID = -1
                 subtitlesState.trackDescription = ""
                 subtitlesState.trackSize = 0
                 subtitlesState.currentIndex = 0
                 subtitlesState.firstVisibleItemIndex = 0
                 subtitlesState.sentenceMaxLength = 0
+                subtitlesState.saveTypingSubtitlesState()
             }
         )
     }

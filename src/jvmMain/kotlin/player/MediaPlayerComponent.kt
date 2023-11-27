@@ -247,15 +247,16 @@ fun parseSubtitles(
 
             setMaxLength(maxLength)
             setCaptionList(captionList)
-        }catch (exception: IOException){
+        } catch (exception: Exception) {
             exception.printStackTrace()
             resetSubtitlesState()
-        }catch (exception: NullPointerException) {
-            exception.printStackTrace()
-            resetSubtitlesState()
+            JOptionPane.showMessageDialog(
+                null, "字幕文件解析失败:\n${exception.message}"
+            )
+
         }
-    }else{
-        println("找不到正在抄写的字幕")
+    } else {
+        JOptionPane.showMessageDialog(null, "找不到字幕")
         resetSubtitlesState()
     }
 
@@ -294,12 +295,13 @@ fun parseSubtitles(subtitlesPath: String):List<PlayerCaption>{
                 captionList.add(newCaption)
             }
 
-        }catch (exception: IOException){
+        }catch (exception: Exception){
             exception.printStackTrace()
+            JOptionPane.showMessageDialog(null, "字幕文件解析失败:\n${exception.message}")
         }
 
     }else{
-        println("找不到字幕文件")
+        JOptionPane.showMessageDialog(null, "找不到字幕")
     }
     return captionList
 }
