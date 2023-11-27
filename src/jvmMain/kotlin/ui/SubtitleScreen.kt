@@ -506,12 +506,6 @@ fun SubtitleScreen(
                 showOpenFile = true
                 true
             }
-            (keyEvent.isCtrlPressed && keyEvent.key == Key.S && keyEvent.type == KeyEventType.KeyUp) -> {
-                if(subtitlesState.trackSize > 1){
-                    selectTypingSubTitles()
-                }
-                true
-            }
             (keyEvent.isCtrlPressed && keyEvent.key == Key.F && keyEvent.type == KeyEventType.KeyUp) -> {
                 scope.launch { openSearch() }
                 true
@@ -1605,14 +1599,7 @@ fun SubtitlesSidebar(
                         .clickable { selectTrack() }
                         .fillMaxWidth().height(48.dp).padding(start = 16.dp, end = 8.dp)
                 ) {
-                    Row {
-                        Text("选择字幕", color = MaterialTheme.colors.onBackground)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = "$ctrl+S",
-                            color = MaterialTheme.colors.onBackground
-                        )
-                    }
+                    Text("选择字幕", color = MaterialTheme.colors.onBackground)
                     Spacer(Modifier.width(15.dp))
                     Icon(
                         Icons.Default.ExpandMore,
