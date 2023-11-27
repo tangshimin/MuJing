@@ -72,7 +72,7 @@ fun WordScreenSidebar(
                     tooltipPlacement = TooltipPlacement.ComponentRect(
                         anchor = Alignment.CenterEnd,
                         alignment = Alignment.CenterEnd,
-                        offset = DpOffset.Zero
+                        offset = DpOffset(10.dp, 0.dp)
                     )
                 ) {
 
@@ -362,7 +362,7 @@ fun WordScreenSidebar(
                     tooltipPlacement = TooltipPlacement.ComponentRect(
                         anchor = Alignment.CenterEnd,
                         alignment = Alignment.CenterEnd,
-                        offset = DpOffset.Zero
+                         offset = DpOffset(10.dp, 0.dp)
                     )
                 ) {
                     Row(
@@ -403,7 +403,7 @@ fun WordScreenSidebar(
                         tooltipPlacement = TooltipPlacement.ComponentRect(
                             anchor = Alignment.CenterEnd,
                             alignment = Alignment.CenterEnd,
-                            offset = DpOffset.Zero
+                             offset = DpOffset(10.dp, 0.dp)
                         )
                     ) {
                         Row(
@@ -439,41 +439,79 @@ fun WordScreenSidebar(
                     }
                     Divider()
                 }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
-                ) {
-                    Text("外部字幕", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(15.dp))
-                    Switch(
-                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = wordScreenState.externalSubtitlesVisible,
-                        onCheckedChange = {
-                            scope.launch {
-                                wordScreenState.externalSubtitlesVisible = it
-                                wordScreenState.saveWordScreenState()
-                            }
-                        },
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                            shape = RectangleShape
+                        ) {
+                            val tooltip =  "播放视频时，自动加载外部字幕"
+                            Text(text = tooltip, modifier = Modifier.padding(10.dp))
+                        }
+                    },
+                    delayMillis = 300,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.CenterEnd,
+                        alignment = Alignment.CenterEnd,
+                        offset = DpOffset(10.dp, 0.dp)
                     )
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
+                    ) {
+                        Text("外部字幕", color = MaterialTheme.colors.onBackground)
+                        Spacer(Modifier.width(15.dp))
+                        Switch(
+                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                            checked = wordScreenState.externalSubtitlesVisible,
+                            onCheckedChange = {
+                                scope.launch {
+                                    wordScreenState.externalSubtitlesVisible = it
+                                    wordScreenState.saveWordScreenState()
+                                }
+                            },
+                        )
+                    }
                 }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
-                ) {
-                    Text("抄写字幕", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(15.dp))
-                    Switch(
-                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = wordScreenState.isWriteSubtitles,
-                        onCheckedChange = {
-                            scope.launch {
-                                wordScreenState.isWriteSubtitles = it
-                                wordScreenState.saveWordScreenState()
-                            }
-                        },
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                            shape = RectangleShape
+                        ) {
+                            val tooltip =  "播放视频后，光标自动移动到字幕"
+                            Text(text = tooltip, modifier = Modifier.padding(10.dp))
+                        }
+                    },
+                    delayMillis = 300,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.CenterEnd,
+                        alignment = Alignment.CenterEnd,
+                        offset = DpOffset(10.dp, 0.dp)
                     )
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
+                    ) {
+                        Text("抄写字幕", color = MaterialTheme.colors.onBackground)
+                        Spacer(Modifier.width(15.dp))
+                        Switch(
+                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                            checked = wordScreenState.isWriteSubtitles,
+                            onCheckedChange = {
+                                scope.launch {
+                                    wordScreenState.isWriteSubtitles = it
+                                    wordScreenState.saveWordScreenState()
+                                }
+                            },
+                        )
+                    }
                 }
                 var audioExpanded by remember { mutableStateOf(false) }
                 Row(
