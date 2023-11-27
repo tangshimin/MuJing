@@ -458,7 +458,7 @@ private fun FrameWindowScope.WindowMenuBar(
         }
 
         Separator()
-        Item("编辑词库(E)", mnemonic = 'M', onClick = {
+        Item("编辑词库(E)", mnemonic = 'E', onClick = {
             appState.editVocabulary = true
         })
         Item("合并词库(M)", mnemonic = 'M', onClick = {
