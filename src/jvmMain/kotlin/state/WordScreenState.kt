@@ -15,7 +15,6 @@ import java.io.File
 import javax.swing.JOptionPane
 
 /** 记忆单词的数据类 */
-// TODO 重命名为 WordScreenState
 @ExperimentalSerializationApi
 @Serializable
 data class WordScreenData(
