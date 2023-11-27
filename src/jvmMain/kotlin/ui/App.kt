@@ -285,6 +285,16 @@ fun App() {
             colors = appState.colors,
         )
     }
+    if (appState.newVocabulary) {
+        NewVocabularyDialog(
+            close = { appState.newVocabulary = false },
+            setEditPath = {
+                choosedPath = it;
+                showEditVocabulary = true
+            },
+            colors = appState.colors,
+        )
+    }
     if(showEditVocabulary){
         EditVocabulary(
             close = {showEditVocabulary = false},
@@ -405,6 +415,34 @@ private fun FrameWindowScope.WindowMenuBar(
 
             showFilePicker = false
         }
+        Menu("打开最近词库(R)",enabled = appState.recentList.isNotEmpty(), mnemonic = 'R') {
+            for (i in 0 until appState.recentList.size){
+                val recentItem = appState.recentList.getOrNull(i)
+                if(recentItem!= null){
+                    Item(text = recentItem.name, onClick = {
+                        val recentFile = File(recentItem.path)
+                        if (recentFile.exists()) {
+                            appState.changeVocabulary(recentFile,wordScreenState, recentItem.index)
+                            appState.global.type = ScreenType.WORD
+                            appState.saveGlobalState()
+                            appState.loadingFileChooserVisible = false
+                        } else {
+                            appState.removeRecentItem(recentItem)
+                            JOptionPane.showMessageDialog(null, "文件地址错误：\n${recentItem.path}")
+                        }
+
+                    })
+
+                }
+            }
+        }
+        Item("新建词库(N)", mnemonic = 'N', onClick = {
+            appState.newVocabulary = true
+        })
+        Item("编辑词库(E)", mnemonic = 'E', onClick = {
+            appState.editVocabulary = true
+        })
+        Separator()
         var showBuiltInVocabulary by remember{mutableStateOf(false)}
         Item("选择内置词库(B)", mnemonic = 'B', onClick = {showBuiltInVocabulary = true})
         BuiltInVocabularyDialog(
@@ -435,32 +473,7 @@ private fun FrameWindowScope.WindowMenuBar(
             appState.saveGlobalState()
         })
 
-        Menu("打开最近词库(R)",enabled = appState.recentList.isNotEmpty(), mnemonic = 'R') {
-            for (i in 0 until appState.recentList.size){
-                val recentItem = appState.recentList.getOrNull(i)
-                if(recentItem!= null){
-                    Item(text = recentItem.name, onClick = {
-                        val recentFile = File(recentItem.path)
-                        if (recentFile.exists()) {
-                            appState.changeVocabulary(recentFile,wordScreenState, recentItem.index)
-                            appState.global.type = ScreenType.WORD
-                            appState.saveGlobalState()
-                            appState.loadingFileChooserVisible = false
-                        } else {
-                            appState.removeRecentItem(recentItem)
-                            JOptionPane.showMessageDialog(null, "文件地址错误：\n${recentItem.path}")
-                        }
-
-                    })
-
-                }
-            }
-        }
-
         Separator()
-        Item("编辑词库(E)", mnemonic = 'E', onClick = {
-            appState.editVocabulary = true
-        })
         Item("合并词库(M)", mnemonic = 'M', onClick = {
             appState.mergeVocabulary = true
         })

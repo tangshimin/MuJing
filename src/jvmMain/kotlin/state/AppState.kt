@@ -61,6 +61,8 @@ class AppState {
     /** 是否显示等待窗口 */
     var loadingFileChooserVisible by mutableStateOf(false)
 
+    /** 是否显示【新建词库】窗口 */
+    var newVocabulary by  mutableStateOf(false)
     /** 是否显示【编辑词库】窗口 */
     var editVocabulary by  mutableStateOf(false)
 
