@@ -63,6 +63,18 @@ fun DocumentWindow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
+                                .clickable { setCurrentPage("vocabulary" )}) {
+                            Text("词库介绍", modifier = Modifier.padding(start = 16.dp))
+                            if(currentPage == "vocabulary"){
+                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                            }
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
                                 .clickable { setCurrentPage("tips" )}) {
                             Text("使用技巧", modifier = Modifier.padding(start = 16.dp))
                             if(currentPage == "tips"){
@@ -133,6 +145,9 @@ fun DocumentWindow(
                     Divider(Modifier.width(1.dp).fillMaxHeight())
 
                     when(currentPage){
+                        "vocabulary" -> {
+                            VocabularyPage()
+                        }
                         "tips" -> {
                             Tips()
                         }
@@ -194,6 +209,26 @@ fun FrequencyRelatedLink(){
                     uriHandler.openUri(it.item)
                 }
             })
+    }
+}
+
+@Composable
+fun VocabularyPage(){
+
+    Column (Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp)){
+        Text("词库可以分为两类：\n" +
+                "     - 文档词库，软件内置的词库就是文档词库，另外使用文档生成的词库也是文档词库。\n" +
+                "     - 字幕词库，字幕词库也分为两类：\n" +
+                "         - MKV 词库，使用mkv视频内置字幕生成的词库。\n" +
+                "         - SUBTITLES 词库，使用外部字幕生成的词库。\n\n" +
+                "字幕词库和 MKV 词库里的字幕可以链接到文档词库里的单词。\n"
+        )
+
+        Text("熟悉词库：非常熟悉，不要再记忆的单词。\n" +
+                "记忆单词的时候，觉得一个单词非常熟悉，不用再记忆了，就可以使用快捷键 Ctrl + Y 把这个单词加入到熟悉词库。\n" +
+                "生成词库的时候，在左边的过滤区选择熟悉词库，就可以批量的过滤熟悉词库。\n")
+
+        Text("困难词库：很难拼写的单词，比如发音不规则的单词或者比较长的单词，可以使用快捷键 Ctrl + I 把这个单词添加到困难词库。\n")
     }
 }
 
