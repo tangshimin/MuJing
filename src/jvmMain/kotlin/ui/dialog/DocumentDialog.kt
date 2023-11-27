@@ -45,7 +45,7 @@ fun DocumentWindow(
         resizable = true,
         state = rememberWindowState(
             position = WindowPosition(Alignment.Center),
-            size = DpSize(1140.dp, 700.dp)
+            size = DpSize(1170.dp, 700.dp)
         ),
     ) {
         Surface {
