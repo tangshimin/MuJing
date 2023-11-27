@@ -124,11 +124,12 @@ data class ExternalCaption(
 
 fun loadMutableVocabulary(path: String): MutableVocabulary {
     val file = getResourcesFile(path)
+    val name = file.nameWithoutExtension
     // 如果当前词库被删除，重启之后又没有选择新的词库，再次重启时才会调用，
     // 主要是为了避免再次重启是出现”找不到词库"对话框
     return if(path.isEmpty()){
         val vocabulary = Vocabulary(
-            name = "",
+            name = name,
             type = VocabularyType.DOCUMENT,
             language = "",
             size = 0,
@@ -144,11 +145,15 @@ fun loadMutableVocabulary(path: String): MutableVocabulary {
             if(vocabulary.size != vocabulary.wordList.size){
                 vocabulary.size = vocabulary.wordList.size
             }
+            // 如果用户修改了词库的文件名，以用户修改的为准。
+            if(vocabulary.name != name){
+                vocabulary.name = name
+            }
             MutableVocabulary(vocabulary)
         } catch (exception: Exception) {
             exception.printStackTrace()
             val vocabulary = Vocabulary(
-                name = "",
+                name = name,
                 type = VocabularyType.DOCUMENT,
                 language = "",
                 size = 0,
@@ -165,7 +170,7 @@ fun loadMutableVocabulary(path: String): MutableVocabulary {
 
     } else {
         val vocabulary = Vocabulary(
-            name = "",
+            name = name,
             type = VocabularyType.DOCUMENT,
             language = "",
             size = 0,
@@ -182,14 +187,20 @@ fun loadMutableVocabulary(path: String): MutableVocabulary {
 
 fun loadVocabulary(path: String): Vocabulary {
     val file = getResourcesFile(path)
+    val name = file.nameWithoutExtension
     if (file.exists()) {
         return try {
             //  TODO 链接字幕词库时选取了一个错误文件，导致程序卡死。定位到这里  error:  Required array length 2147483638 + 16142 is too large
-            Json.decodeFromString(file.readText())
+           val vocabulary =  Json.decodeFromString<Vocabulary>(file.readText())
+            // 如果用户修改了词库的文件名，以用户修改的为准。
+            if(vocabulary.name != name){
+                vocabulary.name = name
+            }
+            vocabulary
         } catch (exception: Exception) {
             JOptionPane.showMessageDialog(null, "词库解析错误：\n地址：$path\n" + exception.message)
             Vocabulary(
-                name = "",
+                name = name,
                 type = VocabularyType.DOCUMENT,
                 language = "",
                 size = 0,
@@ -201,7 +212,7 @@ fun loadVocabulary(path: String): Vocabulary {
     } else {
 
         return Vocabulary(
-            name = "",
+            name = name,
             type = VocabularyType.DOCUMENT,
             language = "",
             size = 0,
