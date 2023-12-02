@@ -135,7 +135,7 @@ fun updateFlatLaf(
         //Table
         UIManager.put("Table.background", Color(255, 255, 255))
         UIManager.put("Table.foreground", Color(0, 0, 0))
-        UIManager.put("Table.selectionBackground", Color(38, 117, 191))
+        UIManager.put("Table.selectionBackground", Color(195, 195, 195))
         UIManager.put("TableHeader.background", Color(239, 239, 239))
         UIManager.put("Table.gridColor", Color(235, 235, 235))
         UIManager.put("Table.cellFocusColor", Color(0, 0, 0))
