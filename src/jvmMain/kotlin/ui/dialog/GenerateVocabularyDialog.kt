@@ -637,16 +637,15 @@ fun GenerateVocabularyDialog(
          * 手动点击删除的单词，一般都是熟悉的词，
          * 所有需要添加到熟悉词库
          */
-        val removeWord:(Word) -> Unit = {
-            previewList.remove(it)
-            removedWords.add(it)
+        val removeWord:(Word) -> Unit = {word ->
+            val tempWord = word.deepCopy()
             // 如果是过滤词库，同时过滤的是熟悉词库，要把删除的单词从内存中的熟悉词库删除
             if (state.filterVocabulary && File(selectedFilePath).nameWithoutExtension == "FamiliarVocabulary") {
-                familiarVocabulary.wordList.remove(it)
+                familiarVocabulary.wordList.remove(tempWord)
             }else{
                 // 用字幕生成的词库和用 MKV 生成的词库，需要把内部字幕转换为外部字幕
-                if (it.captions.isNotEmpty()) {
-                    it.captions.forEach { caption ->
+                if (tempWord.captions.isNotEmpty()) {
+                    tempWord.captions.forEach { caption ->
                         val externalCaption = ExternalCaption(
                             relateVideoPath = relateVideoPath,
                             subtitlesTrackId = selectedTrackId,
@@ -655,20 +654,32 @@ fun GenerateVocabularyDialog(
                             end = caption.end,
                             content = caption.content
                         )
-                        it.externalCaptions.add(externalCaption)
+                        tempWord.externalCaptions.add(externalCaption)
                     }
-                    it.captions.clear()
+                    tempWord.captions.clear()
                 }
 
                 // 把单词添加到熟悉词库
-                if(!familiarVocabulary.wordList.contains(it)){
-                    familiarVocabulary.wordList.add(it)
+                if(!familiarVocabulary.wordList.contains(tempWord)){
+                    familiarVocabulary.wordList.add(tempWord)
                 }
             }
-            scope.launch {
+
+            try{
                 familiarVocabulary.size = familiarVocabulary.wordList.size
                 val familiarFile = getFamiliarVocabularyFile()
                 saveVocabulary(familiarVocabulary.serializeVocabulary, familiarFile.absolutePath)
+                previewList.remove(word)
+                removedWords.add(word)
+            }catch (e:Exception){
+                // 回滚
+                if (state.filterVocabulary && File(selectedFilePath).nameWithoutExtension == "FamiliarVocabulary") {
+                    familiarVocabulary.wordList.add(tempWord)
+                }else{
+                    familiarVocabulary.wordList.remove(tempWord)
+                }
+                e.printStackTrace()
+                JOptionPane.showMessageDialog(window, "保存熟悉词库失败,错误信息：\n${e.message}")
             }
 
         }
@@ -944,30 +955,37 @@ fun GenerateVocabularyDialog(
                                                 subtitlesTrackId = selectedTrackId,
                                                 wordList = previewList
                                             )
-                                            state.saveToRecentList(vocabulary.name, selectedFile.absolutePath,0)
-                                            saveVocabulary(vocabulary, selectedFile.absolutePath)
+                                            try{
+                                                saveVocabulary(vocabulary, selectedFile.absolutePath)
+                                                state.saveToRecentList(vocabulary.name, selectedFile.absolutePath,0)
 
-                                            // 清理状态
-                                            selectedFileList.clear()
-                                            showTaskList = false
-                                            tasksState.clear()
-                                            currentTask = null
-                                            errorMessages.clear()
-                                            selectedFilePath = ""
-                                            selectedSubtitlesName = ""
-                                            previewList.clear()
-                                            relateVideoPath = ""
-                                            selectedTrackId = 0
-                                            filteringType = DOCUMENT
-                                            trackList.clear()
-                                            filterState = Idle
-                                            vocabularyFilterList.clear()
-                                            numberFilter = false
-                                            frqNumFilter = false
-                                            bncNumberFilter = false
-                                            bncZeroFilter = false
-                                            frqZeroFilter = false
-                                            replaceToLemma = false
+                                                // 清理状态
+                                                selectedFileList.clear()
+                                                showTaskList = false
+                                                tasksState.clear()
+                                                currentTask = null
+                                                errorMessages.clear()
+                                                selectedFilePath = ""
+                                                selectedSubtitlesName = ""
+                                                previewList.clear()
+                                                relateVideoPath = ""
+                                                selectedTrackId = 0
+                                                filteringType = DOCUMENT
+                                                trackList.clear()
+                                                filterState = Idle
+                                                vocabularyFilterList.clear()
+                                                numberFilter = false
+                                                frqNumFilter = false
+                                                bncNumberFilter = false
+                                                bncZeroFilter = false
+                                                frqZeroFilter = false
+                                                replaceToLemma = false
+                                            }catch(e:Exception){
+                                                e.printStackTrace()
+                                                JOptionPane.showMessageDialog(window, "保存词库失败,错误信息：\n${e.message}")
+                                            }
+
+
                                         }
 
 

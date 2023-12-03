@@ -108,8 +108,15 @@ fun FamiliarDialog(
 
                 familiarVocabulary.size = familiarVocabulary.wordList.size
                 val familiarFile = getFamiliarVocabularyFile()
-                saveVocabulary(familiarVocabulary.serializeVocabulary, familiarFile.absolutePath)
-                importing = false
+                try{
+                    saveVocabulary(familiarVocabulary.serializeVocabulary, familiarFile.absolutePath)
+                    importing = false
+                }catch(e:Exception){
+                    e.printStackTrace()
+                    JOptionPane.showMessageDialog(null,"保存词库失败,错误信息：\n${e.message}")
+                    close()
+                }
+
             }
         }
 

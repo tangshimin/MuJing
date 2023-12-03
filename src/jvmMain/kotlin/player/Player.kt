@@ -1299,9 +1299,21 @@ fun DanmakuBox(
             val word = danmakuItem.word
             vocabulary!!.wordList.remove(word)
             vocabulary.size = vocabulary.wordList.size
-            saveVocabulary(vocabulary.serializeVocabulary,vocabularyPath)
+            try{
+                saveVocabulary(vocabulary.serializeVocabulary,vocabularyPath)
+                showingDanmaku.remove(danmakuItem.sequence)
+            }catch (e:Exception){
+                // 回滚
+                if (word != null) {
+                    vocabulary.wordList.add(word)
+                    vocabulary.size = vocabulary.wordList.size
+                }
+                e.printStackTrace()
+                JOptionPane.showMessageDialog(null, "保存词库失败,错误信息:\n${e.message}")
+            }
+
         }
-        showingDanmaku.remove(danmakuItem.sequence)
+
         showingDetailChanged(false)
         playEvent()
     }
@@ -1310,14 +1322,14 @@ fun DanmakuBox(
     val addToFamiliar: (DanmakuItem) -> Unit = { danmakuItem ->
         val word = danmakuItem.word
         if (word != null) {
-
+            val familiarWord = word.deepCopy()
             val file = getFamiliarVocabularyFile()
             val familiar = loadVocabulary(file.absolutePath)
             // 如果当前词库是 MKV 或 SUBTITLES 类型的词库，需要把内置词库转换成外部词库。
             if (vocabulary!!.type == VocabularyType.MKV ||
                 vocabulary.type == VocabularyType.SUBTITLES
             ) {
-                word.captions.forEach { caption ->
+                familiarWord.captions.forEach { caption ->
                     val externalCaption = ExternalCaption(
                         relateVideoPath = vocabulary.relateVideoPath,
                         subtitlesTrackId = vocabulary.subtitlesTrackId,
@@ -1326,20 +1338,29 @@ fun DanmakuBox(
                         end = caption.end,
                         content = caption.content
                     )
-                    word.externalCaptions.add(externalCaption)
+                    familiarWord.externalCaptions.add(externalCaption)
                 }
-                word.captions.clear()
+                familiarWord.captions.clear()
 
             }
-            if (!familiar.wordList.contains(word)) {
-                familiar.wordList.add(word)
+            if (!familiar.wordList.contains(familiarWord)) {
+                familiar.wordList.add(familiarWord)
                 familiar.size = familiar.wordList.size
             }
             if(familiar.name.isEmpty()){
                 familiar.name = "FamiliarVocabulary"
             }
-            saveVocabulary(familiar, file.absolutePath)
-            deleteWord(danmakuItem)
+            try{
+                saveVocabulary(familiar, file.absolutePath)
+                deleteWord(danmakuItem)
+            }catch (e:Exception){
+                // 回滚
+                familiar.wordList.remove(familiarWord)
+                familiar.size = familiar.wordList.size
+                e.printStackTrace()
+                JOptionPane.showMessageDialog(null, "保存熟悉词库失败,错误信息:\n${e.message}")
+            }
+
         }
 
     }

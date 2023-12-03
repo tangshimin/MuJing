@@ -334,8 +334,14 @@ fun MergeVocabularyDialog(
                                         val fileToSave = fileChooser.selectedFile
                                         if (newVocabulary != null) {
                                             newVocabulary!!.name = fileToSave.nameWithoutExtension
-                                            saveVocabulary(newVocabulary!!, fileToSave.absolutePath)
-                                            saveToRecentList(fileToSave.nameWithoutExtension, fileToSave.absolutePath)
+                                            try{
+                                                saveVocabulary(newVocabulary!!, fileToSave.absolutePath)
+                                                saveToRecentList(fileToSave.nameWithoutExtension, fileToSave.absolutePath)
+                                            }catch(e: Exception){
+                                                e.printStackTrace()
+                                                JOptionPane.showMessageDialog(window, "保存词库失败,错误信息：\n${e.message}")
+                                            }
+
                                         }
                                         newVocabulary = null
                                         fileChooser.selectedFile = null

@@ -402,19 +402,32 @@ fun MainContent(
                 appState.hardVocabulary.wordList.remove(currentWord)
                 appState.hardVocabulary.size = appState.hardVocabulary.wordList.size
             }
-            wordScreenState.clearInputtedState()
-            wordScreenState.saveCurrentVocabulary()
+            try{
+                wordScreenState.saveCurrentVocabulary()
+                wordScreenState.clearInputtedState()
+            }catch (e:Exception){
+                // 回滚
+                wordScreenState.vocabulary.wordList.add(index,currentWord)
+                wordScreenState.vocabulary.size = wordScreenState.vocabulary.wordList.size
+                if(wordScreenState.vocabulary.name == "HardVocabulary"){
+                    appState.hardVocabulary.wordList.add(currentWord)
+                    appState.hardVocabulary.size = appState.hardVocabulary.wordList.size
+                }
+                e.printStackTrace()
+                JOptionPane.showMessageDialog(window, "删除单词失败,错误信息:\n${e.message}")
+            }
         }
 
         /** 把当前单词加入到熟悉词库 */
         val addToFamiliar:() -> Unit = {
             val file = getFamiliarVocabularyFile()
             val familiar =  loadVocabulary(file.absolutePath)
+            val familiarWord = currentWord.deepCopy()
             // 如果当前词库是 MKV 或 SUBTITLES 类型的词库，需要把内置词库转换成外部词库。
             if (wordScreenState.vocabulary.type == VocabularyType.MKV ||
                 wordScreenState.vocabulary.type == VocabularyType.SUBTITLES
             ) {
-                currentWord.captions.forEach{caption ->
+                familiarWord.captions.forEach{ caption ->
                     val externalCaption = ExternalCaption(
                         relateVideoPath = wordScreenState.vocabulary.relateVideoPath,
                         subtitlesTrackId = wordScreenState.vocabulary.subtitlesTrackId,
@@ -423,39 +436,64 @@ fun MainContent(
                         end = caption.end,
                         content = caption.content
                     )
-                    currentWord.externalCaptions.add(externalCaption)
+                    familiarWord.externalCaptions.add(externalCaption)
                 }
-                currentWord.captions.clear()
+                familiarWord.captions.clear()
 
             }
             if(familiar.name.isEmpty()){
                 familiar.name = "FamiliarVocabulary"
             }
-            if(!familiar.wordList.contains(currentWord)){
-                familiar.wordList.add(currentWord)
+            if(!familiar.wordList.contains(familiarWord)){
+                familiar.wordList.add(familiarWord)
                 familiar.size = familiar.wordList.size
             }
-            saveVocabulary(familiar,file.absolutePath)
-            deleteWord()
+            try{
+                saveVocabulary(familiar,file.absolutePath)
+                deleteWord()
+            }catch(e:Exception){
+                // 回滚
+                if(familiar.wordList.contains(familiarWord)){
+                    familiar.wordList.remove(familiarWord)
+                    familiar.size = familiar.wordList.size
+                }
+
+                e.printStackTrace()
+                JOptionPane.showMessageDialog(window, "保存熟悉词库失败,错误信息:\n${e.message}")
+            }
             showFamiliarDialog = false
         }
 
         /** 处理加入到困难词库的函数 */
         val bookmarkClick :() -> Unit = {
+            val hardWord = currentWord.deepCopy()
             val contains = appState.hardVocabulary.wordList.contains(currentWord)
+            val index = appState.hardVocabulary.wordList.indexOf(currentWord)
             if(contains){
-                appState.hardVocabulary.wordList.remove(currentWord)
+                appState.hardVocabulary.wordList.removeAt(index)
+                // 如果当前词库是困难词库，说明用户想把单词从困难词库（当前词库）删除
                 if(wordScreenState.vocabulary.name == "HardVocabulary"){
                     wordScreenState.vocabulary.wordList.remove(currentWord)
                     wordScreenState.vocabulary.size = wordScreenState.vocabulary.wordList.size
-                    wordScreenState.saveCurrentVocabulary()
+                    try{
+                        wordScreenState.saveCurrentVocabulary()
+                    }catch (e:Exception){
+                        // 回滚
+                        appState.hardVocabulary.wordList.add(index,currentWord)
+                        appState.hardVocabulary.size = appState.hardVocabulary.wordList.size
+                        wordScreenState.vocabulary.wordList.add(wordScreenState.index,currentWord)
+                        wordScreenState.vocabulary.size = wordScreenState.vocabulary.wordList.size
+
+                        e.printStackTrace()
+                        JOptionPane.showMessageDialog(window, "保存当前词库失败,错误信息:\n${e.message}")
+                    }
+
                 }
             }else{
                 val relateVideoPath = wordScreenState.vocabulary.relateVideoPath
                 val subtitlesTrackId = wordScreenState.vocabulary.subtitlesTrackId
                 val subtitlesName =
                     if (wordScreenState.vocabulary.type == VocabularyType.SUBTITLES) wordScreenState.vocabulary.name else ""
-                val hardWord = currentWord.deepCopy()
 
                 currentWord.captions.forEach { caption ->
                     val externalCaption = ExternalCaption(
@@ -471,8 +509,21 @@ fun MainContent(
                 hardWord.captions.clear()
                 appState.hardVocabulary.wordList.add(hardWord)
             }
-            appState.hardVocabulary.size = appState.hardVocabulary.wordList.size
-            appState.saveHardVocabulary()
+            try{
+                appState.saveHardVocabulary()
+                appState.hardVocabulary.size = appState.hardVocabulary.wordList.size
+            }catch(e:Exception){
+                // 回滚
+                if(contains){
+                    appState.hardVocabulary.wordList.add(index,hardWord)
+                }else{
+
+                    appState.hardVocabulary.wordList.remove(hardWord)
+                }
+                e.printStackTrace()
+                JOptionPane.showMessageDialog(window, "保存困难词库失败,错误信息:\n${e.message}")
+            }
+
         }
 
         /** 处理全局快捷键的回调函数 */
@@ -1118,23 +1169,36 @@ fun MainContent(
                                     wordList = shuffledList
                                 )
 
-                                saveVocabulary(vocabulary, selectedFile.absolutePath)
-                                appState.changeVocabulary(selectedFile,wordScreenState,0)
-                                // changeVocabulary 会把内置词库保存到最近列表，
-                                // 保存后，如果再切换列表，就会有两个名字相同的词库，
-                                // 所以需要把刚刚添加的词库从最近列表删除
-                                for(i in 0 until appState.recentList.size){
-                                    val recentItem = appState.recentList[i]
-                                    if(recentItem.name == wordScreenState.vocabulary.name){
-                                        appState.removeRecentItem(recentItem)
-                                        break
+                                try {
+                                    saveVocabulary(vocabulary, selectedFile.absolutePath)
+                                    appState.changeVocabulary(selectedFile, wordScreenState, 0)
+                                    // changeVocabulary 会把内置词库保存到最近列表，
+                                    // 保存后，如果再切换列表，就会有两个名字相同的词库，
+                                    // 所以需要把刚刚添加的词库从最近列表删除
+                                    for (i in 0 until appState.recentList.size) {
+                                        val recentItem = appState.recentList[i]
+                                        if (recentItem.name == wordScreenState.vocabulary.name) {
+                                            appState.removeRecentItem(recentItem)
+                                            break
+                                        }
                                     }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                    JOptionPane.showMessageDialog(window, "保存词库失败,错误信息:\n${e.message}")
                                 }
+
+
                             }
                         }
                     }else{
-                        wordScreenState.vocabulary.wordList.shuffle()
-                        wordScreenState.saveCurrentVocabulary()
+                        try{
+                            wordScreenState.vocabulary.wordList.shuffle()
+                            wordScreenState.saveCurrentVocabulary()
+                        }catch(e:Exception){
+                            e.printStackTrace()
+                            JOptionPane.showMessageDialog(window, "保存词库失败,错误信息:\n${e.message}")
+                        }
+
                     }
 
                 }
@@ -1398,8 +1462,17 @@ fun MainContent(
                             val index = wordScreenState.index
                             wordScreenState.vocabulary.wordList.removeAt(index)
                             wordScreenState.vocabulary.wordList.add(index, newWord)
-                            wordScreenState.saveCurrentVocabulary()
-                            showEditWordDialog = false
+                            try{
+                                wordScreenState.saveCurrentVocabulary()
+                                showEditWordDialog = false
+                            }catch(e:Exception){
+                                // 回滚
+                                wordScreenState.vocabulary.wordList.removeAt(index)
+                                wordScreenState.vocabulary.wordList.add(index, currentWord)
+                                e.printStackTrace()
+                                JOptionPane.showMessageDialog(window, "保存当前词库失败,错误信息:\n${e.message}")
+                            }
+
                         }
                     },
                     close = { showEditWordDialog = false }

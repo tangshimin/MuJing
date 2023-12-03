@@ -25,6 +25,7 @@ import data.Vocabulary
 import data.VocabularyType
 import data.saveVocabulary
 import java.io.File
+import javax.swing.JOptionPane
 
 @Composable
 fun NewVocabularyDialog(
@@ -134,9 +135,15 @@ fun NewVocabularyDialog(
                                     subtitlesTrackId = 0,
                                     wordList = mutableListOf()
                                 )
-                                saveVocabulary(vocabulary, path)
-                                setEditPath(path)
-                                close()
+                                try{
+                                    saveVocabulary(vocabulary, path)
+                                    setEditPath(path)
+                                    close()
+                                }catch(e:Exception){
+                                    e.printStackTrace()
+                                    JOptionPane.showMessageDialog(window, "保存词库失败,错误信息：\n${e.message}")
+                                }
+
                             },
                             modifier = Modifier
                         ) {

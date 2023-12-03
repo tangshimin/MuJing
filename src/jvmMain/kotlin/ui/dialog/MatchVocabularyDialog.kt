@@ -136,10 +136,16 @@ fun MatchVocabularyDialog(
                                 val vocabularyDirPath =  Paths.get(getResourcesFile("vocabulary").absolutePath)
                                 val savePath = Paths.get(selectedFile.absolutePath)
                                 if(savePath.startsWith(vocabularyDirPath)){
-                                    JOptionPane.showMessageDialog(null,"不能把词库保存到应用程序安装目录，因为软件更新或卸载时，生成的词库会被删除")
+                                    JOptionPane.showMessageDialog(window,"不能把词库保存到应用程序安装目录，因为软件更新或卸载时，生成的词库会被删除")
                                 }else{
                                     result!!.name = selectedFile.nameWithoutExtension
-                                    saveVocabulary(result!!, selectedFile.absolutePath)
+                                    try{
+                                        saveVocabulary(result!!, selectedFile.absolutePath)
+                                    }catch(e:Exception){
+                                        e.printStackTrace()
+                                        JOptionPane.showMessageDialog(window,"保存失败,错误信息：\n${e.message}")
+                                    }
+
                                 }
 
                             }

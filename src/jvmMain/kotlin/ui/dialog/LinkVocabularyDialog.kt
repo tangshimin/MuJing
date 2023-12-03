@@ -336,15 +336,21 @@ fun LinkVocabularyDialog(
                 val userSelection = fileChooser.showSaveDialog(window)
                 if (userSelection == JFileChooser.APPROVE_OPTION) {
                     val fileToSave = fileChooser.selectedFile
-                    if (vocabulary != null) {
-                        vocabulary!!.name = fileToSave.nameWithoutExtension
-                        saveVocabulary(vocabulary!!.serializeVocabulary, fileToSave.absolutePath)
+                    try{
+                        if (vocabulary != null) {
+                            vocabulary!!.name = fileToSave.nameWithoutExtension
+                            saveVocabulary(vocabulary!!.serializeVocabulary, fileToSave.absolutePath)
+                        }
+                        vocabulary = null
+                        fileChooser.selectedFile = null
+                        clear()
+                        close()
+                    }catch(e:Exception){
+                        e.printStackTrace()
+                        JOptionPane.showMessageDialog(window,"保存词库失败,错误信息：\n${e.message}")
                     }
-                    vocabulary = null
-                    fileChooser.selectedFile = null
-                    close()
+
                 }
-                clear()
             }.start()
         }
 
