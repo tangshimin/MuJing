@@ -100,142 +100,140 @@ fun Setting(
 
                 val cellVisible = rememberCellVisibleState()
 
-                Row(Modifier.fillMaxSize()) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Top,
-                        modifier = Modifier
-                            .width(250.dp)
-                            .fillMaxHeight()
-                            .background(MaterialTheme.colors.background)
-                    ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Top,
+                    modifier = Modifier
+                        .width(250.dp)
+                        .fillMaxHeight()
+                        .background(MaterialTheme.colors.background)
+                ) {
 
-                        Divider()
-                        val stateVertical = rememberScrollState(0)
-                        Box(modifier = Modifier.fillMaxHeight()) {
-                            Divider(Modifier.align(Alignment.TopCenter))
-                            Box(
-                                Modifier.fillMaxHeight()
-                                    .verticalScroll(stateVertical)
-                            ) {
-                                Column {
-                                    ListItem(
-                                        text = { Text("中文释义", color = MaterialTheme.colors.onBackground) },
-                                        trailing = {
-                                            Switch(
-                                                colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                                                checked = cellVisible.translationVisible,
-                                                onCheckedChange = {
-                                                    cellVisible.translationVisible = it
-                                                    if (it) {
-                                                        displayColumn("中文释义")
-                                                    } else {
-                                                        hideColumn("中文释义")
-                                                    }
-                                                    cellVisible.saveCellVisibleState()
-                                                },
-                                            )
-                                        }
-                                    )
+                    Divider()
+                    val stateVertical = rememberScrollState(0)
+                    Box(modifier = Modifier.fillMaxHeight()) {
+                        Divider(Modifier.align(Alignment.TopCenter))
+                        Box(
+                            Modifier.fillMaxHeight()
+                                .verticalScroll(stateVertical)
+                        ) {
+                            Column {
+                                ListItem(
+                                    text = { Text("中文释义", color = MaterialTheme.colors.onBackground) },
+                                    trailing = {
+                                        Switch(
+                                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                                            checked = cellVisible.translationVisible,
+                                            onCheckedChange = {
+                                                cellVisible.translationVisible = it
+                                                if (it) {
+                                                    displayColumn("中文释义")
+                                                } else {
+                                                    hideColumn("中文释义")
+                                                }
+                                                cellVisible.saveCellVisibleState()
+                                            },
+                                        )
+                                    }
+                                )
 
-                                    ListItem(
-                                        text = { Text("英文释义", color = MaterialTheme.colors.onBackground) },
-                                        trailing = {
-                                            Switch(
-                                                colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                                                checked = cellVisible.definitionVisible,
-                                                onCheckedChange = {
-                                                    cellVisible.definitionVisible = it
-                                                    if (it) {
-                                                        displayColumn("英文释义")
-                                                    } else {
-                                                        hideColumn("英文释义")
-                                                    }
-                                                    cellVisible.saveCellVisibleState()
-                                                },
-                                            )
-                                        }
-                                    )
+                                ListItem(
+                                    text = { Text("英文释义", color = MaterialTheme.colors.onBackground) },
+                                    trailing = {
+                                        Switch(
+                                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                                            checked = cellVisible.definitionVisible,
+                                            onCheckedChange = {
+                                                cellVisible.definitionVisible = it
+                                                if (it) {
+                                                    displayColumn("英文释义")
+                                                } else {
+                                                    hideColumn("英文释义")
+                                                }
+                                                cellVisible.saveCellVisibleState()
+                                            },
+                                        )
+                                    }
+                                )
 
-                                    ListItem(
-                                        text = { Text("英国音标", color = MaterialTheme.colors.onBackground) },
-                                        trailing = {
-                                            Switch(
-                                                colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                                                checked = cellVisible.uKPhoneVisible,
-                                                onCheckedChange = {
-                                                    cellVisible.uKPhoneVisible = it
-                                                    if (it) {
-                                                        displayColumn("英国音标")
-                                                    } else {
-                                                        hideColumn("英国音标")
-                                                    }
-                                                    cellVisible.saveCellVisibleState()
-                                                },
-                                            )
-                                        }
-                                    )
-                                    ListItem(
-                                        text = { Text("美国音标", color = MaterialTheme.colors.onBackground) },
-                                        trailing = {
-                                            Switch(
-                                                colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                                                checked = cellVisible.usPhoneVisible,
-                                                onCheckedChange = {
-                                                    cellVisible.usPhoneVisible = it
-                                                    if (it) {
-                                                        displayColumn("美国音标")
-                                                    } else {
-                                                        hideColumn("美国音标")
-                                                    }
-                                                    cellVisible.saveCellVisibleState()
-                                                },
-                                            )
-                                        }
-                                    )
-                                    ListItem(
-                                        text = { Text("词形变化", color = MaterialTheme.colors.onBackground) },
-                                        trailing = {
-                                            Switch(
-                                                colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                                                checked = cellVisible.exchangeVisible,
-                                                onCheckedChange = {
-                                                    cellVisible.exchangeVisible = it
-                                                    if (it) {
-                                                        displayColumn("词形变化")
-                                                    } else {
-                                                        hideColumn("词形变化")
-                                                    }
-                                                    cellVisible.saveCellVisibleState()
-                                                },
-                                            )
-                                        }
-                                    )
-                                    ListItem(
-                                        text = { Text("字幕", color = MaterialTheme.colors.onBackground) },
-                                        trailing = {
-                                            Switch(
-                                                colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                                                checked = cellVisible.captionsVisible,
-                                                onCheckedChange = {
-                                                    cellVisible.captionsVisible = it
-                                                    if (it) {
-                                                        displayColumn("字幕")
-                                                    } else {
-                                                        hideColumn("字幕")
-                                                    }
-                                                    cellVisible.saveCellVisibleState()
-                                                },
-                                            )
-                                        }
-                                    )
-                                }
+                                ListItem(
+                                    text = { Text("英国音标", color = MaterialTheme.colors.onBackground) },
+                                    trailing = {
+                                        Switch(
+                                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                                            checked = cellVisible.uKPhoneVisible,
+                                            onCheckedChange = {
+                                                cellVisible.uKPhoneVisible = it
+                                                if (it) {
+                                                    displayColumn("英国音标")
+                                                } else {
+                                                    hideColumn("英国音标")
+                                                }
+                                                cellVisible.saveCellVisibleState()
+                                            },
+                                        )
+                                    }
+                                )
+                                ListItem(
+                                    text = { Text("美国音标", color = MaterialTheme.colors.onBackground) },
+                                    trailing = {
+                                        Switch(
+                                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                                            checked = cellVisible.usPhoneVisible,
+                                            onCheckedChange = {
+                                                cellVisible.usPhoneVisible = it
+                                                if (it) {
+                                                    displayColumn("美国音标")
+                                                } else {
+                                                    hideColumn("美国音标")
+                                                }
+                                                cellVisible.saveCellVisibleState()
+                                            },
+                                        )
+                                    }
+                                )
+                                ListItem(
+                                    text = { Text("词形变化", color = MaterialTheme.colors.onBackground) },
+                                    trailing = {
+                                        Switch(
+                                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                                            checked = cellVisible.exchangeVisible,
+                                            onCheckedChange = {
+                                                cellVisible.exchangeVisible = it
+                                                if (it) {
+                                                    displayColumn("词形变化")
+                                                } else {
+                                                    hideColumn("词形变化")
+                                                }
+                                                cellVisible.saveCellVisibleState()
+                                            },
+                                        )
+                                    }
+                                )
+                                ListItem(
+                                    text = { Text("字幕", color = MaterialTheme.colors.onBackground) },
+                                    trailing = {
+                                        Switch(
+                                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                                            checked = cellVisible.captionsVisible,
+                                            onCheckedChange = {
+                                                cellVisible.captionsVisible = it
+                                                if (it) {
+                                                    displayColumn("字幕")
+                                                } else {
+                                                    hideColumn("字幕")
+                                                }
+                                                cellVisible.saveCellVisibleState()
+                                            },
+                                        )
+                                    }
+                                )
                             }
-                            VerticalScrollbar(
-                                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                                adapter = rememberScrollbarAdapter(stateVertical)
-                            )
                         }
+                        VerticalScrollbar(
+                            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                            adapter = rememberScrollbarAdapter(stateVertical)
+                        )
                     }
                 }
             }
