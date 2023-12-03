@@ -222,7 +222,9 @@ fun EditWordComposeContent(
     var translationFieldValue by remember { mutableStateOf(TextFieldValue(tempWord.translation)) }
     var exchange by remember { mutableStateOf(tempWord.exchange) }
     var saveEnable by remember { mutableStateOf(false) }
-    LaunchedEffect(inputWordStr, usphone, ukphone, translationFieldValue, definitionFieldValue, exchange) {
+    var captionsChanged by remember { mutableStateOf(false) }
+
+    LaunchedEffect(inputWordStr, usphone, ukphone, translationFieldValue, definitionFieldValue, exchange,captionsChanged,tempWord.captions.size,tempWord.externalCaptions.size) {
         // 单词不为空，并且任何一个字段发生变化，就激活保存按钮
         saveEnable = (
                 inputWordStr.text.isNotEmpty() &&
@@ -233,6 +235,9 @@ fun EditWordComposeContent(
                                         || (definitionFieldValue.text != word.definition)
                                         || (translationFieldValue.text != word.translation)
                                         || (exchange != word.exchange)
+                                        || (tempWord.captions.size != word.captions.size)
+                                        || (tempWord.externalCaptions.size != word.externalCaptions.size)
+                                        || captionsChanged
                                 )
                 )
     }
@@ -745,6 +750,7 @@ fun EditWordComposeContent(
                 subtitlesTrackId = vocabulary.subtitlesTrackId,
                 relateVideoPath = vocabulary.relateVideoPath,
                 setLinkSize = { linkSize = it },
+                captionsChanged = { captionsChanged = it },
                 word = tempWord
             )
 
@@ -877,6 +883,7 @@ fun EditingCaptions(
     vocabularyType: VocabularyType,
     vocabularyDir: File,
     setLinkSize: (Int) -> Unit,
+    captionsChanged: (Boolean) -> Unit,
     word: Word
 ) {
     val scope = rememberCoroutineScope()
@@ -917,9 +924,15 @@ fun EditingCaptions(
                     isEdit = !isEdit
                     scope.launch {
                         if (vocabularyType == VocabularyType.DOCUMENT) {
-                            word.externalCaptions[index].content = editCaptionContent.text
+                            if(word.externalCaptions[index].content != editCaptionContent.text){
+                                word.externalCaptions[index].content = editCaptionContent.text
+                                captionsChanged(true)
+                            }
                         } else {
-                            word.captions[index].content = editCaptionContent.text
+                            if(word.captions[index].content != editCaptionContent.text){
+                                word.captions[index].content = editCaptionContent.text
+                                captionsChanged(true)
+                            }
                         }
                     }
                 },modifier = Modifier){
@@ -1033,11 +1046,17 @@ fun EditingCaptions(
                         confirm = { (index, start, end) ->
                             scope.launch {
                                 if (vocabularyType == VocabularyType.DOCUMENT) {
-                                    word.externalCaptions[index].start = secondsToString(start)
-                                    word.externalCaptions[index].end = secondsToString(end)
+                                    if(word.externalCaptions[index].start != secondsToString(start) || word.externalCaptions[index].end != secondsToString(end)){
+                                        word.externalCaptions[index].start = secondsToString(start)
+                                        word.externalCaptions[index].end = secondsToString(end)
+                                        captionsChanged(true)
+                                    }
                                 } else {
-                                    word.captions[index].start = secondsToString(start)
-                                    word.captions[index].end = secondsToString(end)
+                                    if(word.captions[index].start != secondsToString(start) || word.captions[index].end != secondsToString(end)){
+                                        word.captions[index].start = secondsToString(start)
+                                        word.captions[index].end = secondsToString(end)
+                                        captionsChanged(true)
+                                    }
                                 }
                             }
                         },

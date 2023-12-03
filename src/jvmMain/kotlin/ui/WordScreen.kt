@@ -1460,6 +1460,7 @@ fun MainContent(
                     save = { newWord ->
                         scope.launch {
                             val index = wordScreenState.index
+                            // 触发重组
                             wordScreenState.vocabulary.wordList.removeAt(index)
                             wordScreenState.vocabulary.wordList.add(index, newWord)
                             try{
