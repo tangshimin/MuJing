@@ -197,13 +197,16 @@ fun WordScreen(
                     if(pfile.path.isNotEmpty()){
                         val file = File(pfile.path)
                         val index = appState.findVocabularyIndex(file)
-                        appState.changeVocabulary(
+                        val changed = appState.changeVocabulary(
                             vocabularyFile = file,
                             wordScreenState,
                             index
                         )
-                        appState.global.type = ScreenType.WORD
-                        appState.saveGlobalState()
+                        if(changed){
+                            appState.global.type = ScreenType.WORD
+                            appState.saveGlobalState()
+                        }
+
                     }
                 }
 

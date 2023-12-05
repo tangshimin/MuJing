@@ -173,7 +173,7 @@ class AppState {
         vocabularyFile: File,
         wordScreenState: WordScreenState,
         index: Int
-    ) {
+    ):Boolean {
         val newVocabulary = loadMutableVocabulary(vocabularyFile.absolutePath)
         if(newVocabulary.wordList.size>0){
 
@@ -203,7 +203,9 @@ class AppState {
             wordScreenState.index = index
             vocabularyChanged = true
             wordScreenState.saveWordScreenState()
+            return true
         }
+        return false
     }
 
     fun findVocabularyIndex(file:File):Int{

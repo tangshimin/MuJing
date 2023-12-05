@@ -17,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -43,6 +44,7 @@ import ui.edit.checkVocabulary
 import ui.flatlaf.setupFileChooser
 import ui.flatlaf.updateFlatLaf
 import java.awt.Rectangle
+import java.awt.Window
 import java.io.File
 import java.util.*
 import javax.swing.JOptionPane
@@ -122,6 +124,7 @@ fun App() {
                     appState.global.detailFontSize = computeFontSize(appState.global.detailTextStyle)
                     val wordState = rememberWordState()
                     WindowMenuBar(
+                        window = window,
                         appState = appState,
                         wordScreenState = wordState,
                         close = {close()}
@@ -394,6 +397,7 @@ private fun computeTitle(textState: TextState) :String{
 @OptIn(ExperimentalSerializationApi::class)
 @Composable
 private fun FrameWindowScope.WindowMenuBar(
+    window: ComposeWindow,
     appState: AppState,
     wordScreenState:WordScreenState,
     close: () -> Unit,
@@ -410,13 +414,16 @@ private fun FrameWindowScope.WindowMenuBar(
                 if(pickFile.path.isNotEmpty()){
                     val file = File(pickFile.path)
                     val index = appState.findVocabularyIndex(file)
-                    appState.changeVocabulary(
+                    val changed = appState.changeVocabulary(
                         vocabularyFile = file,
                         wordScreenState,
                         index
                     )
-                    appState.global.type = ScreenType.WORD
-                    appState.saveGlobalState()
+                    if(changed){
+                        appState.global.type = ScreenType.WORD
+                        appState.saveGlobalState()
+                    }
+
                 }
             }
 
@@ -429,14 +436,20 @@ private fun FrameWindowScope.WindowMenuBar(
                     Item(text = recentItem.name, onClick = {
                         val recentFile = File(recentItem.path)
                         if (recentFile.exists()) {
-                            appState.changeVocabulary(recentFile,wordScreenState, recentItem.index)
-                            appState.global.type = ScreenType.WORD
-                            appState.saveGlobalState()
-                            appState.loadingFileChooserVisible = false
+                            val changed = appState.changeVocabulary(recentFile,wordScreenState, recentItem.index)
+                            if(changed){
+                                appState.global.type = ScreenType.WORD
+                                appState.saveGlobalState()
+                            }else{
+                                appState.removeRecentItem(recentItem)
+                            }
+
                         } else {
                             appState.removeRecentItem(recentItem)
-                            JOptionPane.showMessageDialog(null, "文件地址错误：\n${recentItem.path}")
+                            JOptionPane.showMessageDialog(window, "文件地址错误：\n${recentItem.path}")
                         }
+
+                        appState.loadingFileChooserVisible = false
 
                     })
 
@@ -462,22 +475,27 @@ private fun FrameWindowScope.WindowMenuBar(
             if(file.exists()){
                 val vocabulary =loadVocabulary(file.absolutePath)
                 if(vocabulary.wordList.isEmpty()){
-                    JOptionPane.showMessageDialog(null,"熟悉词库现在还没有单词")
+                    JOptionPane.showMessageDialog(window,"熟悉词库现在还没有单词")
                 }else{
-                    appState.changeVocabulary(file, wordScreenState,wordScreenState.familiarVocabularyIndex)
-                    appState.global.type = ScreenType.WORD
-                    appState.saveGlobalState()
+                    val changed = appState.changeVocabulary(file, wordScreenState,wordScreenState.familiarVocabularyIndex)
+                    if(changed){
+                        appState.global.type = ScreenType.WORD
+                        appState.saveGlobalState()
+                    }
                 }
 
             }else{
-                JOptionPane.showMessageDialog(null,"熟悉词库现在还没有单词")
+                JOptionPane.showMessageDialog(window,"熟悉词库现在还没有单词")
             }
         })
         Item("困难词库(K)", enabled = appState.hardVocabulary.wordList.isNotEmpty(), mnemonic = 'K',onClick = {
             val file = getHardVocabularyFile()
-            appState.changeVocabulary(file, wordScreenState,wordScreenState.hardVocabularyIndex)
-            appState.global.type = ScreenType.WORD
-            appState.saveGlobalState()
+            val changed = appState.changeVocabulary(file, wordScreenState,wordScreenState.hardVocabularyIndex)
+            if(changed){
+                appState.global.type = ScreenType.WORD
+                appState.saveGlobalState()
+            }
+
         })
 
         Separator()
