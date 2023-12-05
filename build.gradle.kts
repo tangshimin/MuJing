@@ -53,8 +53,9 @@ kotlin {
                 implementation("org.junit.vintage:junit-vintage-engine:5.9.0")
                 implementation(compose("org.jetbrains.compose.ui:ui-test-junit4"))
                 implementation("com.darkrockstudios:mpfilepicker:2.0.2")
-                implementation("com.github.doyaaaaaken:kotlin-csv-jvm:1.8.0")
                 implementation("net.bramp.ffmpeg:ffmpeg:0.7.0")
+                implementation("org.apache.poi:poi:5.2.5")
+                implementation("org.apache.poi:poi-ooxml:5.2.5")
 
             }
         }

@@ -341,8 +341,8 @@ fun Table(
 
     val settings = FlatButton()
     settings.toolTipText = "设置"
-//    val saveButton = FlatButton()
-//    saveButton.toolTipText = "保存"
+    val exportButton = FlatButton()
+    exportButton.toolTipText = "导出词库"
     val infoButton = FlatButton()
     infoButton.toolTipText = "基本信息"
     val addButton = FlatButton()
@@ -380,6 +380,20 @@ fun Table(
         }
     }
 
+    var showExportScreen = false
+    exportButton.addActionListener {
+        if(!showExportScreen){
+            showExportScreen = true
+            exportVocabulary(
+                vocabulary = vocabulary,
+                vocabularyPath = vocabularyPath,
+                futureFileChooser = appState.futureFileChooser,
+                close = { showExportScreen = false },
+                colors = appState.colors
+            )
+        }
+
+    }
 
     var showVocabularyInfo = false
     infoButton.addActionListener {
@@ -399,27 +413,27 @@ fun Table(
     }
 
     settings.preferredSize = Dimension(48, 48)
-//    saveButton.preferredSize = Dimension(48, 48)
+    exportButton.preferredSize = Dimension(48, 48)
     infoButton.preferredSize = Dimension(48, 48)
     addButton.preferredSize = Dimension(48, 48)
     removeButton.preferredSize = Dimension(48, 48)
 
     settings.margin = Insets(10, 10, 10, 10)
-//    saveButton.margin = Insets(10, 10, 10, 10)
+    exportButton.margin = Insets(10, 10, 10, 10)
     infoButton.margin = Insets(10, 10, 10, 10)
     addButton.margin = Insets(10, 10, 10, 10)
     removeButton.margin = Insets(10, 10, 10, 10)
 
     settings.buttonType = FlatButton.ButtonType.borderless
-//    saveButton.buttonType = FlatButton.ButtonType.borderless
+    exportButton.buttonType = FlatButton.ButtonType.borderless
     infoButton.buttonType = FlatButton.ButtonType.borderless
     addButton.buttonType = FlatButton.ButtonType.borderless
     removeButton.buttonType = FlatButton.ButtonType.borderless
 
 
-    val saveIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/save.svg"))
-    saveIcon.colorFilter = FlatSVGIcon.ColorFilter { onBackgroundColor }
-//    saveButton.icon = saveIcon
+    val exportIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/export.svg"))
+    exportIcon.colorFilter = FlatSVGIcon.ColorFilter { onBackgroundColor }
+    exportButton.icon = exportIcon
 
     val settingsIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/tune.svg"))
     settingsIcon.colorFilter = FlatSVGIcon.ColorFilter { onBackgroundColor }
@@ -793,7 +807,7 @@ fun Table(
     compsTextField.border = BorderFactory.createMatteBorder(0, 1, 0, 1, table.gridColor)
     scrollPane.border = BorderFactory.createMatteBorder(1, 1, 1, 1, table.gridColor)
     toolPanel.add(settings)
-//    toolPanel.add(saveButton)
+    toolPanel.add(exportButton)
     toolPanel.add(infoButton)
     toolPanel.add(addButton)
     toolPanel.add(removeButton)
@@ -902,7 +916,7 @@ fun displayExchange(exchangeStr: String): String {
     return str
 }
 
-private fun displayCaptions(word: Word, vocabularyType: VocabularyType): String {
+fun displayCaptions(word: Word, vocabularyType: VocabularyType): String {
     var captions = ""
     if (vocabularyType == VocabularyType.DOCUMENT) {
         word.externalCaptions.forEachIndexed { i, caption ->

@@ -97,7 +97,7 @@ fun NotifactionContent(
                 Row(verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center,
                     modifier = Modifier.fillMaxSize().padding(20.dp)){
-                    if(text == "保存成功" || text == "添加成功"){
+                    if(text == "保存成功" || text == "添加成功" || text == "导出成功"){
                         Icon(
                             imageVector = Icons.Outlined.TaskAlt,
                             contentDescription = "",
