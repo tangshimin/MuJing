@@ -39,6 +39,7 @@ import state.*
 import ui.dialog.*
 import ui.edit.ChooseEditVocabulary
 import ui.edit.EditVocabulary
+import ui.edit.checkVocabulary
 import ui.flatlaf.setupFileChooser
 import ui.flatlaf.updateFlatLaf
 import java.awt.Rectangle
@@ -296,14 +297,20 @@ fun App() {
         )
     }
     if(showEditVocabulary){
-        EditVocabulary(
-            close = {showEditVocabulary = false},
-            vocabularyPath = choosedPath,
-            isDarkTheme = appState.global.isDarkTheme,
-            updateFlatLaf = {
-                updateFlatLaf(appState.global.isDarkTheme,appState.global.backgroundColor.toAwt(),appState.global.onBackgroundColor.toAwt())
-            }
-        )
+        val valid by remember { mutableStateOf(checkVocabulary(choosedPath)) }
+        if(valid){
+            EditVocabulary(
+                close = {showEditVocabulary = false},
+                vocabularyPath = choosedPath,
+                isDarkTheme = appState.global.isDarkTheme,
+                updateFlatLaf = {
+                    updateFlatLaf(appState.global.isDarkTheme,appState.global.backgroundColor.toAwt(),appState.global.onBackgroundColor.toAwt())
+                }
+            )
+        }else{
+            showEditVocabulary = false
+        }
+
     }
 
     // 改变主题后，更新菜单栏、标题栏的样式

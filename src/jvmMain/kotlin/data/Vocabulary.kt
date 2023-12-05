@@ -198,6 +198,7 @@ fun loadVocabulary(path: String): Vocabulary {
             }
             vocabulary
         } catch (exception: Exception) {
+            exception.printStackTrace()
             JOptionPane.showMessageDialog(null, "词库解析错误：\n地址：$path\n" + exception.message)
             Vocabulary(
                 name = name,

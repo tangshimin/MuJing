@@ -22,6 +22,7 @@ import data.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import state.getResourcesFile
@@ -54,21 +55,23 @@ fun EditVocabulary(
     isDarkTheme:Boolean,
     updateFlatLaf:() -> Unit
 ) {
-    val vocabulary = loadVocabulary(vocabularyPath)
-    val fileName = File(vocabularyPath).nameWithoutExtension
+    val vocabulary by remember { mutableStateOf(loadVocabulary(vocabularyPath)) }
+    val fileName by remember{ mutableStateOf(File(vocabularyPath).nameWithoutExtension)}
     //v2.1.6和之前的版本，熟悉词库和困难词库 name 属性可能为空，所以这里需要判断一下
-    val name = when (fileName) {
-        "FamiliarVocabulary" -> {
-            "熟悉词库"
+    val title by remember { mutableStateOf(
+        when (fileName) {
+            "FamiliarVocabulary" -> {
+                "编辑词库 - 熟悉词库"
+            }
+            "HardVocabulary" -> {
+                "编辑词库 - 困难词库"
+            }
+            else -> {
+                "编辑词库 - "+vocabulary.name
+            }
         }
-        "HardVocabulary" -> {
-            "困难词库"
-        }
-        else -> {
-            vocabulary.name
-        }
-    }
-    val title = "编辑词库 - $name"
+
+    ) }
 
     /** 窗口的大小和位置 */
     val windowState = rememberWindowState(
@@ -92,7 +95,21 @@ fun EditVocabulary(
         updateFlatLaf()
     }
 }
-
+// 提前检查一遍，查看文件是否正常
+fun checkVocabulary(vocabularyPath: String):Boolean{
+    var valid = true
+    try{
+        val file = getResourcesFile(vocabularyPath)
+        if (file.exists()) {
+            Json.decodeFromString<Vocabulary>(file.readText())
+        }
+    } catch (exception: Exception) {
+        exception.printStackTrace()
+        JOptionPane.showMessageDialog(null, "词库解析错误,\n地址：$vocabularyPath\n错误信息" + exception.message)
+        valid = false
+    }
+    return valid
+}
 
 @OptIn(ExperimentalSerializationApi::class, ExperimentalComposeUiApi::class)
 @Composable
