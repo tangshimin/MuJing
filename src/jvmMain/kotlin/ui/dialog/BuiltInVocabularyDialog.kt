@@ -8,9 +8,12 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.TaskAlt
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -20,6 +23,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
+import data.*
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import player.isWindows
 import state.getResourcesFile
 import java.io.File
@@ -53,8 +59,12 @@ fun BuiltInVocabularyDialog(
                     .background(color = MaterialTheme.colors.background)
 
                 ){
+                    var finish by remember{ mutableStateOf(false)}
+                    var waiting by remember{ mutableStateOf(false)}
+
                     /** 保存词库 */
                     val save:(File) -> Unit = {file ->
+                        waiting = true
                         Thread {
                             var name = file.nameWithoutExtension
                             if (file.parentFile.nameWithoutExtension == "人教版英语" ||
@@ -77,16 +87,30 @@ fun BuiltInVocabularyDialog(
                                 if (fileToSave.exists()) {
                                     // 是-0,否-1，取消-2
                                     val answer =
-                                        JOptionPane.showConfirmDialog(null, "${name}.json 已存在。\n要替换它吗？")
+                                        JOptionPane.showConfirmDialog(window, "${name}.json 已存在。\n要替换它吗？")
                                     if (answer == 0) {
-                                        fileToSave.writeBytes(file.readBytes())
+                                        try{
+                                            fileToSave.writeBytes(file.readBytes())
+                                            finish = true
+                                        }catch (e:Exception){
+                                            e.printStackTrace()
+                                            JOptionPane.showMessageDialog(window,"保存失败，错误信息：\n${e.message}")
+                                        }
+
                                     }
                                 } else {
-                                    fileToSave.writeBytes(file.readBytes())
+                                    try{
+                                        fileToSave.writeBytes(file.readBytes())
+                                        finish = true
+                                    }catch (e:Exception){
+                                        e.printStackTrace()
+                                        JOptionPane.showMessageDialog(window,"保存失败，错误信息：\n${e.message}")
+                                    }
+
                                 }
 
                             }
-
+                            waiting = false
                         }.start()
                     }
 
@@ -127,6 +151,38 @@ fun BuiltInVocabularyDialog(
                             )
                         }
                     }
+                    if(waiting){
+                        CircularProgressIndicator(Modifier.align(Alignment.Center).size(150.dp))
+                    }
+                    if(finish){
+                        Surface (Modifier.size(206.dp,83.dp)
+                            .align(Alignment.Center)
+                            .border(BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
+                        ){
+                            Row(verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .padding(20.dp)
+                            ){
+                                Icon(
+                                    imageVector = Icons.Outlined.TaskAlt,
+                                    contentDescription = "",
+                                    tint = Color.Green
+                                )
+                                Text(
+                                    text = "保存成功",
+                                    color = MaterialTheme.colors.onBackground,
+                                    modifier = Modifier.padding(start = 20.dp)
+                                )
+                            }
+                            LaunchedEffect(Unit){
+                                delay(2000)
+                                finish = false
+                            }
+                        }
+                    }
+
                     VerticalScrollbar(
                         style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
                         modifier = Modifier.align(Alignment.CenterEnd)
