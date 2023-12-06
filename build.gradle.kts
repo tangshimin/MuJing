@@ -41,7 +41,6 @@ kotlin {
                 implementation("com.formdev:flatlaf-extras:2.6")
                 implementation("org.apache.opennlp:opennlp-tools:1.9.4")
                 implementation("org.apache.pdfbox:pdfbox:2.0.24")
-                implementation("com.h2database:h2:2.1.212")
                 implementation("com.squareup.okhttp3:okhttp:4.10.0")
                 implementation(files("lib/ebml-reader-0.1.1.jar"))
                 implementation(files("lib/subtitleConvert-1.0.2.jar"))
@@ -56,7 +55,7 @@ kotlin {
                 implementation("net.bramp.ffmpeg:ffmpeg:0.7.0")
                 implementation("org.apache.poi:poi:5.2.5")
                 implementation("org.apache.poi:poi-ooxml:5.2.5")
-
+                implementation("org.xerial:sqlite-jdbc:3.44.1.0")
             }
         }
         val jvmTest by getting

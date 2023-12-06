@@ -42,7 +42,7 @@ bin/
 .DS_Store
 
 ### 未压缩的数据库 ###
-/resources/common/dictionary/ecdict.mv.db
+/resources/common/dictionary/ecdict.db
 
 ### 缓存的单词发音数据 ###
 /audio
