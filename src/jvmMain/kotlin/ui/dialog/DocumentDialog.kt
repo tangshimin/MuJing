@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.*
 import player.isWindows
 import ui.LocalCtrl
@@ -57,12 +58,14 @@ fun DocumentWindow(
                         verticalArrangement = Arrangement.Top,
                         modifier = Modifier.width(200.dp).fillMaxHeight()
                     ) {
+                        val selectedColor = if(MaterialTheme.colors.isLight) Color(245, 245, 245) else Color(41, 42, 43)
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
+                                .background( if(currentPage == "vocabulary")selectedColor else MaterialTheme.colors.background )
                                 .clickable { setCurrentPage("vocabulary" )}) {
                             Text("词库介绍", modifier = Modifier.padding(start = 16.dp))
                             if(currentPage == "vocabulary"){
@@ -75,6 +78,7 @@ fun DocumentWindow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
+                                .background( if(currentPage == "tips")selectedColor else MaterialTheme.colors.background )
                                 .clickable { setCurrentPage("tips" )}) {
                             Text("使用技巧", modifier = Modifier.padding(start = 16.dp))
                             if(currentPage == "tips"){
@@ -87,6 +91,7 @@ fun DocumentWindow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
+                                .background( if(currentPage == "document")selectedColor else MaterialTheme.colors.background )
                                 .clickable {  setCurrentPage("document") }) {
                             Text("用文档生成词库", modifier = Modifier.padding(start = 16.dp))
                             if(currentPage == "document"){
@@ -99,6 +104,7 @@ fun DocumentWindow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
+                                .background( if(currentPage == "subtitles")selectedColor else MaterialTheme.colors.background )
                                 .clickable {  setCurrentPage("subtitles") }) {
                             Text("用字幕生成词库", modifier = Modifier.padding(start = 16.dp))
                             if(currentPage == "subtitles"){
@@ -111,6 +117,7 @@ fun DocumentWindow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
+                                .background( if(currentPage == "matroska")selectedColor else MaterialTheme.colors.background )
                                 .clickable {  setCurrentPage("matroska")}) {
                             Text("用 MKV 视频生成词库", modifier = Modifier.padding(start = 16.dp))
                             if( currentPage == "matroska"){
@@ -123,9 +130,10 @@ fun DocumentWindow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .clickable { setCurrentPage("youtube") }) {
-                            Text("YouTube 视频下载", modifier = Modifier.padding(start = 16.dp))
-                            if(currentPage == "youtube"){
+                                .background( if(currentPage == "linkVocabulary")selectedColor else MaterialTheme.colors.background )
+                                .clickable {  setCurrentPage("linkVocabulary") }) {
+                            Text("链接字幕词库", modifier = Modifier.padding(start = 16.dp))
+                            if(currentPage == "linkVocabulary"){
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
                             }
                         }
@@ -135,12 +143,28 @@ fun DocumentWindow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .clickable {  setCurrentPage("linkVocabulary") }) {
-                            Text("链接字幕词库", modifier = Modifier.padding(start = 16.dp))
-                            if(currentPage == "linkVocabulary"){
+                                .background( if(currentPage == "linkCaptions")selectedColor else MaterialTheme.colors.background )
+                                .clickable {  setCurrentPage("linkCaptions") }) {
+                            Text("链接字幕", modifier = Modifier.padding(start = 16.dp))
+                            if(currentPage == "linkCaptions"){
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
                             }
                         }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .background( if(currentPage == "youtube")selectedColor else MaterialTheme.colors.background )
+                                .clickable { setCurrentPage("youtube") }) {
+                            Text("YouTube 视频下载", modifier = Modifier.padding(start = 16.dp))
+                            if(currentPage == "youtube"){
+                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                            }
+                        }
+
                     }
                     Divider(Modifier.width(1.dp).fillMaxHeight())
 
@@ -165,6 +189,9 @@ fun DocumentWindow(
                         }
                         "linkVocabulary" -> {
                             LinkVocabularyPage()
+                        }
+                        "linkCaptions" -> {
+                            LinkCaptionsPage()
                         }
                     }
                 }
@@ -214,14 +241,14 @@ fun FrequencyRelatedLink(){
 
 @Composable
 fun VocabularyPage(){
-
     Column (Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp)){
         Text("词库可以分为两类：\n" +
-                "     - 文档词库，软件内置的词库就是文档词库，另外使用文档生成的词库也是文档词库。\n" +
-                "     - 字幕词库，字幕词库也分为两类：\n" +
-                "         - MKV 词库，使用mkv视频内置字幕生成的词库。\n" +
-                "         - SUBTITLES 词库，使用外部字幕生成的词库。\n\n" +
-                "字幕词库和 MKV 词库里的字幕可以链接到文档词库里的单词。\n"
+                "     • 文档词库，软件内置的词库就是文档词库，另外使用文档生成的词库也是文档词库。\n" +
+                "     • 字幕词库，字幕词库也分为两类：\n" +
+                "         • MKV 词库，使用mkv视频内置字幕生成的词库。\n" +
+                "         • SUBTITLES 词库，使用外部字幕生成的词库。\n\n" +
+                "字幕词库和 MKV 词库里的字幕可以链接到文档词库里的单词。\n" +
+                "建议把字幕词库和相关视频文件放到一个文件夹，这样就可以把字幕词库和视频一起分享给朋友了。生成字幕词库后不要修改关联视频的名称。\n"
         )
 
         Text("熟悉词库：非常熟悉，不要再记忆的单词。\n" +
@@ -340,7 +367,9 @@ fun DocumentPage(){
 @Composable
 fun SameSteps(){
     val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
-    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(top = 10.dp)){
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(start = 20.dp,top = 10.dp)){
         Spacer(Modifier.width(3.dp).height(180.dp).background(Color.Red))
         Text(frequencyText,modifier = Modifier.padding(start = 10.dp,bottom = 5.dp))
     }
@@ -427,14 +456,31 @@ fun SubtitlesPage(){
         val stateVertical = rememberScrollState(0)
         Column (Modifier.padding(start = 16.dp, top = 16.dp,end = 16.dp).verticalScroll(stateVertical)){
             val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
-            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max)){
-                Spacer(Modifier.width(3.dp).height(90.dp).background(Color.Red))
-                Column (Modifier.padding(start = 10.dp,top = 10.dp)){
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(start = 20.dp)){
+                Spacer(Modifier.width(3.dp).height(130.dp).background(Color.Red))
+                Column (Modifier.padding(start = 10.dp)){
+                    Row(){
+                        Text("•",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold)
+                        Text(text = " 使用字幕生成的词库，每个单词最多匹配三条字幕。", fontWeight = FontWeight.Bold)
+                    }
 
-                    Text(text = "• 使用字幕生成的词库，每个单词最多匹配三条字幕。", fontWeight = FontWeight.Bold,)
                     Row(modifier = Modifier.padding(top = 5.dp)){
-                        Text("• ", fontWeight = FontWeight.Bold)
-                        Text(text = "生成词库并没有切割视频，生成词库后不要移动视频的位置或重命名视频，如果移动或重命名了视频，播放视频时会发生错误，只能重新再生成一次。",
+                        Text("•",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold)
+                        Text(text = " 生成词库并没有切割视频，生成词库后不要重命名视频，如果重命名了视频，播放视频时会发生错误，只能重新再生成一次。",
+                            fontWeight = FontWeight.Bold)
+                    }
+                    Row(modifier = Modifier.padding(top = 5.dp)){
+                        Text("•",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(text = " 建议把生成的词库保存到相关视频文件所在的文件夹，这样就可以把词库和视频一起分享给朋友了，放在一起后，如果移动了整个文件夹，播放视频时不会出现视频地址错误。",
                             fontWeight = FontWeight.Bold)
                     }
 
@@ -484,22 +530,38 @@ fun SubtitlesPage(){
 
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MatroskaPage(){
     Box(Modifier.fillMaxSize()){
         val stateVertical = rememberScrollState(0)
         Column (Modifier.padding(start = 16.dp, top = 16.dp,end = 16.dp).verticalScroll(stateVertical)){
             val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
-            Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max)){
-                Spacer(Modifier.width(3.dp).height(90.dp).background(Color.Red))
-                Column (Modifier.padding(start = 10.dp,top = 10.dp)){
-                    Text(text = "• 使用 MKV 视频生成的词库，每个单词最多匹配三条字幕。",
-                        fontWeight = FontWeight.Bold)
+            Row(  verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(start = 20.dp)){
+                Spacer(Modifier.width(3.dp).height(130.dp).background(Color.Red))
+                Column (Modifier.padding(start = 10.dp)){
+                    Row{
+                        Text(text = "•",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold)
+                        Text(text = " 使用 MKV 视频生成的词库，每个单词最多匹配三条字幕。",
+                            fontWeight = FontWeight.Bold)
+                    }
+
                     Row(modifier = Modifier.padding(top = 5.dp)){
-                        Text("• ", fontWeight = FontWeight.Bold)
-                        Text(text = "生成词库并没有切割视频，生成词库后不要移动视频的位置或重命名视频，如果移动或重命名了视频，播放视频时会发生错误，只能重新再生成一次。",
+                        Text("•",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold)
+                        Text(text = " 生成词库并没有切割视频，生成词库后不要重命名视频，如果重命名了视频，播放视频时会发生错误，只能重新再生成一次。",
                             fontWeight = FontWeight.Bold,)
+                    }
+                    Row(modifier = Modifier.padding(top = 5.dp)){
+                        Text("•",
+                            fontSize = 17.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(text = " 建议把生成的词库保存到 MKV 视频所在的文件夹，这样就可以把词库和视频一起分享给朋友了。放在一起后，如果移动了整个文件夹，播放视频时不会出现视频地址错误。",
+                            fontWeight = FontWeight.Bold)
                     }
 
                 }
@@ -665,13 +727,14 @@ fun YouTubeDownloadPage(){
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun LinkVocabularyPage(){
     Box(Modifier.fillMaxSize()){
         val stateVertical = rememberScrollState(0)
         Column (Modifier.padding(start = 16.dp, top = 16.dp,end = 16.dp).verticalScroll(stateVertical)){
             val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
+            Text("如果你正在记忆四级单词，又使用字幕或mkv视频生成了一个字幕词库，这个词库里有一些单词是四级单词，\n" +
+                    "就可以使用链接字幕词库功能，把这些字幕链接到四级文档词库。链接后修改或删除字幕词库不会影响文档词库。\n")
             Text("提示：不要把链接后的词库保存到应用程序的安装目录\n")
             Text("1. 字幕 > 链接字幕词库(L) 打开链接字幕对话框，然后选择一个词库，也可以拖放一个词库到窗口。")
             Image(
@@ -697,6 +760,61 @@ fun LinkVocabularyPage(){
                 contentDescription = "mkv-4",
                 modifier = Modifier.width(580.dp).height(436.dp).padding(start = 20.dp)
             )
+
+        }
+
+        VerticalScrollbar(
+            style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(stateVertical)
+        )
+    }
+}
+
+@Composable
+fun LinkCaptionsPage(){
+    Box(Modifier.fillMaxSize()){
+        val stateVertical = rememberScrollState(0)
+        Column (Modifier.padding(start = 16.dp, top = 16.dp,end = 16.dp).verticalScroll(stateVertical)){
+            val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
+            Text(
+                "如果你正在记忆四级单词，又使用字幕或mkv视频生成了一个字幕词库，四级词库里有一个单词比如 Dragon, 字幕词库里也有一个 Dragon," +
+                        "如果你只想链接字幕词库里的一个单词而不是整个词库，就可以使用链接字幕功能。\n\n"
+            )
+
+            Text(
+                "1. 这个功能在编辑单词界面，有两个方式打开编辑单词：\n" +
+                        "一个在记忆单词界面，把鼠标移动到正在记忆单词，会弹出一个菜单，然后选择编辑单词。\n" +
+                        "另一个在编辑词库界面，选择了一个单词双击鼠标左键，就会打开编辑单词界面。\n"
+
+            )
+            Row(Modifier.padding(start = 155.dp)){
+                Image(
+                    painter = painterResource("screenshot/link-captions-$theme/edit word button.png"),
+                    contentDescription = "edit word button",
+                    modifier = Modifier.width(520.dp).height(250.dp).padding(start = 20.dp)
+
+                )
+            }
+            Text(
+                "\n\n2. 打开编辑单词后，如果当前单词的字幕数少于 3 个，在底部就会出现链接字幕功能。\n"
+            )
+            Image(
+                painter = painterResource("screenshot/link-captions-$theme/edit word.png"),
+                contentDescription = "edit word",
+                modifier = Modifier.width(850.dp).height(807.dp).padding(start = 20.dp)
+            )
+            Text(
+                "\n\n3. 打开后选择一个字幕词库，如果字幕词库里有和当前词库匹配的单词，就会出现一个字幕列表\n" +
+                        "然后选择对应的字幕即可。\n"
+            )
+            Row(Modifier.padding(start = 115.dp,bottom = 20.dp)){
+                Image(
+                    painter = painterResource("screenshot/link-captions-$theme/link caption.png"),
+                    contentDescription = "link caption",
+                    modifier = Modifier.width(621.dp).height(697.dp).padding(start = 20.dp)
+                )
+            }
 
         }
 
