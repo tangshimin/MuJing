@@ -284,7 +284,7 @@ fun LinkVocabularyDialog(
 
 
     Dialog(
-        title = "链接字幕",
+        title = "链接字幕词库",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = {
             clear()
