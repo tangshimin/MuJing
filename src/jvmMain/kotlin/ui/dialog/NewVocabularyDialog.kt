@@ -125,6 +125,7 @@ fun NewVocabularyDialog(
                     Row(horizontalArrangement = Arrangement.End,
                         modifier = Modifier.fillMaxWidth().padding(top =60.dp)){
                         OutlinedButton(
+                            enabled = name.isNotEmpty() && vocabularyDir.isNotEmpty(),
                             onClick = {
                                 val vocabulary = Vocabulary(
                                     name = name,
