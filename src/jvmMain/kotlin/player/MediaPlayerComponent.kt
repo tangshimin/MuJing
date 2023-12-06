@@ -55,8 +55,8 @@ fun createMediaPlayerComponent(): Component {
         }catch ( exception:UnsatisfiedLinkError){
             val message = JEditorPane()
             message.contentType = "text/html"
-            message.text = "幕境 需要 <a href='https://www.videolan.org/'>VLC 视频播放器</a> 朗读单词发音和播放视频<br>" +
-                    "<a href='https://get.videolan.org/vlc/3.0.17.3/macosx/vlc-3.0.17.3-intel64.dmg'>下载地址</a><br>"
+            message.text = "<p>幕境 需要 <a href='https://www.videolan.org/'>VLC 视频播放器</a> 播放视频和单词发音</p>" +
+                    "<p style=\"color:red;\">Apple 芯片的用户请下载 Intel 版的 VLC，现在还不支持 Apple Silicon，<br>下载的时候不要选择 macOS(Apple Silicon)</p>"
             message.addHyperlinkListener {
                 if(it.eventType == HyperlinkEvent.EventType.ACTIVATED){
                     Desktop.getDesktop().browse(it.url.toURI())
