@@ -848,23 +848,6 @@ fun EditWordComposeContent(
             }
         }
 
-//        if(addSuccess){
-//            Box(
-//                contentAlignment = Alignment.Center,
-//                modifier = Modifier.align(Alignment.Center)
-//                    .border(BorderStroke(1.dp,MaterialTheme.colors.onSurface.copy(0.12f)))){
-//                Surface(
-//                    elevation = 5.dp,
-//                    shape = RectangleShape,
-//                ) {
-//                    Text("添加成功" ,color = MaterialTheme.colors.primary,modifier = Modifier.padding(20.dp))
-//                }
-//                LaunchedEffect(addSuccess){
-//                    delay(2000)
-//                    addSuccess = false
-//                }
-//            }
-//        }
 
     }
 }
