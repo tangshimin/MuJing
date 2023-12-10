@@ -371,7 +371,7 @@ fun LinkVocabularyDialog(
                             val externalNameMap = mutableMapOf<String, Int>()
                             vocabulary?.wordList?.forEach { word ->
                                 word.externalCaptions.forEach { externalCaption ->
-                                    // 视频词库
+                                    // 视频词库，字幕有对应的视频可以播放，
                                     if (externalCaption.relateVideoPath.isNotEmpty()) {
                                         var counter = externalNameMap[externalCaption.relateVideoPath]
                                         if (counter == null) {
@@ -380,7 +380,7 @@ fun LinkVocabularyDialog(
                                             counter++
                                             externalNameMap[externalCaption.relateVideoPath] = counter
                                         }
-                                        // 字幕词库
+                                        // 字幕词库,使用字幕生成的词库没有对应的视频，所以这里使用字幕的名称
                                     } else if (externalCaption.subtitlesName.isNotEmpty()) {
                                         var counter = externalNameMap[externalCaption.subtitlesName]
                                         if (counter == null) {
@@ -405,24 +405,10 @@ fun LinkVocabularyDialog(
                                 }
                                 if (externalNameMap.isNotEmpty()) {
                                     Column {
-                                        var showConfirmationDialog by remember { mutableStateOf(false) }
                                         externalNameMap.forEach { (path, count) ->
+                                            var showConfirmationDialog by remember { mutableStateOf(false) }
                                             Row(verticalAlignment = Alignment.CenterVertically) {
                                                 val name = File(path).nameWithoutExtension
-                                                Text(
-                                                    text = name,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                    modifier = Modifier.width(250.dp).padding(end = 10.dp)
-                                                )
-                                                Text("$count", modifier = Modifier.width(60.dp))
-                                                IconButton(onClick = { showConfirmationDialog = true }) {
-                                                    Icon(
-                                                        imageVector = Icons.Filled.Delete,
-                                                        contentDescription = "",
-                                                        tint = MaterialTheme.colors.onBackground
-                                                    )
-                                                }
                                                 if (showConfirmationDialog) {
                                                     ConfirmDialog(
                                                         message = "确定要删除 $name 的所有字幕吗?",
@@ -436,8 +422,8 @@ fun LinkVocabularyDialog(
                                                                 }
                                                                 word.externalCaptions.removeAll(tempList)
                                                             }
+                                                            // 如果选择的词库有问题，提示用户词库错误，删除词库后就取消提示错误。？
                                                             if (
-//                                                                relateVideoPath == path ||
                                                                 subtitlesName == path) {
                                                                 vocabularyWrong = false
                                                             }
@@ -445,6 +431,21 @@ fun LinkVocabularyDialog(
                                                             saveEnable = true
                                                         },
                                                         close = { showConfirmationDialog = false }
+                                                    )
+                                                }
+
+                                                Text(
+                                                    text = name,
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis,
+                                                    modifier = Modifier.width(250.dp).padding(end = 10.dp)
+                                                )
+                                                Text("$count", modifier = Modifier.width(60.dp))
+                                                IconButton(onClick = { showConfirmationDialog = true }) {
+                                                    Icon(
+                                                        imageVector = Icons.Filled.Delete,
+                                                        contentDescription = "",
+                                                        tint = MaterialTheme.colors.onBackground
                                                     )
                                                 }
 
