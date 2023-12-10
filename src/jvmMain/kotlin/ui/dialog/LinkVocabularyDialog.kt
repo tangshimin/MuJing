@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.times
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
@@ -39,6 +40,7 @@ import player.isMacOS
 import player.isWindows
 import state.AppState
 import state.getResourcesFile
+import ui.edit.computeNameMap
 import java.awt.Point
 import java.awt.Rectangle
 import java.io.File
@@ -368,30 +370,23 @@ fun LinkVocabularyDialog(
                             modifier = Modifier.fillMaxSize().align(Alignment.Center)
                         ) {
                             // 当前词库已经链接的外部字幕
-                            val externalNameMap = mutableMapOf<String, Int>()
-                            vocabulary?.wordList?.forEach { word ->
-                                word.externalCaptions.forEach { externalCaption ->
-                                    // 视频词库，字幕有对应的视频可以播放，
-                                    if (externalCaption.relateVideoPath.isNotEmpty()) {
-                                        var counter = externalNameMap[externalCaption.relateVideoPath]
-                                        if (counter == null) {
-                                            externalNameMap[externalCaption.relateVideoPath] = 1
-                                        } else {
-                                            counter++
-                                            externalNameMap[externalCaption.relateVideoPath] = counter
-                                        }
-                                        // 字幕词库,使用字幕生成的词库没有对应的视频，所以这里使用字幕的名称
-                                    } else if (externalCaption.subtitlesName.isNotEmpty()) {
-                                        var counter = externalNameMap[externalCaption.subtitlesName]
-                                        if (counter == null) {
-                                            externalNameMap[externalCaption.subtitlesName] = 1
-                                        } else {
-                                            counter++
-                                            externalNameMap[externalCaption.subtitlesName] = counter
-                                        }
-                                    }
+                            val externalNameMap = remember { mutableStateMapOf<String,Int>() }
+                            var deleted by remember{ mutableStateOf(false)}
 
+                            LaunchedEffect(vocabulary){
+                                if(vocabulary!= null){
+                                    computeNameMap(vocabulary!!.wordList, externalNameMap)
                                 }
+                            }
+                            LaunchedEffect(deleted){
+                                if(vocabulary!= null){
+                                    if(deleted){
+                                        externalNameMap.clear()
+                                        computeNameMap(vocabulary!!.wordList, externalNameMap)
+                                        deleted = false
+                                    }
+                                }
+
                             }
 
                             Column(Modifier.width(IntrinsicSize.Max)) {
@@ -404,55 +399,78 @@ fun LinkVocabularyDialog(
                                     Divider(Modifier.padding(bottom = bottom))
                                 }
                                 if (externalNameMap.isNotEmpty()) {
-                                    Column {
-                                        externalNameMap.forEach { (path, count) ->
-                                            var showConfirmationDialog by remember { mutableStateOf(false) }
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                val name = File(path).nameWithoutExtension
-                                                if (showConfirmationDialog) {
-                                                    ConfirmDialog(
-                                                        message = "确定要删除 $name 的所有字幕吗?",
-                                                        confirm = {
-                                                            vocabulary?.wordList?.forEach { word ->
-                                                                val tempList = mutableListOf<ExternalCaption>()
-                                                                word.externalCaptions.forEach { externalCaption ->
-                                                                    if (externalCaption.relateVideoPath == path || externalCaption.subtitlesName == path) {
-                                                                        tempList.add(externalCaption)
-                                                                    }
-                                                                }
-                                                                word.externalCaptions.removeAll(tempList)
-                                                            }
-                                                            // 如果选择的词库有问题，提示用户词库错误，删除词库后就取消提示错误。？
-                                                            if (
-                                                                subtitlesName == path) {
-                                                                vocabularyWrong = false
-                                                            }
-                                                            showConfirmationDialog = false
-                                                            saveEnable = true
-                                                        },
-                                                        close = { showConfirmationDialog = false }
-                                                    )
-                                                }
-
-                                                Text(
-                                                    text = name,
-                                                    maxLines = 1,
-                                                    overflow = TextOverflow.Ellipsis,
-                                                    modifier = Modifier.width(250.dp).padding(end = 10.dp)
-                                                )
-                                                Text("$count", modifier = Modifier.width(60.dp))
-                                                IconButton(onClick = { showConfirmationDialog = true }) {
-                                                    Icon(
-                                                        imageVector = Icons.Filled.Delete,
-                                                        contentDescription = "",
-                                                        tint = MaterialTheme.colors.onBackground
-                                                    )
-                                                }
-
+                                    val boxHeight by remember(externalNameMap.size){
+                                        derivedStateOf {
+                                            val size = externalNameMap.size
+                                            if(size <= 5){
+                                                size * 48.dp
+                                            }else{
+                                                240.dp
                                             }
                                         }
                                     }
-                                    Divider()
+
+                                    Box(Modifier.height(boxHeight).fillMaxWidth()){
+                                        val stateVertical = rememberScrollState(0)
+                                        val scrollbarStyle = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp))
+                                        Column (Modifier.verticalScroll(stateVertical)){
+                                            externalNameMap.forEach { (path, count) ->
+                                                var showConfirmationDialog by remember { mutableStateOf(false) }
+                                                Row(verticalAlignment = Alignment.CenterVertically,
+                                                    modifier = Modifier.clickable{}){
+                                                    val name = File(path).nameWithoutExtension
+                                                    if (showConfirmationDialog) {
+                                                        ConfirmDialog(
+                                                            message = "确定要删除 $name 的所有字幕吗?",
+                                                            confirm = {
+                                                                vocabulary?.wordList?.forEach { word ->
+                                                                    val tempList = mutableListOf<ExternalCaption>()
+                                                                    word.externalCaptions.forEach { externalCaption ->
+                                                                        if (externalCaption.relateVideoPath == path || externalCaption.subtitlesName == path) {
+                                                                            tempList.add(externalCaption)
+                                                                        }
+                                                                    }
+                                                                    word.externalCaptions.removeAll(tempList)
+                                                                }
+                                                                // 如果选择的词库有问题，提示用户词库错误，删除词库后就取消提示错误。？
+                                                                if (
+                                                                    subtitlesName == path) {
+                                                                    vocabularyWrong = false
+                                                                }
+                                                                showConfirmationDialog = false
+                                                                saveEnable = true
+                                                                deleted = true
+                                                            },
+                                                            close = { showConfirmationDialog = false }
+                                                        )
+                                                    }
+
+                                                    Text(
+                                                        text = name,
+                                                        maxLines = 1,
+                                                        overflow = TextOverflow.Ellipsis,
+                                                        modifier = Modifier.width(250.dp).padding(end = 10.dp)
+                                                    )
+                                                    Text("$count", modifier = Modifier.width(60.dp))
+                                                    IconButton(onClick = { showConfirmationDialog = true },modifier = Modifier.padding(end = 10.dp)) {
+                                                        Icon(
+                                                            imageVector = Icons.Filled.Delete,
+                                                            contentDescription = "",
+                                                            tint = MaterialTheme.colors.onBackground
+                                                        )
+                                                    }
+
+                                                }
+                                            }
+                                        }
+
+                                        VerticalScrollbar(
+                                            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                                            adapter = rememberScrollbarAdapter(stateVertical),
+                                            style = scrollbarStyle,
+                                        )
+                                    }
+
                                 }
 
                             }

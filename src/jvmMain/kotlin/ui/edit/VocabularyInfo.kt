@@ -9,6 +9,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -27,10 +28,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import com.formdev.flatlaf.extras.FlatSVGUtils
-import data.ExternalCaption
-import data.MutableVocabulary
-import data.Vocabulary
-import data.VocabularyType
+import data.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import player.isWindows
@@ -269,12 +267,12 @@ fun LinkedFile(
     var deleted by remember{ mutableStateOf(false)}
 
     LaunchedEffect(Unit){
-        computeNameMap(vocabulary, externalNameMap)
+        computeNameMap(vocabulary.wordList, externalNameMap)
     }
     LaunchedEffect(deleted){
         if(deleted){
             externalNameMap.clear()
-            computeNameMap(vocabulary, externalNameMap)
+            computeNameMap(vocabulary.wordList, externalNameMap)
             deleted = false
         }
     }
@@ -361,11 +359,11 @@ fun LinkedFile(
     }
 }
 
-private fun computeNameMap(
-    vocabulary: MutableVocabulary,
+fun computeNameMap(
+    wordList: SnapshotStateList<Word>,
     externalNameMap: SnapshotStateMap<String, Int>
 ) {
-    vocabulary.wordList.forEach { word ->
+    wordList.forEach { word ->
         word.externalCaptions.forEach { externalCaption ->
 
             // 视频词库,可以播放字幕对应的视频。
