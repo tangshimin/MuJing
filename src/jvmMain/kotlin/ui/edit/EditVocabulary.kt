@@ -361,7 +361,7 @@ fun Table(
     val exportButton = FlatButton()
     exportButton.toolTipText = "导出词库"
     val infoButton = FlatButton()
-    infoButton.toolTipText = "基本信息"
+    infoButton.toolTipText = "词库信息"
     val addButton = FlatButton()
     addButton.toolTipText = "添加单词"
     val removeButton = FlatButton()

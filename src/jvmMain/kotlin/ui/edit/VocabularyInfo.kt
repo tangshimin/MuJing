@@ -50,7 +50,7 @@ fun vocabularyInfoWindow(
     saveVideoPath: (String) -> Unit,
     colors: Colors,
 ) {
-    val window = JFrame("基本信息")
+    val window = JFrame("信息")
     window.size = Dimension(650, 520)
     val iconFile = getResourcesFile("logo/logo.svg")
     val iconImages = FlatSVGUtils.createWindowIconImages(iconFile.toURI().toURL())
@@ -98,7 +98,7 @@ fun VocabularyInfo(
 
     MaterialTheme(colors = colors) {
         Dialog(
-            title = "基本信息",
+            title = "信息",
             onCloseRequest = close,
             state = windowState,
         ) {
