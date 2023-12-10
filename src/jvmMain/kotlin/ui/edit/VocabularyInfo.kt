@@ -9,6 +9,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateMap
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -265,68 +266,17 @@ fun LinkedFile(
     // key : 代表的是一个文件，用来批量删除和这个文件链接的所有字幕。可以是视频地址或字幕名称，有字幕名称是因为使用字幕生成的词库可以没有对应的视频。
     // value: 和当前词库链接的字幕数量
     val externalNameMap = remember { mutableStateMapOf<String,Int>() }
-//    val externalNameMap = mutableMapOf<String, Int>()
     var deleted by remember{ mutableStateOf(false)}
 
     LaunchedEffect(Unit){
-        vocabulary.wordList.forEach { word ->
-            word.externalCaptions.forEach { externalCaption ->
-
-                // 视频词库,可以播放字幕对应的视频。
-                if (externalCaption.relateVideoPath.isNotEmpty()) {
-                    var counter = externalNameMap[externalCaption.relateVideoPath]
-                    if (counter == null) {
-                        externalNameMap[externalCaption.relateVideoPath] = 1
-                    } else {
-                        counter++
-                        externalNameMap[externalCaption.relateVideoPath] = counter
-                    }
-                    // 字幕词库，使用字幕生成的词库，可以没有对应的视频，所以使用字幕的名称。
-                } else if (externalCaption.subtitlesName.isNotEmpty()) {
-                    var counter = externalNameMap[externalCaption.subtitlesName]
-                    if (counter == null) {
-                        externalNameMap[externalCaption.subtitlesName] = 1
-                    } else {
-                        counter++
-                        externalNameMap[externalCaption.subtitlesName] = counter
-                    }
-                }
-
-            }
-        }
-
+        computeNameMap(vocabulary, externalNameMap)
     }
     LaunchedEffect(deleted){
         if(deleted){
             externalNameMap.clear()
-            vocabulary.wordList.forEach { word ->
-                word.externalCaptions.forEach { externalCaption ->
-
-                    // 视频词库,可以播放字幕对应的视频。
-                    if (externalCaption.relateVideoPath.isNotEmpty()) {
-                        var counter = externalNameMap[externalCaption.relateVideoPath]
-                        if (counter == null) {
-                            externalNameMap[externalCaption.relateVideoPath] = 1
-                        } else {
-                            counter++
-                            externalNameMap[externalCaption.relateVideoPath] = counter
-                        }
-                        // 字幕词库，使用字幕生成的词库，可以没有对应的视频，所以使用字幕的名称。
-                    } else if (externalCaption.subtitlesName.isNotEmpty()) {
-                        var counter = externalNameMap[externalCaption.subtitlesName]
-                        if (counter == null) {
-                            externalNameMap[externalCaption.subtitlesName] = 1
-                        } else {
-                            counter++
-                            externalNameMap[externalCaption.subtitlesName] = counter
-                        }
-                    }
-
-                }
-            }
+            computeNameMap(vocabulary, externalNameMap)
             deleted = false
         }
-
     }
     Column(Modifier.width(IntrinsicSize.Max).padding(start = 10.dp,bottom = 20.dp)) {
         Row(
@@ -408,5 +358,36 @@ fun LinkedFile(
 
         }
 
+    }
+}
+
+private fun computeNameMap(
+    vocabulary: MutableVocabulary,
+    externalNameMap: SnapshotStateMap<String, Int>
+) {
+    vocabulary.wordList.forEach { word ->
+        word.externalCaptions.forEach { externalCaption ->
+
+            // 视频词库,可以播放字幕对应的视频。
+            if (externalCaption.relateVideoPath.isNotEmpty()) {
+                var counter = externalNameMap[externalCaption.relateVideoPath]
+                if (counter == null) {
+                    externalNameMap[externalCaption.relateVideoPath] = 1
+                } else {
+                    counter++
+                    externalNameMap[externalCaption.relateVideoPath] = counter
+                }
+                // 字幕词库，使用字幕生成的词库，可以没有对应的视频，所以使用字幕的名称。
+            } else if (externalCaption.subtitlesName.isNotEmpty()) {
+                var counter = externalNameMap[externalCaption.subtitlesName]
+                if (counter == null) {
+                    externalNameMap[externalCaption.subtitlesName] = 1
+                } else {
+                    counter++
+                    externalNameMap[externalCaption.subtitlesName] = counter
+                }
+            }
+
+        }
     }
 }
