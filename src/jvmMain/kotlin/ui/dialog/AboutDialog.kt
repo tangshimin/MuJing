@@ -169,29 +169,13 @@ fun AboutDialog(
                                     license = Apache2,
                                 )
 
-                                Row(horizontalArrangement = Arrangement.SpaceBetween,
-                                    modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp)){
-                                    Row{
-                                        LinkText(
-                                            text = "h2database",
-                                            url = "https://www.h2database.com/html/main.html"
-                                        )
-                                        Spacer(Modifier.width(5.dp))
-                                        Text("2.1.212")
-                                    }
-                                    Row{
-                                        LinkText(
-                                            text = "MPL 2.0",
-                                            url = "https://www.mozilla.org/en-US/MPL/2.0/"
-                                        )
-                                        Text("/")
-                                        LinkText(
-                                            text = "EPL 1.0",
-                                            url = "https://opensource.org/licenses/eclipse-1.0.php"
-                                        )
-                                    }
 
-                                }
+                                Dependency(
+                                    name = "SQLite JDBC Driver",
+                                    url = "https://github.com/xerial/sqlite-jdbc",
+                                    version = "3.44.1.0",
+                                    license = Apache2,
+                                )
 
                                 Dependency(
                                     name = "OkHttp",
@@ -264,8 +248,15 @@ fun AboutDialog(
                                     version = "0.9.6.2",
                                     license = Apache2,
                                 )
+                                Dependency(
+                                    name = "POI",
+                                    url = "https://poi.apache.org/",
+                                    version = "5.2.5",
+                                    license = Apache2,
+                                )
                                 Row(horizontalArrangement = Arrangement.SpaceBetween,
-                                    modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp)){
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.clickable {  }.fillMaxWidth().padding(bottom = 5.dp)){
                                     Row{
                                         LinkText(
                                             text = "Juniversalchardet",
@@ -327,12 +318,6 @@ fun AboutDialog(
                                     url = "https://github.com/Wavesonics/compose-multiplatform-file-picker",
                                     version = "1.0.0",
                                     license = MIT,
-                                )
-                                Dependency(
-                                    name = "kotlin-csv",
-                                    url = "https://github.com/doyaaaaaken/kotlin-csv",
-                                    version = "1.8.0",
-                                    license = Apache2,
                                 )
                                 Row(horizontalArrangement = Arrangement.SpaceBetween,
                                     modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp)){
@@ -485,7 +470,8 @@ fun Dependency(
     license:Pair<String,String>,
 ){
     Row(horizontalArrangement = Arrangement.SpaceBetween,
-        modifier = Modifier.fillMaxWidth().padding(bottom = 5.dp)){
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier.clickable {  }.fillMaxWidth().padding(bottom = 5.dp)){
         Row{
             LinkText(
                 text = name,
