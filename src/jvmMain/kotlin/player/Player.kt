@@ -152,7 +152,7 @@ fun Player(
     var counter by remember { mutableStateOf(1) }
 
     /** 这个视频的所有弹幕 */
-    val danmakuMap = rememberDanmakuMap(videoPath, vocabulary)
+    val danmakuMap = rememberDanmakuMap(videoPath, vocabularyPath,vocabulary)
 
     /** 正在显示的弹幕,数字定位 */
     val showingDanmakuNum = remember { mutableStateMapOf<Int, DanmakuItem>() }
@@ -1401,32 +1401,41 @@ fun DanmakuBox(
 @Composable
 fun rememberDanmakuMap(
     videoPath: String,
+    vocabularyPath: String,
     vocabulary: MutableVocabulary?
 ) = remember(videoPath, vocabulary){
     // Key 为秒 > 这一秒出现的单词列表
     val timeMap = mutableMapOf<Int, MutableList<DanmakuItem>>()
+    val vocabularyDir = File(vocabularyPath).parentFile
     if (vocabulary != null) {
         // 使用字幕和MKV 生成的词库
-        if (vocabulary.relateVideoPath == videoPath) {
-            vocabulary.wordList.forEach { word ->
-                if (word.captions.isNotEmpty()) {
-                    word.captions.forEach { caption ->
-
-                        val startTime = floor(parseTime(caption.start)).toInt()
-                        addDanmakuToMap(timeMap, startTime, word)
-                    }
-                } else {
-                    word.externalCaptions.forEach { externalCaption ->
-                        val startTime = floor(parseTime(externalCaption.start)).toInt()
-                        addDanmakuToMap(timeMap, startTime, word)
+        if (vocabulary.type == VocabularyType.MKV || vocabulary.type == VocabularyType.SUBTITLES) {
+            val absVideoFile = File(videoPath)
+            val relVideoFile = File(vocabularyDir, absVideoFile.name)
+             // absVideoFile.exists() 为真 视频文件没有移动，还是词库里保存的地址
+            //  relVideoFile.exists() 为真 视频文件移动了，词库里保存的地址是旧地址
+            if ((absVideoFile.exists() && absVideoFile.absolutePath ==  vocabulary.relateVideoPath) ||
+                (relVideoFile.exists() && relVideoFile.name == File(vocabulary.relateVideoPath).name)
+            ) {
+                vocabulary.wordList.forEach { word ->
+                    if (word.captions.isNotEmpty()) {
+                        word.captions.forEach { caption ->
+                            val startTime = floor(parseTime(caption.start)).toInt()
+                            addDanmakuToMap(timeMap, startTime, word)
+                        }
                     }
                 }
             }
+
         // 文档词库，或混合词库
-        }else{
+        } else {
             vocabulary.wordList.forEach { word ->
-                word.externalCaptions.forEach{externalCaption ->
-                    if(externalCaption.relateVideoPath == videoPath){
+                word.externalCaptions.forEach { externalCaption ->
+                    val absVideoFile = File(videoPath)
+                    val relVideoFile = File(vocabularyDir, absVideoFile.name)
+                    if ((absVideoFile.exists() && absVideoFile.absolutePath == externalCaption.relateVideoPath) ||
+                        (relVideoFile.exists() && relVideoFile.name == File(externalCaption.relateVideoPath).name)
+                    ) {
                         val startTime = floor(parseTime(externalCaption.start)).toInt()
                         addDanmakuToMap(timeMap, startTime, word)
                     }
