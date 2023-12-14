@@ -679,7 +679,8 @@ fun Toolbar(
     showPlayer :(Boolean) -> Unit
 ) {
 
-    Row (modifier = modifier.padding(top = if (isMacOS()) 30.dp else 0.dp)){
+    Row (modifier = modifier.padding(top = if (isMacOS()) 30.dp else 0.dp),
+        verticalAlignment = Alignment.CenterVertically){
         val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
         val scope = rememberCoroutineScope()
         Settings(
@@ -687,7 +688,7 @@ fun Toolbar(
             setIsOpen = setIsOpen,
             modifier = Modifier
         )
-
+        Divider(Modifier.width(1.dp).height(20.dp))
         TooltipArea(
             tooltip = {
                 Surface(
@@ -822,6 +823,7 @@ fun Toolbar(
             }
 
         }
+        Divider(Modifier.width(1.dp).height(20.dp))
     }
 }
 /**
