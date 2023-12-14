@@ -130,10 +130,10 @@ fun Player(
     /** 要显示到消息对话框的消息 */
     var message by remember { mutableStateOf("") }
 
-    /** VLC 是视频播放组件 */
+    /** VLC 视频播放组件 */
     val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent()) }
 
-    /** VLC 是音频播放组件 */
+    /** VLC 音频播放组件 */
     val audioPlayerComponent = LocalAudioPlayerComponent.current
 
     /** 是否正在播放视频 */
@@ -216,6 +216,7 @@ fun Player(
         mutableStateOf(
             Timer(30) {
                 if(playerState.danmakuVisible){
+                    // showingDanmakuWord 和 showingDanmakuNum 的 values 都是一样的。
                     val showingList = showingDanmakuNum.values.toList()
                     for (i in showingList.indices) {
                         val danmakuItem = showingList.getOrNull(i)
