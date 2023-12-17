@@ -3,11 +3,13 @@ package ui
 import LocalCtrl
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.InterpreterMode
+import androidx.compose.material.icons.filled.RateReview
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -15,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -22,7 +25,6 @@ import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.isMacOS
-import player.isWindows
 import state.AppState
 import state.DictationState
 import state.MemoryStrategy
@@ -37,14 +39,21 @@ import ui.dialog.SelectChapterDialog
 )
 @Composable
 fun WordScreenSidebar(
-    state: AppState,
+    appState: AppState,
     wordScreenState: WordScreenState,
     dictationState: DictationState,
 ) {
 
-    if (state.openSettings) {
+    if (appState.openSettings) {
         val scope = rememberCoroutineScope()
-        Box(Modifier.width(216.dp).fillMaxHeight()){
+        Box(Modifier.width(216.dp).fillMaxHeight().onKeyEvent { it ->
+            if (it.isCtrlPressed && it.key == Key.One && it.type == KeyEventType.KeyUp){
+            scope.launch {
+                appState.openSettings = !appState.openSettings
+            }
+            true
+        }else false
+        }){
             val stateVertical = rememberScrollState(0)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -315,11 +324,11 @@ fun WordScreenSidebar(
                     Spacer(Modifier.width(15.dp))
                     Switch(
                         colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = state.global.isPlayKeystrokeSound,
+                        checked = appState.global.isPlayKeystrokeSound,
                         onCheckedChange = {
                             scope.launch {
-                                state.global.isPlayKeystrokeSound = it
-                                state.saveGlobalState()
+                                appState.global.isPlayKeystrokeSound = it
+                                appState.saveGlobalState()
                             }
                         },
                         )
@@ -537,10 +546,10 @@ fun WordScreenSidebar(
                             Column(Modifier.width(300.dp).height(180.dp).padding(start = 16.dp, end = 16.dp)) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("击键音效")
-                                    Slider(value = state.global.keystrokeVolume, onValueChange = {
+                                    Slider(value = appState.global.keystrokeVolume, onValueChange = {
                                         Thread {
-                                            state.global.keystrokeVolume = it
-                                            state.saveGlobalState()
+                                            appState.global.keystrokeVolume = it
+                                            appState.saveGlobalState()
                                         }.start()
                                     })
                                 }
@@ -555,22 +564,22 @@ fun WordScreenSidebar(
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("单词发音")
-                                    Slider(value = state.global.audioVolume, onValueChange = {
+                                    Slider(value = appState.global.audioVolume, onValueChange = {
                                         Thread {
-                                            state.global.audioVolume = it
-                                            state.saveGlobalState()
+                                            appState.global.audioVolume = it
+                                            appState.saveGlobalState()
                                         }.start()
                                     })
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("视频播放")
                                     Slider(
-                                        value = state.global.videoVolume,
+                                        value = appState.global.videoVolume,
                                         valueRange = 1f..100f,
                                         onValueChange = {
                                         Thread {
-                                            state.global.videoVolume = it
-                                            state.saveGlobalState()
+                                            appState.global.videoVolume = it
+                                            appState.saveGlobalState()
                                         }.start()
                                     })
                                 }

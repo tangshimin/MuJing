@@ -4,7 +4,6 @@ import LocalCtrl
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
@@ -313,12 +312,6 @@ fun MainContent(
     window: ComposeWindow,
 ){
     var nextButtonVisible by remember{ mutableStateOf(false) }
-    Box(
-        modifier = Modifier.fillMaxSize()
-            .onPointerEvent(PointerEventType.Move){nextButtonVisible = true}
-            .onPointerEvent(PointerEventType.Exit){nextButtonVisible = false}
-    ) {
-
         /** 协程构建器 */
         val scope = rememberCoroutineScope()
 
@@ -801,7 +794,12 @@ fun MainContent(
                 }
             }
         }
-
+        Box(
+            modifier = Modifier.fillMaxSize()
+                .onKeyEvent { globalKeyEvent(it) }
+                .onPointerEvent(PointerEventType.Move){nextButtonVisible = true}
+                .onPointerEvent(PointerEventType.Exit){nextButtonVisible = false}
+        ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
