@@ -1,5 +1,6 @@
 package ui
 
+import LocalCtrl
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*

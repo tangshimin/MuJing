@@ -1,5 +1,6 @@
 package ui.dialog
 
+import LocalCtrl
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.Divider
@@ -21,7 +22,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import player.isMacOS
-import ui.LocalCtrl
 
 @Composable
 fun ShortcutKeyDialog(close: () -> Unit) {

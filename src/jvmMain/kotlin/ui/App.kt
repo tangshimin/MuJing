@@ -1,11 +1,11 @@
 package ui
 
 import CustomLocalProvider
+import LocalCtrl
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
@@ -44,7 +44,6 @@ import ui.edit.checkVocabulary
 import ui.flatlaf.setupFileChooser
 import ui.flatlaf.updateFlatLaf
 import java.awt.Rectangle
-import java.awt.Window
 import java.io.File
 import java.util.*
 import javax.swing.JOptionPane
@@ -891,34 +890,7 @@ fun Settings(
     }
 }
 
-val LocalCtrl = staticCompositionLocalOf<String> {
-    error("LocalCtrl isn't provided")
-}
 
-/** 本地的 Ctrl 键 */
-@Composable
-fun rememberCtrl(): String = remember {
-    if (isMacOS()) "⌃" else "Ctrl"
-}
-
-/** 选择字符时的背景颜色 */
-fun textSelectionColors(): TextSelectionColors {
-    val defaultSelectionColor = Color(0xFF4286F4)
-    val backgroundColor = defaultSelectionColor.copy(alpha = 0.4f)
-    return TextSelectionColors(handleColor = defaultSelectionColor, backgroundColor = backgroundColor)
-}
-
-fun scrollbarStyle(): ScrollbarStyle{
-    val shape = if(isMacOS()) RoundedCornerShape(4.dp) else  RectangleShape
-        return ScrollbarStyle(
-        minimalHeight = 16.dp,
-        thickness = 8.dp,
-        shape =shape,
-        hoverDurationMillis = 300,
-        unhoverColor = Color.Black.copy(alpha = 0.12f),
-        hoverColor = Color.Black.copy(alpha = 0.50f)
-    )
-}
 
 
 /**

@@ -1,5 +1,6 @@
 package player
 
+import LocalCtrl
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
@@ -26,7 +27,6 @@ import state.WordScreenState
 import state.getAudioDirectory
 import tts.MSTTSpeech
 import tts.MacTTS
-import ui.LocalCtrl
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent

@@ -1,12 +1,10 @@
 package player
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FlipToBack
 import androidx.compose.material.icons.filled.Pause
@@ -24,16 +22,11 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
 import data.Caption
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import state.rememberPronunciation
-import ui.LocalCtrl
-import ui.rememberCtrl
-import ui.textSelectionColors
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import java.awt.Component
