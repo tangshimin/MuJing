@@ -54,16 +54,15 @@ object Dictionary{
     private fun getSQLiteURL(fileName:String): String {
         val property = "compose.application.resources.dir"
         val dir = System.getProperty(property)
-        return if (dir != null) {
+        return if (dir != null && !dir.endsWith("prepareAppResources")) {
             // 打包之后的环境
             if(isMacOS()){
                 "jdbc:sqlite:file:/Applications/幕境.app/Contents/app/resources/dictionary/$fileName"
             }else{
-                "jdbc:sqlite:./app/resources/dictionary/$fileName"
+                "jdbc:sqlite:app/resources/dictionary/$fileName"
             }
         } else {
-            // 开发环境
-            "jdbc:sqlite:./resources/common/dictionary/$fileName"
+            "jdbc:sqlite:resources/common/dictionary/$fileName"
         }
     }
 
