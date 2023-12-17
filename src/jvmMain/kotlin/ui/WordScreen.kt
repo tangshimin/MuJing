@@ -375,14 +375,21 @@ fun MainContent(
         val shortcutPlay: (playTriple: Triple<Caption, String, Int>?) -> Unit = { playTriple ->
             if (playTriple != null && !isPlaying) {
                 scope.launch {
-                    val file = File(playTriple.second)
-                    if (file.exists()) {
+                    val absPath = replaceSeparator( playTriple.second)
+                    val absFile = File(absPath)
+                    val relFile = File(wordScreenState.getVocabularyDir(),absFile.name)
+                    if (absFile.exists()|| relFile.exists()) {
+                        val newTriple =  if(!absFile.exists()){
+                            Triple(playTriple.first,relFile.absolutePath,playTriple.third)
+                        } else {
+                            Triple(playTriple.first,absFile.absolutePath,playTriple.third)
+                        }
                         isPlaying = true
                         play(
                             window = appState.videoPlayerWindow,
                             setIsPlaying = { isPlaying = it },
                             appState.global.videoVolume,
-                            playTriple,
+                            newTriple,
                             appState.videoPlayerComponent,
                             videoBounds,
                             wordScreenState.externalSubtitlesVisible,
@@ -2033,14 +2040,15 @@ fun Captions(
                     val playCurrentCaption:()-> Unit = {
                         if (!isPlaying) {
                             // 视频文件的绝对地址
-                            val absFile = File(playTriple.second)
+                            val absPath = replaceSeparator( playTriple.second)
+                            val absFile = File(absPath)
                             // 如果绝对位置找不到，就在词库所在的文件夹寻找
                             val relFile = File(vocabularyDir,absFile.name)
                             if (absFile.exists() || relFile.exists()) {
                                val newTriple =  if(!absFile.exists()){
                                    Triple(playTriple.first,relFile.absolutePath,playTriple.third)
                                 } else {
-                                   playTriple
+                                   Triple(playTriple.first,absFile.absolutePath,playTriple.third)
                                }
                                 setIsPlaying(true)
                                 scope.launch {
@@ -2150,6 +2158,15 @@ fun Captions(
         if ((!isPlaying || isVideoBoundsChanged) && (word.captions.isNotEmpty() || word.externalCaptions.isNotEmpty()))
             Divider(Modifier.padding(start = 50.dp))
     }
+}
+
+fun replaceSeparator(path:String): String {
+    val absPath = if (isWindows()) {
+        path.replace('/', '\\')
+    } else {
+        path.replace('\\', '/')
+    }
+    return absPath
 }
 
 /**

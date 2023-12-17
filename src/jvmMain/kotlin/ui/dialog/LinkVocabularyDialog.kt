@@ -41,6 +41,7 @@ import player.isWindows
 import state.AppState
 import state.getResourcesFile
 import ui.edit.computeNameMap
+import ui.replaceSeparator
 import java.awt.Point
 import java.awt.Rectangle
 import java.io.File
@@ -648,8 +649,8 @@ fun LinkVocabularyDialog(
                                                                             playerBounds.y = location.y - 320
                                                                         }
 
-                                                                        isPlaying = true
-                                                                        val absFile = File(externalCaption.relateVideoPath)
+                                                                        val absPath = replaceSeparator(externalCaption.relateVideoPath)
+                                                                        val absFile = File(absPath)
                                                                         val relFile = File(vocabularyDir, absFile.name)
                                                                         if (absFile.exists() || relFile.exists()) {
                                                                             val playParams = if(!absFile.exists()){
@@ -657,6 +658,7 @@ fun LinkVocabularyDialog(
                                                                             }else {
                                                                                 playTriple
                                                                             }
+                                                                            isPlaying = true
                                                                             scope.launch {
                                                                                 play(
                                                                                     window = appState.videoPlayerWindow,

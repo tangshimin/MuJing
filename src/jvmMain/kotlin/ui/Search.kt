@@ -220,9 +220,8 @@ fun Search(
                                                         playerBounds.x = location.x - 270 + 24
                                                         playerBounds.y = location.y - 320
                                                     }
-
-                                                    isPlaying = true
-                                                    val absFile = File(vocabulary.relateVideoPath)
+                                                    val absPath = replaceSeparator(vocabulary.relateVideoPath)
+                                                    val absFile = File(absPath)
                                                     val relFile = File(vocabularyDir,absFile.name)
                                                     if (absFile.exists() || relFile.exists()) {
                                                         val playParams = if (!absFile.exists()) {
@@ -234,6 +233,7 @@ fun Search(
                                                         } else {
                                                             playTriple
                                                         }
+                                                        isPlaying = true
                                                         scope.launch {
                                                             play(
                                                                 window = appState.videoPlayerWindow,
@@ -313,8 +313,9 @@ fun Search(
                                                         playerBounds.x = location.x - 270 + 24
                                                         playerBounds.y = location.y - 320
                                                     }
-                                                    isPlaying = true
-                                                    val absFile = File(externalCaption.relateVideoPath)
+
+                                                    val absPath = replaceSeparator(externalCaption.relateVideoPath)
+                                                    val absFile = File(absPath)
                                                     val relFile = File(vocabularyDir,absFile.name)
 
                                                     if (absFile.exists() || relFile.exists()) {
@@ -323,6 +324,7 @@ fun Search(
                                                         }else {
                                                             playTriple
                                                         }
+                                                        isPlaying = true
                                                         scope.launch {
                                                             play(
                                                                 window = appState.videoPlayerWindow,

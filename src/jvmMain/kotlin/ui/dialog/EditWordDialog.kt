@@ -50,6 +50,7 @@ import ui.edit.displayExchange
 import ui.edit.toAwtSize
 import ui.edit.toPoint
 import ui.getPlayTripleMap
+import ui.replaceSeparator
 import ui.secondsToString
 import java.awt.BorderLayout
 import java.awt.Component
@@ -962,7 +963,8 @@ fun EditingCaptions(
                                     if (!isPlaying) {
                                         isPlaying = true
                                         // 使用绝对地址
-                                        val absFile = File(relativeVideoPath)
+                                        val absPath = replaceSeparator(relativeVideoPath)
+                                        val absFile = File(absPath)
                                         // 如果在绝对地址找不到，就在词库所在的文件夹寻找
                                         val relFile = File(vocabularyDir,absFile.name)
                                         if (absFile.exists() || relFile.exists()) {
@@ -1025,6 +1027,7 @@ fun EditingCaptions(
                         videoVolume = videoVolume,
                         playerWindow = playerWindow,
                         playTriple = playTriple,
+                        vocabularyDir = vocabularyDir,
                         mediaPlayerComponent = videoPlayerComponent,
                         confirm = { (index, start, end) ->
                             scope.launch {
@@ -1140,6 +1143,7 @@ fun SettingTimeLine(
     videoVolume: Float,
     playerWindow: JFrame,
     close: () -> Unit,
+    vocabularyDir:File,
     confirm: (Triple<Int, Double, Double>) -> Unit,
     playTriple: Triple<Caption, String, Int>,
     mediaPlayerComponent: Component,
@@ -1205,11 +1209,20 @@ fun SettingTimeLine(
 
         val play = {
             isPlaying = true
-            val file = File( relativeVideoPath)
-            if (file.exists()) {
+            val absPath = replaceSeparator(relativeVideoPath)
+            val absFile = File(absPath)
+            val relFile = File(vocabularyDir,absFile.name)
+
+            if (absFile.exists() || relFile.exists()) {
+
+                val newTriple =  if(!absFile.exists()){
+                    Triple(playTriple.first,relFile.absolutePath,playTriple.third)
+                } else {
+                    Triple(playTriple.first,absFile.absolutePath,playTriple.third)
+                }
                 scope.launch {
-                    playTriple.first.start = secondsToString(start)
-                    playTriple.first.end = secondsToString(end)
+                    newTriple.first.start = secondsToString(start)
+                    newTriple.first.end = secondsToString(end)
                     play(
                         window = playerWindow,
                         setIsPlaying = { isPlaying = it },
