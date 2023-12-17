@@ -413,7 +413,6 @@ fun LinkVocabularyDialog(
 
                                     Box(Modifier.height(boxHeight).fillMaxWidth()){
                                         val stateVertical = rememberScrollState(0)
-                                        val scrollbarStyle = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp))
                                         Column (Modifier.verticalScroll(stateVertical)){
                                             externalNameMap.forEach { (path, count) ->
                                                 var showConfirmationDialog by remember { mutableStateOf(false) }
@@ -468,7 +467,6 @@ fun LinkVocabularyDialog(
                                         VerticalScrollbar(
                                             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
                                             adapter = rememberScrollbarAdapter(stateVertical),
-                                            style = scrollbarStyle,
                                         )
                                     }
 
@@ -697,7 +695,6 @@ fun LinkVocabularyDialog(
                                 VerticalScrollbar(
                                     modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
                                     adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                                    style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
                                 )
                             }
 

@@ -6,7 +6,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.TaskAlt
@@ -23,10 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
-import data.*
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import player.isWindows
 import state.getResourcesFile
 import java.io.File
 import java.util.concurrent.FutureTask
@@ -184,7 +180,6 @@ fun BuiltInVocabularyDialog(
                     }
 
                     VerticalScrollbar(
-                        style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
                         modifier = Modifier.align(Alignment.CenterEnd)
                             .fillMaxHeight(),
                         adapter = rememberScrollbarAdapter(stateVertical)

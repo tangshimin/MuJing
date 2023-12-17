@@ -692,7 +692,6 @@ fun EditWordComposeContent(
 
 
             val isWindows = isWindows()
-            val scrollbarStyle = LocalScrollbarStyle.current.copy(shape = if(isWindows) RectangleShape else RoundedCornerShape(4.dp))
             val modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
             Column(modifier = modifier) {
                 Text("中文释义：",color = MaterialTheme.colors.onBackground)
@@ -712,7 +711,6 @@ fun EditWordComposeContent(
                     VerticalScrollbar(
                         modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
                         adapter = rememberScrollbarAdapter(stateVertical),
-                        style = scrollbarStyle,
                     )
                 }
 
@@ -737,7 +735,6 @@ fun EditWordComposeContent(
                     VerticalScrollbar(
                         modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
                         adapter = rememberScrollbarAdapter(stateVertical),
-                        style = scrollbarStyle,
                     )
                 }
             }

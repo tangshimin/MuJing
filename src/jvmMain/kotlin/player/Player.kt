@@ -829,7 +829,6 @@ fun Player(
                                                         VerticalScrollbar(
                                                             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
                                                             adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                                                            style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
                                                         )
                                                     }
                                                 }
@@ -871,7 +870,6 @@ fun Player(
                                                     VerticalScrollbar(
                                                         modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
                                                         adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                                                        style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
                                                     )
                                                 }
                                             }

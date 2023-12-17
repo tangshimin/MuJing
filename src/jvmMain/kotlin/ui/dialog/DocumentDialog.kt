@@ -356,7 +356,6 @@ fun DocumentPage(){
 
         }
         VerticalScrollbar(
-            style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
             adapter = rememberScrollbarAdapter(stateVertical)
         )
@@ -522,7 +521,6 @@ fun SubtitlesPage(){
         }
 
         VerticalScrollbar(
-            style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
             adapter = rememberScrollbarAdapter(stateVertical)
         )
@@ -605,7 +603,6 @@ fun MatroskaPage(){
         }
 
         VerticalScrollbar(
-            style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
             adapter = rememberScrollbarAdapter(stateVertical)
         )
@@ -720,7 +717,6 @@ fun YouTubeDownloadPage(){
                 })
         }
         VerticalScrollbar(
-            style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
             adapter = rememberScrollbarAdapter(stateVertical)
         )
@@ -764,7 +760,6 @@ fun LinkVocabularyPage(){
         }
 
         VerticalScrollbar(
-            style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
             adapter = rememberScrollbarAdapter(stateVertical)
         )
@@ -819,7 +814,6 @@ fun LinkCaptionsPage(){
         }
 
         VerticalScrollbar(
-            style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
             adapter = rememberScrollbarAdapter(stateVertical)
         )

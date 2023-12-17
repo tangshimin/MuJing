@@ -298,7 +298,6 @@ fun LinkedFile(
                 .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
             ){
                 val stateVertical = rememberScrollState(0)
-                val scrollbarStyle = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp))
                 Column (Modifier
                     .padding(start = 20.dp)
                     .verticalScroll(stateVertical)
@@ -350,7 +349,6 @@ fun LinkedFile(
                 VerticalScrollbar(
                     modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
                     adapter = rememberScrollbarAdapter(stateVertical),
-                    style = scrollbarStyle,
                 )
             }
 

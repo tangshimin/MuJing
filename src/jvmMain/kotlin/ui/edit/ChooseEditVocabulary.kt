@@ -101,11 +101,6 @@ fun ChooseEditVocabulary(
                                 }
                             }
                             VerticalScrollbar(
-                                style = LocalScrollbarStyle.current.copy(
-                                    shape = if (isWindows()) RectangleShape else RoundedCornerShape(
-                                        4.dp
-                                    )
-                                ),
                                 modifier = Modifier.align(Alignment.CenterEnd)
                                     .fillMaxHeight(),
                                 adapter = rememberScrollbarAdapter(stateVertical)

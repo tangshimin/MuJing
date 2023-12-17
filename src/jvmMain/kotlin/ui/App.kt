@@ -908,6 +908,19 @@ fun textSelectionColors(): TextSelectionColors {
     return TextSelectionColors(handleColor = defaultSelectionColor, backgroundColor = backgroundColor)
 }
 
+fun scrollbarStyle(): ScrollbarStyle{
+    val shape = if(isMacOS()) RoundedCornerShape(4.dp) else  RectangleShape
+        return ScrollbarStyle(
+        minimalHeight = 16.dp,
+        thickness = 8.dp,
+        shape =shape,
+        hoverDurationMillis = 300,
+        unhoverColor = Color.Black.copy(alpha = 0.12f),
+        hoverColor = Color.Black.copy(alpha = 0.50f)
+    )
+}
+
+
 /**
  * 对话框
  */
