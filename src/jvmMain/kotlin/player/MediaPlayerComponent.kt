@@ -6,6 +6,7 @@ import com.matthewn4444.ebml.UnSupportSubtitlesException
 import com.matthewn4444.ebml.subtitles.SRTSubtitles
 import com.matthewn4444.ebml.subtitles.SSASubtitles
 import com.sun.jna.NativeLibrary
+import com.sun.jna.Platform.isLinux
 import data.Caption
 import org.mozilla.universalchardet.UniversalDetector
 import state.getResourcesFile
@@ -76,6 +77,22 @@ fun createMediaPlayerComponent(): Component {
         embeddedMediaPlayer.input().enableMouseInputHandling(false)
         embeddedMediaPlayerComponent
     }else{
+
+        try{
+            NativeLibrary.getInstance("vlc")
+        }catch ( exception:UnsatisfiedLinkError){
+            val message = JEditorPane()
+            message.contentType = "text/html"
+            message.text = "<p>幕境 需要 <a href='https://www.videolan.org/'>VLC 视频播放器</a> 播放视频和单词发音</p><br>" +
+                    " <a href='https://www.videolan.org/'>下载地址</a> "
+            message.addHyperlinkListener {
+                if(it.eventType == HyperlinkEvent.EventType.ACTIVATED){
+                    Desktop.getDesktop().browse(it.url.toURI())
+                }
+            }
+            message.isEditable = false
+            JOptionPane.showMessageDialog(null, message)
+        }
         EmbeddedMediaPlayerComponent()
     }
 }
