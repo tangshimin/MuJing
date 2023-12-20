@@ -1,8 +1,6 @@
 
 import androidx.compose.foundation.ScrollbarStyle
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.selection.LocalTextSelectionColors
-import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -21,7 +19,6 @@ fun CustomLocalProvider(content: @Composable () -> Unit) {
     CompositionLocalProvider(
         LocalAudioPlayerComponent provides rememberAudioPlayerComponent(),
         LocalCtrl provides rememberCtrl(),
-        LocalTextSelectionColors provides textSelectionColors(),
         content = content
     )
 }
@@ -36,12 +33,7 @@ fun rememberCtrl(): String = remember {
     if (isMacOS()) "⌃" else "Ctrl"
 }
 
-/** 选择字符时的背景颜色 */
-fun textSelectionColors(): TextSelectionColors {
-    val defaultSelectionColor = Color(0xFF4286F4)
-    val backgroundColor = defaultSelectionColor.copy(alpha = 0.4f)
-    return TextSelectionColors(handleColor = defaultSelectionColor, backgroundColor = backgroundColor)
-}
+
 @Composable
 fun scrollbarStyle(): ScrollbarStyle {
     val shape = if(isMacOS()) RoundedCornerShape(4.dp) else  RectangleShape
