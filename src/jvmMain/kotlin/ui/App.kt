@@ -36,6 +36,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
+import scrollbarStyle
 import state.*
 import ui.dialog.*
 import ui.edit.ChooseEditVocabulary
@@ -118,95 +119,102 @@ fun App() {
                 state = windowState,
                 onCloseRequest = {close() },
             ) {
+
                 MaterialTheme(colors = appState.colors) {
-                    appState.global.wordFontSize = computeFontSize(appState.global.wordTextStyle)
-                    appState.global.detailFontSize = computeFontSize(appState.global.detailTextStyle)
-                    val wordState = rememberWordState()
-                    WindowMenuBar(
-                        window = window,
-                        appState = appState,
-                        wordScreenState = wordState,
-                        close = {close()}
-                    )
-                    MenuDialogs(appState)
-                    if(appState.searching){
-                        Search(
+                    // 和 Compose UI 有关的 LocalProvider 需要放在 MaterialTheme 里面,不然无效。
+                    CompositionLocalProvider(
+                        LocalScrollbarStyle provides scrollbarStyle(),
+                    ){
+                        appState.global.wordFontSize = computeFontSize(appState.global.wordTextStyle)
+                        appState.global.detailFontSize = computeFontSize(appState.global.detailTextStyle)
+                        val wordState = rememberWordState()
+                        WindowMenuBar(
+                            window = window,
                             appState = appState,
                             wordScreenState = wordState,
-                            vocabulary = wordState.vocabulary,
-                            vocabularyDir = wordState.getVocabularyDir(),
+                            close = {close()}
                         )
-                    }
-                    when (appState.global.type) {
-                        ScreenType.WORD -> {
-                            title = computeTitle(wordState.vocabularyName,wordState.vocabulary.wordList.isNotEmpty())
-
-                            // 显示器缩放
-                            val density = LocalDensity.current.density
-                            // 视频播放器的位置，大小
-                            val videoBounds = computeVideoBounds(windowState, appState.openSettings,density)
-
-                            val resetVideoBounds :() -> Rectangle ={
-                                appState.isChangeVideoBounds = false
-                                computeVideoBounds(windowState, appState.openSettings,density)
-                            }
-
-                            WordScreen(
-                                window = window,
-                                title = title,
+                        MenuDialogs(appState)
+                        if(appState.searching){
+                            Search(
                                 appState = appState,
                                 wordScreenState = wordState,
-                                videoBounds = videoBounds,
-                                resetVideoBounds = resetVideoBounds,
-                                showPlayer = { showPlayerWindow = it },
-                                setVideoPath = videoPathChanged,
-                                vocabularyPathChanged = vocabularyPathChanged
+                                vocabulary = wordState.vocabulary,
+                                vocabularyDir = wordState.getVocabularyDir(),
                             )
                         }
-                        ScreenType.SUBTITLES -> {
-                            val subtitlesState = rememberSubtitlesState()
-                            title = computeTitle(subtitlesState)
-                            SubtitleScreen(
-                                subtitlesState = subtitlesState,
-                                globalState = appState.global,
-                                saveSubtitlesState = { subtitlesState.saveTypingSubtitlesState() },
-                                saveGlobalState = { appState.saveGlobalState() },
-                                isOpenSettings = appState.openSettings,
-                                setIsOpenSettings = { appState.openSettings = it },
-                                window = window,
-                                title = title,
-                                playerWindow = appState.videoPlayerWindow,
-                                videoVolume = appState.global.videoVolume,
-                                mediaPlayerComponent = appState.videoPlayerComponent,
-                                futureFileChooser = appState.futureFileChooser,
-                                openLoadingDialog = { appState.openLoadingDialog()},
-                                closeLoadingDialog = { appState.loadingFileChooserVisible = false },
-                                openSearch = {appState.openSearch()},
-                                showPlayer = { showPlayerWindow = it },
-                            )
-                        }
+                        when (appState.global.type) {
+                            ScreenType.WORD -> {
+                                title = computeTitle(wordState.vocabularyName,wordState.vocabulary.wordList.isNotEmpty())
 
-                        ScreenType.TEXT -> {
-                            val textState = rememberTextState()
-                            title = computeTitle(textState)
-                            TextScreen(
-                                title = title,
-                                window = window,
-                                globalState = appState.global,
-                                saveGlobalState = { appState.saveGlobalState() },
-                                textState = textState,
-                                saveTextState = { textState.saveTypingTextState() },
-                                isOpenSettings = appState.openSettings,
-                                setIsOpenSettings = {appState.openSettings = it},
-                                futureFileChooser = appState.futureFileChooser,
-                                openLoadingDialog = { appState.openLoadingDialog()},
-                                closeLoadingDialog = { appState.loadingFileChooserVisible = false },
-                                openSearch = {appState.openSearch()},
-                                showVideoPlayer = { showPlayerWindow = it },
-                                setVideoPath = videoPathChanged,
-                            )
+                                // 显示器缩放
+                                val density = LocalDensity.current.density
+                                // 视频播放器的位置，大小
+                                val videoBounds = computeVideoBounds(windowState, appState.openSettings,density)
+
+                                val resetVideoBounds :() -> Rectangle ={
+                                    appState.isChangeVideoBounds = false
+                                    computeVideoBounds(windowState, appState.openSettings,density)
+                                }
+
+                                WordScreen(
+                                    window = window,
+                                    title = title,
+                                    appState = appState,
+                                    wordScreenState = wordState,
+                                    videoBounds = videoBounds,
+                                    resetVideoBounds = resetVideoBounds,
+                                    showPlayer = { showPlayerWindow = it },
+                                    setVideoPath = videoPathChanged,
+                                    vocabularyPathChanged = vocabularyPathChanged
+                                )
+                            }
+                            ScreenType.SUBTITLES -> {
+                                val subtitlesState = rememberSubtitlesState()
+                                title = computeTitle(subtitlesState)
+                                SubtitleScreen(
+                                    subtitlesState = subtitlesState,
+                                    globalState = appState.global,
+                                    saveSubtitlesState = { subtitlesState.saveTypingSubtitlesState() },
+                                    saveGlobalState = { appState.saveGlobalState() },
+                                    isOpenSettings = appState.openSettings,
+                                    setIsOpenSettings = { appState.openSettings = it },
+                                    window = window,
+                                    title = title,
+                                    playerWindow = appState.videoPlayerWindow,
+                                    videoVolume = appState.global.videoVolume,
+                                    mediaPlayerComponent = appState.videoPlayerComponent,
+                                    futureFileChooser = appState.futureFileChooser,
+                                    openLoadingDialog = { appState.openLoadingDialog()},
+                                    closeLoadingDialog = { appState.loadingFileChooserVisible = false },
+                                    openSearch = {appState.openSearch()},
+                                    showPlayer = { showPlayerWindow = it },
+                                )
+                            }
+
+                            ScreenType.TEXT -> {
+                                val textState = rememberTextState()
+                                title = computeTitle(textState)
+                                TextScreen(
+                                    title = title,
+                                    window = window,
+                                    globalState = appState.global,
+                                    saveGlobalState = { appState.saveGlobalState() },
+                                    textState = textState,
+                                    saveTextState = { textState.saveTypingTextState() },
+                                    isOpenSettings = appState.openSettings,
+                                    setIsOpenSettings = {appState.openSettings = it},
+                                    futureFileChooser = appState.futureFileChooser,
+                                    openLoadingDialog = { appState.openLoadingDialog()},
+                                    closeLoadingDialog = { appState.loadingFileChooserVisible = false },
+                                    openSearch = {appState.openSearch()},
+                                    showVideoPlayer = { showPlayerWindow = it },
+                                    setVideoPath = videoPathChanged,
+                                )
+                            }
                         }
                     }
+
                 }
 
                 //移动，或改变窗口后保存状态到磁盘
@@ -245,29 +253,35 @@ fun App() {
     if(showPlayerWindow){
         CustomLocalProvider {
             MaterialTheme(colors = appState.colors) {
-                val closePlayerWindow:() -> Unit = {
-                    showPlayerWindow = false
-                    videoPath = ""
-                    vocabularyPath = ""
-                    vocabulary = null
+                // 和 Compose UI 有关的 LocalProvider 需要放在 MaterialTheme 里面,不然无效。
+                CompositionLocalProvider(
+                    LocalScrollbarStyle provides scrollbarStyle(),
+                ){
+                    val closePlayerWindow:() -> Unit = {
+                        showPlayerWindow = false
+                        videoPath = ""
+                        vocabularyPath = ""
+                        vocabulary = null
+                    }
+                    val pronunciation = rememberPronunciation()
+                    Player(
+                        close = {closePlayerWindow()},
+                        videoPath = videoPath,
+                        videoPathChanged = videoPathChanged,
+                        vocabulary = vocabulary,
+                        vocabularyPath = vocabularyPath,
+                        vocabularyPathChanged = vocabularyPathChanged,
+                        audioSet = appState.localAudioSet,
+                        pronunciation = pronunciation,
+                        audioVolume = appState.global.audioVolume,
+                        videoVolume = appState.global.videoVolume,
+                        videoVolumeChanged = {
+                            appState.global.videoVolume = it
+                            appState.saveGlobalState()
+                        },
+                    )
+
                 }
-                val pronunciation = rememberPronunciation()
-                Player(
-                    close = {closePlayerWindow()},
-                    videoPath = videoPath,
-                    videoPathChanged = videoPathChanged,
-                    vocabulary = vocabulary,
-                    vocabularyPath = vocabularyPath,
-                    vocabularyPathChanged = vocabularyPathChanged,
-                    audioSet = appState.localAudioSet,
-                    pronunciation = pronunciation,
-                    audioVolume = appState.global.audioVolume,
-                    videoVolume = appState.global.videoVolume,
-                    videoVolumeChanged = {
-                        appState.global.videoVolume = it
-                        appState.saveGlobalState()
-                    },
-                )
 
             }
 

@@ -1,8 +1,9 @@
-import androidx.compose.foundation.LocalScrollbarStyle
+
 import androidx.compose.foundation.ScrollbarStyle
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.TextSelectionColors
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
@@ -21,7 +22,6 @@ fun CustomLocalProvider(content: @Composable () -> Unit) {
         LocalAudioPlayerComponent provides rememberAudioPlayerComponent(),
         LocalCtrl provides rememberCtrl(),
         LocalTextSelectionColors provides textSelectionColors(),
-        LocalScrollbarStyle provides scrollbarStyle(),
         content = content
     )
 }
@@ -42,7 +42,7 @@ fun textSelectionColors(): TextSelectionColors {
     val backgroundColor = defaultSelectionColor.copy(alpha = 0.4f)
     return TextSelectionColors(handleColor = defaultSelectionColor, backgroundColor = backgroundColor)
 }
-
+@Composable
 fun scrollbarStyle(): ScrollbarStyle {
     val shape = if(isMacOS()) RoundedCornerShape(4.dp) else  RectangleShape
     return ScrollbarStyle(
@@ -50,7 +50,7 @@ fun scrollbarStyle(): ScrollbarStyle {
         thickness = 8.dp,
         shape =shape,
         hoverDurationMillis = 300,
-        unhoverColor = Color.Black.copy(alpha = 0.12f),
-        hoverColor = Color.Black.copy(alpha = 0.50f)
+        unhoverColor = if(MaterialTheme.colors.isLight) Color.Black.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.12f),
+        hoverColor = if(MaterialTheme.colors.isLight) Color.Black.copy(alpha = 0.50f) else Color.White.copy(alpha = 0.50f)
     )
 }
