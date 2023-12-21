@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.material.*
@@ -169,6 +168,8 @@ fun Player(
 
     /** 播放器控制区的可见性 */
     var controlBoxVisible by remember { mutableStateOf(false) }
+    var timeSliderPress by remember { mutableStateOf(false) }
+    var audioSliderPress by remember { mutableStateOf(false) }
 
     /** 展开设置菜单 */
     var settingsExpanded by remember { mutableStateOf(false) }
@@ -480,7 +481,7 @@ fun Player(
                         }
                     }
                     .onPointerEvent(PointerEventType.Exit) {
-                        if (isPlaying && !settingsExpanded && !showSubtitleMenu) {
+                        if (isPlaying && !settingsExpanded && !showSubtitleMenu && !timeSliderPress && !audioSliderPress) {
                             controlBoxVisible = false
                         }
                     }
@@ -555,7 +556,11 @@ fun Player(
                                         .fillMaxWidth().padding(start = 5.dp, end = 5.dp, bottom = 10.dp)
                                         .offset(x = 0.dp, y = 20.dp)
                                         .onPointerEvent(PointerEventType.Enter) { sliderVisible = true }
-                                        .onPointerEvent(PointerEventType.Exit) { sliderVisible = false }
+                                        .onPointerEvent(PointerEventType.Exit) {
+                                            if(!timeSliderPress){
+                                                sliderVisible = false
+                                            }
+                                        }
                                 ) {
                                     val animatedPosition by animateFloatAsState(
                                         targetValue = timeProgress,
@@ -565,6 +570,8 @@ fun Player(
                                         Slider(
                                             value = timeProgress,
                                             modifier = Modifier.align(Alignment.Center)
+                                                .onPointerEvent(PointerEventType.Press){ timeSliderPress = true }
+                                                .onPointerEvent(PointerEventType.Release){ timeSliderPress = false }
                                                 .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
                                             onValueChange = {
                                                 timeProgress = it
@@ -599,6 +606,7 @@ fun Player(
                                     Row(
                                         modifier = Modifier
                                             .onPointerEvent(PointerEventType.Enter) { volumeSliderVisible = true }
+                                            .onPointerEvent(PointerEventType.Exit) { if(!audioSliderPress) volumeSliderVisible = false }
                                     ) {
                                         IconButton(onClick = {
                                             volumeOff = !volumeOff
@@ -634,6 +642,8 @@ fun Player(
                                                     .onPointerEvent(PointerEventType.Enter) {
                                                         volumeSliderVisible = true
                                                     }
+                                                    .onPointerEvent(PointerEventType.Press){ audioSliderPress = true }
+                                                    .onPointerEvent(PointerEventType.Release){ audioSliderPress = false }
                                                     .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR)))
                                             )
                                         }
