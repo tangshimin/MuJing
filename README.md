@@ -24,7 +24,7 @@
 
    https://user-images.githubusercontent.com/16540656/174944474-e5947df9-c8ed-4546-9c67-057fe52c2d51.mp4
 
-6. 听写写测试，可以选择多个章节一起测试。
+6. 听写测试，可以选择多个章节一起测试。
 
    ![DictionReview](https://github.com/tangshimin/MuJing/assets/16540656/b407ee8e-e477-4342-8dd6-7eaf11e67256)
 
