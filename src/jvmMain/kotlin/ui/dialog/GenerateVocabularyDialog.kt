@@ -1101,6 +1101,7 @@ fun Summary(
                 val text = when(sort){
                     "appearance" -> "按出现的顺序排序"
                     "bnc" -> "按 BNC 词频排序"
+                    "alphabet" -> "按首字母排序"
                     else -> "按 COCA 词频排序"
                 }
                 OutlinedButton(
@@ -1125,12 +1126,22 @@ fun Summary(
                     DropdownMenuItem(
                         onClick = {
                             expanded = false
+                            changeSort("alphabet")
+                        },
+                        modifier = Modifier.width(width).height(40.dp)
+                            .background( if(sort == "bnc")selectedColor else backgroundColor )
+                    ) {
+                        Text("按首字母排序")
+                    }
+                    DropdownMenuItem(
+                        onClick = {
+                            expanded = false
                             changeSort("bnc")
                         },
                         modifier = Modifier.width(width).height(40.dp)
                             .background( if(sort == "bnc")selectedColor else backgroundColor )
                     ) {
-                        Text("BNC    词频")
+                        Text("按BNC词频排序")
                     }
                     DropdownMenuItem(
                         onClick = {
@@ -1140,7 +1151,7 @@ fun Summary(
                         modifier = Modifier.width(width).height(40.dp)
                             .background(if(sort == "coca") selectedColor else backgroundColor)
                     ) {
-                        Text("COCA  词频")
+                        Text("按COCA词频排序")
 
                     }
 
@@ -1153,7 +1164,7 @@ fun Summary(
                         modifier = Modifier.width(width).height(40.dp)
                             .background(if(sort == "appearance") selectedColor else backgroundColor)
                     ) {
-                        Text("出现的顺序")
+                        Text("按出现的顺序排序")
                     }
 
 
@@ -2295,6 +2306,10 @@ fun PreviewWords(
 
         Summary(previewList, summaryVocabulary,sort, changeSort = {changeSort(it)})
         val sortedList = when(sort){
+            "alphabet" -> {
+                val sorted = previewList.sortedBy { it.value }
+                sorted
+            }
             "bnc" -> {
                 val sorted = previewList.sortedBy { it.bnc }
                 val zeroBnc = mutableListOf<Word>()
