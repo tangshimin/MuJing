@@ -104,6 +104,9 @@ compose.desktop {
             macOS{
                 iconFile.set(project.file("src/jvmMain/resources/logo/logo.icns"))
             }
+            linux {
+                iconFile.set(project.file("src/jvmMain/resources/logo/logo.png"))
+            }
         }
     }
 }
