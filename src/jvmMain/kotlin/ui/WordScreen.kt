@@ -100,9 +100,11 @@ fun WordScreen(
     }
 
     Box(Modifier.background(MaterialTheme.colors.background)) {
+        /** 单词输入框的焦点请求器*/
+        val wordFocusRequester = remember { FocusRequester() }
         Row {
             val dictationState = rememberDictationState()
-            WordScreenSidebar(appState,wordScreenState,dictationState)
+            WordScreenSidebar(appState,wordScreenState,dictationState,wordFocusRequester)
             if (appState.openSettings) {
                 val topPadding = if (isMacOS()) 30.dp else 0.dp
                 Divider(Modifier.fillMaxHeight().width(1.dp).padding(top = topPadding))
@@ -121,6 +123,7 @@ fun WordScreen(
                         currentWord = currentWord,
                         videoBounds = videoBounds,
                         resetVideoBounds = resetVideoBounds,
+                        wordFocusRequester = wordFocusRequester,
                         window = window
                     )
                 } else {
@@ -141,7 +144,12 @@ fun WordScreen(
         Row( modifier = Modifier.align(Alignment.TopStart)){
             Toolbar(
                 isOpen = appState.openSettings,
-                setIsOpen ={ appState.openSettings = it },
+                setIsOpen = {
+                    appState.openSettings = it
+                    if(!it){
+                        wordFocusRequester.requestFocus()
+                    }
+                },
                 modifier = Modifier,
                 globalState = appState.global,
                 saveGlobalState = {appState.saveGlobalState()},
@@ -309,6 +317,7 @@ fun MainContent(
     currentWord:Word,
     videoBounds: Rectangle,
     resetVideoBounds :() -> Rectangle,
+    wordFocusRequester:FocusRequester,
     window: ComposeWindow,
 ){
     var nextButtonVisible by remember{ mutableStateOf(false) }
@@ -332,9 +341,6 @@ fun MainContent(
 
         /** 显示把当前单词加入到熟悉词库的确认对话框 */
         var showFamiliarDialog by remember { mutableStateOf(false) }
-
-        /** 单词输入框的焦点请求器*/
-        val wordFocusRequester = remember { FocusRequester() }
 
         /** 字幕输入框焦点请求器*/
         val (focusRequester1,focusRequester2,focusRequester3) = remember { FocusRequester.createRefs() }
