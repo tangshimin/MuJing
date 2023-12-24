@@ -649,13 +649,6 @@ fun MainContent(
                     }
                     true
                 }
-                else -> false
-            }
-
-        }
-
-        val globalPreviewKeyEvent: (KeyEvent) -> Boolean = {
-            when{
                 (it.isCtrlPressed && it.isShiftPressed && it.key == Key.Z && it.type == KeyEventType.KeyUp) -> {
                     if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest ){
                         val playTriple = if (wordScreenState.vocabulary.type == VocabularyType.DOCUMENT) {
@@ -700,6 +693,7 @@ fun MainContent(
                 }
                 else -> false
             }
+
         }
 
         /** 显示本章节已经完成对话框 */
@@ -804,8 +798,6 @@ fun MainContent(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .onKeyEvent { globalKeyEvent(it) }
-                .onPreviewKeyEvent { globalPreviewKeyEvent(it) }
                 .width(intrinsicSize = IntrinsicSize.Max)
                 .background(MaterialTheme.colors.background)
                 .focusable(true)
