@@ -786,6 +786,7 @@ fun MainContent(
                         wordScreenState.dictationIndex -= 1
                     }
                 }
+                wordFocusRequester.requestFocus()
             }
         }
         Box(
