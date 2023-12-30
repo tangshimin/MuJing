@@ -321,7 +321,7 @@ fun DocumentPage(){
             val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
 
             Text("\n1. 打开从文档生成词库窗口，然后选择文档，可以拖放文档到窗口快速打开，\n" +
-                    "    我这里选择的是一个 android 开发英文文档，有 1300 页。点击开始按钮。[1]\n")
+                    "    我这里选择的是一个 android 开发英文文档[1]，有 1300 页。点击开始按钮。\n")
             Image(
                 painter = painterResource("screenshot/document-$theme/document-1.png"),
                 contentDescription = "document-step-1",
@@ -366,15 +366,19 @@ fun DocumentPage(){
 @Composable
 fun SameSteps(){
     val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
+    Text("\n在右边的预览区可以看到程序生成的单词。如果你不想删除任何单词就可以直接点击右下角的保存按钮，\n" +
+            "如果有很多数字，或者很多熟悉的单词不想再记忆了，就选择左边的过滤选项过滤掉不需要的单词。\n",
+        modifier = Modifier.padding(start = 20.dp)
+        )
+
+    Text("\n2. 你可以点击左边的过滤词频顺序为0的词，词频为 0 的词包括简单的字母和数字还有一些没有收录进词频顺序的生僻词。")
     Row(
         verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(start = 20.dp,top = 10.dp)){
+        modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(start = 20.dp)){
         Spacer(Modifier.width(3.dp).height(180.dp).background(Color.Red))
         Text(frequencyText,modifier = Modifier.padding(start = 10.dp,bottom = 5.dp))
     }
 
-    Text("\n2. 在左边的预览区可以看到程序生成的单词。你可以点击左边的过滤词频顺序为0的词，\n" +
-            "    词频为 0 的词包括简单的字母和数字还有一些没有收录进词频顺序的生僻词。\n")
     Column {
         Image(
             painter = painterResource("screenshot/mkv-$theme/MKV-2.png"),
@@ -488,7 +492,7 @@ fun SubtitlesPage(){
             }
 
             Text("\n1. 打开从字幕生成词库窗口,然后选择 SRT 字幕，也可以拖放文件到窗口快速打开，\n" +
-                    "    如果有对应的视频，就选择对应的视频，然后点击分析按钮。[1]\n")
+                    "    如果有对应的视频，就选择对应的视频，然后点击开始按钮。[1]\n")
             Image(
                 painter = painterResource("screenshot/subtitles-$theme/Subtitles-1.png"),
                 contentDescription = "subtitles-step-1",
