@@ -1119,7 +1119,7 @@ fun Summary(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
                     modifier = Modifier.width(width)
-                        .height(140.dp)
+                        .height(180.dp)
                 ) {
                     val selectedColor = if(MaterialTheme.colors.isLight) Color(245, 245, 245) else Color(41, 42, 43)
                     val backgroundColor = Color.Transparent
