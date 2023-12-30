@@ -14,7 +14,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
@@ -43,7 +42,7 @@ fun WordScreenSidebar(
     appState: AppState,
     wordScreenState: WordScreenState,
     dictationState: DictationState,
-    wordFocusRequester: FocusRequester,
+    wordRequestFocus:() -> Unit,
 ) {
 
     if (appState.openSettings) {
@@ -53,7 +52,7 @@ fun WordScreenSidebar(
             scope.launch {
                 appState.openSettings = !appState.openSettings
                 if(!appState.openSettings){
-                    wordFocusRequester.requestFocus()
+                    wordRequestFocus()
                 }
             }
             true

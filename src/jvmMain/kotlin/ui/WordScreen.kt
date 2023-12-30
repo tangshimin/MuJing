@@ -102,19 +102,27 @@ fun WordScreen(
     Box(Modifier.background(MaterialTheme.colors.background)) {
         /** 单词输入框的焦点请求器*/
         val wordFocusRequester = remember { FocusRequester() }
+        /** 当前正在记忆的单词 */
+        val currentWord = if(wordScreenState.vocabulary.wordList.isNotEmpty()){
+            wordScreenState.getCurrentWord()
+        }else  null
+
         Row {
             val dictationState = rememberDictationState()
-            WordScreenSidebar(appState,wordScreenState,dictationState,wordFocusRequester)
+            WordScreenSidebar(
+                appState = appState,
+                wordScreenState = wordScreenState,
+                dictationState = dictationState,
+                wordRequestFocus = {
+                if(currentWord != null){
+                    wordFocusRequester.requestFocus()
+                }
+            })
             if (appState.openSettings) {
                 val topPadding = if (isMacOS()) 30.dp else 0.dp
                 Divider(Modifier.fillMaxHeight().width(1.dp).padding(top = topPadding))
             }
             Box(Modifier.fillMaxSize()) {
-                /** 当前正在记忆的单词 */
-                val currentWord = if(wordScreenState.vocabulary.wordList.isNotEmpty()){
-                    wordScreenState.getCurrentWord()
-                }else  null
-
                 if (currentWord != null) {
                     MainContent(
                         appState =appState,
@@ -146,7 +154,7 @@ fun WordScreen(
                 isOpen = appState.openSettings,
                 setIsOpen = {
                     appState.openSettings = it
-                    if(!it){
+                    if(!it && currentWord != null){
                         wordFocusRequester.requestFocus()
                     }
                 },
