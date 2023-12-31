@@ -1,12 +1,14 @@
 package ui.dialog
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,7 +22,6 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.Word
-import player.isWindows
 import state.MemoryStrategy
 import state.WordScreenState
 import state.rememberDictationState
@@ -32,6 +33,7 @@ import state.rememberDictationState
 @Composable
 fun SelectChapterDialog(
     close:() -> Unit,
+    wordRequestFocus:() -> Unit,
     wordScreenState: WordScreenState,
     isMultiple:Boolean
 ) {
@@ -148,6 +150,7 @@ fun SelectChapterDialog(
                 val dictationState = rememberDictationState()
                 Footer(
                     modifier = Modifier.align(Alignment.BottomCenter),
+                    confirmEnable = selectedChapters.isNotEmpty(),
                     confirm = {
                         // 独立的听写测试，可以选择多个章节
                         if(isMultiple){
@@ -185,6 +188,8 @@ fun SelectChapterDialog(
                         }
                         wordScreenState.clearInputtedState()
                         close()
+
+                        wordRequestFocus()
 
                     },
                     exit = { close() })
@@ -297,7 +302,12 @@ fun Chapters(
 }
 
 @Composable
-fun Footer(modifier: Modifier, confirm: () -> Unit, exit: () -> Unit) {
+fun Footer(
+    modifier: Modifier,
+    confirmEnable:Boolean,
+    confirm: () -> Unit,
+    exit: () -> Unit
+) {
     Box(modifier = modifier) {
         Column {
             Divider(Modifier.fillMaxWidth())
@@ -309,7 +319,10 @@ fun Footer(modifier: Modifier, confirm: () -> Unit, exit: () -> Unit) {
                     .height(54.dp)
                     .padding(top = 10.dp, bottom = 10.dp)
             ) {
-                OutlinedButton(onClick = { confirm() }) {
+                OutlinedButton(
+                    enabled = confirmEnable,
+                    onClick = { confirm() }
+                ) {
                     Text(text = "确认", color = MaterialTheme.colors.onBackground)
                 }
                 Spacer(Modifier.width(10.dp))

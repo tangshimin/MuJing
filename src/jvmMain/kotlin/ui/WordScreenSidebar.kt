@@ -106,6 +106,7 @@ fun WordScreenSidebar(
                         if(showDictationDialog){
                             SelectChapterDialog(
                                 close = {showDictationDialog = false},
+                                wordRequestFocus = wordRequestFocus,
                                 wordScreenState = wordScreenState,
                                 isMultiple = true
                             )
@@ -130,6 +131,7 @@ fun WordScreenSidebar(
                     if(showChapterDialog){
                         SelectChapterDialog(
                             close = {showChapterDialog = false},
+                            wordRequestFocus = wordRequestFocus,
                             wordScreenState = wordScreenState,
                             isMultiple = false
                         )

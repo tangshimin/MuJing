@@ -100,6 +100,7 @@ fun WordScreen(
     }
 
     Box(Modifier.background(MaterialTheme.colors.background)) {
+        ->
         /** 单词输入框的焦点请求器*/
         val wordFocusRequester = remember { FocusRequester() }
         /** 当前正在记忆的单词 */
@@ -107,17 +108,20 @@ fun WordScreen(
             wordScreenState.getCurrentWord()
         }else  null
 
+        val  wordRequestFocus: () -> Unit = { ->
+            if(currentWord != null){
+                wordFocusRequester.requestFocus()
+            }
+        }
+
         Row {
             val dictationState = rememberDictationState()
             WordScreenSidebar(
                 appState = appState,
                 wordScreenState = wordScreenState,
                 dictationState = dictationState,
-                wordRequestFocus = {
-                if(currentWord != null){
-                    wordFocusRequester.requestFocus()
-                }
-            })
+                wordRequestFocus = wordRequestFocus,
+                )
             if (appState.openSettings) {
                 val topPadding = if (isMacOS()) 30.dp else 0.dp
                 Divider(Modifier.fillMaxHeight().width(1.dp).padding(top = topPadding))
@@ -142,10 +146,9 @@ fun WordScreen(
                     wordScreenState = wordScreenState,
                     title = title,
                     window = window,
+                    wordRequestFocus = wordRequestFocus,
                     modifier = Modifier.align(Alignment.TopCenter)
                 )
-
-
             }
         }
 
@@ -242,6 +245,7 @@ fun Header(
     wordScreenState: WordScreenState,
     title:String,
     window: ComposeWindow,
+    wordRequestFocus: () -> Unit,
     modifier: Modifier
 ){
     Column(
@@ -302,7 +306,7 @@ fun Header(
                     if(wordScreenState.reviewWords.isNotEmpty()){
                         wordScreenState.reviewWords.clear()
                     }
-
+                    wordRequestFocus()
                 })
             }
         }
@@ -1513,6 +1517,11 @@ fun MainContent(
                 SelectChapterDialog(
                     close = {showChapterDialog = false},
                     wordScreenState = wordScreenState,
+                    wordRequestFocus = {
+                        if(currentWord != null){
+                            wordFocusRequester.requestFocus()
+                        }
+                    },
                     isMultiple = true
                 )
             }
