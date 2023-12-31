@@ -942,7 +942,11 @@ fun MainContent(
                             // 输入完全正确
                             playSuccessSound()
                             wordScreenState.wordCorrectTime++
-                            if (wordScreenState.isAuto && wordScreenState.wordCorrectTime == wordScreenState.repeatTimes ) {
+                            if (wordScreenState.memoryStrategy == Dictation || wordScreenState.memoryStrategy == DictationTest) {
+                                Timer("input correct to next", false).schedule(50) {
+                                    toNext()
+                                }
+                            }else if (wordScreenState.isAuto && wordScreenState.wordCorrectTime == wordScreenState.repeatTimes ) {
                                 Timer("input correct to next", false).schedule(50) {
                                     toNext()
                                 }
