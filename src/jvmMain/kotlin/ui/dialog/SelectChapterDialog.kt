@@ -323,11 +323,11 @@ fun Footer(
                     enabled = confirmEnable,
                     onClick = { confirm() }
                 ) {
-                    Text(text = "确认", color = MaterialTheme.colors.onBackground)
+                    Text(text = "确认")
                 }
                 Spacer(Modifier.width(10.dp))
                 OutlinedButton(onClick = { exit() }) {
-                    Text(text = "取消", color = MaterialTheme.colors.onBackground)
+                    Text(text = "取消")
                 }
                 Spacer(Modifier.width(10.dp))
             }
