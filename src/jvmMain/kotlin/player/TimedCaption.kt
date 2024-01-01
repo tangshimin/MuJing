@@ -29,8 +29,8 @@ class TimedCaption{
         clear()
         captions.forEachIndexed { index, caption ->
             captionList.add(caption)
-            val start = parseTime(caption.start)
-            val end = parseTime(caption.end)
+            val start = convertTimeToSeconds(caption.start)
+            val end = convertTimeToSeconds(caption.end)
             val startInt = start.toInt()
             val list = timeMap[startInt] ?: mutableListOf()
             list.add(Triple(start,end,index))
@@ -44,13 +44,13 @@ class TimedCaption{
             }
             in nextCaptionStart..nextCaptionEnd -> {
                 val index = currentIndex + 1
-                previousCaptionStart = parseTime(captionList[index - 1].start).times(1000).toLong()
-                previousCaptionEnd = parseTime(captionList[index - 1].end).times(1000).toLong()
+                previousCaptionStart = convertTimeToSeconds(captionList[index - 1].start).times(1000).toLong()
+                previousCaptionEnd = convertTimeToSeconds(captionList[index - 1].end).times(1000).toLong()
                 captionStart = nextCaptionStart
                 captionEnd = nextCaptionEnd
                 if(index + 1 < captionList.size){
-                    nextCaptionStart = parseTime(captionList[index + 1].start).times(1000).toLong()
-                    nextCaptionEnd = parseTime(captionList[index + 1].end).times(1000).toLong()
+                    nextCaptionStart = convertTimeToSeconds(captionList[index + 1].start).times(1000).toLong()
+                    nextCaptionEnd = convertTimeToSeconds(captionList[index + 1].end).times(1000).toLong()
                 }
 
                 return captionList[index]
@@ -61,12 +61,12 @@ class TimedCaption{
                 captionStart = previousCaptionStart
                 captionEnd = previousCaptionEnd
 
-                previousCaptionStart = parseTime(captionList[index - 1].start).times(1000).toLong()
-                previousCaptionEnd = parseTime(captionList[index - 1].end).times(1000).toLong()
+                previousCaptionStart = convertTimeToSeconds(captionList[index - 1].start).times(1000).toLong()
+                previousCaptionEnd = convertTimeToSeconds(captionList[index - 1].end).times(1000).toLong()
 
                 if(index + 1 < captionList.size){
-                    nextCaptionStart = parseTime(captionList[index + 1].start).times(1000).toLong()
-                    nextCaptionEnd = parseTime(captionList[index + 1].end).times(1000).toLong()
+                    nextCaptionStart = convertTimeToSeconds(captionList[index + 1].start).times(1000).toLong()
+                    nextCaptionEnd = convertTimeToSeconds(captionList[index + 1].end).times(1000).toLong()
                 }
 
                 return captionList[index]
@@ -78,13 +78,13 @@ class TimedCaption{
                     val start = it.first.times(1000).toLong()
                     val end = it.second.times(1000).toLong()
                     if(newTime in start..end){
-                        previousCaptionStart = parseTime(captionList[it.third - 1].start).times(1000).toLong()
-                        previousCaptionEnd = parseTime(captionList[it.third - 1].end).times(1000).toLong()
+                        previousCaptionStart = convertTimeToSeconds(captionList[it.third - 1].start).times(1000).toLong()
+                        previousCaptionEnd = convertTimeToSeconds(captionList[it.third - 1].end).times(1000).toLong()
                         captionStart = start
                         captionEnd = end
                         if(it.third + 1 < captionList.size){
-                            nextCaptionStart = parseTime(captionList[it.third + 1].start).times(1000).toLong()
-                            nextCaptionEnd = parseTime(captionList[it.third + 1].end).times(1000).toLong()
+                            nextCaptionStart = convertTimeToSeconds(captionList[it.third + 1].start).times(1000).toLong()
+                            nextCaptionEnd = convertTimeToSeconds(captionList[it.third + 1].end).times(1000).toLong()
                         }
                         return captionList[it.third]
                     }
@@ -106,8 +106,8 @@ class TimedCaption{
                 captionEnd = nextCaptionEnd
                 if(index + 1 < captionList.size){
                     val nextCaption = captionList[index + 1]
-                    nextCaptionStart = parseTime(nextCaption.start).times(1000).toLong()
-                    nextCaptionEnd = parseTime(nextCaption.end).times(1000).toLong()
+                    nextCaptionStart = convertTimeToSeconds(nextCaption.start).times(1000).toLong()
+                    nextCaptionEnd = convertTimeToSeconds(nextCaption.end).times(1000).toLong()
                 }
                 currentIndex = index
                 println("next")
@@ -125,8 +125,8 @@ class TimedCaption{
                         captionEnd = end
                         if(it.third + 1 < captionList.size){
                             val nextCaption = captionList[it.third + 1]
-                            nextCaptionStart = parseTime(nextCaption.start).times(1000).toLong()
-                            nextCaptionEnd = parseTime(nextCaption.end).times(1000).toLong()
+                            nextCaptionStart = convertTimeToSeconds(nextCaption.start).times(1000).toLong()
+                            nextCaptionEnd = convertTimeToSeconds(nextCaption.end).times(1000).toLong()
                         }
                         currentIndex = it.third
                         return captionList[it.third]
@@ -149,13 +149,13 @@ class TimedCaption{
                     val start = it.first.times(1000).toLong()
                     val end = it.second.times(1000).toLong()
                     if(newTime in start..end){
-                        previousCaptionStart = parseTime(captionList[it.third - 1].start).times(1000).toLong()
-                        previousCaptionEnd = parseTime(captionList[it.third - 1].end).times(1000).toLong()
+                        previousCaptionStart = convertTimeToSeconds(captionList[it.third - 1].start).times(1000).toLong()
+                        previousCaptionEnd = convertTimeToSeconds(captionList[it.third - 1].end).times(1000).toLong()
                         captionStart = start
                         captionEnd = end
                         if(it.third + 1 < captionList.size){
-                            nextCaptionStart = parseTime(captionList[it.third + 1].start).times(1000).toLong()
-                            nextCaptionEnd = parseTime(captionList[it.third + 1].end).times(1000).toLong()
+                            nextCaptionStart = convertTimeToSeconds(captionList[it.third + 1].start).times(1000).toLong()
+                            nextCaptionEnd = convertTimeToSeconds(captionList[it.third + 1].end).times(1000).toLong()
                         }
                         return captionList[it.third]
                     }
@@ -181,8 +181,8 @@ class TimedCaption{
                 captionEnd = nextCaptionEnd
                 if(index + 1 < captionList.size){
                     val nextCaption = captionList[index + 1]
-                    nextCaptionStart = parseTime(nextCaption.start).times(1000).toLong()
-                    nextCaptionEnd = parseTime(nextCaption.end).times(1000).toLong()
+                    nextCaptionStart = convertTimeToSeconds(nextCaption.start).times(1000).toLong()
+                    nextCaptionEnd = convertTimeToSeconds(nextCaption.end).times(1000).toLong()
                 }
                 return index
             }
@@ -198,8 +198,8 @@ class TimedCaption{
                         captionEnd = end
                         if(index + 1 < captionList.size){
                             val nextCaption = captionList[index + 1]
-                            nextCaptionStart = parseTime(nextCaption.start).times(1000).toLong()
-                            nextCaptionEnd = parseTime(nextCaption.end).times(1000).toLong()
+                            nextCaptionStart = convertTimeToSeconds(nextCaption.start).times(1000).toLong()
+                            nextCaptionEnd = convertTimeToSeconds(nextCaption.end).times(1000).toLong()
                         }
                         return index
                     }

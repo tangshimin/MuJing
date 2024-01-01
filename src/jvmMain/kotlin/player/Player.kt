@@ -1428,7 +1428,7 @@ fun rememberDanmakuMap(
                 vocabulary.wordList.forEach { word ->
                     if (word.captions.isNotEmpty()) {
                         word.captions.forEach { caption ->
-                            val startTime = floor(parseTime(caption.start)).toInt()
+                            val startTime = floor(convertTimeToSeconds(caption.start)).toInt()
                             addDanmakuToMap(timeMap, startTime, word)
                         }
                     }
@@ -1444,7 +1444,7 @@ fun rememberDanmakuMap(
                     if ((absVideoFile.exists() && absVideoFile.absolutePath == externalCaption.relateVideoPath) ||
                         (relVideoFile.exists() && relVideoFile.name == File(externalCaption.relateVideoPath).name)
                     ) {
-                        val startTime = floor(parseTime(externalCaption.start)).toInt()
+                        val startTime = floor(convertTimeToSeconds(externalCaption.start)).toInt()
                         addDanmakuToMap(timeMap, startTime, word)
                     }
                 }

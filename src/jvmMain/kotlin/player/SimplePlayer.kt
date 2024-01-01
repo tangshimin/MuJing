@@ -202,8 +202,8 @@ fun SimplePlayer(
                 val caption = playTriple.first
                 val relativeVideoPath = playTriple.second
                 val trackId = playTriple.third
-                val start = parseTime(caption.start)
-                val end = parseTime(caption.end)
+                val start = convertTimeToSeconds(caption.start)
+                val end = convertTimeToSeconds(caption.end)
                 // 使用内部字幕轨道,通常是从 MKV 生成的词库
                 if(trackId != -1){
                     videoPlayerComponent.mediaPlayer().media()

@@ -373,8 +373,8 @@ fun play(
     val caption = playTriple.first
     val relativeVideoPath = playTriple.second
     val trackId = playTriple.third
-    val start = parseTime(caption.start)
-    val end = parseTime(caption.end)
+    val start = convertTimeToSeconds(caption.start)
+    val end = convertTimeToSeconds(caption.end)
     // 使用内部字幕轨道,通常是从 MKV 生成的词库
     if(trackId != -1){
         videoPlayerComponent.mediaPlayer().media()
@@ -414,16 +414,16 @@ fun play(
             audioPlayerComponent.mediaPlayer().events().removeMediaPlayerEventListener(this)
         }
     })
-    val start = parseTime(caption.start)
-    val end = parseTime(caption.end)
+    val start = convertTimeToSeconds(caption.start)
+    val end = convertTimeToSeconds(caption.end)
     audioPlayerComponent.mediaPlayer().media()
         .play(videoPath,  ":start-time=$start",  ":stop-time=$end")
 }
 
 /**
- * 解析时间,返回秒
+ * 转换时间为秒
  */
-fun parseTime(time:String):Double{
+fun convertTimeToSeconds(time:String):Double{
     var duration = LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm:ss.SSS")).toNanoOfDay().toDouble()
     duration = duration.div(1000_000_000)
     return duration
