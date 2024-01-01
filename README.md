@@ -30,7 +30,7 @@
 
    ![DictionReview](https://github.com/tangshimin/MuJing/assets/16540656/b407ee8e-e477-4342-8dd6-7eaf11e67256)
 
-7. 抄写文本，可以抄写 txt 格式的电子书。
+7. 抄写文本，可以抄写 txt 格式的文本。
 
    ![Demo-Text](https://user-images.githubusercontent.com/16540656/175084580-6b26abc3-671f-455e-ac5f-aa583297a0e0.png)
 
