@@ -294,6 +294,7 @@ fun App() {
         ChooseEditVocabulary(
             close = {appState.editVocabulary = false},
             recentList = appState.recentList,
+            removeRecentItem = {appState.removeRecentItem(it)},
             openEditVocabulary = {
                 choosedPath = it
                 showEditVocabulary = true

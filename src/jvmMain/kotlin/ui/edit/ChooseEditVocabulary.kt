@@ -2,12 +2,10 @@ package ui.edit
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
@@ -16,15 +14,16 @@ import androidx.compose.ui.window.rememberWindowState
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import data.RecentItem
 import player.isMacOS
-import player.isWindows
 import state.rememberWordState
 import java.io.File
+import javax.swing.JOptionPane
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun ChooseEditVocabulary(
     close: () -> Unit,
     recentList: List<RecentItem>,
+    removeRecentItem:(RecentItem) -> Unit,
     openEditVocabulary: (String) -> Unit,
     colors: Colors,
 ) {
@@ -89,11 +88,21 @@ fun ChooseEditVocabulary(
                                 }
 
                                 recentList.forEach { item ->
-                                    if (wordState.vocabularyName != item.name && File(item.path).exists()) {
+                                    if (wordState.vocabularyName != item.name) {
                                         ListItem(
                                             text = { Text(item.name, color = MaterialTheme.colors.onBackground) },
                                             modifier = Modifier.clickable {
-                                                openEditVocabulary(item.path)
+
+                                                val recentFile = File(item.path)
+                                                if (recentFile.exists()) {
+                                                    openEditVocabulary(item.path)
+                                                } else {
+                                                    removeRecentItem(item)
+                                                    JOptionPane.showMessageDialog(window, "文件地址错误：\n${item.path}")
+                                                }
+
+
+
                                             }
                                         )
                                     }
