@@ -1,4 +1,4 @@
-import org.jetbrains.compose.compose
+
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.movcontext"
-version = "2.2.3"
+version = "2.2.12"
 
 repositories {
     google()
@@ -50,7 +50,6 @@ kotlin {
                 implementation("com.github.albfernandez:juniversalchardet:2.4.0")
                 implementation("junit:junit:4.13.2")
                 implementation("org.junit.vintage:junit-vintage-engine:5.9.0")
-                implementation(compose("org.jetbrains.compose.ui:ui-test-junit4"))
                 implementation("com.darkrockstudios:mpfilepicker:2.0.2")
                 implementation("net.bramp.ffmpeg:ffmpeg:0.7.0")
                 implementation("org.apache.poi:poi:5.2.5")
@@ -58,7 +57,12 @@ kotlin {
                 implementation("org.xerial:sqlite-jdbc:3.44.1.0")
             }
         }
-        val jvmTest by getting
+//        val jvmTest by getting {
+//            dependencies {
+//                implementation(compose.desktop.uiTestJUnit4)
+//                implementation(compose.desktop.currentOs)
+//            }
+//        }
     }
 }
 
