@@ -46,7 +46,7 @@ fun DocumentWindow(
         resizable = true,
         state = rememberWindowState(
             position = WindowPosition(Alignment.Center),
-            size = DpSize(1170.dp, 700.dp)
+            size = DpSize(1170.dp, 720.dp)
         ),
     ) {
         Surface {
@@ -59,6 +59,19 @@ fun DocumentWindow(
                         modifier = Modifier.width(200.dp).fillMaxHeight()
                     ) {
                         val selectedColor = if(MaterialTheme.colors.isLight) Color(245, 245, 245) else Color(41, 42, 43)
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .background( if(currentPage == "features")selectedColor else MaterialTheme.colors.background )
+                                .clickable { setCurrentPage("features" )}) {
+                            Text("主要功能", modifier = Modifier.padding(start = 16.dp))
+                            if(currentPage == "features"){
+                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                            }
+                        }
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -130,6 +143,32 @@ fun DocumentWindow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
+                                .background( if(currentPage == "learnEnglish")selectedColor else MaterialTheme.colors.background )
+                                .clickable { setCurrentPage("learnEnglish") }) {
+                            Text("如何使用美剧学习英语", modifier = Modifier.padding(start = 16.dp))
+                            if(currentPage == "learnEnglish"){
+                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                            }
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .background( if(currentPage == "Danmaku")selectedColor else MaterialTheme.colors.background )
+                                .clickable { setCurrentPage("Danmaku") }) {
+                            Text("如何打开单词弹幕", modifier = Modifier.padding(start = 16.dp))
+                            if(currentPage == "Danmaku"){
+                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                            }
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
                                 .background( if(currentPage == "linkVocabulary")selectedColor else MaterialTheme.colors.background )
                                 .clickable {  setCurrentPage("linkVocabulary") }) {
                             Text("链接字幕词库", modifier = Modifier.padding(start = 16.dp))
@@ -169,6 +208,9 @@ fun DocumentWindow(
                     Divider(Modifier.width(1.dp).fillMaxHeight())
 
                     when(currentPage){
+                        "features" -> {
+                            FeaturesPage()
+                        }
                         "vocabulary" -> {
                             VocabularyPage()
                         }
@@ -186,6 +228,12 @@ fun DocumentWindow(
                         }
                         "youtube" -> {
                             YouTubeDownloadPage()
+                        }
+                        "learnEnglish" -> {
+                            LearnEnglishPage()
+                        }
+                        "Danmaku" -> {
+                            DanmakuPage()
                         }
                         "linkVocabulary" -> {
                             LinkVocabularyPage()
@@ -239,6 +287,56 @@ fun FrequencyRelatedLink(){
     }
 }
 
+
+@Composable
+fun FeaturesPage(){
+    Box(Modifier.fillMaxSize()){
+        val stateVertical = rememberScrollState(0)
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp).verticalScroll(stateVertical)){
+            val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
+
+            Image(
+                painter = painterResource("screenshot/features-$theme/features-word.png"),
+                contentDescription = "features-word",
+                modifier = Modifier.width(350.dp).height(90.dp)
+            )
+            Text("记忆单词的时候，会自动播放单词的读音，然后用键盘打字练习拼写，每个单词都可以输入多次，直到记住为止。从 MKV 生成的词库(单词本)，可以抄写单词对应的字幕，播放单词对应的视频片段。默认使用 Enter 键切换下一个单词。\n\n")
+
+
+            Image(
+                painter = painterResource("screenshot/features-$theme/features-subtitle.png"),
+                contentDescription = "features-subtitle",
+                modifier = Modifier.width(350.dp).height(90.dp)
+            )
+            Text("字幕浏览器，可以浏览字幕，练习跟读美剧、电影、TED演讲，可以选择性的播放一条或多条字幕，如果要播放多行字幕，点击左边的数字就可以开启，点击 5 和 10 再点击左边的播放按钮，就会从第5行开始播放，到第10行结束。还可以抄写字幕。\n\n")
+
+
+            Image(
+                painter = painterResource("screenshot/features-$theme/features-player.png"),
+                contentDescription = "features-player",
+                modifier = Modifier.width(350.dp).height(90.dp)
+            )
+            Text("以弹幕的形式复习单词。播放电影时，添加用电影生成的词库到播放器，单词会以弹幕的形式出现。要查看某个单词的中文解释，只需要输入单词或对应的数字就可以查看。\n" +
+                    "打开弹幕的快捷方式：如果正在记忆某个由视频或字幕生成的词库，把视频拖放到记忆单词界面，就可以快速的打开视频和弹幕。\n\n")
+
+            Image(
+                painter = painterResource("screenshot/features-$theme/features-text.png"),
+                contentDescription = "features-text",
+                modifier = Modifier.width(350.dp).height(90.dp)
+            )
+            Text("抄写文本，可以抄写 txt 格式的文本")
+        }
+
+        VerticalScrollbar(
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(stateVertical)
+        )
+    }
+
+
+}
 @Composable
 fun VocabularyPage(){
     Column (Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp)){
@@ -320,7 +418,7 @@ fun DocumentPage(){
         Column (Modifier.padding(start = 16.dp, top = 16.dp,end = 16.dp).verticalScroll(stateVertical)){
             val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
 
-            Text("\n1. 打开从文档生成词库窗口，然后选择文档，可以拖放文档到窗口快速打开，\n" +
+            Text("\n1. 把鼠标移动到屏幕顶部的菜单栏 > 点击词库 > 再点击 用文档生成词库，然后选择文档，可以拖放文档到窗口快速打开，\n" +
                     "    我这里选择的是一个 android 开发英文文档[1]，有 1300 页。点击开始按钮。\n")
             Image(
                 painter = painterResource("screenshot/document-$theme/document-1.png"),
@@ -375,8 +473,8 @@ fun SameSteps(){
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(start = 20.dp)){
-        Spacer(Modifier.width(3.dp).height(180.dp).background(Color.Red))
-        Text(frequencyText,modifier = Modifier.padding(start = 10.dp,bottom = 5.dp))
+        Spacer(Modifier.width(3.dp).height(180.dp).background(if(MaterialTheme.colors.isLight) Color.LightGray else Color.DarkGray))
+        Text(frequencyText, modifier = Modifier.padding(start = 10.dp, bottom = 5.dp))
     }
 
     Column {
@@ -394,9 +492,9 @@ fun SameSteps(){
         Image(
             painter = painterResource("screenshot/mkv-$theme/MKV-7.png"),
             contentDescription = "step-3",
-            modifier = Modifier.width(405.dp).height(450.dp).padding(start = 20.dp)
+            modifier = Modifier.width(406.dp).height(450.dp).padding(start = 20.dp)
         )
-        Divider(Modifier.width(405.dp).padding(start = 20.dp))
+        Divider(Modifier.width(406.dp).padding(start = 20.dp))
     }
     Text("\n4. 还可以把所有的派生词替换为原型词。")
     Column {
@@ -462,7 +560,7 @@ fun SubtitlesPage(){
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(start = 20.dp)){
-                Spacer(Modifier.width(3.dp).height(130.dp).background(Color.Red))
+                Spacer(Modifier.width(3.dp).height(130.dp).background(if(MaterialTheme.colors.isLight) Color.LightGray else Color.DarkGray))
                 Column (Modifier.padding(start = 10.dp)){
                     Row(){
                         Text("•",
@@ -491,8 +589,8 @@ fun SubtitlesPage(){
                 }
             }
 
-            Text("\n1. 打开从字幕生成词库窗口,然后选择 SRT 字幕，也可以拖放文件到窗口快速打开，\n" +
-                    "    如果有对应的视频，就选择对应的视频，然后点击开始按钮。[1]\n")
+            Text("\n1. 把鼠标移动到屏幕顶部的菜单栏 > 点击词库 > 再点击 用字幕生成词库，然后选择 SRT 字幕，\n    也可以拖放文件到窗口快速打开，" +
+                    "如果有对应的视频，就选择对应的视频，然后点击开始按钮。[1]\n")
             Image(
                 painter = painterResource("screenshot/subtitles-$theme/Subtitles-1.png"),
                 contentDescription = "subtitles-step-1",
@@ -540,7 +638,7 @@ fun MatroskaPage(){
             val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
             Row(  verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(start = 20.dp)){
-                Spacer(Modifier.width(3.dp).height(130.dp).background(Color.Red))
+                Spacer(Modifier.width(3.dp).height(130.dp).background(if(MaterialTheme.colors.isLight) Color.LightGray else Color.DarkGray))
                 Column (Modifier.padding(start = 10.dp)){
                     Row{
                         Text(text = "•",
@@ -571,12 +669,20 @@ fun MatroskaPage(){
 
 
 
-            Text("\n1. 打开从 MKV 生成词库窗口,然后选择 MKV 视频，也可以拖放文件到窗口快速打开，（最新版支持批量生成词库）\n" +
-                    "    然后点击开始按钮。[1]\n")
+            Text("\n1. 把鼠标移动到屏幕顶部的菜单栏 > 点击词库 > 再点击 用 MKV 视频生成词库，然后选择 MKV 视频，\n    也可以拖放文件到窗口快速打开，然后点击开始按钮。[1]\n")
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(start = 20.dp)){
+                Spacer(Modifier.width(3.dp).height(60.dp).background(if(MaterialTheme.colors.isLight) Color.LightGray else Color.DarkGray))
+                Text(text = "最新版支持拖放多个视频，你可以拖放多个视频到窗口，使用多个视频生成一个词库要保证每个视频里都有" +
+                        "一个 English 字幕轨道，幕境会提取每个视频里的 English 轨道的字幕，然后把所有的字幕合并到一个词库里。",
+                    modifier = Modifier.padding(start = 10.dp, bottom = 5.dp)
+                )
+            }
             Image(
                 painter = painterResource("screenshot/mkv-$theme/MKV-1.png"),
                 contentDescription = "mkv-step-1",
-                modifier = Modifier.width(685.dp).height(192.dp).padding(start = 20.dp)
+                modifier = Modifier.width(685.dp).height(192.dp).padding(start = 20.dp,top = 10.dp)
                     .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
             )
             SameSteps()
@@ -723,6 +829,33 @@ fun YouTubeDownloadPage(){
         VerticalScrollbar(
             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
             adapter = rememberScrollbarAdapter(stateVertical)
+        )
+    }
+}
+
+
+@Composable
+fun LearnEnglishPage(){
+    Column (Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp)){
+        Text(
+           "我用美剧学习英语的流程是：\n"+
+            "  1. 先用英语字幕看一遍。\n"+
+            "  2. 然后用英语字幕生成一个词库，把所有的陌生单词学完。\n"+
+            "  3. 学完再把视频拖放到记忆单词界面，打开单词弹幕，再看一遍。\n"+
+            "  4. 如果有时间会使用字幕浏览器跟读或抄写英语字幕。"
+        )
+    }
+}
+@Composable
+fun DanmakuPage(){
+    Column (Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp)){
+        Text(
+           """
+              单词弹幕里的单词就是字幕词库里的单词，如果要打开单词弹幕要先使用字幕或mkv视频里的内置字幕生成词库。
+              如果已经生成了字幕词库，打开视频播放器 > 打开视频 > 添加词库，就可以打开单词弹幕了。
+              
+              还有一种快捷打开单词弹幕的方法，如果正在记忆某个由视频生成的词库，把视频拖放到记忆单词界面，就可以快速的打开视频和弹幕。
+           """.trimIndent()
         )
     }
 }

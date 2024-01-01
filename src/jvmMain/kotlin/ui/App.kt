@@ -637,7 +637,7 @@ private fun FrameWindowScope.WindowMenuBar(
     }
     Menu("帮助(H)", mnemonic = 'H') {
         var documentWindowVisible by remember { mutableStateOf(false) }
-        var currentPage by remember { mutableStateOf("vocabulary") }
+        var currentPage by remember { mutableStateOf("features") }
         Item("文档D)", mnemonic = 'D', onClick = { documentWindowVisible = true})
         if(documentWindowVisible){
             DocumentWindow(
