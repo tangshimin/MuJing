@@ -84,7 +84,7 @@ fun createMediaPlayerComponent(): Component {
             val message = JEditorPane()
             message.contentType = "text/html"
             message.text = "<p>幕境 需要 <a href='https://www.videolan.org/'>VLC 视频播放器</a> 播放视频和单词发音</p><br>" +
-                    " <a href='https://www.videolan.org/'>下载地址</a> "
+                    "必须使用命令行 sudo apt-get install vlc  安装VLC，不要从 Snap Store 安装VLC."
             message.addHyperlinkListener {
                 if(it.eventType == HyperlinkEvent.EventType.ACTIVATED){
                     Desktop.getDesktop().browse(it.url.toURI())
