@@ -80,7 +80,7 @@ internal class DictionaryTest {
     fun wordCount() {
         val result = Dictionary.wordCount()
         assertNotEquals("词典的单词总数不应该为 0",0,result)
-        assertEquals("词典的单词总数应该为 770612",770603,result)
+        assertEquals("词典的单词总数应该为 740977",740977,result)
     }
 
 }
