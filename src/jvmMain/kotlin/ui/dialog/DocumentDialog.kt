@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberWindowState
-import player.isWindows
 import java.util.*
 import kotlin.concurrent.schedule
 
@@ -196,10 +195,10 @@ fun DocumentWindow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .background( if(currentPage == "youtube")selectedColor else MaterialTheme.colors.background )
-                                .clickable { setCurrentPage("youtube") }) {
-                            Text("YouTube 视频下载", modifier = Modifier.padding(start = 16.dp))
-                            if(currentPage == "youtube"){
+                                .background( if(currentPage == "download")selectedColor else MaterialTheme.colors.background )
+                                .clickable { setCurrentPage("download") }) {
+                            Text("视频资源下载", modifier = Modifier.padding(start = 16.dp))
+                            if(currentPage == "download"){
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
                             }
                         }
@@ -226,8 +225,8 @@ fun DocumentWindow(
                         "matroska" -> {
                             MatroskaPage()
                         }
-                        "youtube" -> {
-                            YouTubeDownloadPage()
+                        "download" -> {
+                            DownloadPage()
                         }
                         "learnEnglish" -> {
                             LearnEnglishPage()
@@ -722,19 +721,20 @@ fun MatroskaPage(){
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun YouTubeDownloadPage(){
+fun DownloadPage(){
     Box(Modifier.fillMaxSize()){
         val stateVertical = rememberScrollState(0)
         Column (Modifier.padding(start = 16.dp, top = 16.dp,end = 16.dp).verticalScroll(stateVertical)){
             val uriHandler = LocalUriHandler.current
             val clipboard = LocalClipboardManager.current
             val blueColor = if (MaterialTheme.colors.isLight) Color.Blue else Color(41, 98, 255)
-            Row(verticalAlignment = Alignment.CenterVertically){
-
+            Text("Youbute 视频下载：\n", fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 16.dp)){
                 val annotatedString = buildAnnotatedString {
-                    pushStringAnnotation(tag = "youtube-dl", annotation = "https://github.com/ytdl-org/youtube-dl")
+                    pushStringAnnotation(tag = "yt-dlp", annotation = "https://github.com/yt-dlp/yt-dlp")
                     withStyle(style = SpanStyle(color = blueColor)) {
-                        append("youtube-dl")
+                        append("yt-dlp")
                     }
                     pop()
                 }
@@ -752,7 +752,7 @@ fun YouTubeDownloadPage(){
                 Text(" 非常强大的视频下载程序，可以下载 1000+ 视频网站的视频，")
                 Text("下载英语字幕和视频的命令：")
             }
-            val command = "youtube-dl.exe  --proxy \"URL\" --sub-lang en --convert-subs srt --write-sub URL"
+            val command = "yt-dlp.exe  --proxy \"URL\" --sub-lang en --convert-subs srt --write-sub URL"
             Row(verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .padding(start = 16.dp)
@@ -787,44 +787,131 @@ fun YouTubeDownloadPage(){
 
             }
 
-            Row{
-                val annotatedString = buildAnnotatedString {
-                    pushStringAnnotation(tag = "downloader", annotation = "https://jely2002.github.io/youtube-dl-gui/")
-                    withStyle(style = SpanStyle(color = blueColor)) {
-                        append("Open Video Downloader")
-                    }
-                    pop()
-                }
-                ClickableText(
-                    text = annotatedString,
-                    style = MaterialTheme.typography.body1,
-                    modifier = Modifier.pointerHoverIcon(Hand),
-                    onClick = { offset ->
-                        annotatedString.getStringAnnotations(tag = "downloader", start = offset, end = offset).firstOrNull()?.let {
-                            uriHandler.openUri(it.item)
-                        }
-                    })
-                Text(" 基于 youtube-dl 的视频下载工具, UI 非常简洁。")
-            }
-            val text = if(isWindows()) "最好选择 Microsoft Store 版本，因为其他版本在某些 Windows 电脑上可能无法使用。\n" else ""
-           Text(text)
-
             val annotatedString = buildAnnotatedString {
                 pushStringAnnotation(tag = "howto", annotation = "https://zh.wikihow.com/%E4%B8%8B%E8%BD%BDYouTube%E8%A7%86%E9%A2%91")
                 withStyle(style = SpanStyle(color = blueColor)) {
-                    append("wikiHow：如何下载YouTube视频")
+                    append("wikiHow：使用5种方法下载YouTube视频")
                 }
                 pop()
             }
             ClickableText(
                 text = annotatedString,
                 style = MaterialTheme.typography.body1,
-                modifier = Modifier.pointerHoverIcon(Hand),
+                modifier = Modifier.pointerHoverIcon(Hand).padding(start = 16.dp),
                 onClick = { offset ->
                     annotatedString.getStringAnnotations(tag = "howto", start = offset, end = offset).firstOrNull()?.let {
                         uriHandler.openUri(it.item)
                     }
                 })
+
+            Text("\nBT下载：\n", fontWeight = FontWeight.Bold)
+            val btString = buildAnnotatedString {
+                pushStringAnnotation(tag = "howto", annotation = "https://zh.wikihow.com/%E4%B8%8B%E8%BD%BDBT%E7%A7%8D%E5%AD%90%E6%96%87%E4%BB%B6")
+                withStyle(style = SpanStyle(color = blueColor)) {
+                    append("wikiHow：如何下载BT种子文件")
+                }
+                pop()
+            }
+            ClickableText(
+                text = btString,
+                style = MaterialTheme.typography.body1,
+                modifier = Modifier.pointerHoverIcon(Hand).padding(start = 16.dp),
+                onClick = { offset ->
+                    annotatedString.getStringAnnotations(tag = "howto", start = offset, end = offset).firstOrNull()?.let {
+                        uriHandler.openUri(it.item)
+                    }
+                })
+
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 16.dp)){
+                Text("BT 客户端推荐：")
+                val qbittorrentString = buildAnnotatedString {
+                    pushStringAnnotation(tag = "qbittorrent", annotation = "https://www.qbittorrent.org/")
+                    withStyle(style = SpanStyle(color = blueColor)) {
+                        append("qbittorrent")
+                    }
+                    pop()
+                }
+                ClickableText(
+                    text = qbittorrentString,
+                    style = MaterialTheme.typography.body1,
+                    modifier = Modifier
+                        .pointerHoverIcon(Hand)
+                    ,
+                    onClick = { offset ->
+                        qbittorrentString.getStringAnnotations(tag = "qbittorrent", start = offset, end = offset).firstOrNull()?.let {
+                            uriHandler.openUri(it.item)
+                        }
+                    })
+                Spacer(Modifier.width(10.dp))
+                val xunleiString = buildAnnotatedString {
+                    pushStringAnnotation(tag = "xunlei", annotation = "https://www.xunlei.com/")
+                    withStyle(style = SpanStyle(color = blueColor)) {
+                        append("迅雷")
+                    }
+                    pop()
+                }
+                ClickableText(
+                    text = xunleiString,
+                    style = MaterialTheme.typography.body1,
+                    modifier = Modifier
+                        .pointerHoverIcon(Hand)
+                    ,
+                    onClick = { offset ->
+                        xunleiString.getStringAnnotations(tag = "xunlei", start = offset, end = offset).firstOrNull()?.let {
+                            uriHandler.openUri(it.item)
+                        }
+                    })
+
+
+            }
+
+            Text("\n字幕下载：\n", fontWeight = FontWeight.Bold)
+            Row(verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(start = 16.dp)){
+                Text("双语字幕 ")
+                val subHDString = buildAnnotatedString {
+                    pushStringAnnotation(tag = "SubHD", annotation = "https://subhd.tv/")
+                    withStyle(style = SpanStyle(color = blueColor)) {
+                        append("SubHD")
+                    }
+                    pop()
+                }
+                ClickableText(
+                    text = subHDString,
+                    style = MaterialTheme.typography.body1,
+                    modifier = Modifier
+                        .pointerHoverIcon(Hand)
+                    ,
+                    onClick = { offset ->
+                        subHDString.getStringAnnotations(tag = "SubHD", start = offset, end = offset).firstOrNull()?.let {
+                            uriHandler.openUri(it.item)
+                        }
+                    })
+                Spacer(Modifier.width(10.dp))
+                Text("英语字幕 ")
+                val opensubtitlesString = buildAnnotatedString {
+                    pushStringAnnotation(tag = "opensubtitles", annotation = "https://www.opensubtitles.org/")
+                    withStyle(style = SpanStyle(color = blueColor)) {
+                        append("OpenSubtitles")
+                    }
+                    pop()
+                }
+                ClickableText(
+                    text = opensubtitlesString,
+                    style = MaterialTheme.typography.body1,
+                    modifier = Modifier
+                        .pointerHoverIcon(Hand)
+                    ,
+                    onClick = { offset ->
+                        opensubtitlesString.getStringAnnotations(tag = "opensubtitles", start = offset, end = offset).firstOrNull()?.let {
+                            uriHandler.openUri(it.item)
+                        }
+                    })
+
+
+            }
+
         }
         VerticalScrollbar(
             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
