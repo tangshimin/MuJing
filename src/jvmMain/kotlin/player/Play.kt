@@ -12,8 +12,6 @@ import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent
 import uk.co.caprica.vlcj.player.component.EmbeddedMediaPlayerComponent
 import java.awt.*
 import java.awt.event.*
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 import javax.swing.JFrame
 import javax.swing.JPanel
 
@@ -424,21 +422,27 @@ fun play(
  * 转换时间为秒
  */
 fun convertTimeToSeconds(time:String):Double{
-    var duration = LocalTime.parse(time, DateTimeFormatter.ofPattern("HH:mm:ss.SSS")).toNanoOfDay().toDouble()
-    duration = duration.div(1000_000_000)
-    return duration
+    val parts = time.split(":")
+    val hours = parts[0].toLong()
+    val minutes = parts[1].toLong()
+    val seconds = parts[2].toDouble()
+
+    val totalSeconds = hours * 3600 + minutes * 60 + seconds
+    return totalSeconds
 }
 
 /**
- * 解析时间，返回毫秒
+ * 转换时间为毫秒
  */
-fun parseTime2(time:String):Long{
-    val millis = time.substringAfter(".").toLong()
-    val list = time.substringBefore(".").split(":")
-    val hours = list[0].toLong()
-    val minutes = list[1].toLong()
-    val second = list[2].toLong()
-    return (hours * 3600 + minutes * 60 + second) * 1000 + millis
+fun convertTimeToMilliseconds(time:String):Long{
+    val parts = time.split(":")
+    val hours = parts[0].toLong()
+    val minutes = parts[1].toLong()
+    val seconds = parts[2].substringBefore(".").toLong()
+    val milliseconds = parts[2].substringAfter(".").toLong()
+
+    val totalMilliseconds = ((hours * 3600 + minutes * 60 + seconds) * 1000) + milliseconds
+    return totalMilliseconds
 }
 
 

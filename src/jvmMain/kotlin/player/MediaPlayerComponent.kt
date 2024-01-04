@@ -6,7 +6,6 @@ import com.matthewn4444.ebml.UnSupportSubtitlesException
 import com.matthewn4444.ebml.subtitles.SRTSubtitles
 import com.matthewn4444.ebml.subtitles.SSASubtitles
 import com.sun.jna.NativeLibrary
-import com.sun.jna.Platform.isLinux
 import data.Caption
 import org.mozilla.universalchardet.UniversalDetector
 import state.getResourcesFile
@@ -302,8 +301,8 @@ fun parseSubtitles(subtitlesPath: String):List<PlayerCaption>{
                 content = removeItalicSymbol(content)
                 content = replaceNewLine(content)
                 val newCaption = PlayerCaption(
-                    start = parseTime2(caption.start.getTime("hh:mm:ss.ms")),
-                    end = parseTime2(caption.end.getTime("hh:mm:ss.ms")),
+                    start = convertTimeToMilliseconds(caption.start.getTime("hh:mm:ss.ms")),
+                    end = convertTimeToMilliseconds(caption.end.getTime("hh:mm:ss.ms")),
                     content = content
                 )
                 if (caption.content.length > maxLength) {
