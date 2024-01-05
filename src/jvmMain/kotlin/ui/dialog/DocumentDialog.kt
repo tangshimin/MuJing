@@ -745,7 +745,7 @@ fun DownloadPage(){
                         .pointerHoverIcon(Hand)
                     ,
                     onClick = { offset ->
-                        annotatedString.getStringAnnotations(tag = "youtube-dl", start = offset, end = offset).firstOrNull()?.let {
+                        annotatedString.getStringAnnotations(tag = "yt-dlp", start = offset, end = offset).firstOrNull()?.let {
                             uriHandler.openUri(it.item)
                         }
                     })
