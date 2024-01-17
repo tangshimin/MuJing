@@ -64,13 +64,8 @@ fun play(
     restoreButton.icon = backIcon
     restoreButton.addActionListener {
         val newRectangle =  resetVideoBounds()
-        bounds.location = newRectangle.location
-        bounds.size = newRectangle.size
-        window.size = newRectangle.size
-        window.location = newRectangle.location
-        videoPlayerComponent.size = newRectangle.size
         controlPanel.bounds = Rectangle(newRectangle.size.width/2 - 75,newRectangle.size.height - 50 ,150,50)
-        restoreButton.isVisible
+        restoreButton.isVisible = false
     }
 
     val playButton = FlatButton()
@@ -82,7 +77,6 @@ fun play(
     stopButton.isContentAreaFilled = false
     stopButton.buttonType = FlatButton.ButtonType.roundRect
     stopButton.icon = stopIcon
-
 
     controlPanel.add(restoreButton)
     controlPanel.add(playButton)

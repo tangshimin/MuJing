@@ -121,6 +121,7 @@ fun WordScreen(
                 wordScreenState = wordScreenState,
                 dictationState = dictationState,
                 wordRequestFocus = wordRequestFocus,
+                resetVideoBounds = resetVideoBounds,
                 )
             if (appState.openSettings) {
                 val topPadding = if (isMacOS()) 30.dp else 0.dp
@@ -379,6 +380,12 @@ fun MainContent(
         /** 是否正在播放单词发音 */
         var isPlayingAudio by remember { mutableStateOf(false) }
 
+    val onVideoBoundsChanged :(Boolean) -> Unit= {
+        wordScreenState.isChangeVideoBounds = it
+        if(it){
+            wordScreenState.changePlayerBounds(videoBounds)
+        }
+    }
         /**
          * 用快捷键播放视频时被调用的函数，
          * Caption 表示要播放的字幕，String 表示视频的地址，Int 表示字幕的轨道 ID。
@@ -406,8 +413,8 @@ fun MainContent(
                             videoBounds,
                             wordScreenState.externalSubtitlesVisible,
                             resetVideoBounds = resetVideoBounds,
-                            isVideoBoundsChanged = appState.isChangeVideoBounds,
-                            setIsVideoBoundsChanged = {appState.isChangeVideoBounds = it}
+                            isVideoBoundsChanged = wordScreenState.isChangeVideoBounds,
+                            setIsVideoBoundsChanged = onVideoBoundsChanged
                         )
                     }
                 }
@@ -1372,7 +1379,7 @@ fun MainContent(
             Morphology(
                 word = currentWord,
                 isPlaying = isPlaying,
-                isChangeVideoBounds = appState.isChangeVideoBounds,
+                isChangeVideoBounds = wordScreenState.isChangeVideoBounds,
                 searching = false,
                 morphologyVisible = wordScreenState.morphologyVisible,
                 fontSize = appState.global.detailFontSize
@@ -1381,19 +1388,19 @@ fun MainContent(
                 word = currentWord,
                 definitionVisible = wordScreenState.definitionVisible,
                 isPlaying = isPlaying,
-                isChangeVideoBounds = appState.isChangeVideoBounds,
+                isChangeVideoBounds = wordScreenState.isChangeVideoBounds,
                 fontSize = appState.global.detailFontSize
             )
             Translation(
                 word = currentWord,
                 translationVisible = wordScreenState.translationVisible,
                 isPlaying = isPlaying,
-                isChangeVideoBounds = appState.isChangeVideoBounds,
+                isChangeVideoBounds = wordScreenState.isChangeVideoBounds,
                 fontSize = appState.global.detailFontSize
             )
 
             val videoSize = videoBounds.size
-            val startPadding = if ( isPlaying && !appState.isChangeVideoBounds) 0.dp else 50.dp
+            val startPadding = if ( isPlaying && !wordScreenState.isChangeVideoBounds) 0.dp else 50.dp
             val captionsModifier = Modifier
                 .fillMaxWidth()
                 .height(intrinsicSize = IntrinsicSize.Max)
@@ -1444,12 +1451,12 @@ fun MainContent(
                 openSearch = {appState.openSearch()},
                 fontSize = appState.global.detailFontSize,
                 resetVideoBounds = resetVideoBounds,
-                isVideoBoundsChanged = appState.isChangeVideoBounds,
-                setIsChangeBounds = { appState.isChangeVideoBounds = it },
+                isVideoBoundsChanged = wordScreenState.isChangeVideoBounds,
+                setIsChangeBounds = onVideoBoundsChanged,
                 isWriteSubtitles = wordScreenState.isWriteSubtitles,
                 vocabularyDir = wordScreenState.getVocabularyDir()
             )
-            if (isPlaying && !appState.isChangeVideoBounds) Spacer(
+            if (isPlaying && !wordScreenState.isChangeVideoBounds) Spacer(
                 Modifier.height((videoSize.height).dp).width(videoSize.width.dp)
             )
 

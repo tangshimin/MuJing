@@ -11,6 +11,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.awt.Rectangle
 import java.io.File
 import javax.swing.JOptionPane
 
@@ -37,6 +38,11 @@ data class WordScreenData(
     var vocabularyPath: String = "",
     var externalSubtitlesVisible: Boolean = true,
     var isWriteSubtitles: Boolean = true,
+    var isChangeVideoBounds: Boolean = false,
+    var playerLocationX: Int = 0,
+    var playerLocationY: Int = 0,
+    var playerWidth: Int = 1005,
+    var playerHeight: Int = 502,
 )
 
 /** 记忆单词的可观察状态 */
@@ -139,6 +145,16 @@ class WordScreenState(wordScreenData: WordScreenData) {
 
     /** 抄写字幕，打开后播放了某条字幕后，光标就切换到字幕，就可以抄写字幕了 */
     var isWriteSubtitles by mutableStateOf(wordScreenData.isWriteSubtitles)
+
+    var isChangeVideoBounds by mutableStateOf(wordScreenData.isChangeVideoBounds)
+
+    var playerLocationX by mutableStateOf(wordScreenData.playerLocationX)
+
+    var playerLocationY by mutableStateOf(wordScreenData.playerLocationY)
+
+    var playerWidth by mutableStateOf(wordScreenData.playerWidth)
+
+    var playerHeight by mutableStateOf(wordScreenData.playerHeight)
 
     // 可持久化的状态 结束
 
@@ -348,7 +364,12 @@ class WordScreenState(wordScreenData: WordScreenData) {
                         vocabularyName,
                         vocabularyPath,
                         externalSubtitlesVisible,
-                        isWriteSubtitles
+                        isWriteSubtitles,
+                        isChangeVideoBounds,
+                        playerLocationX,
+                        playerLocationY,
+                        playerWidth,
+                        playerHeight
                     )
 
                     val json = encodeBuilder.encodeToString(wordScreenData)
@@ -358,6 +379,14 @@ class WordScreenState(wordScreenData: WordScreenData) {
             }
         }
 
+    }
+
+    fun changePlayerBounds(rectangle: Rectangle){
+        playerLocationX = rectangle.x
+        playerLocationY = rectangle.y
+        playerWidth = rectangle.width
+        playerHeight = rectangle.height
+        saveWordScreenState()
     }
 }
 

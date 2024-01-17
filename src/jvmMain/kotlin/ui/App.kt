@@ -150,11 +150,26 @@ fun App() {
                                 // 显示器缩放
                                 val density = LocalDensity.current.density
                                 // 视频播放器的位置，大小
-                                val videoBounds = computeVideoBounds(windowState, appState.openSettings,density)
+                                val videoBounds by remember (windowState,appState.openSettings,density){
+                                    derivedStateOf {
+                                        if(wordState.isChangeVideoBounds){
+                                            Rectangle(wordState.playerLocationX,wordState.playerLocationY,wordState.playerWidth,wordState.playerHeight)
+                                        }else{
+                                            computeVideoBounds(windowState, appState.openSettings,density)
+                                        }
+                                    }
+                                }
 
                                 val resetVideoBounds :() -> Rectangle ={
-                                    appState.isChangeVideoBounds = false
-                                    computeVideoBounds(windowState, appState.openSettings,density)
+                                    val bounds = computeVideoBounds(windowState, appState.openSettings,density)
+                                    wordState.isChangeVideoBounds = false
+                                    appState.videoPlayerWindow.size =bounds.size
+                                    appState.videoPlayerWindow.location = bounds.location
+                                    appState.videoPlayerComponent.size = bounds.size
+                                    videoBounds.location = bounds.location
+                                    videoBounds.size = bounds.size
+                                    wordState.changePlayerBounds(bounds)
+                                    bounds
                                 }
 
                                 WordScreen(

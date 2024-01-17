@@ -6,7 +6,6 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.res.ResourceLoader
 import com.formdev.flatlaf.FlatLightLaf
 import data.RecentItem
-import ui.flatlaf.initializeFileChooser
 import data.getHardVocabularyFile
 import data.loadMutableVocabulary
 import data.loadMutableVocabularyByName
@@ -20,6 +19,7 @@ import player.createMediaPlayerComponent
 import player.isMacOS
 import player.isWindows
 import theme.createColors
+import ui.flatlaf.initializeFileChooser
 import java.io.File
 import java.time.LocalDateTime
 import java.util.concurrent.FutureTask
@@ -97,9 +97,6 @@ class AppState {
     var localAudioSet = loadAudioSet()
 
     var vocabularyChanged by mutableStateOf(false)
-
-    /** 视频播放器的位置、大小是否改变了 */
-    var isChangeVideoBounds by mutableStateOf(false)
 
     /** 加载全局的设置信息 */
     private fun loadGlobalState(): GlobalState {
