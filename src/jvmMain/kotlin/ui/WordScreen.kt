@@ -1243,7 +1243,7 @@ fun MainContent(
             }
             val wordKeyEvent: (KeyEvent) -> Boolean = { it: KeyEvent ->
                 when {
-                    ((it.key == Key.Enter || it.key == Key.NumPadEnter || it.key == Key.PageDown)
+                    ((it.key == Key.Enter || it.key == Key.NumPadEnter || it.key == Key.PageDown || it.key == Key.DirectionRight)
                             && it.type == KeyEventType.KeyUp) -> {
                         toNext()
                         if (wordScreenState.memoryStrategy == Dictation || wordScreenState.memoryStrategy == DictationTest) {
@@ -1251,7 +1251,7 @@ fun MainContent(
                         }
                         true
                     }
-                    (it.key == Key.PageUp && it.type == KeyEventType.KeyUp) -> {
+                    ((it.key == Key.PageUp || it.key == Key.DirectionLeft) && it.type == KeyEventType.KeyUp) -> {
                         previous()
                         true
                     }
@@ -1407,7 +1407,7 @@ fun MainContent(
                 .padding(bottom = 0.dp, start = startPadding)
                 .onKeyEvent {
                     when {
-                        ((it.key == Key.Enter || it.key == Key.NumPadEnter || it.key == Key.PageDown)
+                        ((it.key == Key.Enter || it.key == Key.NumPadEnter || it.key == Key.PageDown || it.key == Key.DirectionRight)
                                 && it.type == KeyEventType.KeyUp
                                 ) -> {
                             toNext()
@@ -1416,7 +1416,7 @@ fun MainContent(
                             }
                             true
                         }
-                        (it.key == Key.PageUp && it.type == KeyEventType.KeyUp) -> {
+                        ((it.key == Key.PageUp  ||  it.key == Key.DirectionLeft) && it.type == KeyEventType.KeyUp) -> {
                             previous()
                             true
                         }
@@ -1570,9 +1570,6 @@ fun MainContent(
                             modifier = Modifier.padding(10.dp)
                         ) {
                             Text(text = "上一个")
-                            CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
-                                Text(text = " PgUp")
-                            }
                         }
                     }
                 },
@@ -1606,9 +1603,6 @@ fun MainContent(
                             modifier = Modifier.padding(10.dp)
                         ) {
                             Text(text = "下一个")
-                            CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
-                                Text(text = " Enter")
-                            }
                         }
                     }
                 },
