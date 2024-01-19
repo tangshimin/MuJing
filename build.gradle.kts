@@ -9,7 +9,7 @@ plugins {
 }
 
 group = "com.movcontext"
-version = "2.2.13"
+version = "2.2.16"
 
 repositories {
     google()
