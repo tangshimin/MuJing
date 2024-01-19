@@ -914,7 +914,7 @@ fun MainContent(
                                 wordScreenState.wordTypingResult.add(Pair(inputChar, true))
                             } else {
                                 // 字母输入错误
-                                wordScreenState.wordTypingResult.add(Pair(wordChar, false))
+                                wordScreenState.wordTypingResult.add(Pair(inputChar, false))
                                 done = false
                                 playBeepSound()
                                 isWrong = true
@@ -928,12 +928,7 @@ fun MainContent(
                                         dictationWrongWords[currentWord] = 1
                                     }
                                 }
-                                Timer("input wrong cleanInputChar", false).schedule(50) {
-                                    wordScreenState.wordTextFieldValue = ""
-                                    wordScreenState.wordTypingResult.clear()
-                                    isWrong = false
-                                }
-                                // 再播放一次单词发音
+//                                // 再播放一次单词发音
                                 if (!isPlayingAudio && wordScreenState.playTimes == 2) {
                                     playAudio(
                                         word = currentWord.value,
@@ -982,6 +977,36 @@ fun MainContent(
                             }
                         }
                     }
+                }else{
+                    // 输入错误后继续输入
+                    if(input.length > wordScreenState.wordTypingResult.size){
+                        // 如果不截取字符串，用户长按某个按键，程序可能会崩溃
+                        val inputStr = input.substring(0,wordScreenState.wordTypingResult.size)
+                        val inputChars = inputStr.toList()
+                        isWrong = false
+                        for (i in inputChars.indices) {
+                            val inputChar = inputChars[i]
+                            val wordChar = currentWord.value[i]
+                            if (inputChar != wordChar) {
+                                playBeepSound()
+                                isWrong = true
+                            }
+                        }
+                        if(!isWrong){
+                            wordScreenState.wordTextFieldValue = inputStr
+                        }
+                    }else if(input.length == wordScreenState.wordTypingResult.size-1){
+                        // 输入错误后按退格键删除错误字母
+                        isWrong = false
+                            wordScreenState.wordTypingResult.removeLast()
+                            wordScreenState.wordTextFieldValue = input
+                    }else if(input.isEmpty()){
+                        // 输入错误后 Ctrl + A 全选后删除全部输入
+                        wordScreenState.wordTextFieldValue = ""
+                        wordScreenState.wordTypingResult.clear()
+                        isWrong = false
+                    }
+
                 }
 
             }
