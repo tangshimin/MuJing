@@ -70,12 +70,6 @@ tasks.withType<KotlinCompile>().configureEach {
         kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
     }
 }
-java {
-    sourceCompatibility = JavaVersion.VERSION_18
-    targetCompatibility = JavaVersion.VERSION_18
-}
-
-
 
 
 /**
