@@ -42,6 +42,7 @@ import javax.swing.event.HyperlinkEvent
 fun createMediaPlayerComponent(): Component {
     // 如果是 Windows 就使用内置的 VLC 播放器
     if (isWindows()) {
+        System.setProperty("native.encoding", "UTF-8")
         NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), getResourcesFile("VLC").absolutePath ?: "")
     } else{
         NativeDiscovery().discover()
