@@ -755,7 +755,7 @@ fun Player(
                                         }
                                     }
 
-                                    var height = (subtitleTrackList.size * 40 + 60).dp
+                                    var height = (subtitleTrackList.size * 40 + 100).dp
                                     if(height>740.dp) height = 740.dp
                                     DropdownMenu(
                                         expanded = showSubtitleMenu,
