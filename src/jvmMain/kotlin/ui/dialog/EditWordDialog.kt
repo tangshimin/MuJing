@@ -964,7 +964,7 @@ fun EditingCaptions(
                                         val absFile = File(absPath)
                                         // 如果在绝对地址找不到，就在词库所在的文件夹寻找
                                         val relFile = File(vocabularyDir,absFile.name)
-                                        if (absFile.exists() || relFile.exists()) {
+                                        if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
                                             val playParameter = if(absFile.exists()){
                                                 playTriple
                                             }else{
@@ -1210,7 +1210,7 @@ fun SettingTimeLine(
             val absFile = File(absPath)
             val relFile = File(vocabularyDir,absFile.name)
 
-            if (absFile.exists() || relFile.exists()) {
+            if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
 
                 val newTriple =  if(!absFile.exists()){
                     Triple(playTriple.first,relFile.absolutePath,playTriple.third)

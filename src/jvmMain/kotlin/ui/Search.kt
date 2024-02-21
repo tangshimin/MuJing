@@ -2,7 +2,6 @@ package ui
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -22,20 +21,23 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import data.*
 import kotlinx.coroutines.launch
-import player.*
-import state.AppState
-import java.awt.Rectangle
-import java.io.File
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.platform.Font
 import kotlinx.serialization.ExperimentalSerializationApi
+import player.LocalAudioPlayerComponent
+import player.getAudioPath
+import player.play
+import player.playAudio
+import state.AppState
 import state.WordScreenState
 import java.awt.Point
+import java.awt.Rectangle
+import java.io.File
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalSerializationApi::class)
 @Composable
@@ -223,7 +225,7 @@ fun Search(
                                                     val absPath = replaceSeparator(vocabulary.relateVideoPath)
                                                     val absFile = File(absPath)
                                                     val relFile = File(vocabularyDir,absFile.name)
-                                                    if (absFile.exists() || relFile.exists()) {
+                                                    if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
                                                         val playParams = if (!absFile.exists()) {
                                                             Triple(
                                                                 playTriple.first,
@@ -318,7 +320,7 @@ fun Search(
                                                     val absFile = File(absPath)
                                                     val relFile = File(vocabularyDir,absFile.name)
 
-                                                    if (absFile.exists() || relFile.exists()) {
+                                                    if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
                                                         val playParams = if(!absFile.exists()){
                                                             Triple(playTriple.first,relFile.absolutePath,playTriple.third)
                                                         }else {

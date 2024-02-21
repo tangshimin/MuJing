@@ -136,7 +136,7 @@ fun LinkCaptionDialog(
                                                             val absPath = replaceSeparator(playTriple.second)
                                                             val absFile = File(absPath)
                                                             val relFile = File(vocabularyDir,absFile.name)
-                                                            if (absFile.exists() || relFile.exists()) {
+                                                            if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
                                                                 val playParams = if(!absFile.exists()){
                                                                     Triple(playTriple.first,relFile.absolutePath,playTriple.third)
                                                                 }else {
@@ -320,7 +320,7 @@ fun LinkCaptionDialog(
                                                                 val absPath = replaceSeparator(playTriple.second)
                                                                 val absFile = File(absPath)
                                                                 val relFile = File(vocabularyDir,absFile.name)
-                                                                if (absFile.exists() || relFile.exists()) {
+                                                                if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
                                                                     val playParams = if (!absFile.exists()) {
                                                                         Triple(
                                                                             playTriple.first,

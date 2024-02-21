@@ -5,7 +5,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.window.WindowDraggableArea
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -31,15 +30,14 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
-import ui.createTransferHandler
 import data.*
-import player.play
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.isMacOS
-import player.isWindows
+import player.play
 import state.AppState
 import state.getResourcesFile
+import ui.createTransferHandler
 import ui.edit.computeNameMap
 import ui.replaceSeparator
 import java.awt.Point
@@ -650,7 +648,7 @@ fun LinkVocabularyDialog(
                                                                         val absPath = replaceSeparator(externalCaption.relateVideoPath)
                                                                         val absFile = File(absPath)
                                                                         val relFile = File(vocabularyDir, absFile.name)
-                                                                        if (absFile.exists() || relFile.exists()) {
+                                                                        if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
                                                                             val playParams = if(!absFile.exists()){
                                                                                 Triple(playTriple.first,relFile.absolutePath,playTriple.third)
                                                                             }else {

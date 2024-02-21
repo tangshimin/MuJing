@@ -392,12 +392,12 @@ fun MainContent(
          */
         @OptIn(ExperimentalSerializationApi::class)
         val shortcutPlay: (playTriple: Triple<Caption, String, Int>?) -> Unit = { playTriple ->
-            if (playTriple != null && !isPlaying) {
+            if (playTriple != null && !isPlaying && playTriple.second.isNotEmpty()) {
                 scope.launch {
                     val absPath = replaceSeparator( playTriple.second)
                     val absFile = File(absPath)
                     val relFile = File(wordScreenState.getVocabularyDir(),absFile.name)
-                    if (absFile.exists()|| relFile.exists()) {
+                    if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
                         val newTriple =  if(!absFile.exists()){
                             Triple(playTriple.first,relFile.absolutePath,playTriple.third)
                         } else {
@@ -2088,7 +2088,7 @@ fun Captions(
                             val absFile = File(absPath)
                             // 如果绝对位置找不到，就在词库所在的文件夹寻找
                             val relFile = File(vocabularyDir,absFile.name)
-                            if (absFile.exists() || relFile.exists()) {
+                            if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
                                val newTriple =  if(!absFile.exists()){
                                    Triple(playTriple.first,relFile.absolutePath,playTriple.third)
                                 } else {
