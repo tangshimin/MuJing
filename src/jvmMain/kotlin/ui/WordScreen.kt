@@ -392,31 +392,21 @@ fun MainContent(
          */
         @OptIn(ExperimentalSerializationApi::class)
         val shortcutPlay: (playTriple: Triple<Caption, String, Int>?) -> Unit = { playTriple ->
-            if (playTriple != null && !isPlaying && playTriple.second.isNotEmpty()) {
+            if (playTriple != null && !isPlaying) {
                 scope.launch {
-                    val absPath = replaceSeparator( playTriple.second)
-                    val absFile = File(absPath)
-                    val relFile = File(wordScreenState.getVocabularyDir(),absFile.name)
-                    if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
-                        val newTriple =  if(!absFile.exists()){
-                            Triple(playTriple.first,relFile.absolutePath,playTriple.third)
-                        } else {
-                            Triple(playTriple.first,absFile.absolutePath,playTriple.third)
-                        }
-                        isPlaying = true
                         play(
                             window = appState.videoPlayerWindow,
                             setIsPlaying = { isPlaying = it },
                             appState.global.videoVolume,
-                            newTriple,
+                            playTriple,
                             appState.videoPlayerComponent,
                             videoBounds,
                             wordScreenState.externalSubtitlesVisible,
+                            vocabularyDir = wordScreenState.getVocabularyDir(),
                             resetVideoBounds = resetVideoBounds,
                             isVideoBoundsChanged = wordScreenState.isChangeVideoBounds,
                             setIsVideoBoundsChanged = onVideoBoundsChanged
                         )
-                    }
                 }
             }
         }
@@ -2080,43 +2070,31 @@ fun Captions(
                         typingResult = mutableListOf()
                         putTypingResultMap(index, typingResult)
                     }
-                    var isPathWrong by remember { mutableStateOf(false) }
+                    var isPlayFailed by remember { mutableStateOf(false) }
+                    var failedMessage by remember { mutableStateOf("") }
                     val playCurrentCaption:()-> Unit = {
                         if (!isPlaying) {
-                            // 视频文件的绝对地址
-                            val absPath = replaceSeparator( playTriple.second)
-                            val absFile = File(absPath)
-                            // 如果绝对位置找不到，就在词库所在的文件夹寻找
-                            val relFile = File(vocabularyDir,absFile.name)
-                            if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
-                               val newTriple =  if(!absFile.exists()){
-                                   Triple(playTriple.first,relFile.absolutePath,playTriple.third)
-                                } else {
-                                   Triple(playTriple.first,absFile.absolutePath,playTriple.third)
-                               }
-                                setIsPlaying(true)
-                                scope.launch {
-                                    setPlayingIndex(index)
-                                    play(
-                                        window = videoPlayerWindow,
-                                        setIsPlaying = { setIsPlaying(it) },
-                                        volume = volume,
-                                        playTriple = newTriple,
-                                        videoPlayerComponent = videoPlayerComponent,
-                                        bounds = bounds,
-                                        externalSubtitlesVisible = externalVisible,
-                                        resetVideoBounds = resetVideoBounds,
-                                        isVideoBoundsChanged = isVideoBoundsChanged,
-                                        setIsVideoBoundsChanged = setIsChangeBounds
-                                    )
-                                }
-
-                            } else {
-                                isPathWrong = true
-                                Timer("恢复状态", false).schedule(2000) {
-                                    isPathWrong = false
-                                }
+                            scope.launch {
+                                play(
+                                    window = videoPlayerWindow,
+                                    setIsPlaying = { setIsPlaying(it) },
+                                    volume = volume,
+                                    playTriple = playTriple,
+                                    videoPlayerComponent = videoPlayerComponent,
+                                    bounds = bounds,
+                                    onFailed = { message ->
+                                        isPlayFailed = true
+                                        failedMessage = message
+                                    },
+                                    externalSubtitlesVisible = externalVisible,
+                                    resetVideoBounds = resetVideoBounds,
+                                    isVideoBoundsChanged = isVideoBoundsChanged,
+                                    setIsVideoBoundsChanged = setIsChangeBounds,
+                                    vocabularyDir = vocabularyDir,
+                                    updatePlayingIndex = { setPlayingIndex(index) }
+                                )
                             }
+
                         }
                         if(isWriteSubtitles){
                             focusRequesterList[index].requestFocus()
@@ -2191,7 +2169,9 @@ fun Captions(
                         captionKeyEvent = {captionKeyEvent(it)},
                         selectable = selectable,
                         setSelectable = {selectable = it},
-                        isPathWrong = isPathWrong,
+                        resetPlayState = {isPlayFailed = false },
+                        isPlayFailed = isPlayFailed,
+                        failedMessage = failedMessage,
                         openSearch = {openSearch()},
                         fontSize = fontSize
                     )
@@ -2273,7 +2253,7 @@ fun secondsToString(seconds: Double): String {
  * @param captionKeyEvent 处理当前字幕的快捷键函数
  * @param selectable 是否可选择复制
  * @param setSelectable 设置是否可选择
- * @param isPathWrong 是否路径错误
+ * @param isPlayFailed 是否路径错误
  */
 @OptIn(
     ExperimentalFoundationApi::class,
@@ -2293,7 +2273,9 @@ fun Caption(
     captionKeyEvent:(KeyEvent) -> Boolean,
     selectable:Boolean,
     setSelectable:(Boolean) -> Unit,
-    isPathWrong:Boolean,
+    isPlayFailed:Boolean,
+    resetPlayState:() -> Unit,
+    failedMessage:String,
     openSearch: () -> Unit,
     fontSize: TextUnit
 ) {
@@ -2482,8 +2464,11 @@ fun Caption(
                     )
                 }
             }
-            if (isPathWrong) {
-                Text("视频地址错误", color = Color.Red)
+            if (isPlayFailed) {
+                Text(failedMessage, color = Color.Red)
+                Timer("恢复状态", false).schedule(2000) {
+                    resetPlayState()
+                }
             }
         }
     }

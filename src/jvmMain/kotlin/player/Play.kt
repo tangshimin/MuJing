@@ -5,6 +5,7 @@ import com.formdev.flatlaf.extras.FlatSVGIcon
 import com.formdev.flatlaf.extras.components.FlatButton
 import data.Caption
 import state.getResourcesFile
+import ui.replaceSeparator
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
@@ -12,6 +13,7 @@ import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent
 import uk.co.caprica.vlcj.player.component.EmbeddedMediaPlayerComponent
 import java.awt.*
 import java.awt.event.*
+import java.io.File
 import javax.swing.JFrame
 import javax.swing.JPanel
 
@@ -27,6 +29,53 @@ import javax.swing.JPanel
  * @param externalSubtitlesVisible 是否加载外部字幕
  */
 fun play(
+    window: JFrame,
+    setIsPlaying: (Boolean) -> Unit,
+    volume: Float,
+    playTriple: Triple<Caption, String, Int>,
+    videoPlayerComponent: Component,
+    bounds: Rectangle,
+    externalSubtitlesVisible:Boolean = false,
+    resetVideoBounds :() ->  Rectangle = {Rectangle(0,0,540,330)},
+    isVideoBoundsChanged:Boolean = false,
+    setIsVideoBoundsChanged:(Boolean) -> Unit = {},
+    vocabularyDir: File,
+    onFailed:(String) -> Unit = {  _ ->},
+    updatePlayingIndex:() -> Unit = {}
+) {
+    // 视频文件的绝对地址
+    val absPath = replaceSeparator( playTriple.second)
+    val absFile = File(absPath)
+    // 如果绝对位置找不到，就在词库所在的文件夹寻找
+    val relFile = File(vocabularyDir,absFile.name)
+    if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
+        val newTriple =  if(!absFile.exists()){
+            Triple(playTriple.first,relFile.absolutePath,playTriple.third)
+        } else {
+            Triple(playTriple.first,absFile.absolutePath,playTriple.third)
+        }
+        setIsPlaying(true)
+        updatePlayingIndex()
+        corePlay(
+            window = window,
+            setIsPlaying = setIsPlaying,
+            volume,
+            newTriple,
+            videoPlayerComponent,
+            bounds,
+            externalSubtitlesVisible,
+            resetVideoBounds = resetVideoBounds,
+            isVideoBoundsChanged = isVideoBoundsChanged,
+            setIsVideoBoundsChanged = setIsVideoBoundsChanged
+        )
+
+    } else {
+        val message = if(absPath.isEmpty())"视频地址为空" else "视频地址错误"
+        onFailed(message)
+    }
+}
+
+fun corePlay(
     window: JFrame,
     setIsPlaying: (Boolean) -> Unit,
     volume: Float,
@@ -129,9 +178,9 @@ fun play(
         }
 
         override fun mouseClicked(e: MouseEvent?) {
-           if(e?.button == 1){
-               playAction()
-           }
+            if(e?.button == 1){
+                playAction()
+            }
         }
 
         override fun mouseExited(e: MouseEvent?) {
@@ -227,7 +276,7 @@ fun play(
                 bounds.location = window.location
                 restoreButton.isVisible = true
                 setIsVideoBoundsChanged(true)
-            // 调整窗口大小
+                // 调整窗口大小
             }else if(e != null && !window.cursor.equals(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR))){
 
                 val current = getScreenLocation(e, window)
@@ -317,7 +366,7 @@ fun play(
     // 关闭操作的公共函数，一次用于播放完毕，自动关闭，一次用于停止按钮的 clicked 动作。
     val closeFunc:() -> Unit = {
         if(videoPlayerComponent.mediaPlayer().status().isPlaying){
-        videoPlayerComponent.mediaPlayer().controls().pause()
+            videoPlayerComponent.mediaPlayer().controls().pause()
         }
         setIsPlaying(false)
 
@@ -371,7 +420,7 @@ fun play(
     if(trackId != -1){
         videoPlayerComponent.mediaPlayer().media()
             .play(relativeVideoPath, ":sub-track=$trackId", ":start-time=$start", ":stop-time=$end")
-    // 自动加载外部字幕
+        // 自动加载外部字幕
     }else if(externalSubtitlesVisible){
         videoPlayerComponent.mediaPlayer().media()
             .play(relativeVideoPath, ":sub-autodetect-file",":start-time=$start", ":stop-time=$end")
@@ -381,8 +430,6 @@ fun play(
             .play(relativeVideoPath, ":no-sub-autodetect-file",":start-time=$start", ":stop-time=$end")
     }
 }
-
-
 
 /**
  * 播放音频

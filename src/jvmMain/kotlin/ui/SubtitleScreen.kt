@@ -347,7 +347,7 @@ fun SubtitleScreen(
                         // 使用内部字幕轨道
                         if (subtitlesState.trackID != -1) {
                             val playTriple = Triple(caption, subtitlesState.mediaPath, subtitlesState.trackID)
-                            play(
+                            corePlay(
                                 window = playerWindow,
                                 setIsPlaying = { isPlaying = it },
                                 volume = videoVolume,
@@ -361,7 +361,7 @@ fun SubtitleScreen(
                             // 使用外部字幕
                         } else {
                             val externalPlayTriple = Triple(caption, subtitlesState.mediaPath, -1)
-                            play(
+                            corePlay(
                                 window = playerWindow,
                                 setIsPlaying = { isPlaying = it },
                                 volume = videoVolume,

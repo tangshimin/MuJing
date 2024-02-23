@@ -222,35 +222,21 @@ fun Search(
                                                         playerBounds.x = location.x - 270 + 24
                                                         playerBounds.y = location.y - 320
                                                     }
-                                                    val absPath = replaceSeparator(vocabulary.relateVideoPath)
-                                                    val absFile = File(absPath)
-                                                    val relFile = File(vocabularyDir,absFile.name)
-                                                    if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
-                                                        val playParams = if (!absFile.exists()) {
-                                                            Triple(
-                                                                playTriple.first,
-                                                                relFile.absolutePath,
-                                                                playTriple.third
-                                                            )
-                                                        } else {
-                                                            playTriple
-                                                        }
-                                                        isPlaying = true
-                                                        scope.launch {
-                                                            play(
-                                                                window = appState.videoPlayerWindow,
-                                                                setIsPlaying = {
-                                                                    isPlaying = it
-                                                                },
-                                                                volume = appState.global.videoVolume,
-                                                                playTriple = playParams,
-                                                                videoPlayerComponent = appState.videoPlayerComponent,
-                                                                bounds = playerBounds,
-                                                                resetVideoBounds = resetVideoBounds,
-                                                                isVideoBoundsChanged = isVideoBoundsChanged,
-                                                                setIsVideoBoundsChanged = {isVideoBoundsChanged = it}
-                                                            )
-                                                        }
+                                                    scope.launch {
+                                                        play(
+                                                            window = appState.videoPlayerWindow,
+                                                            setIsPlaying = {
+                                                                isPlaying = it
+                                                            },
+                                                            volume = appState.global.videoVolume,
+                                                            playTriple = playTriple,
+                                                            videoPlayerComponent = appState.videoPlayerComponent,
+                                                            bounds = playerBounds,
+                                                            vocabularyDir = vocabularyDir,
+                                                            resetVideoBounds = resetVideoBounds,
+                                                            isVideoBoundsChanged = isVideoBoundsChanged,
+                                                            setIsVideoBoundsChanged = { isVideoBoundsChanged = it }
+                                                        )
                                                     }
 
                                                 }
@@ -315,33 +301,21 @@ fun Search(
                                                         playerBounds.x = location.x - 270 + 24
                                                         playerBounds.y = location.y - 320
                                                     }
-
-                                                    val absPath = replaceSeparator(externalCaption.relateVideoPath)
-                                                    val absFile = File(absPath)
-                                                    val relFile = File(vocabularyDir,absFile.name)
-
-                                                    if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
-                                                        val playParams = if(!absFile.exists()){
-                                                            Triple(playTriple.first,relFile.absolutePath,playTriple.third)
-                                                        }else {
-                                                            playTriple
-                                                        }
-                                                        isPlaying = true
-                                                        scope.launch {
-                                                            play(
-                                                                window = appState.videoPlayerWindow,
-                                                                setIsPlaying = {
-                                                                    isPlaying = it
-                                                                },
-                                                                volume = appState.global.videoVolume,
-                                                                playTriple = playParams,
-                                                                videoPlayerComponent = appState.videoPlayerComponent,
-                                                                bounds = playerBounds,
-                                                                resetVideoBounds = resetVideoBounds,
-                                                                isVideoBoundsChanged = isVideoBoundsChanged,
-                                                                setIsVideoBoundsChanged = {isVideoBoundsChanged = it}
-                                                            )
-                                                        }
+                                                    scope.launch {
+                                                        play(
+                                                            window = appState.videoPlayerWindow,
+                                                            setIsPlaying = {
+                                                                isPlaying = it
+                                                            },
+                                                            volume = appState.global.videoVolume,
+                                                            playTriple = playTriple,
+                                                            videoPlayerComponent = appState.videoPlayerComponent,
+                                                            bounds = playerBounds,
+                                                            resetVideoBounds = resetVideoBounds,
+                                                            vocabularyDir = vocabularyDir,
+                                                            isVideoBoundsChanged = isVideoBoundsChanged,
+                                                            setIsVideoBoundsChanged = { isVideoBoundsChanged = it }
+                                                        )
                                                     }
 
                                                 }

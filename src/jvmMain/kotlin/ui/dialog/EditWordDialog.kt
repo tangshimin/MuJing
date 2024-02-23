@@ -2,7 +2,6 @@ package ui.dialog
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
@@ -50,7 +49,6 @@ import ui.edit.displayExchange
 import ui.edit.toAwtSize
 import ui.edit.toPoint
 import ui.getPlayTripleMap
-import ui.replaceSeparator
 import ui.secondsToString
 import java.awt.BorderLayout
 import java.awt.Component
@@ -871,7 +869,6 @@ fun EditingCaptions(
     val playTripleMap = getPlayTripleMap(vocabularyType,subtitlesTrackId,relateVideoPath, word)
     playTripleMap.forEach { (index, playTriple) ->
         val captionContent = playTriple.first.content
-        val relativeVideoPath = playTriple.second
 
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -942,6 +939,7 @@ fun EditingCaptions(
                 }
                 var isPlaying by remember { mutableStateOf(false) }
                 var playFailed by remember{mutableStateOf(false)}
+                var failedMessage by remember{mutableStateOf("")}
                 Box{
                     IconButton(onClick = {},
                         modifier = Modifier
@@ -958,34 +956,23 @@ fun EditingCaptions(
                                     }
 
                                     if (!isPlaying) {
-                                        isPlaying = true
-                                        // 使用绝对地址
-                                        val absPath = replaceSeparator(relativeVideoPath)
-                                        val absFile = File(absPath)
-                                        // 如果在绝对地址找不到，就在词库所在的文件夹寻找
-                                        val relFile = File(vocabularyDir,absFile.name)
-                                        if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
-                                            val playParameter = if(absFile.exists()){
-                                                playTriple
-                                            }else{
-                                                Triple(playTriple.first,relFile.absolutePath,playTriple.third)
-                                            }
-                                            scope.launch {
-                                                play(
-                                                    window = playerWindow,
-                                                    setIsPlaying = { isPlaying = it },
-                                                    volume = videoVolume,
-                                                    playTriple = playParameter,
-                                                    videoPlayerComponent = videoPlayerComponent,
-                                                    bounds = playerBounds,
-                                                    resetVideoBounds = resetVideoBounds,
-                                                    isVideoBoundsChanged = isVideoBoundsChanged,
-                                                    setIsVideoBoundsChanged = { isVideoBoundsChanged = it }
-                                                )
-                                            }
-                                        } else {
-                                            playFailed = true
-                                            isPlaying = false
+                                        scope.launch {
+                                            play(
+                                                window = playerWindow,
+                                                setIsPlaying = { isPlaying = it },
+                                                volume = videoVolume,
+                                                playTriple = playTriple,
+                                                videoPlayerComponent = videoPlayerComponent,
+                                                bounds = playerBounds,
+                                                onFailed = { message ->
+                                                    playFailed = true
+                                                    failedMessage = message
+                                                },
+                                                resetVideoBounds = resetVideoBounds,
+                                                isVideoBoundsChanged = isVideoBoundsChanged,
+                                                vocabularyDir = vocabularyDir,
+                                                setIsVideoBoundsChanged = { isVideoBoundsChanged = it }
+                                            )
                                         }
                                     }
                                 }
@@ -1006,7 +993,7 @@ fun EditingCaptions(
                             shape = RectangleShape,
                         ) {
                             Column(Modifier.width(210.dp).height(40.dp)) {
-                                Text("播放失败，视频地址错误", color = MaterialTheme.colors.onBackground,modifier = Modifier.padding(start = 10.dp))
+                                Text(failedMessage, color = MaterialTheme.colors.onBackground,modifier = Modifier.padding(start = 10.dp))
                             }
                             LaunchedEffect(Unit){
                                 delay(2000)
@@ -1205,37 +1192,25 @@ fun SettingTimeLine(
         val oldEnd = caption.end
 
         val play = {
-            isPlaying = true
-            val absPath = replaceSeparator(relativeVideoPath)
-            val absFile = File(absPath)
-            val relFile = File(vocabularyDir,absFile.name)
-
-            if (absPath.isNotEmpty() && (absFile.exists() || relFile.exists())) {
-
-                val newTriple =  if(!absFile.exists()){
-                    Triple(playTriple.first,relFile.absolutePath,playTriple.third)
-                } else {
-                    Triple(playTriple.first,absFile.absolutePath,playTriple.third)
-                }
-                scope.launch {
-                    newTriple.first.start = secondsToString(start)
-                    newTriple.first.end = secondsToString(end)
-                    play(
-                        window = playerWindow,
-                        setIsPlaying = { isPlaying = it },
-                        volume = videoVolume,
-                        playTriple = playTriple,
-                        videoPlayerComponent = mediaPlayerComponent,
-                        bounds = playerBounds,
-                        resetVideoBounds = resetVideoBounds,
-                        isVideoBoundsChanged = isVideoBoundsChanged,
-                        setIsVideoBoundsChanged = { isVideoBoundsChanged = it }
-                    )
-                }
-
-            } else {
-                println("视频地址错误")
+            scope.launch {
+                val newCaption = caption.copy(
+                    start =secondsToString(start) ,
+                    end =secondsToString(end)
+                )
+                play(
+                    window = playerWindow,
+                    setIsPlaying = { isPlaying = it },
+                    volume = videoVolume,
+                    playTriple = playTriple.copy(first = newCaption),
+                    videoPlayerComponent = mediaPlayerComponent,
+                    bounds = playerBounds,
+                    vocabularyDir = vocabularyDir,
+                    resetVideoBounds = resetVideoBounds,
+                    isVideoBoundsChanged = isVideoBoundsChanged,
+                    setIsVideoBoundsChanged = { isVideoBoundsChanged = it }
+                )
             }
+
         }
 
         Surface(
