@@ -54,6 +54,7 @@ import com.matthewn4444.ebml.subtitles.SSASubtitles
 import data.*
 import data.Dictionary
 import data.VocabularyType.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import opennlp.tools.langdetect.LanguageDetector
@@ -293,8 +294,7 @@ fun GenerateVocabularyDialog(
 
         /** 拖放的文件和文件选择器选择的文件都使用这个函数处理 */
         val parseImportFile: (List<File>) -> Unit = { files ->
-            scope.launch {
-                Thread {
+            scope.launch (Dispatchers.Default){
                     if (files.size == 1) {
                         val file = files.first()
                         when (file.extension) {
@@ -455,13 +455,12 @@ fun GenerateVocabularyDialog(
                     } else {
                         JOptionPane.showMessageDialog(window, "文件不能超过两个")
                     }
-                }.start()
             }
         }
 
         /** 打开文件时调用的函数 */
         val openFile:() -> Unit = {
-            Thread {
+            scope.launch (Dispatchers.Default) {
                 val fileChooser = state.futureFileChooser.get()
                 fileChooser.dialogTitle = chooseText
                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -477,8 +476,7 @@ fun GenerateVocabularyDialog(
                 fileChooser.selectedFiles = null
                 fileChooser.isMultiSelectionEnabled = true
                 fileChooser.removeChoosableFileFilter(fileFilter)
-            }.start()
-
+            }
         }
 
         //设置窗口的拖放处理函数
@@ -544,11 +542,13 @@ fun GenerateVocabularyDialog(
         }
 
         /** 分析文件里的单词 */
-        val analysis : (String,Int) -> Unit = { pathName,trackId ->
+        val analysis : (String,Int) -> Unit = { pathName, trackId ->
             filterState = Parsing
             vocabularyFilterList.clear()
             previewList.clear()
-            Thread {
+
+            scope.launch (Dispatchers.Default){
+                // 使用 Thread 才能显示等待动画。
                 val words = when (type) {
                     DOCUMENT -> {
                         if (title == "过滤词库") {
@@ -570,7 +570,7 @@ fun GenerateVocabularyDialog(
                     }
 
                     MKV -> {
-                       readMKV(
+                        readMKV(
                             pathName = pathName,
                             trackId = trackId,
                             setProgressText = { progressText = it },
@@ -587,7 +587,7 @@ fun GenerateVocabularyDialog(
                     } else {
                         End
                     }
-            }.start()
+        }
         }
 
         /** 批量分析文件 MKV 视频里的单词 */
@@ -595,7 +595,7 @@ fun GenerateVocabularyDialog(
 
             vocabularyFilterList.clear()
             previewList.clear()
-            Thread {
+            scope.launch (Dispatchers.Default) {
                 val words = batchReadMKV(
                     language = language,
                     selectedFileList = selectedFileList,
@@ -627,8 +627,7 @@ fun GenerateVocabularyDialog(
                     val string = "有 ${errorMessages.size} 个文件解析失败，请点击 [任务列表] 查看详细信息"
                     JOptionPane.showMessageDialog(window, string)
                 }
-
-            }.start()
+            }
 
         }
 
@@ -809,7 +808,7 @@ fun GenerateVocabularyDialog(
                                         CircularProgressIndicator(
                                             Modifier.width(60.dp).align(Alignment.Center)
                                         )
-                                        Thread {
+                                        scope.launch (Dispatchers.Default) {
                                             // 根据词频或原型过滤单词
                                             val filteredDocumentList = filterDocumentWords(
                                                 previewList,
@@ -833,7 +832,7 @@ fun GenerateVocabularyDialog(
                                             filteredList.removeAll(removedWords)
                                             previewList.addAll(filteredList)
                                             filterState = End
-                                        }.start()
+                                        }
 
 
                                     }
@@ -921,30 +920,33 @@ fun GenerateVocabularyDialog(
                         OutlinedButton(
                             enabled = previewList.size > 0,
                             onClick = {
-                                Thread {
+                                scope.launch (Dispatchers.Default) {
                                     val fileChooser = state.futureFileChooser.get()
                                     fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                                     fileChooser.dialogTitle = "保存词库"
                                     val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
                                     val fileName = File(selectedFilePath).nameWithoutExtension
-                                    if(state.filterVocabulary && File(selectedFilePath).nameWithoutExtension == "FamiliarVocabulary"){
+                                    if (state.filterVocabulary && File(selectedFilePath).nameWithoutExtension == "FamiliarVocabulary") {
                                         fileChooser.selectedFile = File(selectedFilePath)
-                                    }else{
+                                    } else {
                                         fileChooser.selectedFile = File("$myDocuments${File.separator}$fileName.json")
                                     }
                                     val userSelection = fileChooser.showSaveDialog(window)
                                     if (userSelection == JFileChooser.APPROVE_OPTION) {
                                         val selectedFile = fileChooser.selectedFile
-                                       val vocabularyDirPath =  Paths.get(getResourcesFile("vocabulary").absolutePath)
-                                       val savePath = Paths.get(selectedFile.absolutePath)
-                                        if(savePath.startsWith(vocabularyDirPath)){
-                                            JOptionPane.showMessageDialog(null,"不能把词库保存到应用程序安装目录，因为软件更新或卸载时，生成的词库会被删除")
-                                        }else{
-                                            val vType = if (title == "过滤词库"){
+                                        val vocabularyDirPath = Paths.get(getResourcesFile("vocabulary").absolutePath)
+                                        val savePath = Paths.get(selectedFile.absolutePath)
+                                        if (savePath.startsWith(vocabularyDirPath)) {
+                                            JOptionPane.showMessageDialog(
+                                                null,
+                                                "不能把词库保存到应用程序安装目录，因为软件更新或卸载时，生成的词库会被删除"
+                                            )
+                                        } else {
+                                            val vType = if (title == "过滤词库") {
                                                 filteringType
-                                            } else if(selectedFileList.isNotEmpty()){
+                                            } else if (selectedFileList.isNotEmpty()) {
                                                 DOCUMENT
-                                            }else type
+                                            } else type
                                             val vocabulary = Vocabulary(
                                                 name = selectedFile.nameWithoutExtension,
                                                 type = vType,
@@ -954,9 +956,9 @@ fun GenerateVocabularyDialog(
                                                 subtitlesTrackId = selectedTrackId,
                                                 wordList = previewList
                                             )
-                                            try{
+                                            try {
                                                 saveVocabulary(vocabulary, selectedFile.absolutePath)
-                                                state.saveToRecentList(vocabulary.name, selectedFile.absolutePath,0)
+                                                state.saveToRecentList(vocabulary.name, selectedFile.absolutePath, 0)
 
                                                 // 清理状态
                                                 selectedFileList.clear()
@@ -979,9 +981,12 @@ fun GenerateVocabularyDialog(
                                                 bncZeroFilter = false
                                                 frqZeroFilter = false
                                                 replaceToLemma = false
-                                            }catch(e:Exception){
+                                            } catch (e: Exception) {
                                                 e.printStackTrace()
-                                                JOptionPane.showMessageDialog(window, "保存词库失败,错误信息：\n${e.message}")
+                                                JOptionPane.showMessageDialog(
+                                                    window,
+                                                    "保存词库失败,错误信息：\n${e.message}"
+                                                )
                                             }
 
 
@@ -989,7 +994,7 @@ fun GenerateVocabularyDialog(
 
 
                                     }
-                                }.start()
+                                }
 
                             }) {
                             Text("保存")
@@ -1499,6 +1504,7 @@ fun VocabularyFilter(
     familiarVocabulary: MutableVocabulary,
     updateFamiliarVocabulary:() -> Unit
 ) {
+    val scope = rememberCoroutineScope()
     Row(Modifier.fillMaxWidth().background(MaterialTheme.colors.background)) {
         var selectedPath: TreePath? = null
         val vocabulary = composeAppResource("vocabulary")
@@ -1639,7 +1645,7 @@ fun VocabularyFilter(
             ) {
                 OutlinedButton(
                     onClick = {
-                        Thread {
+                        scope.launch (Dispatchers.Default) {
                             val fileChooser = futureFileChooser.get()
                             fileChooser.dialogTitle = "选择词库"
                             fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -1654,7 +1660,7 @@ fun VocabularyFilter(
                             }
                             fileChooser.selectedFile = null
                             fileChooser.removeChoosableFileFilter(fileFilter)
-                        }.start()
+                        }
 
                     },
                     modifier = Modifier

@@ -1,8 +1,10 @@
 package ui.dialog
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -18,8 +20,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import player.isWindows
 import ui.createTransferHandler
 import java.io.File
 import java.util.*
@@ -205,7 +207,7 @@ fun MergeVocabularyDialog(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         OutlinedButton(onClick = {
-                            Thread {
+                            scope.launch (Dispatchers.IO){
                                 val fileChooser = futureFileChooser.get()
                                 fileChooser.dialogTitle = "选择词库"
                                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -234,7 +236,7 @@ fun MergeVocabularyDialog(
                                 fileChooser.selectedFile = null
                                 fileChooser.isMultiSelectionEnabled = false
                                 fileChooser.removeChoosableFileFilter(fileFilter)
-                            }.start()
+                            }
                         }, modifier = Modifier.padding(end = 10.dp)) {
                             Text("添加词库")
                         }
@@ -242,7 +244,7 @@ fun MergeVocabularyDialog(
                         OutlinedButton(
                             enabled = mergeEnabled,
                             onClick = {
-                                Thread {
+                                scope.launch (Dispatchers.Default){
                                     merging = true
                                     newVocabulary = Vocabulary(
                                         name = "",
@@ -314,7 +316,7 @@ fun MergeVocabularyDialog(
                                     newVocabulary!!.size = wordList.size
                                     merging = false
                                     mergeEnabled = false
-                                }.start()
+                                }
                             }, modifier = Modifier.padding(end = 10.dp)
                         ) {
                             Text("合并词库")
@@ -322,7 +324,7 @@ fun MergeVocabularyDialog(
                         OutlinedButton(
                             enabled = !merging && size > 0,
                             onClick = {
-                                Thread {
+                                scope.launch (Dispatchers.IO){
                                     val fileChooser = futureFileChooser.get()
                                     fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                                     fileChooser.dialogTitle = "保存词库"
@@ -347,7 +349,7 @@ fun MergeVocabularyDialog(
                                         close()
                                     }
 
-                                }.start()
+                                }
                             }) {
                             Text("保存词库")
                         }

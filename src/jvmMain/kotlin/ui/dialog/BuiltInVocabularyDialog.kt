@@ -22,7 +22,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import state.getResourcesFile
 import java.io.File
 import java.util.concurrent.FutureTask
@@ -57,11 +59,11 @@ fun BuiltInVocabularyDialog(
                 ){
                     var finish by remember{ mutableStateOf(false)}
                     var waiting by remember{ mutableStateOf(false)}
-
+                    val scope = rememberCoroutineScope()
                     /** 保存词库 */
                     val save:(File) -> Unit = {file ->
                         waiting = true
-                        Thread {
+                        scope.launch(Dispatchers.IO) {
                             var name = file.nameWithoutExtension
                             if (file.parentFile.nameWithoutExtension == "人教版英语" ||
                                 file.parentFile.nameWithoutExtension == "外研版英语" ||
@@ -107,7 +109,7 @@ fun BuiltInVocabularyDialog(
 
                             }
                             waiting = false
-                        }.start()
+                        }
                     }
 
                     val stateVertical = rememberScrollState(0)

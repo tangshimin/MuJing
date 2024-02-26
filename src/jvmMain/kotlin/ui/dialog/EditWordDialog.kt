@@ -35,6 +35,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import com.formdev.flatlaf.extras.FlatSVGUtils
 import data.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -222,6 +223,7 @@ fun EditWordComposeContent(
     var exchange by remember { mutableStateOf(tempWord.exchange) }
     var saveEnable by remember { mutableStateOf(false) }
     var captionsChanged by remember { mutableStateOf(false) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(inputWordStr, usphone, ukphone, translationFieldValue, definitionFieldValue, exchange,captionsChanged,tempWord.captions.size,tempWord.externalCaptions.size) {
         // 单词不为空，并且任何一个字段发生变化，就激活保存按钮
@@ -291,20 +293,21 @@ fun EditWordComposeContent(
             ) {
                 var queryFailed by remember { mutableStateOf(false) }
                 val query = {
-                    Thread {
-                        val resultWord = Dictionary.query(inputWordStr.text)
-                        if (resultWord != null) {
-                            tempWord = resultWord
-                            usphone = TextFieldValue(resultWord.usphone)
-                            ukphone = TextFieldValue(resultWord.ukphone)
-                            translationFieldValue = TextFieldValue(resultWord.translation)
-                            definitionFieldValue = TextFieldValue(resultWord.definition)
-                            exchange = resultWord.exchange
-                            queryFailed = false
-                        } else {
-                            queryFailed = true
-                        }
-                    }.start()
+                    scope.launch(Dispatchers.Default){
+                            val resultWord = Dictionary.query(inputWordStr.text)
+                            if (resultWord != null) {
+                                tempWord = resultWord
+                                usphone = TextFieldValue(resultWord.usphone)
+                                ukphone = TextFieldValue(resultWord.ukphone)
+                                translationFieldValue = TextFieldValue(resultWord.translation)
+                                definitionFieldValue = TextFieldValue(resultWord.definition)
+                                exchange = resultWord.exchange
+                                queryFailed = false
+                            } else {
+                                queryFailed = true
+                            }
+                    }
+
                 }
                 Text("单词：", color = MaterialTheme.colors.onBackground)
                 Spacer(Modifier.width(20.dp))

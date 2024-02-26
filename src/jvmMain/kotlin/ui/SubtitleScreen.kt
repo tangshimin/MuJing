@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import data.Caption
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import player.*
 import state.GlobalState
@@ -181,8 +182,7 @@ fun SubtitleScreen(
         if(files.size == 1){
             val file = files.first()
             loading = true
-            scope.launch {
-                Thread {
+            scope.launch (Dispatchers.Default){
                     if (file.extension == "mkv") {
                         if (subtitlesState.mediaPath != file.absolutePath) {
                             selectedPath = file.absolutePath
@@ -209,7 +209,6 @@ fun SubtitleScreen(
                     }
 
                     loading = false
-                }.start()
             }
         }else if(files.size == 2){
             val first = files.first()
@@ -266,38 +265,36 @@ fun SubtitleScreen(
 
         // 打开 windows 的文件选择器很慢，有时候会等待超过2秒
         openLoadingDialog()
-
-        Thread {
-            val fileChooser = futureFileChooser.get()
-            fileChooser.dialogTitle = "打开"
-            fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-            fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
-            fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-            fileChooser.isAcceptAllFileFilterUsed = false
-            fileChooser.isMultiSelectionEnabled = true
-            val fileFilter = FileNameExtensionFilter(
-                "1个 mkv 视频，或 1个媒体(mp3、wav、aac、mp4、mkv) + 1个字幕(srt)",
-                "mp3",
-                "wav",
-                "aac",
-                "mkv",
-                "srt",
-                "mp4"
-            )
-            fileChooser.addChoosableFileFilter(fileFilter)
-            fileChooser.selectedFile = null
-            if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
-                val files = fileChooser.selectedFiles.toList()
-                parseImportFile(files, OpenMode.Open)
-                closeLoadingDialog()
-            } else {
-                closeLoadingDialog()
-            }
-            fileChooser.selectedFile = null
-            fileChooser.isMultiSelectionEnabled = false
-            fileChooser.removeChoosableFileFilter(fileFilter)
-        }.start()
-
+        scope.launch (Dispatchers.Default) {
+                val fileChooser = futureFileChooser.get()
+                fileChooser.dialogTitle = "打开"
+                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
+                fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
+                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
+                fileChooser.isAcceptAllFileFilterUsed = false
+                fileChooser.isMultiSelectionEnabled = true
+                val fileFilter = FileNameExtensionFilter(
+                    "1个 mkv 视频，或 1个媒体(mp3、wav、aac、mp4、mkv) + 1个字幕(srt)",
+                    "mp3",
+                    "wav",
+                    "aac",
+                    "mkv",
+                    "srt",
+                    "mp4"
+                )
+                fileChooser.addChoosableFileFilter(fileFilter)
+                fileChooser.selectedFile = null
+                if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
+                    val files = fileChooser.selectedFiles.toList()
+                    parseImportFile(files, OpenMode.Open)
+                    closeLoadingDialog()
+                } else {
+                    closeLoadingDialog()
+                }
+                fileChooser.selectedFile = null
+                fileChooser.isMultiSelectionEnabled = false
+                fileChooser.removeChoosableFileFilter(fileFilter)
+        }
     }
 
     /** 移除当前字幕*/
@@ -444,9 +441,8 @@ fun SubtitleScreen(
         val videoFile = File(subtitlesState.mediaPath)
         if (trackList.isEmpty() && videoFile.exists()) {
             loading = true
-            scope.launch {
+            scope.launch (Dispatchers.Default){
                 showSelectTrack = true
-                Thread {
                     parseTrackList(
                         mediaPlayerComponent = mediaPlayerComponent,
                         parentComponent = window,
@@ -457,9 +453,6 @@ fun SubtitleScreen(
                         },
                     )
                     loading = false
-
-                }.start()
-
             }
         }else if(!videoFile.exists()){
             JOptionPane.showMessageDialog(null,"视频地址错误:${videoFile.absolutePath}\n" +
@@ -1490,6 +1483,7 @@ fun SelectTrack(
     if (trackList.isNotEmpty()) {
         var expanded by remember { mutableStateOf(false) }
         val selectedSubtitle by remember { mutableStateOf("    ") }
+        val scope = rememberCoroutineScope()
         Box(Modifier.width(IntrinsicSize.Max).padding(end = 20.dp)) {
             OutlinedButton(
                 onClick = { expanded = true },
@@ -1517,7 +1511,7 @@ fun SelectTrack(
                     DropdownMenuItem(
                         onClick = {
                             setIsLoading(true)
-                            Thread {
+                            scope.launch(Dispatchers.IO) {
                                 expanded = false
                                 val subtitles = writeToFile(selectedPath, trackId, parentComponent)
                                 if (subtitles != null) {
@@ -1532,8 +1526,8 @@ fun SelectTrack(
                                     close()
                                 }
                                 setIsLoading(false)
+                            }
 
-                            }.start()
                         },
                         modifier = Modifier.width(282.dp).height(40.dp)
                     ) {

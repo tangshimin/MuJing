@@ -31,6 +31,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import data.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.isMacOS
@@ -130,131 +131,132 @@ fun LinkVocabularyDialog(
      * 用户选择字幕词库后，用这个函数提取相关信息
      */
     val extractCaption: (File) -> Unit = {
-        Thread {
-            val selectedVocabulary = loadVocabulary(it.absolutePath)
-            subtitlesName = if (selectedVocabulary.type == VocabularyType.SUBTITLES) selectedVocabulary.name else ""
-            vocabularyType = selectedVocabulary.type
-            var linkedCounter = 0
+        scope.launch (Dispatchers.Default){
+                val selectedVocabulary = loadVocabulary(it.absolutePath)
+                subtitlesName = if (selectedVocabulary.type == VocabularyType.SUBTITLES) selectedVocabulary.name else ""
+                vocabularyType = selectedVocabulary.type
+                var linkedCounter = 0
 
-            // 字幕词库或 MKV 词库，字幕保存在单词的 captions 属性中
-            if (selectedVocabulary.type != VocabularyType.DOCUMENT) {
-                val wordCaptionsMap = HashMap<String, List<Caption>>()
-                selectedVocabulary.wordList.forEach { word ->
-                    wordCaptionsMap.put(word.value, word.captions)
-                }
-                vocabulary?.wordList?.forEach { word ->
-                    if (wordCaptionsMap.containsKey(word.value.lowercase(Locale.getDefault()))) {
-                        val captions = wordCaptionsMap[word.value]
-                        val links = mutableListOf<ExternalCaption>()
-                        // 用于预览
-                        // 字幕最多3条，这个 counter 是剩余的数量
-                        var counter = 3 - word.externalCaptions.size
-                        if (counter in 1..3) {
-                            captions?.forEachIndexed { _, caption ->
+                // 字幕词库或 MKV 词库，字幕保存在单词的 captions 属性中
+                if (selectedVocabulary.type != VocabularyType.DOCUMENT) {
+                    val wordCaptionsMap = HashMap<String, List<Caption>>()
+                    selectedVocabulary.wordList.forEach { word ->
+                        wordCaptionsMap.put(word.value, word.captions)
+                    }
+                    vocabulary?.wordList?.forEach { word ->
+                        if (wordCaptionsMap.containsKey(word.value.lowercase(Locale.getDefault()))) {
+                            val captions = wordCaptionsMap[word.value]
+                            val links = mutableListOf<ExternalCaption>()
+                            // 用于预览
+                            // 字幕最多3条，这个 counter 是剩余的数量
+                            var counter = 3 - word.externalCaptions.size
+                            if (counter in 1..3) {
+                                captions?.forEachIndexed { _, caption ->
 
-                                val externalCaption = ExternalCaption(
-                                    selectedVocabulary.relateVideoPath,
-                                    selectedVocabulary.subtitlesTrackId,
-                                    subtitlesName,
-                                    caption.start,
-                                    caption.end,
-                                    caption.content
-                                )
+                                    val externalCaption = ExternalCaption(
+                                        selectedVocabulary.relateVideoPath,
+                                        selectedVocabulary.subtitlesTrackId,
+                                        subtitlesName,
+                                        caption.start,
+                                        caption.end,
+                                        caption.content
+                                    )
 
-                                if (counter != 0) {
-                                    if (!word.externalCaptions.contains(externalCaption) && !links.contains(
-                                            externalCaption
-                                        )
-                                    ) {
-                                        links.add(externalCaption)
-                                        counter--
-                                    } else {
+                                    if (counter != 0) {
+                                        if (!word.externalCaptions.contains(externalCaption) && !links.contains(
+                                                externalCaption
+                                            )
+                                        ) {
+                                            links.add(externalCaption)
+                                            counter--
+                                        } else {
+                                            linkedCounter++
+                                        }
+                                    }
+                                }
+                            } else {
+
+                                // 字幕已经有3条了，查询是否有一样的
+                                captions?.forEachIndexed { _, caption ->
+                                    val externalCaption = ExternalCaption(
+                                        selectedVocabulary.relateVideoPath,
+                                        selectedVocabulary.subtitlesTrackId,
+                                        subtitlesName,
+                                        caption.start,
+                                        caption.end,
+                                        caption.content
+                                    )
+
+                                    if (word.externalCaptions.contains(externalCaption)) {
                                         linkedCounter++
                                     }
                                 }
                             }
-                        } else {
-
-                            // 字幕已经有3条了，查询是否有一样的
-                            captions?.forEachIndexed { _, caption ->
-                                val externalCaption = ExternalCaption(
-                                    selectedVocabulary.relateVideoPath,
-                                    selectedVocabulary.subtitlesTrackId,
-                                    subtitlesName,
-                                    caption.start,
-                                    caption.end,
-                                    caption.content
-                                )
-
-                                if (word.externalCaptions.contains(externalCaption)) {
-                                    linkedCounter++
-                                }
+                            if (links.isNotEmpty()) {
+                                prepareLinks.put(word.value, links)
+                                linkCounter += links.size
                             }
-                        }
-                        if (links.isNotEmpty()) {
-                            prepareLinks.put(word.value, links)
-                            linkCounter += links.size
-                        }
 
+                        }
                     }
-                }
 
-            } else {
-                // 文档词库，字幕保存在单词的 externalCaptions 属性中
-                val wordCaptionsMap = HashMap<String, List<ExternalCaption>>()
-                selectedVocabulary.wordList.forEach { word ->
-                    wordCaptionsMap.put(word.value, word.externalCaptions)
-                }
-                vocabulary?.wordList?.forEach { word ->
-                    if (wordCaptionsMap.containsKey(word.value.lowercase(Locale.getDefault()))) {
-                        val externalCaptions = wordCaptionsMap[word.value]
-                        val links = mutableListOf<ExternalCaption>()
-//                        // 用于预览
-                        // 字幕最多3条，这个 counter 是剩余的数量
-                        var counter = 3 - word.externalCaptions.size
-                        if (counter in 1..3) {
-                            externalCaptions?.forEachIndexed { _, externalCaption ->
-                                if (counter != 0) {
-                                    if (!word.externalCaptions.contains(externalCaption) && !links.contains(
-                                            externalCaption
-                                        )
-                                    ) {
-                                        links.add(externalCaption)
-                                        counter--
-                                    } else {
-                                        linkedCounter++
-                                    }
-                                }
-                            }
-                        } else {
-                            // 字幕已经有3条了，查询是否有一样的
-                            externalCaptions?.forEachIndexed { _, externalCaption ->
-                                if (word.externalCaptions.contains(externalCaption)) {
-                                    linkedCounter++
-                                }
-                            }
-                        }
-                        if (links.isNotEmpty()) {
-                            prepareLinks.put(word.value, links)
-                            linkCounter += links.size
-                        }
-
-                    }
-                }
-            }
-
-            // previewWords isEmpty 有两种情况：
-            // 1. 已经链接了一次。
-            // 2. 没有匹配的字幕
-            if (prepareLinks.isEmpty()) {
-                extractCaptionResultInfo = if (linkedCounter == 0) {
-                    "没有匹配的字幕，请重新选择"
                 } else {
-                    "${selectedVocabulary.name} 有${linkedCounter}条相同的字幕已经链接，请重新选择"
+                    // 文档词库，字幕保存在单词的 externalCaptions 属性中
+                    val wordCaptionsMap = HashMap<String, List<ExternalCaption>>()
+                    selectedVocabulary.wordList.forEach { word ->
+                        wordCaptionsMap.put(word.value, word.externalCaptions)
+                    }
+                    vocabulary?.wordList?.forEach { word ->
+                        if (wordCaptionsMap.containsKey(word.value.lowercase(Locale.getDefault()))) {
+                            val externalCaptions = wordCaptionsMap[word.value]
+                            val links = mutableListOf<ExternalCaption>()
+//                        // 用于预览
+                            // 字幕最多3条，这个 counter 是剩余的数量
+                            var counter = 3 - word.externalCaptions.size
+                            if (counter in 1..3) {
+                                externalCaptions?.forEachIndexed { _, externalCaption ->
+                                    if (counter != 0) {
+                                        if (!word.externalCaptions.contains(externalCaption) && !links.contains(
+                                                externalCaption
+                                            )
+                                        ) {
+                                            links.add(externalCaption)
+                                            counter--
+                                        } else {
+                                            linkedCounter++
+                                        }
+                                    }
+                                }
+                            } else {
+                                // 字幕已经有3条了，查询是否有一样的
+                                externalCaptions?.forEachIndexed { _, externalCaption ->
+                                    if (word.externalCaptions.contains(externalCaption)) {
+                                        linkedCounter++
+                                    }
+                                }
+                            }
+                            if (links.isNotEmpty()) {
+                                prepareLinks.put(word.value, links)
+                                linkCounter += links.size
+                            }
+
+                        }
+                    }
                 }
-                vocabularyWrong = true
-            }
-        }.start()
+
+                // previewWords isEmpty 有两种情况：
+                // 1. 已经链接了一次。
+                // 2. 没有匹配的字幕
+                if (prepareLinks.isEmpty()) {
+                    extractCaptionResultInfo = if (linkedCounter == 0) {
+                        "没有匹配的字幕，请重新选择"
+                    } else {
+                        "${selectedVocabulary.name} 有${linkedCounter}条相同的字幕已经链接，请重新选择"
+                    }
+                    vocabularyWrong = true
+                }
+        }
+
     }
 
     /**
@@ -322,7 +324,7 @@ fun LinkVocabularyDialog(
 
         /** 保存词库 */
         val save:() -> Unit = {
-            Thread {
+            scope.launch (Dispatchers.IO){
 
                 val fileChooser = appState.futureFileChooser.get()
                 fileChooser.dialogType = JFileChooser.SAVE_DIALOG
@@ -351,7 +353,7 @@ fun LinkVocabularyDialog(
                     }
 
                 }
-            }.start()
+            }
         }
 
         WindowDraggableArea {

@@ -19,6 +19,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.isMacOS
@@ -552,28 +553,29 @@ fun WordScreenSidebar(
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("击键音效")
                                     Slider(value = appState.global.keystrokeVolume, onValueChange = {
-                                        Thread {
+                                        scope.launch(Dispatchers.IO) {
+                                            println("Current Thread Name:"+Thread.currentThread().name)
                                             appState.global.keystrokeVolume = it
                                             appState.saveGlobalState()
-                                        }.start()
+                                        }
                                     })
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("提示音效")
                                     Slider(value = wordScreenState.soundTipsVolume, onValueChange = {
-                                        Thread {
+                                        scope.launch(Dispatchers.IO) {
                                             wordScreenState.soundTipsVolume = it
                                             wordScreenState.saveWordScreenState()
-                                        }.start()
+                                        }
                                     })
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
                                     Text("单词发音")
                                     Slider(value = appState.global.audioVolume, onValueChange = {
-                                        Thread {
+                                        scope.launch(Dispatchers.IO) {
                                             appState.global.audioVolume = it
                                             appState.saveGlobalState()
-                                        }.start()
+                                        }
                                     })
                                 }
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -582,10 +584,10 @@ fun WordScreenSidebar(
                                         value = appState.global.videoVolume,
                                         valueRange = 1f..100f,
                                         onValueChange = {
-                                        Thread {
-                                            appState.global.videoVolume = it
-                                            appState.saveGlobalState()
-                                        }.start()
+                                            scope.launch(Dispatchers.IO) {
+                                                appState.global.videoVolume = it
+                                                appState.saveGlobalState()
+                                            }
                                     })
                                 }
 

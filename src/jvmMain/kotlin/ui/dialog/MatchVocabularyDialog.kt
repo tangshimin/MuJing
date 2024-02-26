@@ -20,7 +20,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
-import data.*
+import data.Vocabulary
+import data.Word
+import data.loadVocabulary
+import data.saveVocabulary
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import state.getResourcesFile
 import java.io.File
@@ -123,7 +127,7 @@ fun MatchVocabularyDialog(
                     }
 
                     val save:() -> Unit = {
-                        Thread {
+                        scope.launch (Dispatchers.IO){
                             val fileChooser = futureFileChooser.get()
                             fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                             fileChooser.dialogTitle = "保存词库"
@@ -150,7 +154,7 @@ fun MatchVocabularyDialog(
 
                             }
                             fileChooser.removeChoosableFileFilter(fileFilter)
-                        }.start()
+                        }
                     }
                     Row(
                         horizontalArrangement = Arrangement.Center,
@@ -187,7 +191,7 @@ fun MatchVocabularyDialog(
                                 verticalArrangement = Arrangement.Top,
                                 modifier = Modifier.width(165.dp).height(200.dp)
                                     .clickable {
-                                        Thread {
+                                        scope.launch (Dispatchers.IO){
                                             val fileChooser = futureFileChooser.get()
                                             fileChooser.dialogTitle = "选择基准词库"
                                             fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -204,7 +208,7 @@ fun MatchVocabularyDialog(
                                             fileChooser.selectedFile = null
 
                                             fileChooser.removeChoosableFileFilter(fileFilter)
-                                        }.start()
+                                        }
                                     }
                                     .onPointerEvent(PointerEventType.Enter){isHover = true}
                                     .onPointerEvent(PointerEventType.Exit){isHover = false}
@@ -274,7 +278,7 @@ fun MatchVocabularyDialog(
                                     verticalArrangement = Arrangement.Center,
                                     modifier = Modifier.width(165.dp).height(200.dp)
                                         .clickable {
-                                            Thread {
+                                            scope.launch (Dispatchers.IO){
                                                 val fileChooser = futureFileChooser.get()
                                                 fileChooser.dialogTitle = "选择对比词库"
                                                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -292,7 +296,7 @@ fun MatchVocabularyDialog(
                                                 fileChooser.selectedFile = null
 
                                                 fileChooser.removeChoosableFileFilter(fileFilter)
-                                            }.start()
+                                            }
                                         }
                                         .onPointerEvent(PointerEventType.Enter){isHover = true}
                                         .onPointerEvent(PointerEventType.Exit){isHover = false}

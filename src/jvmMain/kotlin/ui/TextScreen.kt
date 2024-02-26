@@ -39,6 +39,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import player.isMacOS
 import player.isWindows
@@ -134,8 +135,7 @@ fun TextScreen(
     /** 解析打开的文件 */
     val parseImportFile: (List<File>, OpenMode) -> Unit = { files, openMode ->
         val file = files.first()
-        scope.launch {
-            Thread {
+        scope.launch(Dispatchers.Default) {
                 val extension = file.extension
                 if (extension == "txt") {
                     // 拖放的文件和已有的文件不一样，或者文件路径一样，但是后面又修改了。
@@ -163,7 +163,6 @@ fun TextScreen(
                 } else {
                     JOptionPane.showMessageDialog(window, "格式不支持")
                 }
-            }.start()
         }
     }
 
@@ -171,7 +170,7 @@ fun TextScreen(
     val openFileChooser: () -> Unit = {
         // 打开 windows 的文件选择器很慢，有时候会等待超过2秒
         openLoadingDialog()
-        Thread {
+        scope.launch(Dispatchers.IO) {
             val fileChooser = futureFileChooser.get()
             fileChooser.dialogTitle = "打开文本"
             fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -191,8 +190,7 @@ fun TextScreen(
             fileChooser.selectedFile = null
             fileChooser.isMultiSelectionEnabled = false
             fileChooser.removeChoosableFileFilter(fileFilter)
-        }.start()
-
+        }
     }
     /** 当前界面的快捷键 */
     val boxKeyEvent: (KeyEvent) -> Boolean = { keyEvent ->

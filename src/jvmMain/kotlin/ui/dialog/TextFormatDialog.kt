@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ui.createTransferHandler
 import java.io.File
@@ -86,7 +87,7 @@ fun TextFormatDialog(
         val openFileChooser: () -> Unit = {
             // 打开 windows 的文件选择器很慢，有时候会等待超过2秒
             openLoadingDialog()
-            Thread {
+            scope.launch (Dispatchers.IO){
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogTitle = "选择文本"
                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
@@ -106,13 +107,13 @@ fun TextFormatDialog(
                 fileChooser.selectedFile = null
                 fileChooser.isMultiSelectionEnabled = false
                 fileChooser.removeChoosableFileFilter(fileFilter)
-            }.start()
+            }
 
         }
 
         /** 保存文件对话框 */
         val saveFileChooser: () -> Unit = {
-            Thread {
+            scope.launch (Dispatchers.IO){
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                 fileChooser.dialogTitle = "保存文本"
@@ -136,7 +137,7 @@ fun TextFormatDialog(
                     successful = false
                 }
 
-            }.start()
+            }
         }
         val formatText: () -> Unit = {
             scope.launch {
@@ -307,10 +308,10 @@ fun FormatDialog(
             size = DpSize(450.dp, 200.dp)
         ),
     ) {
-
+        val scope = rememberCoroutineScope()
         /** 保存文件 */
         val saveFile: () -> Unit = {
-            Thread {
+            scope.launch (Dispatchers.IO){
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                 fileChooser.dialogTitle = "保存文本"
@@ -346,7 +347,7 @@ fun FormatDialog(
                     close()
                 }
 
-            }.start()
+            }
         }
 
         Surface(

@@ -20,7 +20,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import data.Word
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
 import state.WordScreenState
@@ -240,17 +242,17 @@ fun playAudio(
     // 如果单词发音为 local TTS 或者由于网络问题，没有获取到发音
     // 就自动使用本地的 TTS
     if (pronunciation == "local TTS" || audioPath.isEmpty()) {
-        Thread {
 
-            if (isWindows()) {
-                val speech = MSTTSpeech()
-                speech.speak(word)
-            } else if (isMacOS()) {
-                MacTTS().speakAndWait(word)
+        runBlocking {
+            launch(Dispatchers.IO) {
+                if (isWindows()) {
+                    val speech = MSTTSpeech()
+                    speech.speak(word)
+                } else if (isMacOS()) {
+                    MacTTS().speakAndWait(word)
+                }
             }
-
-        }.start()
-
+        }
 
     }else if (audioPath.isNotEmpty()) {
 

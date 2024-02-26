@@ -40,7 +40,6 @@ class MacTTS {
 internal class ProcessReader(process: Process, errorStream: Boolean) {
     init {
         val processStream = if (errorStream) process.errorStream else process.inputStream
-        Thread {
             try {
                 val br = BufferedReader(InputStreamReader(processStream))
                 var line: String?
@@ -54,7 +53,6 @@ internal class ProcessReader(process: Process, errorStream: Boolean) {
             } catch (ex: IOException) {
                 ex.printStackTrace()
             }
-        }.start()
     }
 }
 

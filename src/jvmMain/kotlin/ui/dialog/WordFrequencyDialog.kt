@@ -24,6 +24,8 @@ import data.Dictionary
 import data.Vocabulary
 import data.VocabularyType
 import data.saveVocabulary
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
@@ -59,9 +61,10 @@ fun WordFrequencyDialog(
             var saveEnable by remember { mutableStateOf(false) }
             var waiting by remember { mutableStateOf(false) }
             var done by remember { mutableStateOf(false) }
+            val scope = rememberCoroutineScope()
 
             val generate: () -> Unit = {
-                Thread {
+                scope.launch (Dispatchers.Default){
                     done = false
                     waiting = true
 
@@ -87,11 +90,11 @@ fun WordFrequencyDialog(
                     done = true
                     waiting = false
                     saveEnable = true
-                }.start()
+                }
             }
 
             val save:() -> Unit = {
-                Thread {
+                scope.launch (Dispatchers.IO){
                     val fileChooser = futureFileChooser.get()
                     fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                     fileChooser.dialogTitle = "保存词库"
@@ -116,7 +119,7 @@ fun WordFrequencyDialog(
                         close()
                     }
 
-                }.start()
+                }
             }
             Box(Modifier.fillMaxSize()){
                 if(selectState == "Idle"){

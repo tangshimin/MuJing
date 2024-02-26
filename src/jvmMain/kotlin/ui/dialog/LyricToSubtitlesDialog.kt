@@ -15,10 +15,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
-import ui.createTransferHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import lyric.FileManager
 import lyric.SongLyric
+import ui.createTransferHandler
 import java.io.File
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
@@ -89,9 +90,9 @@ fun LyricToSubtitlesDialog(
         val openFileChooser: () -> Unit = {
             // 打开 windows 的文件选择器很慢，有时候会等待超过2秒
             openLoadingDialog()
-            Thread {
+            scope.launch (Dispatchers.IO){
                 val fileChooser = futureFileChooser.get()
-                fileChooser.dialogTitle = "选择文本"
+                fileChooser.dialogTitle = "选择 LRC 格式的歌词"
                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
                 fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
                 fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
@@ -109,8 +110,7 @@ fun LyricToSubtitlesDialog(
                 fileChooser.selectedFile = null
                 fileChooser.isMultiSelectionEnabled = false
                 fileChooser.removeChoosableFileFilter(fileFilter)
-            }.start()
-
+            }
         }
 
         val convert: () -> Unit = {
@@ -126,7 +126,7 @@ fun LyricToSubtitlesDialog(
 
         /** 保存文件对话框 */
         val saveFile: () -> Unit = {
-            Thread {
+            scope.launch (Dispatchers.IO){
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                 fileChooser.dialogTitle = "保存字幕"
@@ -144,7 +144,7 @@ fun LyricToSubtitlesDialog(
                     successful = false
                 }
 
-            }.start()
+            }
         }
 
         Surface(
