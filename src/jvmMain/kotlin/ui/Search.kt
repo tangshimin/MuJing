@@ -27,6 +27,7 @@ import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import data.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.LocalAudioPlayerComponent
@@ -47,7 +48,7 @@ fun Search(
     vocabularyDir : File,
     vocabulary:  MutableVocabulary
 ){
-
+    val scope = rememberCoroutineScope()
     var searchResult by remember{ mutableStateOf<Word?>(null) }
     var isPlayingAudio by remember { mutableStateOf(false) }
     /** 等宽字体*/
@@ -62,21 +63,22 @@ fun Search(
             true
         }else if (it.isCtrlPressed && it.key == Key.J && it.type == KeyEventType.KeyUp) {
             if (!isPlayingAudio && searchResult != null && searchResult!!.value.isNotEmpty()) {
-                val audioPath = getAudioPath(
-                    word = searchResult!!.value,
-                    audioSet = appState.localAudioSet,
-                    addToAudioSet = {audioPath -> appState.localAudioSet.add(audioPath)},
-                    pronunciation = wordScreenState.pronunciation
-                )
-                playAudio(
-                    word = searchResult!!.value,
-                    audioPath = audioPath,
-                    pronunciation =  wordScreenState.pronunciation,
-                    volume = appState.global.audioVolume,
-                    audioPlayerComponent = audioPlayer,
-                    changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
-                )
-
+                scope.launch (Dispatchers.IO){
+                    val audioPath = getAudioPath(
+                        word = searchResult!!.value,
+                        audioSet = appState.localAudioSet,
+                        addToAudioSet = {audioPath -> appState.localAudioSet.add(audioPath)},
+                        pronunciation = wordScreenState.pronunciation
+                    )
+                    playAudio(
+                        word = searchResult!!.value,
+                        audioPath = audioPath,
+                        pronunciation =  wordScreenState.pronunciation,
+                        volume = appState.global.audioVolume,
+                        audioPlayerComponent = audioPlayer,
+                        changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
+                    )
+                }
             }
             true
         } else if (it.key == Key.Escape && it.type == KeyEventType.KeyUp) {
@@ -91,7 +93,6 @@ fun Search(
         onDismissRequest = {onDismissRequest()},
         onKeyEvent = {keyEvent(it)}
     ) {
-        val scope = rememberCoroutineScope()
 
         val focusRequester = remember { FocusRequester() }
         var input by remember { mutableStateOf("") }

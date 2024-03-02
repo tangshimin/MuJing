@@ -72,7 +72,8 @@ fun Word(
     isPlaying: Boolean,
     setIsPlaying: (Boolean) -> Unit,
     fontFamily: FontFamily,
-    audioPath: String,
+    audioSet:Set<String>,
+    addToAudioSet:(String) -> Unit,
     correctTime: Int,
     wrongTime: Int,
     textFieldValue: String,
@@ -237,7 +238,8 @@ fun Word(
             if(global.wordTextStyle == "H1") paddingTop = 23.dp
 
             AudioButton(
-                audioPath = audioPath,
+                audioSet = audioSet,
+                addToAudioSet = addToAudioSet,
                 word = wordValue,
                 volume = global.audioVolume,
                 isPlaying = isPlaying,

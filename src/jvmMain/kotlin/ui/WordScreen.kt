@@ -39,6 +39,7 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import data.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
@@ -364,18 +365,6 @@ fun MainContent(
         val audioPlayerComponent = LocalAudioPlayerComponent.current
 
         val clipboardManager = LocalClipboardManager.current
-        /** 单词发音的本地路径，这个路径是根据单词进行计算的，
-         * 如果单词改变了，单词发音就跟着改变。*/
-        val audioPath by remember(currentWord){
-            derivedStateOf {
-                getAudioPath(
-                    word = currentWord.value,
-                    audioSet = appState.localAudioSet,
-                    addToAudioSet = {appState.localAudioSet.add(it)},
-                    pronunciation = wordScreenState.pronunciation
-                )
-            }
-        }
 
         /** 是否正在播放单词发音 */
         var isPlayingAudio by remember { mutableStateOf(false) }
@@ -615,14 +604,23 @@ fun MainContent(
 
                 (it.isCtrlPressed && it.key == Key.J && it.type == KeyEventType.KeyUp) -> {
                     if (!isPlayingAudio) {
-                        playAudio(
-                            word = currentWord.value,
-                            audioPath = audioPath,
-                            pronunciation =  wordScreenState.pronunciation,
-                            volume = appState.global.audioVolume,
-                            audioPlayerComponent = audioPlayerComponent,
-                            changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
-                        )
+                        scope.launch (Dispatchers.IO){
+                            val audioPath =  getAudioPath(
+                                word = currentWord.value,
+                                audioSet = appState.localAudioSet,
+                                addToAudioSet = { appState.localAudioSet.add(it) },
+                                pronunciation = wordScreenState.pronunciation
+                            )
+                            playAudio(
+                                word = currentWord.value,
+                                audioPath = audioPath,
+                                pronunciation =  wordScreenState.pronunciation,
+                                volume = appState.global.audioVolume,
+                                audioPlayerComponent = audioPlayerComponent,
+                                changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
+                            )
+                        }
+
                     }
                     true
                 }
@@ -920,15 +918,24 @@ fun MainContent(
                                 }
 //                                // 再播放一次单词发音
                                 if (!isPlayingAudio && wordScreenState.playTimes == 2) {
-                                    playAudio(
-                                        word = currentWord.value,
-                                        audioPath = audioPath,
-                                        pronunciation =  wordScreenState.pronunciation,
-                                        volume = appState.global.audioVolume,
-                                        audioPlayerComponent = audioPlayerComponent,
-                                        changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
+                                    scope.launch (Dispatchers.IO){
+                                        val audioPath =  getAudioPath(
+                                            word = currentWord.value,
+                                            audioSet = appState.localAudioSet,
+                                            addToAudioSet = { appState.localAudioSet.add(it) },
+                                            pronunciation = wordScreenState.pronunciation
+                                        )
+                                        playAudio(
+                                            word = currentWord.value,
+                                            audioPath = audioPath,
+                                            pronunciation =  wordScreenState.pronunciation,
+                                            volume = appState.global.audioVolume,
+                                            audioPlayerComponent = audioPlayerComponent,
+                                            changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
 //                                        setIsAutoPlay = {}
-                                    )
+                                        )
+                                    }
+
                                 }
 
                             }
@@ -954,15 +961,24 @@ fun MainContent(
 
                                 // 再播放一次单词发音
                                 if (!isPlayingAudio && wordScreenState.playTimes == 2) {
-                                    playAudio(
-                                        word = currentWord.value,
-                                        audioPath = audioPath,
-                                        pronunciation =  wordScreenState.pronunciation,
-                                        volume = appState.global.audioVolume,
-                                        audioPlayerComponent = audioPlayerComponent,
-                                        changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
+                                    scope.launch (Dispatchers.IO){
+                                        val audioPath =  getAudioPath(
+                                            word = currentWord.value,
+                                            audioSet = appState.localAudioSet,
+                                            addToAudioSet = { appState.localAudioSet.add(it) },
+                                            pronunciation = wordScreenState.pronunciation
+                                        )
+                                        playAudio(
+                                            word = currentWord.value,
+                                            audioPath = audioPath,
+                                            pronunciation =  wordScreenState.pronunciation,
+                                            volume = appState.global.audioVolume,
+                                            audioPlayerComponent = audioPlayerComponent,
+                                            changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
 //                                        setIsAutoPlay = {}
-                                    )
+                                        )
+                                    }
+
                                 }
                             }
                         }
@@ -1372,7 +1388,8 @@ fun MainContent(
                         setIsPlaying = { isPlayingAudio = it },
                         isDictation = (wordScreenState.memoryStrategy == Dictation ||wordScreenState.memoryStrategy == DictationTest),
                         fontFamily = monospace,
-                        audioPath = audioPath,
+                        audioSet = appState.localAudioSet,
+                        addToAudioSet = {appState.localAudioSet.add(it) },
                         correctTime = wordScreenState.wordCorrectTime,
                         wrongTime = wordScreenState.wordWrongTime,
                         textFieldValue = wordScreenState.wordTextFieldValue,

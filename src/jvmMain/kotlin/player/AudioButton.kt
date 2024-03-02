@@ -45,7 +45,6 @@ fun rememberAudioPlayerComponent(): AudioPlayerComponent = remember {
 }
 
 /** 记忆单词界面的播放按钮
- * @param audioPath 发音的绝对路径
  * @param volume 音量
  * @param isPlaying 是否正在播放单词发音
  * @param setIsPlaying 设置是否正在播放单词发音
@@ -55,7 +54,8 @@ fun rememberAudioPlayerComponent(): AudioPlayerComponent = remember {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AudioButton(
-    audioPath: String,
+    audioSet:Set<String>,
+    addToAudioSet:(String) -> Unit,
     word:String,
     volume: Float,
     isPlaying: Boolean,
@@ -69,6 +69,12 @@ fun AudioButton(
         val audioPlayerComponent = LocalAudioPlayerComponent.current
 
         val playAudio = {
+            val audioPath = getAudioPath(
+                word = word,
+                audioSet = audioSet,
+                addToAudioSet = addToAudioSet,
+                pronunciation = pronunciation
+            )
             playAudio(
                 word,
                 audioPath,
@@ -108,7 +114,7 @@ fun AudioButton(
                      modifier = Modifier.padding(top = paddingTop),
                     onCheckedChange = {
                         if (!isPlaying) {
-                            scope.launch {
+                            scope.launch (Dispatchers.IO){
                                 playAudio()
                             }
                         }
@@ -135,7 +141,9 @@ fun AudioButton(
 
         LaunchedEffect(word) {
             if (!isPlaying) {
-                playAudio()
+                scope.launch (Dispatchers.IO){
+                    playAudio()
+                }
             }
 
         }
@@ -205,7 +213,7 @@ fun AudioButton(
                 checked = isPlaying,
                 onCheckedChange = {
                     if (!isPlaying) {
-                        scope.launch {
+                        scope.launch (Dispatchers.IO){
                             playAudio()
                         }
                     }
@@ -239,10 +247,11 @@ fun playAudio(
     audioPlayerComponent: AudioPlayerComponent,
     changePlayerState: (Boolean) -> Unit,
 ) {
+
     // 如果单词发音为 local TTS 或者由于网络问题，没有获取到发音
     // 就自动使用本地的 TTS
     if (pronunciation == "local TTS" || audioPath.isEmpty()) {
-
+        changePlayerState(true)
         runBlocking {
             launch(Dispatchers.IO) {
                 if (isWindows()) {
@@ -251,6 +260,7 @@ fun playAudio(
                 } else if (isMacOS()) {
                     MacTTS().speakAndWait(word)
                 }
+                changePlayerState(false)
             }
         }
 

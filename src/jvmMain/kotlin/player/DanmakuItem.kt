@@ -2,7 +2,6 @@ package player
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -31,6 +30,8 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import data.Word
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import ui.CopyButton
 import ui.DeleteButton
 import ui.FamiliarButton
@@ -77,6 +78,7 @@ fun Danmaku(
     showingDetailChanged:(Boolean) -> Unit
 ) {
     if (danmakuItem.show) {
+        val scope = rememberCoroutineScope()
         val text = if(danmakuItem.isPause){
             buildAnnotatedString {
                 withStyle(style = SpanStyle(color = Color.LightGray)) {
@@ -228,7 +230,9 @@ fun Danmaku(
                             ) {
                                 Text("英 ${danmakuItem.word?.ukphone}  美 ${danmakuItem.word?.usphone}")
                                 IconButton(onClick = {
-                                    playAudio(danmakuItem.content)
+                                    scope.launch (Dispatchers.IO){
+                                        playAudio(danmakuItem.content)
+                                    }
                                 }) {
                                     Icon(
                                         Icons.Filled.VolumeUp,
@@ -325,7 +329,9 @@ fun Danmaku(
                         clipboardManager.setText(AnnotatedString(danmakuItem.content))
                     }
                     if(playerState.autoSpeak){
-                        playAudio(danmakuItem.content)
+                        scope.launch (Dispatchers.IO){
+                            playAudio(danmakuItem.content)
+                        }
                     }
                 }
             }
