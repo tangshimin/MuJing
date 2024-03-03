@@ -134,11 +134,8 @@ class AppState {
 
     /** 保存全局的设置信息 */
     fun saveGlobalState() {
-        println("Not Setting Dispatchers.IO")
-        println("OutSide runBlocking Thread Name:"+Thread.currentThread().name)
         runBlocking {
             launch (Dispatchers.IO){
-                println("Current Thread Name:"+Thread.currentThread().name)
                 val globalData = GlobalData(
                     global.type,
                     global.isDarkTheme,
