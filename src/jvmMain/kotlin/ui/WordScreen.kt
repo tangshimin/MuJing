@@ -1287,8 +1287,11 @@ fun MainContent(
                         true
                     }
                     (it.isCtrlPressed && it.key == Key.C && it.type == KeyEventType.KeyUp) -> {
-                        clipboardManager.setText(AnnotatedString(currentWord.value))
-                        true
+                        if(!it.isShiftPressed){
+                            clipboardManager.setText(AnnotatedString(currentWord.value))
+                            true
+                        }else false
+
                     }
                     (it.isCtrlPressed && it.isShiftPressed && it.key == Key.I && it.type == KeyEventType.KeyUp) -> {
                         // 消耗快捷键，消耗之后，就不会触发 Ctrl + I 了
