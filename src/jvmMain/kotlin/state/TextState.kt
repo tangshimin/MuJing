@@ -2,6 +2,7 @@ package state
 
 import androidx.compose.runtime.*
 import com.formdev.flatlaf.FlatLightLaf
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -36,17 +37,18 @@ class TextState(dataTextState: DataTextState){
 
     /** 保持抄写文本的配置信息 */
     fun saveTypingTextState() {
-        val encodeBuilder = Json {
-            prettyPrint = true
-            encodeDefaults = true
-        }
+
         runBlocking {
-            launch {
+            launch (Dispatchers.IO){
                 val dataTextState = DataTextState(
                     textPath,
                     currentIndex,
                     firstVisibleItemIndex,
                 )
+                val encodeBuilder = Json {
+                    prettyPrint = true
+                    encodeDefaults = true
+                }
                 val json = encodeBuilder.encodeToString(dataTextState)
                 val typingTextSetting = getTextSettingsFile()
                 typingTextSetting.writeText(json)

@@ -4,6 +4,7 @@ import androidx.compose.runtime.*
 import com.formdev.flatlaf.FlatLightLaf
 import data.Word
 import data.loadMutableVocabulary
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -321,12 +322,13 @@ class WordScreenState(wordScreenData: WordScreenData) {
 
     /** 保存当前的词库 */
     fun saveCurrentVocabulary() {
-        val encodeBuilder = Json {
-            prettyPrint = true
-            encodeDefaults = true
-        }
+
         runBlocking {
-            launch {
+            launch (Dispatchers.IO){
+                val encodeBuilder = Json {
+                    prettyPrint = true
+                    encodeDefaults = true
+                }
                 val json = encodeBuilder.encodeToString(vocabulary.serializeVocabulary)
                 val file = getResourcesFile(vocabularyPath)
                 file.writeText(json)

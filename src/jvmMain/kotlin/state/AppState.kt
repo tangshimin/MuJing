@@ -9,6 +9,7 @@ import data.RecentItem
 import data.getHardVocabularyFile
 import data.loadMutableVocabulary
 import data.loadMutableVocabularyByName
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -133,8 +134,11 @@ class AppState {
 
     /** 保存全局的设置信息 */
     fun saveGlobalState() {
+        println("Not Setting Dispatchers.IO")
+        println("OutSide runBlocking Thread Name:"+Thread.currentThread().name)
         runBlocking {
-            launch {
+            launch (Dispatchers.IO){
+                println("Current Thread Name:"+Thread.currentThread().name)
                 val globalData = GlobalData(
                     global.type,
                     global.isDarkTheme,
@@ -218,7 +222,7 @@ class AppState {
     /** 保存困难词库 */
     fun saveHardVocabulary(){
         runBlocking {
-            launch {
+            launch (Dispatchers.IO){
                 val json = encodeBuilder.encodeToString(hardVocabulary.serializeVocabulary)
                 val file = getHardVocabularyFile()
                 file.writeText(json)
@@ -250,7 +254,7 @@ class AppState {
 
     fun saveToRecentList(name: String, path: String,index: Int) {
         runBlocking {
-            launch {
+            launch (Dispatchers.IO){
                 if(name.isNotEmpty()){
                     val item = RecentItem(LocalDateTime.now().toString(), name, path,index)
                     if (!recentList.contains(item)) {
@@ -277,7 +281,7 @@ class AppState {
 
     fun removeRecentItem(recentItem: RecentItem) {
         runBlocking {
-            launch {
+            launch (Dispatchers.IO){
                 recentList.remove(recentItem)
                 val serializeList = mutableListOf<RecentItem>()
                 serializeList.addAll(recentList)

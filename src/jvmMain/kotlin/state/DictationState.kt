@@ -2,6 +2,7 @@ package state
 
 import androidx.compose.runtime.*
 import com.formdev.flatlaf.FlatLightLaf
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -58,13 +59,8 @@ class DictationState(dataDictationState: DataDictationState){
 
     /** 保存听写时的配置信息 */
     fun saveDictationState() {
-        val encodeBuilder = Json {
-            prettyPrint = true
-            encodeDefaults = true
-        }
-
         runBlocking {
-            launch {
+            launch (Dispatchers.IO){
                 val dataDictationState = DataDictationState(
                     phoneticVisible,
                     morphologyVisible,
@@ -72,7 +68,10 @@ class DictationState(dataDictationState: DataDictationState){
                     translationVisible,
                     subtitlesVisible,
                 )
-
+                val encodeBuilder = Json {
+                    prettyPrint = true
+                    encodeDefaults = true
+                }
                 val json = encodeBuilder.encodeToString(dataDictationState)
                 val dictationSettings = getDictationFile()
                 dictationSettings.writeText(json)

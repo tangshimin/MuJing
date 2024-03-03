@@ -1,6 +1,7 @@
 package ui.edit
 
 import com.formdev.flatlaf.FlatLightLaf
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -35,7 +36,7 @@ class SearchState (searchState: SearchData){
             encodeDefaults = true
         }
         runBlocking {
-            launch {
+            launch (Dispatchers.IO){
                 val searchState = SearchData(
                     matchCaseIsSelected,
                     wordsIsSelected,

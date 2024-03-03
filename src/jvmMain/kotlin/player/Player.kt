@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.*
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import data.*
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -1508,15 +1509,15 @@ class PlayerState(playerData: PlayerData) {
     var preferredChinese by mutableStateOf(playerData.preferredChinese)
 
     fun savePlayerState() {
-        val encodeBuilder = Json {
-            prettyPrint = true
-            encodeDefaults = true
-        }
         runBlocking {
-            launch {
+            launch (Dispatchers.IO){
                 val playerData = PlayerData(
                     showSequence, danmakuVisible, autoCopy, autoSpeak, preferredChinese
                 )
+                val encodeBuilder = Json {
+                    prettyPrint = true
+                    encodeDefaults = true
+                }
                 val json = encodeBuilder.encodeToString(playerData)
                 val playerSettings = getPlayerSettingsFile()
                 playerSettings.writeText(json)

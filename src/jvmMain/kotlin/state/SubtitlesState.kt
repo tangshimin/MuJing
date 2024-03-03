@@ -2,6 +2,7 @@ package state
 
 import androidx.compose.runtime.*
 import com.formdev.flatlaf.FlatLightLaf
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -78,13 +79,8 @@ class SubtitlesState(dataSubtitlesState: DataSubtitlesState) {
 
     /** 保存抄写字幕的配置信息 */
     fun saveTypingSubtitlesState() {
-        val encodeBuilder = Json {
-            prettyPrint = true
-            encodeDefaults = true
-        }
-
         runBlocking {
-            launch {
+            launch (Dispatchers.IO){
                 val dataSubtitlesState = DataSubtitlesState(
                     mediaPath,
                     subtitlesPath,
@@ -99,7 +95,10 @@ class SubtitlesState(dataSubtitlesState: DataSubtitlesState) {
                     notWroteCaptionVisible,
                     externalSubtitlesVisible,
                 )
-
+                val encodeBuilder = Json {
+                    prettyPrint = true
+                    encodeDefaults = true
+                }
                 val json = encodeBuilder.encodeToString(dataSubtitlesState)
                 val typingSubtitlesSetting = getSubtitlesSettingsFile()
                 typingSubtitlesSetting.writeText(json)

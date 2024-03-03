@@ -2,6 +2,7 @@ package ui.edit
 
 import androidx.compose.runtime.*
 import com.formdev.flatlaf.FlatLightLaf
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -9,7 +10,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import state.*
+import state.getSettingsDirectory
 import java.io.File
 import javax.swing.JOptionPane
 
@@ -36,12 +37,8 @@ class CellVisibleState(cellVisible: CellVisible){
 
     /** 保持列可见性的配置信息 */
     fun saveCellVisibleState() {
-        val encodeBuilder = Json {
-            prettyPrint = true
-            encodeDefaults = true
-        }
         runBlocking {
-            launch {
+            launch (Dispatchers.IO){
                 val cellVisible = CellVisible(
                     translationVisible,
                     definitionVisible,
@@ -50,6 +47,10 @@ class CellVisibleState(cellVisible: CellVisible){
                     exchangeVisible,
                     captionsVisible,
                 )
+                val encodeBuilder = Json {
+                    prettyPrint = true
+                    encodeDefaults = true
+                }
                 val json = encodeBuilder.encodeToString(cellVisible)
                 val typingTextSetting = getCellVisibleFile()
                 typingTextSetting.writeText(json)
