@@ -642,11 +642,13 @@ fun MainContent(
                     true
                 }
                 (it.isCtrlPressed && it.key == Key.I && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        bookmarkClick()
-                    }
-                    showBookmark = true
-                    true
+                    if(!it.isShiftPressed){
+                        scope.launch {
+                            bookmarkClick()
+                        }
+                        showBookmark = true
+                        true
+                    }else false
                 }
                 (it.isCtrlPressed && it.key == Key.Y && it.type == KeyEventType.KeyUp) -> {
                     if(wordScreenState.vocabulary.name == "FamiliarVocabulary"){
@@ -1292,10 +1294,6 @@ fun MainContent(
                             true
                         }else false
 
-                    }
-                    (it.isCtrlPressed && it.isShiftPressed && it.key == Key.I && it.type == KeyEventType.KeyUp) -> {
-                        // 消耗快捷键，消耗之后，就不会触发 Ctrl + I 了
-                        true
                     }
                     (it.isCtrlPressed && it.isShiftPressed && it.key == Key.K && it.type == KeyEventType.KeyUp) -> {
                         jumpToCaptions()
