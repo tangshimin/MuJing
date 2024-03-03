@@ -305,7 +305,7 @@ fun FormatDialog(
         resizable = false,
         state = rememberDialogState(
             position = WindowPosition(Alignment.Center),
-            size = DpSize(450.dp, 200.dp)
+            size = DpSize(470.dp, 200.dp)
         ),
     ) {
         val scope = rememberCoroutineScope()
@@ -316,12 +316,12 @@ fun FormatDialog(
                 fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                 fileChooser.dialogTitle = "保存文本"
                 val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                fileChooser.selectedFile = File("$myDocuments${File.separator}*.txt")
+                val formatFile = File(formatPath)
+                fileChooser.selectedFile = File("$myDocuments${File.separator}${formatFile.nameWithoutExtension}-formatted.txt")
                 val userSelection = fileChooser.showSaveDialog(window)
                 if (userSelection == JFileChooser.APPROVE_OPTION) {
                     val fileToSave = fileChooser.selectedFile
                     val saveList = mutableListOf<String>()
-                    val formatFile = File(formatPath)
                     if (formatFile.exists()) {
                         formatFile.useLines { lines ->
                             lines.forEach { line ->
@@ -359,9 +359,10 @@ fun FormatDialog(
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxSize()
+                    modifier = Modifier.fillMaxSize().padding(start = 10.dp,end = 10.dp)
                 ) {
-                    Text("文本的第 $row 行超过了 75 个字母，抄写时不能完全显示。")
+                    Text("文本的第 $row 行超过了 75 个字母，抄写时不能完全显示。\n" +
+                            "格式化文本，不会覆盖原文件，会生成一个新文件。")
                     Spacer(Modifier.height(10.dp))
                     Row {
                         OutlinedButton(onClick = {
