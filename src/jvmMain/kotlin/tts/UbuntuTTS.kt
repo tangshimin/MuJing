@@ -29,7 +29,11 @@ class UbuntuTTS {
             }
         } catch (exception: IOException) {
             exception.printStackTrace()
-            JOptionPane.showMessageDialog(null, "${exception.message}", "错误", JOptionPane.ERROR_MESSAGE)
+            if(exception.message?.endsWith("No such file or directory") == true) {
+                JOptionPane.showMessageDialog(null, "请安装 espeak", "错误", JOptionPane.ERROR_MESSAGE)
+            } else {
+                JOptionPane.showMessageDialog(null, "${exception.message}", "错误", JOptionPane.ERROR_MESSAGE)
+            }
         }
 
         return process
