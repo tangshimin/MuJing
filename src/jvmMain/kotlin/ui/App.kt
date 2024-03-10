@@ -319,7 +319,7 @@ fun App() {
         NewVocabularyDialog(
             close = { appState.newVocabulary = false },
             setEditPath = {
-                choosedPath = it;
+                choosedPath = it
                 showEditVocabulary = true
             },
             colors = appState.colors,
