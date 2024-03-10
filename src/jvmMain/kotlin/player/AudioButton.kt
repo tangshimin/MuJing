@@ -29,6 +29,7 @@ import state.WordScreenState
 import state.getAudioDirectory
 import tts.MSTTSpeech
 import tts.MacTTS
+import tts.UbuntuTTS
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
@@ -259,6 +260,8 @@ fun playAudio(
                     speech.speak(word)
                 } else if (isMacOS()) {
                     MacTTS().speakAndWait(word)
+                }else {
+                    UbuntuTTS().speakAndWait(word)
                 }
                 changePlayerState(false)
             }
