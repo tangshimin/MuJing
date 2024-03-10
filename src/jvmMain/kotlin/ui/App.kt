@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
+import com.movcontext.MuJing.BuildConfig
 import data.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
@@ -49,10 +50,6 @@ import java.io.File
 import java.util.*
 import javax.swing.JOptionPane
 import kotlin.concurrent.schedule
-
-
-// build.gradle.kts 的版本也需要更改
-const val version = "v2.2.16"
 
 
 @ExperimentalFoundationApi
@@ -251,7 +248,7 @@ fun App() {
                 LaunchedEffect(Unit){
                     if( appState.global.autoUpdate){
                         Timer("update",false).schedule(5000){
-                            val result = autoDetectingUpdates(version)
+                            val result = autoDetectingUpdates(BuildConfig.APP_VERSION)
                             if(result.first && result.second != appState.global.ignoreVersion){
                                 appState.showUpdateDialog = true
                                 appState.latestVersion = result.second
@@ -686,7 +683,7 @@ private fun FrameWindowScope.WindowMenuBar(
         Item("关于(A)", mnemonic = 'A', onClick = { aboutDialogVisible = true })
         if (aboutDialogVisible) {
             AboutDialog(
-                version = version,
+                version = BuildConfig.APP_VERSION,
                 close = { aboutDialogVisible = false }
             )
         }
@@ -982,7 +979,7 @@ fun MenuDialogs(state: AppState) {
     if(state.showUpdateDialog){
         UpdateDialog(
             close = {state.showUpdateDialog = false},
-            version = version,
+            version =BuildConfig.APP_VERSION,
             autoUpdate = state.global.autoUpdate,
             setAutoUpdate = {
                 state.global.autoUpdate = it

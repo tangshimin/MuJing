@@ -6,10 +6,16 @@ plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
     kotlin("plugin.serialization") version "1.8.0"
+    id("com.github.gmazzo.buildconfig") version "5.3.5"
 }
 
 group = "com.movcontext"
 version = "2.2.16"
+
+buildConfig {
+    buildConfigField("APP_NAME", provider { "幕境" })
+    buildConfigField("APP_VERSION", provider { "v${project.version}" })
+}
 
 repositories {
     google()
