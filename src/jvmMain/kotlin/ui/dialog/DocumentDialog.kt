@@ -142,19 +142,6 @@ fun DocumentWindow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .background( if(currentPage == "learnEnglish")selectedColor else MaterialTheme.colors.background )
-                                .clickable { setCurrentPage("learnEnglish") }) {
-                            Text("如何使用美剧学习英语", modifier = Modifier.padding(start = 16.dp))
-                            if(currentPage == "learnEnglish"){
-                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
-                            }
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
                                 .background( if(currentPage == "Danmaku")selectedColor else MaterialTheme.colors.background )
                                 .clickable { setCurrentPage("Danmaku") }) {
                             Text("如何打开单词弹幕", modifier = Modifier.padding(start = 16.dp))
@@ -227,9 +214,6 @@ fun DocumentWindow(
                         }
                         "download" -> {
                             DownloadPage()
-                        }
-                        "learnEnglish" -> {
-                            LearnEnglishPage()
                         }
                         "Danmaku" -> {
                             DanmakuPage()
@@ -920,19 +904,6 @@ fun DownloadPage(){
     }
 }
 
-
-@Composable
-fun LearnEnglishPage(){
-    Column (Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp)){
-        Text(
-           "我用美剧学习英语的流程是：\n"+
-            "  1. 先用英语字幕看一遍。\n"+
-            "  2. 然后用英语字幕生成一个词库，把所有的陌生单词学完。\n"+
-            "  3. 学完再把视频拖放到记忆单词界面，打开单词弹幕，再看一遍。\n"+
-            "  4. 如果有时间会使用字幕浏览器跟读或抄写英语字幕。"
-        )
-    }
-}
 @Composable
 fun DanmakuPage(){
     Column (Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp)){
