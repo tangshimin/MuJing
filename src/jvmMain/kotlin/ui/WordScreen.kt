@@ -2326,7 +2326,7 @@ fun Caption(
             modifier = Modifier.height(rowHeight).width(IntrinsicSize.Max)
         ) {
             val dropMenuFocusRequester = remember { FocusRequester() }
-            Box(Modifier.width(IntrinsicSize.Max).padding(top = 8.dp, bottom = 8.dp)) {
+            Box(Modifier.width(IntrinsicSize.Max)) {
                 val textHeight = rowHeight -4.dp
                 CustomTextMenuProvider {
                     BasicTextField(
@@ -2472,7 +2472,9 @@ fun Caption(
             ) {
                 IconButton(onClick = {
                     playCurrentCaption()
-                }) {
+                },
+                    modifier = Modifier.padding(bottom = 3.dp)
+                ) {
                     val tint = if(isPlaying && playingIndex == index) MaterialTheme.colors.primary else MaterialTheme.colors.onBackground
                     Icon(
                         Icons.Filled.PlayArrow,
