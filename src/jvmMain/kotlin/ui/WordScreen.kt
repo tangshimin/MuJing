@@ -2407,7 +2407,6 @@ fun Caption(
 
                 DropdownMenu(
                     expanded = selectable,
-                    focusable = true,
                     onDismissRequest = { setSelectable(false) },
                     offset = DpOffset(0.dp, (-30).dp)
                 ) {

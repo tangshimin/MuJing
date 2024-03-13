@@ -533,7 +533,6 @@ fun TextScreen(
 
                                     DropdownMenu(
                                         expanded = selectable,
-                                        focusable = true,
                                         onDismissRequest = {
                                             selectable = false
                                         },

@@ -1092,7 +1092,6 @@ fun SubtitleScreen(
 
                                     DropdownMenu(
                                         expanded = selectable,
-                                        focusable = true,
                                         onDismissRequest = {
                                             selectable = false
                                         },
