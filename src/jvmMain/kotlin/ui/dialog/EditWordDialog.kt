@@ -87,8 +87,13 @@ fun EditWordDialog(
     save: (Word) -> Unit,
     close: () -> Unit
 ) {
+    val position = if(parentWindow != null) {
+        WindowPosition(parentWindow.location.x.dp, parentWindow.location.y.dp)
+    }else{
+        WindowPosition(Alignment.Center)
+        }
     val windowState =  rememberDialogState(
-        position = WindowPosition(Alignment.Center),
+        position = position,
         size = DpSize(840.dp, 810.dp)
     )
     MaterialTheme(colors = appState.colors) {
