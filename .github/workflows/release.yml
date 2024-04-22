@@ -59,6 +59,9 @@ jobs:
       # Check out current repository
       - name: Fetch Sources
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Fetch all history
+          tags: true  # Fetch all tags
           
       # Add execute permissions to gradlew
       - name: Set execute permissions on gradlew
