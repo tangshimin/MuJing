@@ -74,9 +74,46 @@ jobs:
         with:
           draft: true
           allowUpdates: true
-          generateReleaseNotes: true  #自动生成发行说明。
+          generateReleaseNotes: false  #自动生成发行说明。
           tag: "${{ github.ref_name }}"
           artifacts: "${{ github.workspace }}/build/compose/binaries/main/dmg/*.dmg"
+          token: ${{ secrets.GITHUB_TOKEN  }}
+
+  create-linux-package:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    name: Create Deb Package
+    steps:
+      # Setup Java environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 21
+
+      # Check out current repository
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+
+      # 设置工作目录
+      - name: Set working directory
+        run: |
+          cd ${{ github.workspace }}
+
+      # Build Desktop Packaged application
+      - name: Desktop App Package
+        run: ./gradlew packageDeb
+
+      # Create a Draft Release
+      - name: Draft Release
+        uses: ncipollo/release-action@v1
+        with:
+          draft: true
+          allowUpdates: true
+          generateReleaseNotes: false  #自动生成发行说明。
+          tag: "${{ github.ref_name }}"
+          artifacts: "${{ github.workspace }}/build/compose/binaries/main/deb/*.deb"
           token: ${{ secrets.GITHUB_TOKEN  }}
 
 
