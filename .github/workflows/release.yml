@@ -71,7 +71,9 @@ jobs:
       # Get the latest tag
       - name: Get latest tag
         id: latesttag
-        run: echo "::set-output name=tag::$(git describe --tags $(git rev-list --tags --max-count=1))"
+        run: |
+          TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "1.0.0")
+          echo "TAG=$TAG" >> $GITHUB_ENV
 
       # Create a Draft Release
       - name: Draft Release
@@ -80,7 +82,7 @@ jobs:
           draft: true
           allowUpdates: true
           generateReleaseNotes: false  #自动生成发行说明。
-          tag: "${{ steps.latesttag.outputs.tag }}"
+          tag: "${{ env.TAG }}"
           artifacts: "${{ github.workspace }}/build/compose/binaries/main/dmg/*.dmg"
           token: ${{ secrets.GITHUB_TOKEN  }}
 
