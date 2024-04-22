@@ -54,7 +54,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           distribution: 'zulu'
-          java-version: 21
+          java-version: 18
 
       # Check out current repository
       - name: Fetch Sources
@@ -68,7 +68,7 @@ jobs:
       - name: Draft Release
         uses: ncipollo/release-action@v1
         with:
-          draft: false
+          draft: true
           allowUpdates: true
           generateReleaseNotes: true  #自动生成发行说明。
           tag: "${{ github.ref_name }}"
