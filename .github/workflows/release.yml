@@ -96,6 +96,10 @@ jobs:
       - name: Fetch Sources
         uses: actions/checkout@v4
 
+      # Add execute permissions to gradlew
+      - name: Set execute permissions on gradlew
+        run: chmod +x ./gradlew
+
       # 设置工作目录
       - name: Set working directory
         run: |
