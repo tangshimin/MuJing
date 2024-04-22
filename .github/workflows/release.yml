@@ -60,9 +60,9 @@ jobs:
       - name: Fetch Sources
         uses: actions/checkout@v4
           
-          # Add execute permissions to gradlew
-                - name: Set execute permissions on gradlew
-                run: chmod +x ./gradlew
+      # Add execute permissions to gradlew
+      - name: Set execute permissions on gradlew
+        run: chmod +x ./gradlew
 
       # Build Desktop Packaged application
       - name: Desktop App Package
