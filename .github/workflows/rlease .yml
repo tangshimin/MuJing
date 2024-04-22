@@ -4,12 +4,50 @@ on:
   workflow_dispatch:
 
 jobs:
-  # Windows Package
-  create-win-package:
-    runs-on: windows-latest
+  # # Windows Package
+  # create-win-package:
+  #   runs-on: windows-latest
+  #   permissions:
+  #     contents: write
+  #   name: Create Windows Package
+  #   steps:
+  #     # Setup Java environment for the next steps
+  #     - name: Setup Java
+  #       uses: actions/setup-java@v2
+  #       with:
+  #         distribution: 'zulu'
+  #         java-version: 21
+
+  #     # Check out current repository
+  #     - name: Fetch Sources
+  #       uses: actions/checkout@v4
+
+  #     # 设置工作目录
+  #     - name: Set working directory
+  #       run: |
+  #         echo '${{ github.workspace }}'
+          
+  #     # Build Desktop Packaged application
+  #     - name: Desktop App Package
+  #       run: |
+  #         cd "${{ github.workspace }}"
+  #         ./gradlew packageMsi
+  #     # Create a Draft Release
+  #     - name: Draft Release
+  #       uses: ncipollo/release-action@v1
+  #       with:
+  #         draft: true
+  #         allowUpdates: true
+  #         generateReleaseNotes: true  #自动生成发行说明。
+  #         tag: "${{ github.ref_name }}"
+  #         artifacts: "${{ github.workspace }}/build/compose/binaries/main/msi/*.msi"
+  #         token: ${{ secrets.GITHUB_TOKEN  }}
+
+  create-mac-package:
+    runs-on: macos-latest
     permissions:
       contents: write
-    name: Create Windows Package
+    name: Create Mac Package
     steps:
       # Setup Java environment for the next steps
       - name: Setup Java
@@ -22,25 +60,19 @@ jobs:
       - name: Fetch Sources
         uses: actions/checkout@v4
 
-      # 设置工作目录
-      - name: Set working directory
-        run: |
-          echo '${{ github.workspace }}'
-          
       # Build Desktop Packaged application
       - name: Desktop App Package
-        run: |
-          cd "${{ github.workspace }}"
-          ./gradlew packageMsi
+        run: ./gradlew packageDmg
+
       # Create a Draft Release
       - name: Draft Release
         uses: ncipollo/release-action@v1
         with:
-          draft: true
+          draft: false
           allowUpdates: true
           generateReleaseNotes: true  #自动生成发行说明。
           tag: "${{ github.ref_name }}"
-          artifacts: "${{ github.workspace }}/build/compose/binaries/main/msi/*.msi"
+          artifacts: "${{ github.workspace }}/build/compose/binaries/main/dmg/*.dmg"
           token: ${{ secrets.GITHUB_TOKEN  }}
 
 
