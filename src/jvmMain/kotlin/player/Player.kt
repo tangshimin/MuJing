@@ -1176,6 +1176,11 @@ fun Player(
                     if(danmakuTimer.isRunning){
                         showingDanmakuNum.clear()
                     }
+                    // 有一个奇怪的 bug,打开视频后只有声音看不到画面，调整窗口大小后就正常了。
+                    playerWindowState.size =DpSize(playerWindowState.size.width + 1.dp,playerWindowState.size.height)
+                    java.util.Timer("恢复宽度", false).schedule(500) {
+                        playerWindowState.size =DpSize(playerWindowState.size.width - 1.dp,playerWindowState.size.height)
+                    }
                 }
             }
 
