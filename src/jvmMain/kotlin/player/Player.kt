@@ -51,6 +51,7 @@ import ui.createTransferHandler
 import ui.dialog.MessageDialog
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
+import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Toolkit
@@ -134,7 +135,7 @@ fun Player(
     val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent()) }
 
     /** VLC 音频播放组件 */
-    val audioPlayerComponent = LocalAudioPlayerComponent.current
+    val audioPlayerComponent by remember{mutableStateOf(AudioPlayerComponent())}
 
     /** 是否正在播放视频 */
     var isPlaying by remember { mutableStateOf(false) }
@@ -355,6 +356,7 @@ fun Player(
     DisposableEffect(Unit){
         onDispose {
             videoPlayerComponent.mediaPlayer().release()
+            audioPlayerComponent.mediaPlayer().release()
         }
     }
 

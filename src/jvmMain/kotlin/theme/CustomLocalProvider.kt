@@ -1,4 +1,5 @@
 
+import androidx.compose.foundation.LocalScrollbarStyle
 import androidx.compose.foundation.ScrollbarStyle
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
@@ -19,6 +20,16 @@ fun CustomLocalProvider(content: @Composable () -> Unit) {
     CompositionLocalProvider(
         LocalAudioPlayerComponent provides rememberAudioPlayerComponent(),
         LocalCtrl provides rememberCtrl(),
+        LocalScrollbarStyle provides scrollbarStyle(),
+        content = content
+    )
+}
+@Composable
+fun PlayerLocalProvider(content: @Composable () -> Unit) {
+    CompositionLocalProvider(
+//        LocalAudioPlayerComponent provides rememberAudioPlayerComponent(),
+        LocalCtrl provides rememberCtrl(),
+        LocalScrollbarStyle provides scrollbarStyle(),
         content = content
     )
 }

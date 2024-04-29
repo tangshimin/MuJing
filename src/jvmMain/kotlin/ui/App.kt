@@ -2,6 +2,7 @@ package ui
 
 import CustomLocalProvider
 import LocalCtrl
+import PlayerLocalProvider
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -263,41 +264,39 @@ fun App() {
     }
 
     if(showPlayerWindow){
-        CustomLocalProvider {
-            MaterialTheme(colors = appState.colors) {
-                // 和 Compose UI 有关的 LocalProvider 需要放在 MaterialTheme 里面,不然无效。
-                CompositionLocalProvider(
-                    LocalScrollbarStyle provides scrollbarStyle(),
-                ){
-                    val closePlayerWindow:() -> Unit = {
-                        showPlayerWindow = false
-                        videoPath = ""
-                        vocabularyPath = ""
-                        vocabulary = null
-                    }
-                    val pronunciation = rememberPronunciation()
-                    Player(
-                        close = {closePlayerWindow()},
-                        videoPath = videoPath,
-                        videoPathChanged = videoPathChanged,
-                        vocabulary = vocabulary,
-                        vocabularyPath = vocabularyPath,
-                        vocabularyPathChanged = vocabularyPathChanged,
-                        audioSet = appState.localAudioSet,
-                        pronunciation = pronunciation,
-                        audioVolume = appState.global.audioVolume,
-                        videoVolume = appState.global.videoVolume,
-                        videoVolumeChanged = {
-                            appState.global.videoVolume = it
-                            appState.saveGlobalState()
-                        },
-                    )
 
+        MaterialTheme(colors = appState.colors) {
+            // 和 Compose UI 有关的 LocalProvider 需要放在 MaterialTheme 里面,不然无效。
+            PlayerLocalProvider {
+                val closePlayerWindow:() -> Unit = {
+                    showPlayerWindow = false
+                    videoPath = ""
+                    vocabularyPath = ""
+                    vocabulary = null
                 }
-
+                val pronunciation = rememberPronunciation()
+                Player(
+                    close = {closePlayerWindow()},
+                    videoPath = videoPath,
+                    videoPathChanged = videoPathChanged,
+                    vocabulary = vocabulary,
+                    vocabularyPath = vocabularyPath,
+                    vocabularyPathChanged = vocabularyPathChanged,
+                    audioSet = appState.localAudioSet,
+                    pronunciation = pronunciation,
+                    audioVolume = appState.global.audioVolume,
+                    videoVolume = appState.global.videoVolume,
+                    videoVolumeChanged = {
+                        appState.global.videoVolume = it
+                        appState.saveGlobalState()
+                    },
+                )
             }
 
+
         }
+
+
     }
 
     var showEditVocabulary by remember { mutableStateOf(false) }
