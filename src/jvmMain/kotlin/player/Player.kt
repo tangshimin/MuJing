@@ -56,6 +56,7 @@ import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Toolkit
 import java.io.File
+import java.util.*
 import javax.swing.JOptionPane
 import javax.swing.Timer
 import kotlin.concurrent.schedule
@@ -213,6 +214,9 @@ fun Player(
 
     /** 当前正在播放的音频轨道 */
     var currentAudioTrack by remember{mutableStateOf(0)}
+
+    var hideControlBoxTask :TimerTask? by remember{ mutableStateOf(null)}
+//    var hoverIcon by remember{mutableStateOf(PointerIcon.Default)}
 
     /** 使弹幕从右往左移动的定时器 */
     val danmakuTimer by remember {
@@ -488,6 +492,14 @@ fun Player(
                             controlBoxVisible = false
                         }
                     }
+                    .onPointerEvent(PointerEventType.Move) {
+                        controlBoxVisible = true
+                        hideControlBoxTask?.cancel()
+                        hideControlBoxTask = Timer("Hide ControlBox", false).schedule(10000) {
+                            controlBoxVisible = false
+                        }
+                    }
+
             ) {
 
 
