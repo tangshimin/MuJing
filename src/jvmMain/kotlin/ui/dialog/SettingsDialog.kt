@@ -309,6 +309,11 @@ fun SettingTextStyle(
                     )
                 }
                 val currentWord = wordScreenState.getCurrentWord()
+                Phonetic(
+                    word = currentWord,
+                    phoneticVisible = true,
+                    fontSize = state.global.detailFontSize
+                )
                 Morphology(
                     word = currentWord,
                     isPlaying = false,

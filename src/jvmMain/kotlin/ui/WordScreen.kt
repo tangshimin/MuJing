@@ -1408,6 +1408,7 @@ fun MainContent(
             Phonetic(
                 word = currentWord,
                 phoneticVisible = wordScreenState.phoneticVisible,
+                fontSize = appState.global.detailFontSize
             )
             Morphology(
                 word = currentWord,

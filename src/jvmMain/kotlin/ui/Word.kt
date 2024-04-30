@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalLocalization
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import data.Word
 import player.AudioButton
@@ -258,6 +259,7 @@ fun Word(
 fun Phonetic(
     word: Word,
     phoneticVisible: Boolean,
+    fontSize: TextUnit
 ) {
     if (phoneticVisible) {
         Row(
@@ -268,6 +270,7 @@ fun Phonetic(
                 SelectionContainer {
                     Text(
                         text = "美:${word.usphone}",
+                        fontSize = fontSize,
                         color = MaterialTheme.colors.onBackground,
                         modifier = Modifier.padding(start = 5.dp, end = 5.dp)
                     )
@@ -277,7 +280,9 @@ fun Phonetic(
             if (word.ukphone.isNotEmpty()) {
                 SelectionContainer {
                     Text(
-                        text = "英:${word.ukphone}", color = MaterialTheme.colors.onBackground,
+                        text = "英:${word.ukphone}",
+                        fontSize = fontSize,
+                        color = MaterialTheme.colors.onBackground,
                         modifier = Modifier.padding(start = 5.dp, end = 5.dp)
                     )
                 }
