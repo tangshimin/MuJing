@@ -1,0 +1,56 @@
+name: Run Application
+
+on:
+  workflow_dispatch:
+
+jobs:
+  # Run on Windows
+  run-on-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    name: Run On Windows
+    steps:
+      # Setup Java environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 21
+
+      # Check out current repository
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+
+      # 设置工作目录
+      - name: Set working directory
+        run: |
+          echo '${{ github.workspace }}'
+
+      # Run Application
+      - name: Run Application
+        run: |
+          cd "${{ github.workspace }}"
+          ./gradlew runDistributable &
+         # 循环10次，每次间隔10秒，获取屏幕截图
+          for i in {1..10}
+          do
+          screencapture -x "screenshot_$i.png" &
+          # 记录每个后台进程的 PID
+          PIDS+=("$!")
+          # 等待10秒
+          sleep 10
+          done
+          
+          # 等待所有后台进程结束
+          for pid in ${PIDS[*]}; do
+          wait $pid
+          done
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v2
+        with:
+          name: screenshots
+          path: ./*.png
+
+
