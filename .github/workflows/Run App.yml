@@ -1,0 +1,48 @@
+name: Run Application
+
+on:
+  workflow_dispatch:
+
+jobs:
+  # Run on Windows
+  run-on-windows:
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    name: Run On Windows
+    steps:
+      # Setup Java environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 21
+
+      # Check out current repository
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+
+      # 设置工作目录
+      - name: Set working directory
+        run: |
+          echo '${{ github.workspace }}'
+
+      # Run App on Windows and capture screenshot
+      - name: Run App on Windows and capture screenshot
+        run: |
+          start /b cmd /c ./gradlew run
+          for /L %i in (1,1,10) do (
+          powershell -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Clipboard]::SetText(''); [System.Windows.Forms.SendKeys]::SendWait('^{P}')"
+          Sleep 10
+          Get-ChildItem -Path "screenshot_%i.png" -ErrorAction SilentlyContinue | Remove-Item -Force
+          screenshottool capture -f screenshot_%i.png
+          )
+
+
+      - name: Upload screenshots
+        uses: actions/upload-artifact@v2
+        with:
+          name: screenshots
+          path: ./*.png
+
+
