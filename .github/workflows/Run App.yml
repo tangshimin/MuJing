@@ -25,11 +25,11 @@ jobs:
 
       - name: Run App and Capture Screenshot
         run: |
-          Start-Process -NoNewWindow .\gradlew  run
+          Start-Process -NoNewWindow .\gradlew  runDistributable
           for ($i = 1; $i -le 24; $i++) {
             Start-Sleep -Seconds 10
             Add-Type -AssemblyName System.Drawing
-            $bitmap = New-Object System.Drawing.Bitmap(800,600)
+            $bitmap = New-Object System.Drawing.Bitmap(1920, 1080)
             $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
             $graphics.CopyFromScreen(0, 0, 0, 0, $bitmap.Size)
             $bitmap.Save("screenshot_$i.png", "PNG")
