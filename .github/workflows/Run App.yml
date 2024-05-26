@@ -1,51 +1,34 @@
-name: Run Application
+name:  Run App and Capture Screenshot
 
 on:
   workflow_dispatch:
 
 jobs:
-  # Run on Windows
-  run-on-windows:
+  build:
     runs-on: windows-latest
-    permissions:
-      contents: write
-    name: Run On Windows
     steps:
-      # Setup Java environment for the next steps
-      - name: Setup Java
-        uses: actions/setup-java@v2
-        with:
-          distribution: 'zulu'
-          java-version: 21
+    - name: Run App and Capture Screenshot
+      run: |
+        Start-Process -NoNewWindow -FilePath .\gradlew -ArgumentList "run"
+        for ($i = 1; $i -le 18; $i++) {
+          Start-Sleep -Seconds 10
+          Add-Type -AssemblyName System.Drawing
+          $bitmap = New-Object System.Drawing.Bitmap(800,600)
+          $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+          $graphics.CopyFromScreen(0, 0, 0, 0, $bitmap.Size)
+          $bitmap.Save("screenshot_$i.png", "PNG")
+        }
+        echo "Screenshots taken."
 
-      # Check out current repository
-      - name: Fetch Sources
-        uses: actions/checkout@v4
+    - name: List Screenshots
+      run: |
+        dir screenshot_*.png
+        echo "Screenshots listed."
 
-      # 设置工作目录
-      - name: Set working directory
-        run: |
-          echo '${{ github.workspace }}'
-
-      # Run App on Windows and capture screenshot using PowerShell
-      - name: Run App on Windows and capture screenshot
-        run: |
-          # 运行应用程序，使其在后台运行
-          Start-Process -NoNewWindow -FilePath ./gradlew -ArgumentList "run"
-          
-          # 循环10次，每次间隔10秒，获取屏幕截图
-          for ($i = 1; $i -le 10; $i++) {
-            Start-Sleep -Seconds 10
-            # 截取屏幕截图，确保截图工具的命令适用于PowerShell
-            # 此处需要替换为PowerShell中可用的截图命令
-            # 示例：Add-Type -AssemblyName System.Drawing; [System.Drawing.Bitmap].FromFile("screenshot_$i.png")
-          }
-
-
-      - name: Upload screenshots
-        uses: actions/upload-artifact@v2
-        with:
-          name: screenshots
-          path: ./*.png
-
+    - name: Upload Screenshots
+      uses: actions/upload-artifact@v2
+      with:
+        name: screenshots
+        if-no-files-found: ignore  # 如果没有找到文件，则忽略此步骤
+        path: screenshot_*.png
 
