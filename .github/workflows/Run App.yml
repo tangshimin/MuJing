@@ -25,8 +25,8 @@ jobs:
 
       - name: Run App and Capture Screenshot
         run: |
-          .\gradlew  run
-          for ($i = 1; $i -le 18; $i++) {
+          Start-Process -NoNewWindow .\gradlew  run
+          for ($i = 1; $i -le 24; $i++) {
             Start-Sleep -Seconds 10
             Add-Type -AssemblyName System.Drawing
             $bitmap = New-Object System.Drawing.Bitmap(800,600)
