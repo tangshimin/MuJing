@@ -4,31 +4,48 @@ on:
   workflow_dispatch:
 
 jobs:
-  build:
+ run-on-windows:
     runs-on: windows-latest
     steps:
-    - name: Run App and Capture Screenshot
-      run: |
-        Start-Process -NoNewWindow -FilePath .\gradlew -ArgumentList "run"
-        for ($i = 1; $i -le 18; $i++) {
-          Start-Sleep -Seconds 10
-          Add-Type -AssemblyName System.Drawing
-          $bitmap = New-Object System.Drawing.Bitmap(800,600)
-          $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
-          $graphics.CopyFromScreen(0, 0, 0, 0, $bitmap.Size)
-          $bitmap.Save("screenshot_$i.png", "PNG")
-        }
-        echo "Screenshots taken."
+          # Setup Java environment for the next steps
+      - name: Setup Java
+        uses: actions/setup-java@v2
+        with:
+          distribution: 'zulu'
+          java-version: 21
 
-    - name: List Screenshots
-      run: |
-        dir screenshot_*.png
-        echo "Screenshots listed."
+      # Check out current repository
+      - name: Fetch Sources
+        uses: actions/checkout@v4
 
-    - name: Upload Screenshots
-      uses: actions/upload-artifact@v2
-      with:
-        name: screenshots
-        if-no-files-found: ignore  # 如果没有找到文件，则忽略此步骤
-        path: screenshot_*.png
+      # 设置工作目录
+      - name: Set working directory
+        run: |
+          echo '${{ github.workspace }}'
+
+      - name: Run App and Capture Screenshot
+        run: |
+          .\gradlew  run
+          for ($i = 1; $i -le 18; $i++) {
+            Start-Sleep -Seconds 10
+            Add-Type -AssemblyName System.Drawing
+            $bitmap = New-Object System.Drawing.Bitmap(800,600)
+            $graphics = [System.Drawing.Graphics]::FromImage($bitmap)
+            $graphics.CopyFromScreen(0, 0, 0, 0, $bitmap.Size)
+            $bitmap.Save("screenshot_$i.png", "PNG")
+          }
+          echo "Screenshots taken."
+    
+      - name: List Screenshots
+        run: |
+          dir screenshot_*.png
+          echo "Screenshots listed."
+    
+      - name: Upload Screenshots
+        uses: actions/upload-artifact@v2
+        with:
+          name: screenshots
+          if-no-files-found: ignore  # 如果没有找到文件，则忽略此步骤
+          path: screenshot_*.png
+
 
