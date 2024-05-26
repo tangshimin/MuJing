@@ -27,16 +27,19 @@ jobs:
         run: |
           echo '${{ github.workspace }}'
 
-      # Run App on Windows and capture screenshot
+      # Run App on Windows and capture screenshot using PowerShell
       - name: Run App on Windows and capture screenshot
         run: |
-          start /b cmd /c ./gradlew run
-          for /L %i in (1,1,10) do (
-          powershell -Command "Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.Clipboard]::SetText(''); [System.Windows.Forms.SendKeys]::SendWait('^{P}')"
-          Sleep 10
-          Get-ChildItem -Path "screenshot_%i.png" -ErrorAction SilentlyContinue | Remove-Item -Force
-          screenshottool capture -f screenshot_%i.png
-          )
+          # 运行应用程序，使其在后台运行
+          Start-Process -NoNewWindow -FilePath ./gradlew -ArgumentList "run"
+          
+          # 循环10次，每次间隔10秒，获取屏幕截图
+          for ($i = 1; $i -le 10; $i++) {
+            Start-Sleep -Seconds 10
+            # 截取屏幕截图，确保截图工具的命令适用于PowerShell
+            # 此处需要替换为PowerShell中可用的截图命令
+            # 示例：Add-Type -AssemblyName System.Drawing; [System.Drawing.Bitmap].FromFile("screenshot_$i.png")
+          }
 
 
       - name: Upload screenshots
