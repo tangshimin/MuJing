@@ -35,7 +35,7 @@ jobs:
           
       - name: Run App and Capture Screenshot
         run: |
-          Start-Process -NoNewWindow .\gradlew  runDistributable
+          Start-Process -NoNewWindow .\gradlew  run
           for ($i = 1; $i -le 24; $i++) {
             Start-Sleep -Seconds 10
             Add-Type -AssemblyName System.Drawing
