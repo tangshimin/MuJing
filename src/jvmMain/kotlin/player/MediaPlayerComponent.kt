@@ -16,7 +16,6 @@ import ui.dialog.removeItalicSymbol
 import ui.dialog.removeLocationInfo
 import ui.dialog.removeNewLine
 import ui.dialog.replaceNewLine
-import uk.co.caprica.vlcj.binding.support.runtime.RuntimeUtil
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery
 import uk.co.caprica.vlcj.player.base.MediaPlayer
@@ -40,37 +39,31 @@ import javax.swing.event.HyperlinkEvent
  * 初始化视频播放组件
  */
 fun createMediaPlayerComponent(): Component {
-    // 如果是 Windows 就使用内置的 VLC 播放器
-    if (isWindows()) {
-        System.setProperty("native.encoding", "UTF-8")
-        NativeLibrary.addSearchPath(RuntimeUtil.getLibVlcLibraryName(), getResourcesFile("VLC").absolutePath ?: "")
-    } else{
+    System.setProperty("native.encoding", "UTF-8")
+    val cacheExists = getResourcesFile("VLC/plugins/plugins.dat").exists()
+    // 如果是 Windows、macOS 就使用内置的 VLC 播放器
+    if(isWindows()){
+        System.setProperty("jna.library.path", getResourcesFile("VLC").absolutePath)
+    }else if(isMacOS()){
+        System.setProperty("jna.library.path", getResourcesFile("VLC/lib").absolutePath)
+    }else{
         NativeDiscovery().discover()
     }
 
-    // see https://github.com/caprica/vlcj/issues/887#issuecomment-503288294 for why we're using CallbackMediaPlayerComponent for macOS.
+    val args = mutableListOf(
+        "--quiet",  // --quiet 是关闭所有的日志。
+        "--sub-language=en",// 使用视频播放器播放视频时，自动选择英语字幕
+    )
+    if(!cacheExists){
+        args.add("--reset-plugins-cache")
+    }
+
     return if (isMacOS()) {
-        // macOS 可能没有安装 VLC 播放器
-        try{
-            NativeLibrary.getInstance("vlc")
-        }catch ( exception:UnsatisfiedLinkError){
-            val message = JEditorPane()
-            message.contentType = "text/html"
-            message.text = "<p>幕境 需要 <a href='https://www.videolan.org/'>VLC 视频播放器</a> 播放视频和单词发音</p>" +
-                    "<p style=\"color:red;\">Apple 芯片的用户请下载 Intel 版的 VLC，现在还不支持 Apple Silicon，<br>下载的时候不要选择 macOS(Apple Silicon)</p>"
-            message.addHyperlinkListener {
-                if(it.eventType == HyperlinkEvent.EventType.ACTIVATED){
-                    Desktop.getDesktop().browse(it.url.toURI())
-                }
-            }
-            message.isEditable = false
-            JOptionPane.showMessageDialog(null, message)
-        }
-        CallbackMediaPlayerComponent()
+        val mediaPlayerFactory = MediaPlayerFactory(args)
+        val callbackMediaPlayerComponent = CallbackMediaPlayerComponent(mediaPlayerFactory, null, null, true, null, null, null, null)
+        callbackMediaPlayerComponent
     } else if(isWindows()){
-        // --quiet 是控制台的日志参数，quiet 是关闭所有的日志。
-        val args = listOf("--quiet")
-        val mediaPlayerFactory = MediaPlayerFactory(null,args )
+        val mediaPlayerFactory = MediaPlayerFactory(args)
         val embeddedMediaPlayerComponent = EmbeddedMediaPlayerComponent(mediaPlayerFactory, null, null, null, null)
         val embeddedMediaPlayer = embeddedMediaPlayerComponent.mediaPlayer()
         embeddedMediaPlayer.input().enableKeyInputHandling(false)
@@ -96,6 +89,7 @@ fun createMediaPlayerComponent(): Component {
         EmbeddedMediaPlayerComponent()
     }
 }
+
 
 
 fun isMacOS(): Boolean {
