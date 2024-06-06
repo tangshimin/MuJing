@@ -53,7 +53,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v2
         with:
-          distribution: 'zulu'
+          distribution: 'semeru'
           java-version: 21
 
       # Check out current repository
