@@ -44,7 +44,7 @@ jobs:
   #         token: ${{ secrets.GITHUB_TOKEN  }}
 
   create-mac-package:
-    runs-on: macos-latest
+    runs-on: macos-13
     permissions:
       contents: write
     name: Create Mac Package
