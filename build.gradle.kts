@@ -59,6 +59,10 @@ kotlin {
                 implementation("org.apache.poi:poi:5.2.5")
                 implementation("org.apache.poi:poi-ooxml:5.2.5")
                 implementation("org.xerial:sqlite-jdbc:3.44.1.0")
+                implementation ("io.ktor:ktor-client-core:1.6.7")
+                implementation ("io.ktor:ktor-client-cio:1.6.7")
+                implementation ("net.java.dev.jna:jna:5.14.0")
+                implementation ("net.java.dev.jna:jna-platform:5.14.0")
             }
         }
 //        val jvmTest by getting {

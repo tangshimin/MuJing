@@ -47,6 +47,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import state.getSettingsDirectory
+import state.rememberWordState
 import ui.createTransferHandler
 import ui.dialog.MessageDialog
 import uk.co.caprica.vlcj.player.base.MediaPlayer
@@ -217,7 +218,7 @@ fun Player(
 
     var hideControlBoxTask :TimerTask? by remember{ mutableStateOf(null)}
 //    var hoverIcon by remember{mutableStateOf(PointerIcon.Default)}
-
+    val azureTTS = rememberAzureTTS()
     /** 使弹幕从右往左移动的定时器 */
     val danmakuTimer by remember {
         mutableStateOf(
@@ -289,7 +290,8 @@ fun Player(
             word = word,
             audioSet = audioSet,
             addToAudioSet = {audioSet.add(it)},
-            pronunciation = pronunciation
+            pronunciation = pronunciation,
+            azureTTS = azureTTS,
         )
         playAudio(
             word,

@@ -19,6 +19,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import data.AzureTTS
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -27,6 +28,7 @@ import state.AppState
 import state.DictationState
 import state.MemoryStrategy
 import state.WordScreenState
+import ui.dialog.AzureTTSDialog
 import ui.dialog.SelectChapterDialog
 import java.awt.Rectangle
 
@@ -41,6 +43,7 @@ fun WordScreenSidebar(
     appState: AppState,
     wordScreenState: WordScreenState,
     dictationState: DictationState,
+    azureTTS: AzureTTS,
     wordRequestFocus:() -> Unit,
     resetVideoBounds :() -> Rectangle,
 ) {
@@ -620,20 +623,37 @@ fun WordScreenSidebar(
                             elevation = 4.dp,
                             shape = RectangleShape,
                         ) {
-                            Row(Modifier.width(240.dp).height(120.dp)){
+                            Row(Modifier.width(260.dp).height(200.dp)){
                                 Column {
+                                    DropdownMenuItem(
+                                        onClick = {
+                                            scope.launch {
+                                                wordScreenState.playTimes = 0
+                                                wordScreenState.saveWordScreenState()
+                                            }
+                                        },
+                                        modifier = Modifier.width(140.dp).height(40.dp)
+                                    ) {
+                                        Text("关闭发音")
+                                        if( wordScreenState.playTimes == 0){
+                                            RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                        }
+                                    }
                                     if (wordScreenState.vocabulary.language == "english") {
                                         DropdownMenuItem(
                                             onClick = {
                                                 scope.launch {
                                                     wordScreenState.pronunciation = "uk"
+                                                    if( wordScreenState.playTimes == 0){
+                                                        wordScreenState.playTimes = 2
+                                                    }
                                                     wordScreenState.saveWordScreenState()
                                                 }
                                             },
-                                            modifier = Modifier.width(120.dp).height(40.dp)
+                                            modifier = Modifier.width(140.dp).height(40.dp)
                                         ) {
                                             Text("英式发音")
-                                            if(wordScreenState.pronunciation == "uk"){
+                                            if(wordScreenState.pronunciation == "uk" && wordScreenState.playTimes != 0){
                                                 RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
                                             }
                                         }
@@ -642,12 +662,15 @@ fun WordScreenSidebar(
                                                 scope.launch {
                                                     wordScreenState.pronunciation = "us"
                                                     wordScreenState.saveWordScreenState()
+                                                    if( wordScreenState.playTimes == 0){
+                                                        wordScreenState.playTimes = 2
+                                                    }
                                                 }
                                             },
-                                            modifier = Modifier.width(120.dp).height(40.dp)
+                                            modifier = Modifier.width(140.dp).height(40.dp)
                                         ) {
                                             Text("美式发音")
-                                            if(wordScreenState.pronunciation == "us"){
+                                            if(wordScreenState.pronunciation == "us" && wordScreenState.playTimes != 0){
                                                 RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
                                             }
                                         }
@@ -659,12 +682,15 @@ fun WordScreenSidebar(
                                                 scope.launch {
                                                     wordScreenState.pronunciation = "jp"
                                                     wordScreenState.saveWordScreenState()
+                                                    if( wordScreenState.playTimes == 0){
+                                                        wordScreenState.playTimes = 2
+                                                    }
                                                 }
                                             },
-                                            modifier = Modifier.width(120.dp).height(40.dp)
+                                            modifier = Modifier.width(140.dp).height(40.dp)
                                         ) {
                                             Text("日语")
-                                            if(wordScreenState.pronunciation == "jp"){
+                                            if(wordScreenState.pronunciation == "jp" && wordScreenState.playTimes != 0){
                                                 RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
                                             }
                                         }
@@ -673,62 +699,101 @@ fun WordScreenSidebar(
                                     DropdownMenuItem(
                                         onClick = {
                                             scope.launch {
-                                                wordScreenState.pronunciation = "local TTS"
+                                                wordScreenState.pronunciation = "Azure TTS"
                                                 wordScreenState.saveWordScreenState()
+                                                if( wordScreenState.playTimes == 0){
+                                                    wordScreenState.playTimes = 2
+                                                }
                                             }
                                         },
-                                        modifier = Modifier.width(120.dp).height(40.dp)
+                                        modifier = Modifier.width(140.dp).height(40.dp)
                                     ) {
-                                        Text("语音合成")
+                                        Text("Azure TTS")
+                                        if(wordScreenState.pronunciation == "Azure TTS" && wordScreenState.playTimes != 0){
+                                            RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                        }
+                                    }
+
+                                    DropdownMenuItem(
+                                        onClick = {
+                                            scope.launch {
+                                                wordScreenState.pronunciation = "local TTS"
+                                                wordScreenState.saveWordScreenState()
+                                                if( wordScreenState.playTimes == 0){
+                                                    wordScreenState.playTimes = 2
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier.width(140.dp).height(40.dp)
+                                    ) {
+                                        Text("本地语音合成")
                                         if(wordScreenState.pronunciation == "local TTS"){
                                             RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
                                         }
                                     }
+
                                 }
                                 Divider(Modifier.width(1.dp).fillMaxHeight())
-                                Column {
-                                    DropdownMenuItem(
-                                        onClick = {
-                                            scope.launch {
-                                                wordScreenState.playTimes = 0
-                                                wordScreenState.saveWordScreenState()
+                                Column (Modifier.width(120.dp)){
+                                    if(wordScreenState.playTimes != 0){
+                                        var settingAzureTTS by remember { mutableStateOf(false) }
+                                        if(wordScreenState.pronunciation == "Azure TTS"){
+                                            DropdownMenuItem(
+                                                onClick = { settingAzureTTS = true},
+                                                modifier = Modifier.width(120.dp).height(40.dp)
+                                            ) {
+                                                Box(Modifier.fillMaxSize()){
+                                                    IconButton(
+                                                        onClick = {settingAzureTTS = true},
+                                                        modifier = Modifier.align(Alignment.Center)
+                                                    ){
+                                                        Icon(
+                                                            Icons.Filled.Tune,
+                                                            contentDescription = "Localized description",
+                                                            tint =  MaterialTheme.colors.onBackground,
+                                                        )
+                                                    }
+
+                                                }
+
                                             }
-                                        },
-                                        modifier = Modifier.width(120.dp).height(40.dp)
-                                    ) {
-                                        Text("关闭发音")
-                                        if( wordScreenState.playTimes == 0){
-                                            RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                        }
+                                        if(settingAzureTTS){
+                                            AzureTTSDialog(
+                                                azureTTS = azureTTS,
+                                                close = {settingAzureTTS = false}
+                                            )
+                                        }
+                                        DropdownMenuItem(
+                                            onClick = {
+                                                scope.launch {
+                                                    wordScreenState.playTimes = 1
+                                                    wordScreenState.saveWordScreenState()
+                                                }
+                                            },
+                                            modifier = Modifier.width(120.dp).height(40.dp)
+                                        ) {
+                                            Text("播放一次")
+                                            if( wordScreenState.playTimes == 1){
+                                                RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                            }
+                                        }
+                                        DropdownMenuItem(
+                                            onClick = {
+                                                scope.launch {
+                                                    wordScreenState.playTimes = 2
+                                                    wordScreenState.saveWordScreenState()
+                                                }
+                                            },
+                                            modifier = Modifier.width(120.dp).height(40.dp)
+                                        ) {
+                                            Text("播放多次")
+                                            if( wordScreenState.playTimes == 2){
+                                                RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                            }
                                         }
                                     }
-                                    DropdownMenuItem(
-                                        onClick = {
-                                            scope.launch {
-                                                wordScreenState.playTimes = 1
-                                                wordScreenState.saveWordScreenState()
-                                            }
-                                        },
-                                        modifier = Modifier.width(120.dp).height(40.dp)
-                                    ) {
-                                        Text("播放一次")
-                                        if( wordScreenState.playTimes == 1){
-                                            RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
-                                        }
-                                    }
-                                    DropdownMenuItem(
-                                        onClick = {
-                                            scope.launch {
-                                                wordScreenState.playTimes = 2
-                                                wordScreenState.saveWordScreenState()
-                                            }
-                                        },
-                                        modifier = Modifier.width(120.dp).height(40.dp)
-                                    ) {
-                                        Text("播放多次")
-                                        if( wordScreenState.playTimes == 2){
-                                            RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
-                                        }
-                                    }
+
                                 }
                             }
                         }

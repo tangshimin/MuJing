@@ -34,6 +34,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import data.AzureTTS
 import data.Word
 import player.AudioButton
 import state.GlobalState
@@ -69,6 +70,7 @@ fun Word(
     isDictation:Boolean,
     wordVisible:Boolean,
     pronunciation: String,
+    azureTTS: AzureTTS,
     playTimes: Int,
     isPlaying: Boolean,
     setIsPlaying: (Boolean) -> Unit,
@@ -246,6 +248,7 @@ fun Word(
                 isPlaying = isPlaying,
                 setIsPlaying = setIsPlaying,
                 pronunciation = pronunciation,
+                azureTTS = azureTTS,
                 playTimes = playTimes,
                 paddingTop = paddingTop,
             )

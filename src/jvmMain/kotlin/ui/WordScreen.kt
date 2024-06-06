@@ -117,12 +117,14 @@ fun WordScreen(
 
         Row {
             val dictationState = rememberDictationState()
+            val azureTTS = rememberAzureTTS()
             WordScreenSidebar(
                 appState = appState,
                 wordScreenState = wordScreenState,
                 dictationState = dictationState,
                 wordRequestFocus = wordRequestFocus,
                 resetVideoBounds = resetVideoBounds,
+                azureTTS = azureTTS
                 )
             if (appState.openSettings) {
                 val topPadding = if (isMacOS()) 30.dp else 0.dp
@@ -134,6 +136,7 @@ fun WordScreen(
                         appState =appState,
                         wordScreenState = wordScreenState,
                         dictationState = dictationState,
+                        azureTTS = azureTTS,
                         currentWord = currentWord,
                         videoBounds = videoBounds,
                         resetVideoBounds = resetVideoBounds,
@@ -328,6 +331,7 @@ fun MainContent(
     appState: AppState,
     wordScreenState: WordScreenState,
     dictationState:  DictationState,
+    azureTTS: AzureTTS,
     currentWord:Word,
     videoBounds: Rectangle,
     resetVideoBounds :() -> Rectangle,
@@ -609,7 +613,8 @@ fun MainContent(
                                 word = currentWord.value,
                                 audioSet = appState.localAudioSet,
                                 addToAudioSet = { appState.localAudioSet.add(it) },
-                                pronunciation = wordScreenState.pronunciation
+                                pronunciation = wordScreenState.pronunciation,
+                                azureTTS = azureTTS
                             )
                             playAudio(
                                 word = currentWord.value,
@@ -925,7 +930,8 @@ fun MainContent(
                                             word = currentWord.value,
                                             audioSet = appState.localAudioSet,
                                             addToAudioSet = { appState.localAudioSet.add(it) },
-                                            pronunciation = wordScreenState.pronunciation
+                                            pronunciation = wordScreenState.pronunciation,
+                                            azureTTS = azureTTS
                                         )
                                         playAudio(
                                             word = currentWord.value,
@@ -968,7 +974,8 @@ fun MainContent(
                                             word = currentWord.value,
                                             audioSet = appState.localAudioSet,
                                             addToAudioSet = { appState.localAudioSet.add(it) },
-                                            pronunciation = wordScreenState.pronunciation
+                                            pronunciation = wordScreenState.pronunciation,
+                                            azureTTS = azureTTS
                                         )
                                         playAudio(
                                             word = currentWord.value,
@@ -1384,6 +1391,7 @@ fun MainContent(
                         global = appState.global,
                         wordVisible = wordScreenState.wordVisible,
                         pronunciation = wordScreenState.pronunciation,
+                        azureTTS = azureTTS,
                         playTimes = wordScreenState.playTimes,
                         isPlaying = isPlayingAudio,
                         setIsPlaying = { isPlayingAudio = it },
@@ -2830,6 +2838,7 @@ fun SearchResultInfo(
     word: Word,
     appState: AppState,
     wordScreenState: WordScreenState,
+    azureTTS: AzureTTS,
 ){
     Row(verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
@@ -2840,6 +2849,7 @@ fun SearchResultInfo(
             wordScreenState = wordScreenState,
             volume = appState.global.audioVolume,
             pronunciation = wordScreenState.pronunciation,
+            azureTTS = azureTTS
         )
     }
     Divider()

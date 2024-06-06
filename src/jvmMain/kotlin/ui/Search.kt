@@ -49,6 +49,7 @@ fun Search(
     vocabulary:  MutableVocabulary
 ){
     val scope = rememberCoroutineScope()
+    val azureTTS = rememberAzureTTS()
     var searchResult by remember{ mutableStateOf<Word?>(null) }
     var isPlayingAudio by remember { mutableStateOf(false) }
     /** 等宽字体*/
@@ -68,7 +69,8 @@ fun Search(
                         word = searchResult!!.value,
                         audioSet = appState.localAudioSet,
                         addToAudioSet = {audioPath -> appState.localAudioSet.add(audioPath)},
-                        pronunciation = wordScreenState.pronunciation
+                        pronunciation = wordScreenState.pronunciation,
+                        azureTTS = azureTTS,
                     )
                     playAudio(
                         word = searchResult!!.value,
@@ -176,7 +178,8 @@ fun Search(
                         SearchResultInfo(
                             word = searchResult!!,
                             appState = appState,
-                            wordScreenState = wordScreenState
+                            wordScreenState = wordScreenState,
+                            azureTTS = azureTTS,
                         )
 
                         if (searchResult!!.captions.isNotEmpty()) {
