@@ -177,10 +177,6 @@ class AzureTTS(
 
     fun saveAzureState(){
         val azureSetting = getAzureSettingsFile()
-        val encodeFormat = Json {
-            prettyPrint = true
-            encodeDefaults = true
-        }
         runBlocking {
             launch (Dispatchers.IO){
                 val key = Crypt.encrypt(subscriptionKey)
@@ -200,7 +196,10 @@ class AzureTTS(
     }
 
 }
-
+val encodeFormat = Json {
+    prettyPrint = true
+    encodeDefaults = true
+}
 @Composable
 fun rememberAzureTTS(): AzureTTS = remember{
     loadAzureState()
@@ -224,7 +223,11 @@ fun loadAzureState(): AzureTTS {
         }
     }else{
         println("Azure setting file not found")
-        AzureTTS(AzureTTSData())
+        val azureData = AzureTTSData()
+        val tts = AzureTTS(azureData)
+        val json = encodeFormat.encodeToString(azureData)
+        azureSetting.writeText(json)
+        tts
     }
 }
 
