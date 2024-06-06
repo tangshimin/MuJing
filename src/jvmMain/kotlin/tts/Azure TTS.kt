@@ -1,6 +1,7 @@
-package data
+package tts
 
 import androidx.compose.runtime.*
+import data.Crypt
 import io.ktor.client.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -45,7 +46,7 @@ data class AzureTTSData(
 )
 @OptIn(ExperimentalSerializationApi::class)
 class AzureTTS(
-    azureTTSData:AzureTTSData
+    azureTTSData: AzureTTSData
 ) {
     private var tokenExpiryTime by   mutableStateOf< LocalDateTime?>(null)
     private var token by mutableStateOf<String?>(null)

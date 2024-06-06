@@ -34,7 +34,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import data.AzureTTS
+import tts.AzureTTS
 import data.Word
 import player.AudioButton
 import state.GlobalState

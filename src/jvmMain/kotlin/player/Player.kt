@@ -47,7 +47,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import state.getSettingsDirectory
-import state.rememberWordState
+import tts.rememberAzureTTS
 import ui.createTransferHandler
 import ui.dialog.MessageDialog
 import uk.co.caprica.vlcj.player.base.MediaPlayer

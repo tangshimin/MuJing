@@ -36,6 +36,7 @@ import player.play
 import player.playAudio
 import state.AppState
 import state.WordScreenState
+import tts.rememberAzureTTS
 import java.awt.Point
 import java.awt.Rectangle
 import java.io.File

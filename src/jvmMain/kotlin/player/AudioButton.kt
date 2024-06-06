@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import data.AzureTTS
+import tts.AzureTTS
 import data.Word
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

@@ -45,6 +45,8 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
 import state.*
 import state.MemoryStrategy.*
+import tts.AzureTTS
+import tts.rememberAzureTTS
 import ui.dialog.ChapterFinishedDialog
 import ui.dialog.ConfirmDialog
 import ui.dialog.EditWordDialog
