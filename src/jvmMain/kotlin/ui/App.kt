@@ -713,7 +713,7 @@ fun Toolbar(
             setIsOpen = setIsOpen,
             modifier = Modifier
         )
-        Divider(Modifier.width(1.dp).height(20.dp))
+        if(!isOpen)Divider(Modifier.width(1.dp).height(20.dp))
         TooltipArea(
             tooltip = {
                 Surface(
