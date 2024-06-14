@@ -91,6 +91,9 @@ compose.desktop {
         mainClass = "MainKt"
         jvmArgs += listOf("-client")
         jvmArgs += listOf("-Dfile.encoding=UTF-8")
+        jvmArgs += listOf("-Dstdout.encoding=UTF-8")
+        jvmArgs += listOf("-Dstderr.encoding=UTF-8")
+        jvmArgs += listOf("-Dsun.stdout.encoding=UTF-8")
         jvmArgs += listOf("-Dapple.awt.application.appearance=system")
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
@@ -117,3 +120,7 @@ compose.desktop {
     }
 }
 
+
+tasks.withType(JavaCompile::class.java) {
+    options.encoding = "UTF-8"
+}
