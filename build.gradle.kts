@@ -124,3 +124,38 @@ compose.desktop {
 tasks.withType(JavaCompile::class.java) {
     options.encoding = "UTF-8"
 }
+
+project.afterEvaluate {
+    tasks.named("prepareAppResources") {
+        doLast {
+            println("Running custom task after prepareAppResources")
+            val plugins =  project.layout.projectDirectory.dir("build/compose/binaries/main/app/VLC/plugins").getAsFile().absolutePath
+            val cacheGen =  project.layout.projectDirectory.dir("build/compose/tmp/prepareAppResources/VLC/vlc-cache-gen.exe").getAsFile().absolutePath
+            val command = listOf(cacheGen, plugins)
+            try {
+                val process = ProcessBuilder(command).start()
+                process.waitFor()
+            } catch (e: Exception) {
+                println("Error running vlc-cache-gen: ${e.message}")
+            }
+
+        }
+    }
+
+    tasks.named("createDistributable") {
+        doLast {
+            println("Running custom task after prepareAppResources")
+            val cacheGen =  project.layout.projectDirectory.dir("build/compose/binaries/main/app/幕境/app/resources/VLC/vlc-cache-gen.exe").getAsFile().absolutePath
+            val plugins =  project.layout.projectDirectory.dir("build/compose/binaries/main/app/幕境/app/resources/VLC/plugins").getAsFile().absolutePath
+
+            val command = listOf(cacheGen, plugins)
+            try {
+                val process = ProcessBuilder(command).start()
+                process.waitFor()
+            } catch (e: Exception) {
+                println("Error running vlc-cache-gen: ${e.message}")
+            }
+
+        }
+    }
+}
