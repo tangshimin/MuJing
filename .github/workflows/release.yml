@@ -62,7 +62,19 @@ jobs:
         with:
           fetch-depth: 0  # Fetch all history
           tags: true  # Fetch all tags
-          
+
+      # Install p7zip tool
+      - name: Install p7zip
+        run: sudo apt-get install p7zip-full
+
+      # Unzip the 7z file
+      - name: Unzip 7z file
+        run: 7z x ./resources/common/dictionary/ecdict.7z -o ./resources/common/dictionary/
+
+      # Delete the original 7z file
+      - name: Delete 7z file
+        run: rm ./resources/common/dictionary/ecdict.7z
+
       # Add execute permissions to gradlew
       - name: Set execute permissions on gradlew
         run: chmod +x ./gradlew
