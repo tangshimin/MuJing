@@ -69,7 +69,7 @@ jobs:
 
       # Unzip the 7z file
       - name: Unzip 7z file
-        run: 7z x ./resources/common/dictionary/ecdict.7z -o ./resources/common/dictionary/
+        run: 7z x ./resources/common/dictionary/ecdict.7z -o./resources/common/dictionary/
 
       # Delete the original 7z file
       - name: Delete 7z file
