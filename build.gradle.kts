@@ -140,4 +140,24 @@ project.afterEvaluate {
 
         }
     }
+
+    tasks.register("renameDmg") {
+        doLast {
+            val dmgFile = fileTree("${buildDir}/compose/binaries/main/dmg") {
+                include("*.dmg")
+            }.singleFile
+
+            val newDmgFile = file("${dmgFile.parentFile}/MuJing-${project.version}.dmg")
+            if (newDmgFile.exists()) {
+                newDmgFile.delete()
+            }
+
+            dmgFile.renameTo(newDmgFile)
+        }
+    }
+
+    tasks.named("packageDmg") {
+        finalizedBy("renameDmg")
+    }
+
 }
