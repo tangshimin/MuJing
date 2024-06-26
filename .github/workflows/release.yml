@@ -65,7 +65,7 @@ jobs:
 
       # Install p7zip tool
       - name: Install p7zip
-        run: sudo apt-get install p7zip-full
+        run: brew install p7zip
 
       # Unzip the 7z file
       - name: Unzip 7z file
