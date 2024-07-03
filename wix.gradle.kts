@@ -52,7 +52,7 @@ project.tasks.register<Exec>("harvest") {
     val renameApp = tasks.named("renameApp")
     dependsOn(renameApp)
     workingDir(appDir)
-    val heat = project.layout.projectDirectory.file("wix311/heat.exe").getAsFile().absolutePath
+    val heat = project.layout.projectDirectory.file("build/wix311/heat.exe").getAsFile().absolutePath
 
     // heat dir "./MuJing" -cg DefaultFeature -gg -sfrag -sreg -template product -out MuJing.wxs -var var.SourceDir
     commandLine(
@@ -96,7 +96,7 @@ project.tasks.register<Exec>("compileWix") {
     val editWix = tasks.named("editWix")
     dependsOn(editWix)
     workingDir(appDir)
-    val candle = project.layout.projectDirectory.file("wix311/candle.exe").getAsFile().absolutePath
+    val candle = project.layout.projectDirectory.file("build/wix311/candle.exe").getAsFile().absolutePath
     // candle main.wxs -dSourceDir=".\MuJing"
     commandLine(candle, "MuJing.wxs","-nologo", "-dSourceDir=.\\MuJing")
 }
@@ -107,7 +107,7 @@ project.tasks.register<Exec>("lightWixobj") {
     val compileWix = tasks.named("compileWix")
     dependsOn(compileWix)
     workingDir(appDir)
-    val light = project.layout.projectDirectory.file("wix311/light.exe").getAsFile().absolutePath
+    val light = project.layout.projectDirectory.file("build/wix311/light.exe").getAsFile().absolutePath
 
     // light -ext WixUIExtension -cultures:zh-CN -spdb MuJing.wixobj -o MuJing.msi
     commandLine(light, "-ext", "WixUIExtension", "-cultures:zh-CN", "-spdb","-nologo", "MuJing.wixobj", "-o", "MuJing-${project.version}.msi")
