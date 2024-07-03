@@ -162,5 +162,7 @@ project.afterEvaluate {
     tasks.named("packageDmg") {
         finalizedBy("renameDmg")
     }
-
 }
+
+apply(from = "wix.gradle.kts")
+
