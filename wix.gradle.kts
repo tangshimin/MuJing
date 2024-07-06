@@ -72,7 +72,7 @@ tasks.register<Exec>("createUninstallExe") {
 
 project.tasks.register<Exec>("harvest") {
     group = "compose wix"
-    description = "Generates WiX authoring from application image"
+    description = "Generates Wxs authoring from application image"
     val uninstall = tasks.named("createUninstallExe")
     dependsOn(uninstall)
     workingDir(appDir)
@@ -99,9 +99,9 @@ project.tasks.register<Exec>("harvest") {
 
 }
 
-project.tasks.register("editWix") {
+project.tasks.register("editWxs") {
     group = "compose wix"
-    description = "Edit the WiX File"
+    description = "Edit the Wxs File"
     val harvest = tasks.named("harvest")
     dependsOn(harvest)
     doLast {
@@ -114,22 +114,22 @@ project.tasks.register("editWix") {
     }
 }
 
-project.tasks.register<Exec>("compileWix") {
+project.tasks.register<Exec>("compileWxs") {
     group = "compose wix"
-    description = "Compile WiX"
-    val editWix = tasks.named("editWix")
-    dependsOn(editWix)
+    description = "Compile Wxs to Wixobj"
+    val editWxs = tasks.named("editWxs")
+    dependsOn(editWxs)
     workingDir(appDir)
     val candle = project.layout.projectDirectory.file("build/wix311/candle.exe").getAsFile().absolutePath
     // candle main.wxs -dSourceDir=".\MuJing"
     commandLine(candle, "MuJing.wxs","-nologo", "-dSourceDir=.\\MuJing")
 }
 
-project.tasks.register<Exec>("lightWixobj") {
+project.tasks.register<Exec>("light") {
     group = "compose wix"
     description = "Linking the .wixobj file and creating a MSI"
-    val compileWix = tasks.named("compileWix")
-    dependsOn(compileWix)
+    val compileWxs = tasks.named("compileWxs")
+    dependsOn(compileWxs)
     workingDir(appDir)
     val light = project.layout.projectDirectory.file("build/wix311/light.exe").getAsFile().absolutePath
 
