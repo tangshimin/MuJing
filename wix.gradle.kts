@@ -46,11 +46,35 @@ project.tasks.register("renameApp") {
 
 }
 
+tasks.register<Exec>("createUninstallExe") {
+    group = "compose wix"
+    description = "create uninstall exe"
+    workingDir(project.layout.projectDirectory.dir("uninstall"))
+    commandLine("gradlew.bat", "createDistributable")
+    val renameApp = tasks.named("renameApp")
+    dependsOn(renameApp)
+    doLast{
+        val uninstallApp =project.layout.projectDirectory.dir("uninstall/build/compose/binaries/main/app/uninstall/app/").getAsFile()
+        val mujingApp = project.layout.projectDirectory.dir("build/compose/binaries/main/app/MuJing/app/").getAsFile()
+        val mujing = project.layout.projectDirectory.dir("build/compose/binaries/main/app/MuJing/").getAsFile()
+
+        val uninstallJar = uninstallApp.listFiles { file -> file.name.startsWith("uninstall") && file.extension == "jar" }?.first()
+        val uninstallcfg = project.layout.projectDirectory.dir("uninstall/build/compose/binaries/main/app/uninstall/app/uninstall.cfg").getAsFile()
+        val uninstallExe = project.layout.projectDirectory.dir("uninstall/build/compose/binaries/main/app/uninstall/uninstall.exe").getAsFile()
+
+        // 需要把 uninstall.cfg 和 uninstall.jar 复制到 mujingApp 里面, 把 uninstall.exe 复制到 mujing 里面
+        uninstallJar?.copyTo(File(mujingApp, uninstallJar?.name))
+        uninstallcfg.copyTo(File(mujingApp, uninstallcfg.name))
+        uninstallExe.copyTo(File(mujing, uninstallExe.name))
+    }
+
+}
+
 project.tasks.register<Exec>("harvest") {
     group = "compose wix"
     description = "Generates WiX authoring from application image"
-    val renameApp = tasks.named("renameApp")
-    dependsOn(renameApp)
+    val uninstall = tasks.named("createUninstallExe")
+    dependsOn(uninstall)
     workingDir(appDir)
     val heat = project.layout.projectDirectory.file("build/wix311/heat.exe").getAsFile().absolutePath
 
@@ -206,8 +230,8 @@ private fun editWixTask(
         id = "uninstallShortcut",
         name = "卸载幕境",
         directory = "ProgramMenuDir",
-        target = "[System64Folder]msiexec.exe",
-        arguments = "/x [ProductCode]"
+        workingDirectory = "INSTALLDIR",
+        target = "[INSTALLDIR]uninstall.exe",
     )
     val uninstallRegistry = registryBuilder(doc, id = "uninstallShortcutReg", productCode = "[ProductCode]")
     uninstallComponent.appendChild(uninstallShortcut)
