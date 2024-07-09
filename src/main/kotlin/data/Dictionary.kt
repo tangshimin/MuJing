@@ -127,6 +127,31 @@ object Dictionary{
         return results
     }
 
+
+    /** 批处理查询一个列表,不保证查询顺序 */
+    fun fastQueryList(words: List<String>): MutableList<Word> {
+        val results = mutableListOf<Word>()
+        try {
+            val url = getSQLiteURL("ecdict.db")
+            DriverManager.getConnection(url).use { conn ->
+                val sql = "SELECT * from ecdict WHERE word IN (${words.joinToString { "?" }})"
+                conn.prepareStatement(sql).use { statement ->
+                    words.forEachIndexed { index, word ->
+                        statement.setString(index + 1, word)
+                    }
+                    val result = statement.executeQuery()
+                    while (result.next()) {
+                        val resultWord = mapToWord(result)
+                        results.add(resultWord)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return results
+    }
+
     /** 根据 BNC 词频区间查询单词 */
     fun queryByBncRange(start:Int,end:Int):List<Word>{
         val sql = "SELECT * FROM ecdict WHERE bnc != 0  AND bnc >= $start AND bnc <= $end" +
