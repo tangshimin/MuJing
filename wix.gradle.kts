@@ -361,6 +361,8 @@ private fun editWixTask(
     }
     productElement.appendChild(installedProperty)
 
+    // Condition 的语法好变态，如果不看文档根本没法写，语法的详细解释在这里：
+    // https://learn.microsoft.com/en-us/windows/win32/msi/conditional-statement-syntax#summary-of-conditional-statement-syntax
     //<!--          NOT INSTALLED -->
     //<!--  如果 INSTALLED 为空或 null，那么 NOT INSTALLED 的结果将是 FALSE-->
     //<!--  如果 INSTALLED 不为空或 null，那么 NOT INSTALLED 的结果将是 TRUE-->
