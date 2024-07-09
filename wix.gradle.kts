@@ -343,6 +343,39 @@ private fun editWixTask(
     majorUpgrade.setAttributeNode(majorUpgradeDowngradeErrorMessage)
     productElement.appendChild(majorUpgrade)
 
+
+    //    <Property Id="INSTALLED">
+    //      <RegistrySearch Id="SearchOldVersion" Root="HKCU" Key="Software\深圳市龙华区幕境网络工作室\幕境\2.3.1"  Name="ProductCode" Type="raw" Win64 = "yes" />
+    //    </Property>
+    val installedProperty = doc.createElement("Property")
+    val installedPropertyId = doc.createAttribute("Id")
+    installedPropertyId.value = "INSTALLED"
+    installedProperty.setAttributeNode(installedPropertyId)
+    // 幕境 v2 的所有版本
+    val oldVersionList = listOf("2.3.1","2.3.0","2.2.25","2.2.23","2.2.20","2.2.16","2.2.13","2.2.12","2.2.3","2.1.6","2.1.5","2.1.4","2.1.1","2.0.8","2.0.7","2.0.6","2.0.5","2.0.4","2.0.3","2.0.2")
+    var id = 1
+    oldVersionList.forEach{version ->
+        val registrySearch = registrySearchBuilder(doc,version,id)
+        id++
+        installedProperty.appendChild(registrySearch)
+    }
+    productElement.appendChild(installedProperty)
+
+    //<!--          NOT INSTALLED -->
+    //<!--  如果 INSTALLED 为空或 null，那么 NOT INSTALLED 的结果将是 FALSE-->
+    //<!--  如果 INSTALLED 不为空或 null，那么 NOT INSTALLED 的结果将是 TRUE-->
+    //    <Condition Message="已经安装了幕境的另一个版本，无法继续安装此版本。可以使用”控制面板“中”添加/删除程序“来删除该版本">
+    //        <![CDATA[NOT INSTALLED]]>
+    //    </Condition>
+    val installCondition = doc.createElement("Condition")
+    val installMessage = doc.createAttribute("Message")
+    installMessage.value = "已经安装了幕境的另一个版本，无法继续安装此版本。可以使用”控制面板“中”添加/删除程序“来删除该版本"
+    installCondition.setAttributeNode(installMessage)
+    val cData= doc.createCDATASection("NOT INSTALLED")
+    installCondition.appendChild(cData)
+    productElement.appendChild(installCondition)
+
+
     // 设置 fragment 节点
     val fragmentElement = doc.getElementsByTagName("Fragment").item(0) as Element
     val componentGroup = fragmentElement.getElementsByTagName("ComponentGroup").item(0) as Element
@@ -427,6 +460,28 @@ private fun registryBuilder(doc: Document, id: String, productCode: String): Ele
     return regComponentElement
 }
 
+private fun registrySearchBuilder(doc:Document,version:String,id:Int):Element{
+    val registrySearch = doc.createElement("RegistrySearch")
+    val registrySearchId = doc.createAttribute("Id")
+    registrySearchId.value = "SearchOldVersion$id"
+    val registryRoot = doc.createAttribute("Root")
+    registryRoot.value = "HKCU"
+    val registryKey = doc.createAttribute("Key")
+    registryKey.value = "Software\\深圳市龙华区幕境网络工作室\\幕境\\$version"
+    val registryName = doc.createAttribute("Name")
+    registryName.value = "ProductCode"
+    val registryType = doc.createAttribute("Type")
+    registryType.value = "raw"
+    val registryWin64 = doc.createAttribute("Win64")
+    registryWin64.value = "yes"
+    registrySearch.setAttributeNode(registrySearchId)
+    registrySearch.setAttributeNode(registryRoot)
+    registrySearch.setAttributeNode(registryKey)
+    registrySearch.setAttributeNode(registryName)
+    registrySearch.setAttributeNode(registryType)
+    registrySearch.setAttributeNode(registryWin64)
+    return registrySearch
+}
 private fun shortcutBuilder(
     doc: Document,
     id: String,
