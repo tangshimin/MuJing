@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets
 
 val appDir = project.layout.projectDirectory.dir("build/compose/binaries/main/app/")
 val iconPath = project.file("src/main/resources/logo/logo.ico").absolutePath
+val removeIconPath = project.file("RemoveConfig/src/main/resources/remove.ico").absolutePath
 val licensePath = project.file("license.rtf").absolutePath
 val manufacturer = "深圳市龙华区幕境网络工作室"
 val shortcutName = "幕境"
@@ -46,26 +47,26 @@ project.tasks.register("renameApp") {
 
 }
 
-tasks.register<Exec>("createUninstallExe") {
+tasks.register<Exec>("createRemoveConfigExe") {
     group = "compose wix"
-    description = "create uninstall exe"
-    workingDir(project.layout.projectDirectory.dir("uninstall"))
+    description = "Create RemoveConfig exe"
+    workingDir(project.layout.projectDirectory.dir("RemoveConfig"))
     commandLine("gradlew.bat", "createDistributable")
     val renameApp = tasks.named("renameApp")
     dependsOn(renameApp)
     doLast{
-        val uninstallApp =project.layout.projectDirectory.dir("uninstall/build/compose/binaries/main/app/uninstall/app/").getAsFile()
+        val removeConfigApp =project.layout.projectDirectory.dir("RemoveConfig/build/compose/binaries/main/app/RemoveConfig/app/").getAsFile()
         val mujingApp = project.layout.projectDirectory.dir("build/compose/binaries/main/app/MuJing/app/").getAsFile()
         val mujing = project.layout.projectDirectory.dir("build/compose/binaries/main/app/MuJing/").getAsFile()
 
-        val uninstallJar = uninstallApp.listFiles { file -> file.name.startsWith("uninstall") && file.extension == "jar" }?.first()
-        val uninstallcfg = project.layout.projectDirectory.dir("uninstall/build/compose/binaries/main/app/uninstall/app/uninstall.cfg").getAsFile()
-        val uninstallExe = project.layout.projectDirectory.dir("uninstall/build/compose/binaries/main/app/uninstall/uninstall.exe").getAsFile()
+        val removeJar = removeConfigApp.listFiles { file -> file.name.startsWith("RemoveConfig") && file.extension == "jar" }?.first()
+        val removecfg = project.layout.projectDirectory.dir("RemoveConfig/build/compose/binaries/main/app/RemoveConfig/app/RemoveConfig.cfg").getAsFile()
+        val removeExe = project.layout.projectDirectory.dir("RemoveConfig/build/compose/binaries/main/app/RemoveConfig/RemoveConfig.exe").getAsFile()
 
-        // 需要把 uninstall.cfg 和 uninstall.jar 复制到 mujingApp 里面, 把 uninstall.exe 复制到 mujing 里面
-        uninstallJar?.copyTo(File(mujingApp, uninstallJar?.name))
-        uninstallcfg.copyTo(File(mujingApp, uninstallcfg.name))
-        uninstallExe.copyTo(File(mujing, uninstallExe.name))
+        // 需要把 RemoveConfig.cfg 和 RemoveConfig.jar 复制到 mujingApp 里面, 把 RemoveConfig.exe 复制到 mujing 里面
+        removeJar?.copyTo(File(mujingApp, removeJar?.name))
+        removecfg.copyTo(File(mujingApp, removecfg.name))
+        removeExe.copyTo(File(mujing, removeExe.name))
     }
 
 }
@@ -73,8 +74,8 @@ tasks.register<Exec>("createUninstallExe") {
 project.tasks.register<Exec>("harvest") {
     group = "compose wix"
     description = "Generates Wxs authoring from application image"
-    val uninstall = tasks.named("createUninstallExe")
-    dependsOn(uninstall)
+    val removeConfig = tasks.named("createRemoveConfigExe")
+    dependsOn(removeConfig)
     workingDir(appDir)
     val heat = project.layout.projectDirectory.file("build/wix311/heat.exe").getAsFile().absolutePath
 
@@ -108,6 +109,7 @@ project.tasks.register("editWxs") {
         editWixTask(
             shortcutName = shortcutName,
             iconPath = iconPath,
+            removeIconPath = removeIconPath,
             licensePath = licensePath,
             manufacturer = manufacturer
         )
@@ -143,6 +145,7 @@ project.tasks.register<Exec>("light") {
 private fun editWixTask(
     shortcutName: String,
     iconPath: String,
+    removeIconPath: String,
     licensePath: String,
     manufacturer:String
 ) {
@@ -178,6 +181,49 @@ private fun editWixTask(
     packageElement.setAttribute("Languages", "1033")
     packageElement.setAttribute("Manufacturer", manufacturer)
     packageElement.setAttribute("Platform", "x64")
+
+    //    <CustomAction Id="RunRemoveConfigExe"
+    //        FileKey="RemoveConfig.exe"
+    //        ExeCommand=""
+    //        Execute="deferred"
+    //        Impersonate="yes"
+    //        Return="ignore" />
+    //    <InstallExecuteSequence>
+    //        <Custom Action="RunRemoveConfigExe" After="UnpublishFeatures">(REMOVE = "ALL") AND (NOT UPGRADINGPRODUCTCODE)</Custom>
+    //    </InstallExecuteSequence>
+    val customAction = doc.createElement("CustomAction")
+    val customActionId = doc.createAttribute("Id")
+    customActionId.value = "RunRemoveConfigExe"
+    val customActionFileKey = doc.createAttribute("FileKey")
+    customActionFileKey.value = "RemoveConfig.exe"
+    val customActionExeCommand = doc.createAttribute("ExeCommand")
+    customActionExeCommand.value = ""
+    val customActionExecute = doc.createAttribute("Execute")
+    customActionExecute.value = "deferred"
+    val customActionImpersonate = doc.createAttribute("Impersonate")
+    customActionImpersonate.value = "yes"
+    val customActionReturn = doc.createAttribute("Return")
+    customActionReturn.value = "ignore"
+    customAction.setAttributeNode(customActionId)
+    customAction.setAttributeNode(customActionFileKey)
+    customAction.setAttributeNode(customActionExeCommand)
+    customAction.setAttributeNode(customActionExecute)
+    customAction.setAttributeNode(customActionImpersonate)
+    customAction.setAttributeNode(customActionReturn)
+    productElement.appendChild(customAction)
+
+    val installExecuteSequence = doc.createElement("InstallExecuteSequence")
+    val customActionRef = doc.createElement("Custom")
+    val customActionRefAction = doc.createAttribute("Action")
+    customActionRefAction.value = "RunRemoveConfigExe"
+    val customActionRefAfter = doc.createAttribute("After")
+    customActionRefAfter.value = "UnpublishFeatures"
+    val customActionRefCondition = doc.createTextNode("(REMOVE = \"ALL\") AND (NOT UPGRADINGPRODUCTCODE)")
+    customActionRef.appendChild(customActionRefCondition)
+    customActionRef.setAttributeNode(customActionRefAction)
+    customActionRef.setAttributeNode(customActionRefAfter)
+    installExecuteSequence.appendChild(customActionRef)
+    productElement.appendChild(installExecuteSequence)
 
 
     val targetDirectory = doc.documentElement.getElementsByTagName("Directory").item(0) as Element
@@ -230,8 +276,9 @@ private fun editWixTask(
         id = "uninstallShortcut",
         name = "卸载幕境",
         directory = "ProgramMenuDir",
-        workingDirectory = "INSTALLDIR",
-        target = "[INSTALLDIR]uninstall.exe",
+        target = "[System64Folder]msiexec.exe",
+        arguments = "/x [ProductCode]",
+        icon = "removeIcon.ico"
     )
     val uninstallRegistry = registryBuilder(doc, id = "uninstallShortcutReg", productCode = "[ProductCode]")
     uninstallComponent.appendChild(uninstallShortcut)
@@ -266,6 +313,17 @@ private fun editWixTask(
     val installDirElement = programFilesElement.getElementsByTagName("Directory").item(0) as Element
     installDirElement.setAttribute("Id", "INSTALLDIR")
 
+    // 设置 RemoveConfig.exe文件的 Id
+    val fileComponents = installDirElement.getElementsByTagName("Component")
+    for (i in 0 until fileComponents.length) {
+        val component = fileComponents.item(i) as Element
+        val files = component.getElementsByTagName("File")
+        val file = files.item(0) as Element
+        if(file.getAttribute("Source").endsWith("RemoveConfig.exe")){
+            file.setAttribute("Id","RemoveConfig.exe")
+            break
+        }
+    }
 
     // 设置 Feature 节点
     val featureElement = doc.getElementsByTagName("Feature").item(0) as Element
@@ -318,6 +376,16 @@ private fun editWixTask(
 
     productElement.appendChild(iconElement)
     productElement.appendChild(iconProperty)
+
+    //<Icon Id="removeIcon.ico" SourceFile="removeIconPath"/>
+    val removeIconElement = doc.createElement("Icon")
+    val removeIconId = doc.createAttribute("Id")
+    removeIconId.value = "removeIcon.ico"
+    val removeIconSourceF = doc.createAttribute("SourceFile")
+    removeIconSourceF.value = removeIconPath
+    removeIconElement.setAttributeNode(removeIconId)
+    removeIconElement.setAttributeNode(removeIconSourceF)
+    productElement.appendChild(removeIconElement)
 
     // 设置 license file
     //  <WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
@@ -492,7 +560,8 @@ private fun shortcutBuilder(
     name: String,
     target: String,
     description: String = "",
-    arguments: String = ""
+    arguments: String = "",
+    icon:String = ""
 ): Element {
     val shortcut = doc.createElement("Shortcut")
     val shortcutId = doc.createAttribute("Id")
@@ -527,6 +596,11 @@ private fun shortcutBuilder(
         val shortcutArguments = doc.createAttribute("Arguments")
         shortcutArguments.value = arguments
         shortcut.setAttributeNode(shortcutArguments)
+    }
+    if(icon.isNotEmpty()){
+        val shortcutIcon = doc.createAttribute("Icon")
+        shortcutIcon.value = icon
+        shortcut.setAttributeNode(shortcutIcon)
     }
 
     return shortcut

@@ -12,4 +12,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "uninstall"
+rootProject.name = "RemoveConfig"

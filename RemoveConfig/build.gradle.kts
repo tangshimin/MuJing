@@ -28,13 +28,13 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "uninstall"
+            packageName = "RemoveConfig"
             packageVersion = "1.0.0"
             windows{
 //                console = true
                 dirChooser = true
                 menuGroup = "幕境"
-                iconFile.set(project.file("src/main/resources/uninstall.ico"))
+                iconFile.set(project.file("src/main/resources/remove.ico"))
             }
         }
     }

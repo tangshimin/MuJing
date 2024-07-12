@@ -33,23 +33,22 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.BufferedReader
 import java.io.File
-import java.io.InputStreamReader
 
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
 fun main() = application {
+    val title =  "删除幕境的配置文件"
     Window(
-        title = "卸载幕境",
+        title = title,
         icon = painterResource("logo.png"),
         state = rememberWindowState(
             size = DpSize(462.dp, 249.dp),
             position = WindowPosition(Alignment.Center),
         ),
         onCloseRequest = ::exitApplication,
+        alwaysOnTop = true,
         transparent = true,
         undecorated = true,
         resizable = false
@@ -60,7 +59,7 @@ fun main() = application {
                 Box(Modifier.fillMaxSize().background(MaterialTheme.colors.background)){
                     var removeConfig by remember { mutableStateOf(false) }
                     val scope = rememberCoroutineScope()
-                    Text("卸载幕境",
+                    Text(title,
                         fontSize = MaterialTheme.typography.h5.fontSize,
                         modifier = Modifier.align(Alignment.TopCenter).padding(top = 20.dp))
                     IconButton(
@@ -86,6 +85,7 @@ fun main() = application {
                     }
                     Row(Modifier.align(Alignment.BottomCenter)){
                         OutlinedButton(
+                            enabled = removeConfig,
                             onClick = {
                                 scope.launch(Dispatchers.Default) {
                                     if(removeConfig){
@@ -94,23 +94,14 @@ fun main() = application {
                                         if(applicationDir.exists()){
                                             applicationDir.deleteRecursively()
                                         }
-                                    }
-
-                                    val productCode = getProductCode()
-                                    if(productCode == null){
-                                        println("未找到幕境安装信息")
                                         exitApplication()
                                     }
-                                    val command = mutableListOf("cmd","/c","start","","msiexec.exe","/x","\"$productCode\"","/passive","/norestart")
-                                    ProcessBuilder(command).start()
-
-                                    delay(3000)
-                                    exitApplication()
                                 }
                             },
                         ) {
-                            Text("卸载")
+                            Text("确定")
                         }
+
                         Spacer(Modifier.width(10.dp))
                         OutlinedButton(
                             onClick = {
@@ -124,25 +115,5 @@ fun main() = application {
             }
         }
     }
-}
-
-
-fun getProductCode(): String? {
-    val process = ProcessBuilder("reg", "query", "HKEY_CURRENT_USER\\SOFTWARE\\MuJing", "/v", "ProductCode")
-        .redirectErrorStream(true)
-        .start()
-
-    process.outputStream.close()
-
-    val reader = BufferedReader(InputStreamReader(process.inputStream))
-    var line: String? = reader.readLine()
-    while (line != null) {
-        if (line.contains("ProductCode")) {
-            return line.substring(line.indexOf("{") ).trim()
-        }
-        line = reader.readLine()
-    }
-
-    return null
 }
 
