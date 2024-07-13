@@ -47,9 +47,12 @@ import state.*
 import state.MemoryStrategy.*
 import tts.AzureTTS
 import tts.rememberAzureTTS
+import ui.dialog.BuiltInVocabularyDialog
 import ui.dialog.ChapterFinishedDialog
 import ui.dialog.ConfirmDialog
+import ui.dialog.DocumentWindow
 import ui.dialog.EditWordDialog
+import ui.dialog.GenerateVocabularyListDialog
 import ui.dialog.SelectChapterDialog
 import java.awt.Component
 import java.awt.Rectangle
@@ -116,6 +119,23 @@ fun WordScreen(
                 wordFocusRequester.requestFocus()
             }
         }
+        var showFilePicker by remember {mutableStateOf(false)}
+        var showBuiltInVocabulary by remember{mutableStateOf(false)}
+        var documentWindowVisible by remember { mutableStateOf(false) }
+        var generateVocabularyListVisible by remember { mutableStateOf(false) }
+        val openChooseVocabulary:(String) ->Unit = { path ->
+            val file = File(path)
+            val index = appState.findVocabularyIndex(file)
+            val changed = appState.changeVocabulary(
+                vocabularyFile = file,
+                wordScreenState,
+                index
+            )
+            if(changed){
+                appState.global.type = ScreenType.WORD
+                appState.saveGlobalState()
+            }
+        }
 
         Row {
             val dictationState = rememberDictationState()
@@ -146,7 +166,12 @@ fun WordScreen(
                         window = window
                     )
                 } else {
-                    VocabularyEmpty()
+                    VocabularyEmpty(
+                        openVocabulary = { showFilePicker = true },
+                        openBuiltInVocabulary = {showBuiltInVocabulary = true},
+                        generateVocabulary = {generateVocabularyListVisible = true},
+                        openDocument = {documentWindowVisible = true}
+                    )
                 }
 
                 Header(
@@ -174,7 +199,7 @@ fun WordScreen(
                 showPlayer = showPlayer
             )
             val ctrl = LocalCtrl.current
-            var showFilePicker by remember {mutableStateOf(false)}
+
             TooltipArea(
                 tooltip = {
                     Surface(
@@ -215,24 +240,14 @@ fun WordScreen(
                 wordScreenState.saveWordScreenState()
             }, toolTip = "移除当前词库")
             val extensions = if(isMacOS()) listOf("public.json") else listOf("json")
+
             FilePicker(
                 show = showFilePicker,
                 fileExtensions = extensions,
                 initialDirectory = ""){pfile ->
                 if(pfile != null){
                     if(pfile.path.isNotEmpty()){
-                        val file = File(pfile.path)
-                        val index = appState.findVocabularyIndex(file)
-                        val changed = appState.changeVocabulary(
-                            vocabularyFile = file,
-                            wordScreenState,
-                            index
-                        )
-                        if(changed){
-                            appState.global.type = ScreenType.WORD
-                            appState.saveGlobalState()
-                        }
-
+                        openChooseVocabulary(pfile.path)
                     }
                 }
 
@@ -240,6 +255,28 @@ fun WordScreen(
             }
         }
 
+
+        BuiltInVocabularyDialog(
+            show = showBuiltInVocabulary,
+            close = {showBuiltInVocabulary = false},
+            openChooseVocabulary = openChooseVocabulary,
+            futureFileChooser = appState.futureFileChooser
+        )
+
+        GenerateVocabularyListDialog(
+            appState = appState,
+            show = generateVocabularyListVisible,
+            close = {generateVocabularyListVisible = false}
+        )
+
+        var currentPage by remember { mutableStateOf("features") }
+        if(documentWindowVisible){
+            DocumentWindow(
+                close = {documentWindowVisible = false},
+                currentPage = currentPage,
+                setCurrentPage = {currentPage = it}
+            )
+        }
     }
 
 }
@@ -1675,70 +1712,68 @@ fun MainContent(
 }
 
 @Composable
-fun VocabularyEmpty() {
+fun VocabularyEmpty(
+    openVocabulary: () -> Unit,
+    openBuiltInVocabulary: () -> Unit = {},
+    generateVocabulary: () -> Unit = {},
+    openDocument: () -> Unit = {}
+) {
     Surface(Modifier.fillMaxSize()) {
 
-        Box( modifier = Modifier.fillMaxSize()){
-            Column(verticalArrangement = Arrangement.Center,
+        Box(modifier = Modifier.fillMaxSize()) {
+            Column(
+                verticalArrangement = Arrangement.Center,
                 modifier = Modifier.align(Alignment.Center)
-            ){
+            ) {
                 Row(
-                    horizontalArrangement = Arrangement.Start,
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Text("请选择一个词库,也可以拖放词库到这里。", style = MaterialTheme.typography.h6)
+                    Text(
+                        text = "打开词库",
+                        color = MaterialTheme.colors.primary,
+                        modifier = Modifier.clickable(onClick = { openVocabulary() })
+                            .padding(5.dp)
+                    )
                 }
                 Row(
-                    horizontalArrangement = Arrangement.Start,
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top =30.dp)
+                    modifier = Modifier.padding(top = 10.dp)
                 ) {
-                    val annotatedString = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                            append("如果要记忆高考单词、四六级单词，请从")
-                        }
-                        withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
-                            append("词库菜单栏")
-                        }
-                        withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                            append(" > ")
-                        }
-                        withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
-                            append("选择内置词库")
-                        }
-                        withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                            append("，保存词库到本地文件系统后再打开。")
-                        }
-                    }
-                    Text(annotatedString, style = MaterialTheme.typography.h6)
+
+                    Text(
+                        text = "内置词库",
+                        color = MaterialTheme.colors.primary,
+                        modifier = Modifier.clickable(onClick = {openBuiltInVocabulary()  })
+                            .padding(5.dp)
+                    )
                 }
 
                 Row(
-                    horizontalArrangement = Arrangement.Start,
+                    horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top =30.dp)
+                    modifier = Modifier.padding(top = 10.dp)
                 ) {
-                    val annotatedString = buildAnnotatedString {
-                        withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                            append("如果要使用电影美剧的字幕生成词库，请从")
-                        }
-                        withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
-                            append("词库菜单栏")
-                        }
-                        withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                            append(" > ")
-                        }
-                        withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
-                            append("用字幕生成词库")
-                        }
-                        withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                            append(" 或 ")
-                        }
-                        withStyle(style = SpanStyle(color = MaterialTheme.colors.primary)) {
-                            append("用MKV视频生成词库。")
-                        }
-                    }
-                    Text(annotatedString, style = MaterialTheme.typography.h6)
+                    Text(
+                        text = "生成词库",
+                        color = MaterialTheme.colors.primary,
+                        modifier = Modifier.clickable(onClick = {generateVocabulary()  })
+                            .padding(5.dp)
+                    )
+                }
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 10.dp)
+                ) {
+                    Text(
+                        text = "文档",
+                        color = MaterialTheme.colors.primary,
+                        modifier = Modifier.clickable(onClick = { openDocument() })
+                            .width(78.dp)
+                            .padding(5.dp)
+                    )
                 }
             }
         }

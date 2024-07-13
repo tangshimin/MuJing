@@ -36,6 +36,7 @@ import javax.swing.filechooser.FileSystemView
 fun BuiltInVocabularyDialog(
     show: Boolean,
     close: () -> Unit,
+    openChooseVocabulary: (String) -> Unit = {},
     futureFileChooser: FutureTask<JFileChooser>
 ) {
     if(show){
@@ -90,6 +91,8 @@ fun BuiltInVocabularyDialog(
                                         try{
                                             fileToSave.writeBytes(file.readBytes())
                                             finish = true
+                                            close()
+                                            openChooseVocabulary(file.absolutePath)
                                         }catch (e:Exception){
                                             e.printStackTrace()
                                             JOptionPane.showMessageDialog(window,"保存失败，错误信息：\n${e.message}")
@@ -100,6 +103,8 @@ fun BuiltInVocabularyDialog(
                                     try{
                                         fileToSave.writeBytes(file.readBytes())
                                         finish = true
+                                        close()
+                                        openChooseVocabulary(file.absolutePath)
                                     }catch (e:Exception){
                                         e.printStackTrace()
                                         JOptionPane.showMessageDialog(window,"保存失败，错误信息：\n${e.message}")
