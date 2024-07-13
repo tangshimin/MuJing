@@ -123,18 +123,33 @@ fun WordFrequencyDialog(
             }
             Box(Modifier.fillMaxSize()){
                 if(selectState == "Idle"){
-                    Column (Modifier.align(Alignment.Center)){
-                        OutlinedButton(onClick = {selectState = "BNC"}){
-                            Text("BNC", modifier = Modifier.padding(end = 1.dp))
-                            Text("   词频")
+                    val bncText =
+                        "英国国家语料库（简称 BNC）是目前网络上可直接使用的较大语料库之一，也是世界上最具代表性的当代英语语料库之一，它收集了来自各种来源的书面和口头语言样本，旨在代表 20 世纪后期英国英语的广泛横截面，包括各种文体和领域。"
+
+                    val cocaText =
+                        "美国当代英语语料库（COCA）是目前最大的免费英语语料库之一，它用计算机统计英语单词词频并排序，截至2017年已包含5.6亿字的文本。该语料库从1990年至2017年以每年2000万字的速度更新扩充，以保证语料库内容的时效性。其语料均衡分布在口语、小说、杂志、报纸以及学术文章五类文体中，被认为是用来观察美国英语当前发展变化的合适语料库，也是广大英语爱好者的学习宝库。"
+
+                    Column (Modifier.align(Alignment.Center).padding(start = 5.dp,end = 5.dp)){
+
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
+                            OutlinedButton(onClick = {selectState = "BNC"}){
+                                Text("BNC", modifier = Modifier.padding(end = 1.dp))
+                                Text("   词频")
+                            }
                         }
-                        Spacer(Modifier.height(20.dp))
-                        OutlinedButton(onClick = {selectState = "COCA"}){
-                            Text("COCA 词频")
+                        Text(text = bncText, modifier = Modifier.padding(top = 10.dp))
+                        Spacer(Modifier.height(50.dp))
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center){
+                            OutlinedButton(onClick = {selectState = "COCA"}){
+                                Text("COCA 词频")
+                            }
                         }
 
+                        Text(text = cocaText, modifier = Modifier.padding(top = 10.dp))
                     }
                 }else{
+
+
                     Row(verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.align(Alignment.Center)){
                         if(selectState == "BNC") {
