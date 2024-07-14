@@ -280,36 +280,67 @@ fun FeaturesPage(){
             modifier = Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp).verticalScroll(stateVertical)){
             val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
 
-            Image(
-                painter = painterResource("screenshot/features-$theme/features-word.png"),
-                contentDescription = "features-word",
-                modifier = Modifier.width(350.dp).height(90.dp)
-            )
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()){
+                Image(
+                    painter = painterResource("screenshot/features-$theme/features-word.png"),
+                    contentDescription = "features-word",
+                    modifier = Modifier.width(150.dp).height(90.dp)
+                )
+                Spacer(Modifier.width(200.dp))
+            }
+
             Text("记忆单词的时候，会自动播放单词的读音，然后用键盘打字练习拼写，每个单词都可以输入多次，直到记住为止。从 MKV 生成的词库(单词本)，可以抄写单词对应的字幕，播放单词对应的视频片段。默认使用 Enter 键切换下一个单词。\n\n")
 
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()){
+                Image(
+                    painter = painterResource("screenshot/features-$theme/features-subtitle.png"),
+                    contentDescription = "features-subtitle",
+                    modifier = Modifier.width(150.dp).height(90.dp)
+                )
+                Spacer(Modifier.width(200.dp))
+            }
 
-            Image(
-                painter = painterResource("screenshot/features-$theme/features-subtitle.png"),
-                contentDescription = "features-subtitle",
-                modifier = Modifier.width(350.dp).height(90.dp)
-            )
+
+
             Text("字幕浏览器，可以浏览字幕，练习跟读美剧、电影、TED演讲，可以选择性的播放一条或多条字幕，如果要播放多行字幕，点击左边的数字就可以开启，点击 5 和 10 再点击左边的播放按钮，就会从第5行开始播放，到第10行结束。还可以抄写字幕。\n\n")
 
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()){
+                Image(
+                    painter = painterResource("screenshot/features-$theme/features-player.png"),
+                    contentDescription = "features-player",
+                    modifier = Modifier.width(150.dp).height(90.dp)
+                )
+                Spacer(Modifier.width(200.dp))
+            }
 
-            Image(
-                painter = painterResource("screenshot/features-$theme/features-player.png"),
-                contentDescription = "features-player",
-                modifier = Modifier.width(350.dp).height(90.dp)
-            )
-            Text("以弹幕的形式复习单词。播放电影时，添加用电影生成的词库到播放器，单词会以弹幕的形式出现。要查看某个单词的中文解释，只需要输入单词或对应的数字就可以查看。\n" +
+            Text("以弹幕的形式复习单词。播放电影时，添加用电影生成的词库到播放器，单词会以弹幕的形式出现。要查看某个单词的中文解释，只需要输入单词或对应的数字就可以查看。" +
                     "打开弹幕的快捷方式：如果正在记忆某个由视频或字幕生成的词库，把视频拖放到记忆单词界面，就可以快速的打开视频和弹幕。\n\n")
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()){
+                Image(
+                    painter = painterResource("screenshot/features-$theme/features-text.png"),
+                    contentDescription = "features-text",
+                    modifier = Modifier.width(150.dp).height(90.dp)
+                )
+                Spacer(Modifier.width(200.dp))
+            }
 
-            Image(
-                painter = painterResource("screenshot/features-$theme/features-text.png"),
-                contentDescription = "features-text",
-                modifier = Modifier.width(350.dp).height(90.dp)
-            )
-            Text("抄写文本，可以抄写 txt 格式的文本")
+
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()){
+                Text("抄写文本，可以抄写 txt 格式的文本")
+                Spacer(Modifier.width(200.dp))
+            }
+
+
         }
 
         VerticalScrollbar(
