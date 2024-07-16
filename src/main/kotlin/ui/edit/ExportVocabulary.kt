@@ -18,11 +18,14 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import com.formdev.flatlaf.extras.FlatSVGUtils
 import data.MutableVocabulary
 import data.Vocabulary
+import data.VocabularyType
+import data.Word
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -43,7 +46,12 @@ import java.io.FileOutputStream
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
 import javax.swing.JOptionPane
+import javax.swing.filechooser.FileSystemView
 
+/**
+ * 编辑词库界面的导出词库功能，
+ * 写成这样是为了避免打开或关闭对话框时的白色闪光问题
+ */
 fun exportVocabulary(
     vocabulary: Vocabulary,
     vocabularyPath:String,
@@ -124,7 +132,7 @@ fun ExportVocabulary(
                     if (userSelection == JFileChooser.APPROVE_OPTION) {
                         val fileToSave = fileChooser.selectedFile
                         if(format == "xlsx"){
-                            val workbook = createWorkbook(vocabulary, cellVisible)
+                            val workbook = createWorkbook(vocabulary.wordList,vocabulary.type, cellVisible)
                             try{
                                 if (fileToSave.exists()) {
                                     // 是-0,否-1，取消-2
@@ -158,7 +166,7 @@ fun ExportVocabulary(
 
 
                         }else{
-                            val text = createText(vocabulary)
+                            val text = createText(vocabulary.wordList)
                             try{
                                 if (fileToSave.exists()) {
                                     // 是-0,否-1，取消-2
@@ -409,7 +417,293 @@ fun ExportVocabulary(
 
 }
 
-fun createWorkbook(vocabulary: MutableVocabulary, cellVisible: CellVisibleState): Workbook {
+/**
+ * 保存词库为其他格式，xlsx 或 txt
+ * 在生成词库界面，点击保存为其他格式后显示
+ */
+@OptIn(ExperimentalMaterialApi::class, ExperimentalSerializationApi::class)
+@Composable
+fun SaveOtherVocabulary(
+    vocabularyType: VocabularyType,
+    wordList:List<Word>,
+    fileName:String,
+    close: () -> Unit,
+    colors: Colors,
+    futureFileChooser: FutureTask<JFileChooser>,
+){
+    MaterialTheme(colors = colors) {
+        val windowState = rememberDialogState(
+            size = DpSize(650.dp, 650.dp),
+            position = WindowPosition(Alignment.Center)
+        )
+        DialogWindow(
+            title = "保存词库",
+            onCloseRequest = close,
+            state = windowState,
+            alwaysOnTop = true
+        ) {
+
+            var format by remember { mutableStateOf("xlsx") }
+            val cellVisible by remember{ mutableStateOf(CellVisibleState(CellVisible())) }
+            val save = {
+                val fileChooser = futureFileChooser.get()
+                fileChooser.dialogType = JFileChooser.SAVE_DIALOG
+                fileChooser.dialogTitle = "保存词库"
+                val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
+                fileChooser.selectedFile = File("$myDocuments${File.separator}$fileName.${format}")
+                val userSelection = fileChooser.showSaveDialog(window)
+                if (userSelection == JFileChooser.APPROVE_OPTION) {
+                    val fileToSave = fileChooser.selectedFile
+                    if(format == "xlsx"){
+                        val workbook = createWorkbook(wordList, vocabularyType,cellVisible)
+                        try{
+                            if (fileToSave.exists()) {
+                                // 是-0,否-1，取消-2
+                                val answer =
+                                    JOptionPane.showConfirmDialog(window, "${fileToSave.nameWithoutExtension}.${format} 已存在。\n要替换它吗？")
+                                if (answer == 0) {
+                                    FileOutputStream(fileToSave).use { out ->
+                                        workbook.write(out)
+                                    }
+                                }
+                            } else {
+                                FileOutputStream(fileToSave).use { out ->
+                                    workbook.write(out)
+                                }
+                            }
+                        }catch (e:Exception){
+                            e.printStackTrace()
+                            JOptionPane.showMessageDialog(window,"保存失败,错误信息：\n${e.message}")
+                        }
+
+
+
+                    }else{
+                        val text = createText(wordList)
+                        try{
+                            if (fileToSave.exists()) {
+                                // 是-0,否-1，取消-2
+                                val answer =
+                                    JOptionPane.showConfirmDialog(window, "${fileToSave.nameWithoutExtension}.${format} 已存在。\n要替换它吗？")
+                                if (answer == 0) {
+                                    fileToSave.writeText(text)
+                                }
+                            } else {
+                                fileToSave.writeText(text)
+                            }
+                        }catch (e:Exception){
+                            e.printStackTrace()
+                            JOptionPane.showMessageDialog(window,"保存失败,错误信息：\n${e.message}")
+                        }
+
+
+                    }
+                    close()
+                }
+            }
+
+            Surface(
+                elevation = 5.dp,
+                shape = RectangleShape,
+            ) {
+                Box(Modifier.fillMaxSize()){
+                    Column(
+                        verticalArrangement = Arrangement.Top,
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        modifier = Modifier.align(Alignment.TopCenter).fillMaxSize().padding(top = 20.dp)){
+
+
+                        Row(
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.width(250.dp)
+                        ){
+                            var expanded by remember { mutableStateOf(false) }
+
+                            Text("格式: ")
+                            Box{
+                                val width = 195.dp
+                                val text = when (format) {
+                                    "txt" -> "文本文件(*.txt)"
+                                    else -> "Excel 工作簿(*.xlsx)"
+                                }
+                                OutlinedButton(onClick = {expanded = true}){
+                                    Text(text)
+                                    Icon(Icons.Default.ExpandMore, contentDescription = "Localized description")
+                                }
+
+                                DropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false },
+                                    modifier = Modifier.width(width)
+                                        .height(140.dp)
+                                ) {
+                                    val selectedColor = if(MaterialTheme.colors.isLight) Color(245, 245, 245) else Color(41, 42, 43)
+                                    val backgroundColor = Color.Transparent
+                                    DropdownMenuItem(
+                                        onClick = {
+                                            format = "txt"
+                                            expanded = false
+
+                                        },
+                                        modifier = Modifier.width(width).height(40.dp)
+                                            .background( if(format == "txt")selectedColor else backgroundColor )
+                                    ) {
+                                        Text("文本文件(*.txt)")
+                                    }
+                                    DropdownMenuItem(
+                                        onClick = {
+                                            format = "xlsx"
+                                            expanded = false
+                                        },
+                                        modifier = Modifier.width(width).height(40.dp)
+                                            .background(if(format == "xlsx") selectedColor else backgroundColor)
+                                    ) {
+                                        Text("Excel 工作簿(*.xlsx)")
+
+                                    }
+                                }
+                            }
+                        }
+
+                        var show by remember { mutableStateOf(false) }
+                        if(format == "xlsx"){
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ){
+                                ListItem(
+                                    text = { Text("选择要保存的属性", color = MaterialTheme.colors.onBackground) },
+                                    trailing = {
+                                        Icon(
+                                            imageVector = Icons.Default.ExpandMore,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colors.onBackground
+                                        )
+                                    },
+                                    modifier = Modifier
+                                        .padding(top = 10.dp)
+                                        .width(250.dp)
+                                        .clickable {show = !show }
+                                        .border(BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f))),
+                                )
+                            }
+                        }else{
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ){
+                                Text("文本文件只能保存单词，不能保存其他属性。", color = MaterialTheme.colors.onBackground)
+                            }
+                        }
+
+                        if(show){
+                            Column (
+                                modifier = Modifier.width(250.dp)
+                            ){
+                                ListItem(
+                                    text = { Text("单词", color = MaterialTheme.colors.onBackground) },
+                                    modifier = Modifier.clickable { },
+                                    trailing = {}
+                                )
+                                Divider()
+                                ListItem(
+                                    text = { Text("中文释义", color = MaterialTheme.colors.onBackground) },
+                                    modifier = Modifier.clickable { cellVisible.translationVisible = !cellVisible.translationVisible },
+                                    trailing = {
+                                        Switch(
+                                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                                            checked = cellVisible.translationVisible,
+                                            onCheckedChange = {cellVisible.translationVisible = !cellVisible.translationVisible},
+                                        )
+                                    }
+                                )
+
+                                ListItem(
+                                    text = { Text("英文释义", color = MaterialTheme.colors.onBackground) },
+                                    modifier = Modifier.clickable { cellVisible.definitionVisible = !cellVisible.definitionVisible },
+                                    trailing = {
+                                        Switch(
+                                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                                            checked = cellVisible.definitionVisible,
+                                            onCheckedChange = {cellVisible.definitionVisible = !cellVisible.definitionVisible },
+                                        )
+                                    }
+                                )
+
+                                ListItem(
+                                    text = { Text("英国音标", color = MaterialTheme.colors.onBackground) },
+                                    modifier = Modifier.clickable { cellVisible.uKPhoneVisible = !cellVisible.uKPhoneVisible },
+                                    trailing = {
+                                        Switch(
+                                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                                            checked = cellVisible.uKPhoneVisible,
+                                            onCheckedChange = { cellVisible.uKPhoneVisible = !cellVisible.uKPhoneVisible },
+                                        )
+                                    }
+                                )
+                                ListItem(
+                                    text = { Text("美国音标", color = MaterialTheme.colors.onBackground) },
+                                    modifier = Modifier.clickable { cellVisible.usPhoneVisible = !cellVisible.usPhoneVisible },
+                                    trailing = {
+                                        Switch(
+                                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                                            checked = cellVisible.usPhoneVisible,
+                                            onCheckedChange = { cellVisible.usPhoneVisible = !cellVisible.usPhoneVisible },
+                                        )
+                                    }
+                                )
+                                ListItem(
+                                    text = { Text("词形变化", color = MaterialTheme.colors.onBackground) },
+                                    modifier = Modifier.clickable { cellVisible.exchangeVisible = !cellVisible.exchangeVisible },
+                                    trailing = {
+                                        Switch(
+                                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                                            checked = cellVisible.exchangeVisible,
+                                            onCheckedChange = {cellVisible.exchangeVisible = !cellVisible.exchangeVisible},
+                                        )
+                                    }
+                                )
+                                ListItem(
+                                    text = { Text("字幕", color = MaterialTheme.colors.onBackground) },
+                                    modifier = Modifier.clickable { cellVisible.captionsVisible = !cellVisible.captionsVisible },
+                                    trailing = {
+                                        Switch(
+                                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                                            checked = cellVisible.captionsVisible,
+                                            onCheckedChange = {cellVisible.captionsVisible = !cellVisible.captionsVisible},
+                                        )
+                                    }
+                                )
+                            }
+                        }
+
+                    }
+                    Row(
+                        horizontalArrangement = Arrangement.End,
+                        modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(10.dp)
+                    ){
+                        OutlinedButton(onClick = {save()}) {
+                            Text("保存")
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        OutlinedButton(onClick = {close()}) {
+                            Text("取消")
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+
+}
+
+fun createWorkbook(
+    wordList: List<Word>,
+    vocabularyType: VocabularyType,
+    cellVisible: CellVisibleState
+): Workbook {
     val workbook = XSSFWorkbook()
     val sheet = workbook.createSheet("单词列表")
     val headerRow = sheet.createRow(0)
@@ -481,7 +775,7 @@ fun createWorkbook(vocabulary: MutableVocabulary, cellVisible: CellVisibleState)
     bodyStyle.setVerticalAlignment(VerticalAlignment.CENTER)
     bodyStyle.wrapText = true
     var rowIndex = 1
-    vocabulary.wordList.forEach { word ->
+    wordList.forEach { word ->
         val row = sheet.createRow(rowIndex++)
         cellIndex = 0
 
@@ -516,7 +810,7 @@ fun createWorkbook(vocabulary: MutableVocabulary, cellVisible: CellVisibleState)
             cell.cellStyle = bodyStyle
         }
         if(cellVisible.captionsVisible){
-            val captions = displayCaptions(word, vocabulary.type)
+            val captions = displayCaptions(word, vocabularyType)
             val cell = row.createCell(cellIndex++)
             cell.setCellValue(captions)
             cell.cellStyle = bodyStyle
@@ -542,9 +836,9 @@ fun createWorkbook(vocabulary: MutableVocabulary, cellVisible: CellVisibleState)
     return workbook
 }
 
-fun createText(vocabulary: MutableVocabulary): String {
+fun createText(wordList: List<Word>): String {
     val sb = StringBuilder()
-    vocabulary.wordList.forEach { word ->
+    wordList.forEach { word ->
         sb.append(word.value)
         sb.append("\n")
     }

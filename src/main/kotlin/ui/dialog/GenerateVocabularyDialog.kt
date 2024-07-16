@@ -9,7 +9,6 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -19,7 +18,6 @@ import androidx.compose.material.icons.filled.Help
 import androidx.compose.material.icons.outlined.Error
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.runtime.*
-import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -71,7 +69,6 @@ import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import org.mozilla.universalchardet.UniversalDetector
-import player.isWindows
 import player.parseTrackList
 import state.AppState
 import state.composeAppResource
@@ -80,6 +77,7 @@ import subtitleFile.FormatSRT
 import subtitleFile.TimedTextObject
 import ui.createTransferHandler
 import ui.dialog.FilterState.*
+import ui.edit.SaveOtherVocabulary
 import java.awt.BorderLayout
 import java.awt.Desktop
 import java.io.File
@@ -906,6 +904,14 @@ fun GenerateVocabularyDialog(
         bottomPanel.setSize(Int.MAX_VALUE, 54)
         bottomPanel.setContent {
             MaterialTheme(colors = state.colors) {
+                val fileName = File(selectedFilePath).nameWithoutExtension
+                val saveEnabled = previewList.isNotEmpty()
+                var saveOtherFormats by remember { mutableStateOf(false) }
+                val vType = if (title == "过滤词库") {
+                    filteringType
+                } else if (selectedFileList.isNotEmpty()) {
+                    DOCUMENT
+                } else type
                 Column(
                     horizontalAlignment = Alignment.End,
                     verticalArrangement = Arrangement.Center,
@@ -917,15 +923,21 @@ fun GenerateVocabularyDialog(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth().height(54.dp)
                     ) {
+
                         OutlinedButton(
-                            enabled = previewList.size > 0,
+                            enabled =saveEnabled,
+                            onClick = { saveOtherFormats = true }) {
+                            Text("保存为其他格式")
+                        }
+                        Spacer(Modifier.width(10.dp))
+                        OutlinedButton(
+                            enabled = saveEnabled,
                             onClick = {
                                 scope.launch (Dispatchers.Default) {
                                     val fileChooser = state.futureFileChooser.get()
                                     fileChooser.dialogType = JFileChooser.SAVE_DIALOG
                                     fileChooser.dialogTitle = "保存词库"
                                     val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                                    val fileName = File(selectedFilePath).nameWithoutExtension
                                     if (state.filterVocabulary && File(selectedFilePath).nameWithoutExtension == "FamiliarVocabulary") {
                                         fileChooser.selectedFile = File(selectedFilePath)
                                     } else {
@@ -942,11 +954,6 @@ fun GenerateVocabularyDialog(
                                                 "不能把词库保存到应用程序安装目录，因为软件更新或卸载时，生成的词库会被删除"
                                             )
                                         } else {
-                                            val vType = if (title == "过滤词库") {
-                                                filteringType
-                                            } else if (selectedFileList.isNotEmpty()) {
-                                                DOCUMENT
-                                            } else type
                                             val vocabulary = Vocabulary(
                                                 name = selectedFile.nameWithoutExtension,
                                                 type = vType,
@@ -1008,6 +1015,18 @@ fun GenerateVocabularyDialog(
                         Spacer(Modifier.width(10.dp))
                     }
                 }
+
+                if(saveOtherFormats){
+                    SaveOtherVocabulary(
+                        fileName =fileName ,
+                        wordList = previewList,
+                        vocabularyType = vType,
+                        futureFileChooser = state.futureFileChooser,
+                        colors = state.colors,
+                        close = {saveOtherFormats = false}
+                    )
+                }
+
             }
 
         }
