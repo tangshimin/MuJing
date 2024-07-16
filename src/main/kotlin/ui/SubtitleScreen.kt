@@ -297,7 +297,7 @@ fun SubtitleScreen(
         }
     }
 
-    /** 移除当前字幕*/
+    /** 关闭当前字幕*/
     val removeSubtitles:() -> Unit = {
         selectedPath = ""
         trackList.clear()
@@ -1355,7 +1355,7 @@ fun SubtitleScreen(
                     )
                 }
             }
-            RemoveButton( onClick = {removeSubtitles()},toolTip = "移除当前字幕")
+            RemoveButton( onClick = {removeSubtitles()},toolTip = "关闭当前字幕")
         }
 
 

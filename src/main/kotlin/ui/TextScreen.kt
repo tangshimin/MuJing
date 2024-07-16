@@ -112,7 +112,7 @@ fun TextScreen(
         saveTextState()
     }
 
-    /** 移除当前文本 */
+    /** 关闭当前文本 */
     val removeText:() -> Unit = {
         textState.textPath = ""
         focusManager.clearFocus()
@@ -659,7 +659,7 @@ fun TextScreen(
                     )
                 }
             }
-            RemoveButton( onClick = {removeText()},toolTip = "移除当前文本")
+            RemoveButton( onClick = {removeText()},toolTip = "关闭当前文本")
 
         }
 

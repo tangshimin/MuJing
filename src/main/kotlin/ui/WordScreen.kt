@@ -238,7 +238,7 @@ fun WordScreen(
                 wordScreenState.vocabularyName = ""
                 wordScreenState.vocabularyPath = ""
                 wordScreenState.saveWordScreenState()
-            }, toolTip = "移除当前词库")
+            }, toolTip = "关闭当前词库")
             val extensions = if(isMacOS()) listOf("public.json") else listOf("json")
 
             FilePicker(
@@ -2823,7 +2823,7 @@ fun ExitButton(
 
 /**
  *
- * 移除按钮
+ * 关闭按钮
  */
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class, ExperimentalComposeUiApi::class)
 @Composable
