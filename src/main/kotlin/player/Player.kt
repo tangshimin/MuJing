@@ -55,7 +55,9 @@ import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
 import java.awt.Cursor
 import java.awt.Dimension
+import java.awt.Point
 import java.awt.Toolkit
+import java.awt.image.BufferedImage
 import java.io.File
 import java.util.*
 import javax.swing.JOptionPane
@@ -174,7 +176,7 @@ fun Player(
     var controlBoxVisible by remember { mutableStateOf(false) }
     var timeSliderPress by remember { mutableStateOf(false) }
     var audioSliderPress by remember { mutableStateOf(false) }
-
+    var playerCursor by remember{ mutableStateOf(PointerIcon.Default) }
     /** 展开设置菜单 */
     var settingsExpanded by remember { mutableStateOf(false) }
 
@@ -470,6 +472,7 @@ fun Player(
             Surface(
                 color = Color.Transparent,
                 modifier = Modifier.fillMaxSize()
+                    .pointerHoverIcon(playerCursor)
                     .border(border = BorderStroke(1.dp, if(isFullscreen) Color.Transparent else MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
                     .combinedClickable(
                         interactionSource = remember(::MutableInteractionSource),
@@ -504,7 +507,13 @@ fun Player(
 
             ) {
 
-
+                LaunchedEffect(controlBoxVisible){
+                    if(controlBoxVisible){
+                        playerCursor = PointerIcon.Default
+                    }else{
+                        playerCursor = PointerIcon.None
+                    }
+                }
 
 
                 Column {
@@ -1551,3 +1560,12 @@ private fun getPlayerSettingsFile(): File {
     val settingsDir = getSettingsDirectory()
     return File(settingsDir, "PlayerSettings.json")
 }
+
+
+val PointerIcon.Companion.None: PointerIcon
+    get() {
+        val toolkit = Toolkit.getDefaultToolkit()
+        val image = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
+        val transparentCursor = toolkit.createCustomCursor(image, Point(0, 0), "transparentCursor")
+        return PointerIcon(transparentCursor)
+    }
