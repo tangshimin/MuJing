@@ -5,11 +5,18 @@ on:
 
 jobs:
   create-mac-package:
-    name: Create Mac Package
+    name: Create Package On ${{ matrix.os }} - ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ macos-13, macos-latest ]
+        include:
+          - os: macos-13
+            arch: x64
+            name: macOS x86_64
+          - os: macos-latest
+            arch: aarch64
+            name: macOS aarch64
     permissions:
       contents: write
     steps:
