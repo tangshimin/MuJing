@@ -355,7 +355,7 @@ fun composeAppResource(path: String): File {
             if (arch == "arm" || arch == "aarch64") {
                 file = File("resources/macos-arm64/$path")
             }
-            file = File("resources/macos/$path")
+            file = File("resources/macos-x64/$path")
         }
         file
     }
