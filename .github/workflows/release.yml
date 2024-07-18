@@ -44,10 +44,13 @@ jobs:
   #         token: ${{ secrets.GITHUB_TOKEN  }}
 
   create-mac-package:
-    runs-on: macos-13
+    name: Create Mac Package
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ macos-13, macos-latest ]
     permissions:
       contents: write
-    name: Create Mac Package
     steps:
       # Setup Java environment for the next steps
       - name: Setup Java
