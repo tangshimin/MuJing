@@ -127,41 +127,47 @@ tasks.withType(JavaCompile::class.java) {
 }
 
 project.afterEvaluate {
-    tasks.named("prepareAppResources") {
-        doLast {
-            println("Running custom task after prepareAppResources")
-            val plugins =  project.layout.projectDirectory.dir("build/compose/tmp/prepareAppResources/VLC/plugins").getAsFile().absolutePath
-            val cacheGen =  project.layout.projectDirectory.dir("build/compose/tmp/prepareAppResources/VLC/vlc-cache-gen.exe").getAsFile().absolutePath
-            val command = listOf(cacheGen, plugins)
-            try {
-                val process = ProcessBuilder(command).start()
-                process.waitFor()
-            } catch (e: Exception) {
-                println("Error running vlc-cache-gen: ${e.message}")
-            }
+    val os = System.getProperty("os.name", "generic").lowercase()
+    // 如果是 windows 系统，需要在打包之前运行 vlc-cache-gen 生成 VLC 插件缓存
+    if(os.indexOf("windows") >= 0){
+        tasks.named("prepareAppResources") {
+            doLast {
+                println("Running custom task after prepareAppResources")
+                val plugins =  project.layout.projectDirectory.dir("build/compose/tmp/prepareAppResources/VLC/plugins").getAsFile().absolutePath
+                val cacheGen =  project.layout.projectDirectory.dir("build/compose/tmp/prepareAppResources/VLC/vlc-cache-gen.exe").getAsFile().absolutePath
+                val command = listOf(cacheGen, plugins)
+                try {
+                    val process = ProcessBuilder(command).start()
+                    process.waitFor()
+                } catch (e: Exception) {
+                    println("Error running vlc-cache-gen: ${e.message}")
+                }
 
+            }
+        }
+    }else if(os.indexOf("mac") >= 0 || os.indexOf("darwin") >= 0){
+     // github 的下载地址不支持中文名称，所以需要在打包之后修改安装包的名称
+        tasks.register("renameDmg") {
+            doLast {
+                val dmgFile = fileTree("${buildDir}/compose/binaries/main/dmg") {
+                    include("*.dmg")
+                }.singleFile
+                val arch = System.getProperty("os.arch").lowercase()
+                val newDmgFile = file("${dmgFile.parentFile}/MuJing-${project.version}-${arch}.dmg")
+                if (newDmgFile.exists()) {
+                    newDmgFile.delete()
+                }
+
+                dmgFile.renameTo(newDmgFile)
+            }
+        }
+        tasks.named("packageDmg") {
+            finalizedBy("renameDmg")
         }
     }
 
 
-    tasks.register("renameDmg") {
-        doLast {
-            val dmgFile = fileTree("${buildDir}/compose/binaries/main/dmg") {
-                include("*.dmg")
-            }.singleFile
 
-            val newDmgFile = file("${dmgFile.parentFile}/MuJing-${project.version}.dmg")
-            if (newDmgFile.exists()) {
-                newDmgFile.delete()
-            }
-
-            dmgFile.renameTo(newDmgFile)
-        }
-    }
-
-    tasks.named("packageDmg") {
-        finalizedBy("renameDmg")
-    }
 }
 
 apply(from = "wix.gradle.kts")
