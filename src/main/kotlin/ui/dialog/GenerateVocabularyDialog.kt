@@ -1584,7 +1584,10 @@ fun VocabularyFilter(
                         expanded = expanded,
                         onDismissRequest = { expanded = false },
                         offset = DpOffset(20.dp, 0.dp),
-                        modifier = Modifier.width(IntrinsicSize.Max).height(dropdownMenuHeight)
+                        modifier = Modifier
+                            .widthIn(min = 300.dp, max = 700.dp)
+                            .width(IntrinsicSize.Max)
+                            .height(dropdownMenuHeight)
                     ) {
 
                         Box(Modifier.fillMaxWidth().height(dropdownMenuHeight)) {
