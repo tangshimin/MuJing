@@ -9,6 +9,7 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -21,13 +22,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon.Companion.Hand
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -43,7 +42,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import com.matthewn4444.ebml.EBMLReader
@@ -54,6 +53,7 @@ import data.Dictionary
 import data.VocabularyType.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import opennlp.tools.langdetect.LanguageDetector
 import opennlp.tools.langdetect.LanguageDetectorME
@@ -69,16 +69,17 @@ import org.burnoutcrew.reorderable.detectReorder
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import org.mozilla.universalchardet.UniversalDetector
+import player.isWindows
 import player.parseTrackList
 import state.AppState
 import state.composeAppResource
 import state.getResourcesFile
 import subtitleFile.FormatSRT
 import subtitleFile.TimedTextObject
+import ui.components.SaveButton
 import ui.createTransferHandler
 import ui.dialog.FilterState.*
 import ui.edit.SaveOtherVocabulary
-import java.awt.BorderLayout
 import java.awt.Desktop
 import java.io.File
 import java.io.FileInputStream
@@ -115,7 +116,7 @@ fun GenerateVocabularyDialog(
     type: VocabularyType
 ) {
     val windowWidth = if(type == MKV) 1320.dp else 1285.dp
-    Dialog(
+    DialogWindow(
         title = title,
         onCloseRequest = {
             onCloseRequest(state, title)
@@ -680,367 +681,349 @@ fun GenerateVocabularyDialog(
 
         }
 
-        val contentPanel = ComposePanel()
-        contentPanel.setContent {
-            MaterialTheme(colors = state.colors) {
-                Column(Modifier.fillMaxSize().background(MaterialTheme.colors.background)) {
-                    Divider()
-                    Row(Modifier.fillMaxWidth()) {
-                        // 左边的过滤区
-                        val width = if(vocabularyFilterList.isEmpty()) 380.dp else 450.dp
-                        Column(Modifier.width(width).fillMaxHeight()) {
-                            BasicFilter(
-                                numberFilter = numberFilter,
-                                changeNumberFilter = {
-                                    numberFilter = it
-                                    filterState = Filtering
-                                },
-                                bncNum = state.global.bncNum,
-                                setBncNum = {state.global.bncNum = it},
-                                bncNumFilter = bncNumberFilter,
-                                changeBncNumFilter = {
-                                    bncNumberFilter = it
-                                    filterState = Filtering
-                                },
-                                frqNum = state.global.frqNum,
-                                setFrqNum = {state.global.frqNum = it},
-                                frqNumFilter = frqNumFilter,
-                                changeFrqFilter = {
-                                    frqNumFilter = it
-                                    filterState = Filtering
-                                },
-                                bncZeroFilter = bncZeroFilter,
-                                changeBncZeroFilter = {
-                                    bncZeroFilter = it
-                                    filterState = Filtering
-                                },
-                                frqZeroFilter = frqZeroFilter,
-                                changeFrqZeroFilter = {
-                                    frqZeroFilter = it
-                                    filterState = Filtering
-                                },
-                                replaceToLemma = replaceToLemma,
-                                setReplaceToLemma = {
-                                    replaceToLemma = it
-                                    filterState = Filtering
-                                },
-                            )
-                            VocabularyFilter(
-                                futureFileChooser = state.futureFileChooser,
-                                vocabularyFilterList = vocabularyFilterList,
-                                vocabularyFilterListAdd = {
-                                    if (!vocabularyFilterList.contains(it)) {
-                                        vocabularyFilterList.add(it)
-                                        filterState = Filtering
-                                    }
-                                },
-                                vocabularyFilterListRemove = {
-                                    vocabularyFilterList.remove(it)
-                                    filterState = Filtering
-                                },
-                                recentList = state.recentList,
-                                removeInvalidRecentItem = {
-                                    state.removeRecentItem(it)
-                                },
-                                familiarVocabulary = familiarVocabulary,
-                                updateFamiliarVocabulary = {
-                                    val wordList = loadMutableVocabularyByName("FamiliarVocabulary").wordList
-                                    familiarVocabulary.wordList.addAll(wordList)
-                                }
-                            )
-                        }
-                        Divider(Modifier.width(1.dp).fillMaxHeight())
-                        // 生成词库区
-                        Column(
-                            Modifier.fillMaxWidth().fillMaxHeight().background(MaterialTheme.colors.background)
-                        ) {
 
-                            SelectFile(
-                                type = type,
-                                selectedFileList = selectedFileList,
-                                selectedFilePath = selectedFilePath,
-                                setSelectedFilePath = { selectedFilePath = it },
-                                selectedSubtitle = selectedSubtitlesName,
-                                setSelectedSubtitle = { selectedSubtitlesName = it },
-                                setRelateVideoPath = {relateVideoPath = it},
-                                relateVideoPath = relateVideoPath,
-                                trackList = trackList,
-                                selectedTrackId = selectedTrackId,
-                                setSelectedTrackId = { selectedTrackId = it },
-                                showTaskList = showTaskList,
-                                showTaskListEvent = {
-                                    showTaskList = !showTaskList
-                                    if(!showTaskList){
-                                        selectable = false
-                                    }
-                               },
-                                analysis = { pathName, trackId ->
-                                    analysis(pathName, trackId)
-                                },
-                                batchAnalysis = { batchAnalysis(it) },
-                                selectable = selectable,
-                                changeSelectable = { selectable = !selectable },
-                                selectAll = { selectAll() },
-                                delete = { delete() },
-                                chooseText = chooseText,
-                                openFile = { openFile() },
-                                openRelateVideo = { openRelateVideo() }
-                            )
-
-                            // 单词预览和任务列表
-                            Box(Modifier.fillMaxSize()) {
-                                when (filterState) {
-                                    Parsing -> {
-                                        Column(
-                                            verticalArrangement = Arrangement.Center,
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                            modifier = Modifier.align(Alignment.Center).fillMaxSize()
-                                        ) {
-                                            CircularProgressIndicator(
-                                                Modifier.width(60.dp).padding(bottom = 60.dp)
-                                            )
-                                            Text(text = progressText, color = MaterialTheme.colors.onBackground)
-                                        }
-                                    }
-                                    Filtering -> {
-                                        CircularProgressIndicator(
-                                            Modifier.width(60.dp).align(Alignment.Center)
-                                        )
-                                        scope.launch (Dispatchers.Default) {
-                                            // 根据词频或原型过滤单词
-                                            val filteredDocumentList = filterDocumentWords(
-                                                previewList,
-                                                numberFilter,
-                                                state.global.bncNum,
-                                                bncNumberFilter,
-                                                state.global.frqNum,
-                                                frqNumFilter,
-                                                bncZeroFilter,
-                                                frqZeroFilter,
-                                                replaceToLemma,
-                                                selectedFileList.isNotEmpty()
-                                            )
-                                            previewList.clear()
-                                            // 根据选择的词库过滤单词
-                                            val filteredList = filterSelectVocabulary(
-                                                selectedFileList = vocabularyFilterList,
-                                                filteredDocumentList = filteredDocumentList
-                                            )
-                                            // 过滤手动删除的单词
-                                            filteredList.removeAll(removedWords)
-                                            previewList.addAll(filteredList)
-                                            filterState = End
-                                        }
-
-
-                                    }
-                                    End -> {
-                                        PreviewWords(
-                                            previewList = previewList,
-                                            summaryVocabulary = summaryVocabulary,
-                                            removeWord = { removeWord(it) },
-                                            sort = sort,
-                                            changeSort = {sort = it}
-                                        )
-                                    }
-                                    Idle -> {
-                                        if(!loading){
-                                            Text(
-                                                text = "可以拖放文件到这里",
-                                                color = MaterialTheme.colors.onBackground,
-                                                style = MaterialTheme.typography.h6,
-                                                modifier = Modifier.align(Alignment.Center)
-                                            )
-                                        }
-
-                                    }
-                                }
-
-                                    if (loading) {
-                                        Column(
-                                            verticalArrangement = Arrangement.Center,
-                                            horizontalAlignment = Alignment.CenterHorizontally,
-                                            modifier = Modifier.align(Alignment.Center).fillMaxSize()
-                                        ) {
-                                            CircularProgressIndicator(
-                                                Modifier.width(60.dp).padding(bottom = 60.dp)
-                                            )
-                                            val text = if (selectedFileList.isNotEmpty()) {
-                                                "正在读取第一个视频的字幕轨道列表"
-                                            } else {
-                                                "正在读取字幕轨道列表"
-                                            }
-                                            Text(text = text, color = MaterialTheme.colors.onBackground)
-                                        }
-                                    }
-                                if (showTaskList) {
-                                    TaskList(
-                                        selectedFileList = selectedFileList,
-                                        updateOrder = {
-                                            scope.launch {
-                                                selectedFileList.clear()
-                                                selectedFileList.addAll(it)
-                                            }
-                                        },
-                                        tasksState = tasksState,
-                                        currentTask = currentTask,
-                                        errorMessages = errorMessages,
-                                        selectable = selectable,
-                                        checkedFileMap = checkedFileMap,
-                                        checkedChange = {
-                                            checkedFileMap[it.first] = it.second
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-
-                }
-            }
-        }
-
-        val bottomPanel = ComposePanel()
-        bottomPanel.setSize(Int.MAX_VALUE, 54)
-        bottomPanel.setContent {
-            MaterialTheme(colors = state.colors) {
-                val fileName = File(selectedFilePath).nameWithoutExtension
-                val saveEnabled = previewList.isNotEmpty()
-                var saveOtherFormats by remember { mutableStateOf(false) }
-                val vType = if (title == "过滤词库") {
-                    filteringType
-                } else if (selectedFileList.isNotEmpty()) {
-                    DOCUMENT
-                } else type
-                Column(
-                    horizontalAlignment = Alignment.End,
-                    verticalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth().height(54.dp).background(MaterialTheme.colors.background)
-                ) {
-                    Divider()
-                    Row(
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically,
-                        modifier = Modifier.fillMaxWidth().height(54.dp)
-                    ) {
-
-                        OutlinedButton(
-                            enabled =saveEnabled,
-                            onClick = { saveOtherFormats = true }) {
-                            Text("保存为其他格式")
-                        }
-                        Spacer(Modifier.width(10.dp))
-                        OutlinedButton(
-                            enabled = saveEnabled,
-                            onClick = {
-                                scope.launch (Dispatchers.Default) {
-                                    val fileChooser = state.futureFileChooser.get()
-                                    fileChooser.dialogType = JFileChooser.SAVE_DIALOG
-                                    fileChooser.dialogTitle = "保存词库"
-                                    val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                                    if (state.filterVocabulary && File(selectedFilePath).nameWithoutExtension == "FamiliarVocabulary") {
-                                        fileChooser.selectedFile = File(selectedFilePath)
-                                    } else {
-                                        fileChooser.selectedFile = File("$myDocuments${File.separator}$fileName.json")
-                                    }
-                                    val userSelection = fileChooser.showSaveDialog(window)
-                                    if (userSelection == JFileChooser.APPROVE_OPTION) {
-                                        val selectedFile = fileChooser.selectedFile
-                                        val vocabularyDirPath = Paths.get(getResourcesFile("vocabulary").absolutePath)
-                                        val savePath = Paths.get(selectedFile.absolutePath)
-                                        if (savePath.startsWith(vocabularyDirPath)) {
-                                            JOptionPane.showMessageDialog(
-                                                null,
-                                                "不能把词库保存到应用程序安装目录，因为软件更新或卸载时，生成的词库会被删除"
-                                            )
-                                        } else {
-                                            val vocabulary = Vocabulary(
-                                                name = selectedFile.nameWithoutExtension,
-                                                type = vType,
-                                                language = "english",
-                                                size = previewList.size,
-                                                relateVideoPath = relateVideoPath,
-                                                subtitlesTrackId = selectedTrackId,
-                                                wordList = previewList
-                                            )
-                                            try {
-                                                saveVocabulary(vocabulary, selectedFile.absolutePath)
-                                                state.saveToRecentList(vocabulary.name, selectedFile.absolutePath, 0)
-
-                                                // 清理状态
-                                                selectedFileList.clear()
-                                                showTaskList = false
-                                                tasksState.clear()
-                                                currentTask = null
-                                                errorMessages.clear()
-                                                selectedFilePath = ""
-                                                selectedSubtitlesName = ""
-                                                previewList.clear()
-                                                relateVideoPath = ""
-                                                selectedTrackId = 0
-                                                filteringType = DOCUMENT
-                                                trackList.clear()
-                                                filterState = Idle
-                                                vocabularyFilterList.clear()
-                                                numberFilter = false
-                                                frqNumFilter = false
-                                                bncNumberFilter = false
-                                                bncZeroFilter = false
-                                                frqZeroFilter = false
-                                                replaceToLemma = false
-                                            } catch (e: Exception) {
-                                                e.printStackTrace()
-                                                JOptionPane.showMessageDialog(
-                                                    window,
-                                                    "保存词库失败,错误信息：\n${e.message}"
-                                                )
-                                            }
-
-
-                                        }
-
-
-                                    }
-                                }
-
-                            }) {
-                            Text("保存")
-                        }
-                        Spacer(Modifier.width(10.dp))
-                        OutlinedButton(onClick = {
-                            onCloseRequest(state, title)
-                        }) {
-                            Text("取消")
-                        }
-                        Spacer(Modifier.width(10.dp))
-                    }
-                }
-
-                if(saveOtherFormats){
-                    SaveOtherVocabulary(
-                        fileName =fileName ,
-                        wordList = previewList,
-                        vocabularyType = vType,
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colors.background)) {
+        Column(Modifier.fillMaxWidth()
+            .padding(bottom = 60.dp)
+            .background(MaterialTheme.colors.background)) {
+            Divider()
+            Row(Modifier.fillMaxWidth()) {
+                // 左边的过滤区
+                val width = if(vocabularyFilterList.isEmpty()) 380.dp else 450.dp
+                Column(Modifier.width(width).fillMaxHeight()) {
+                    BasicFilter(
+                        numberFilter = numberFilter,
+                        changeNumberFilter = {
+                            numberFilter = it
+                            filterState = Filtering
+                        },
+                        bncNum = state.global.bncNum,
+                        setBncNum = {state.global.bncNum = it},
+                        bncNumFilter = bncNumberFilter,
+                        changeBncNumFilter = {
+                            bncNumberFilter = it
+                            filterState = Filtering
+                        },
+                        frqNum = state.global.frqNum,
+                        setFrqNum = {state.global.frqNum = it},
+                        frqNumFilter = frqNumFilter,
+                        changeFrqFilter = {
+                            frqNumFilter = it
+                            filterState = Filtering
+                        },
+                        bncZeroFilter = bncZeroFilter,
+                        changeBncZeroFilter = {
+                            bncZeroFilter = it
+                            filterState = Filtering
+                        },
+                        frqZeroFilter = frqZeroFilter,
+                        changeFrqZeroFilter = {
+                            frqZeroFilter = it
+                            filterState = Filtering
+                        },
+                        replaceToLemma = replaceToLemma,
+                        setReplaceToLemma = {
+                            replaceToLemma = it
+                            filterState = Filtering
+                        },
+                    )
+                    VocabularyFilter(
                         futureFileChooser = state.futureFileChooser,
-                        colors = state.colors,
-                        close = {saveOtherFormats = false}
+                        vocabularyFilterList = vocabularyFilterList,
+                        vocabularyFilterListAdd = {
+                            if (!vocabularyFilterList.contains(it)) {
+                                vocabularyFilterList.add(it)
+                                filterState = Filtering
+                            }
+                        },
+                        vocabularyFilterListRemove = {
+                            vocabularyFilterList.remove(it)
+                            filterState = Filtering
+                        },
+                        recentList = state.recentList,
+                        removeInvalidRecentItem = {
+                            state.removeRecentItem(it)
+                        },
+                        familiarVocabulary = familiarVocabulary,
+                        updateFamiliarVocabulary = {
+                            val wordList = loadMutableVocabularyByName("FamiliarVocabulary").wordList
+                            familiarVocabulary.wordList.addAll(wordList)
+                        }
                     )
                 }
+                Divider(Modifier.width(1.dp).fillMaxHeight())
+                // 生成词库区
+                Column(
+                    Modifier.fillMaxWidth().fillMaxHeight().background(MaterialTheme.colors.background)
+                ) {
 
+                    SelectFile(
+                        type = type,
+                        selectedFileList = selectedFileList,
+                        selectedFilePath = selectedFilePath,
+                        setSelectedFilePath = { selectedFilePath = it },
+                        selectedSubtitle = selectedSubtitlesName,
+                        setSelectedSubtitle = { selectedSubtitlesName = it },
+                        setRelateVideoPath = {relateVideoPath = it},
+                        relateVideoPath = relateVideoPath,
+                        trackList = trackList,
+                        selectedTrackId = selectedTrackId,
+                        setSelectedTrackId = { selectedTrackId = it },
+                        showTaskList = showTaskList,
+                        showTaskListEvent = {
+                            showTaskList = !showTaskList
+                            if(!showTaskList){
+                                selectable = false
+                            }
+                        },
+                        analysis = { pathName, trackId ->
+                            analysis(pathName, trackId)
+                        },
+                        batchAnalysis = { batchAnalysis(it) },
+                        selectable = selectable,
+                        changeSelectable = { selectable = !selectable },
+                        selectAll = { selectAll() },
+                        delete = { delete() },
+                        chooseText = chooseText,
+                        openFile = { openFile() },
+                        openRelateVideo = { openRelateVideo() }
+                    )
+
+                    // 单词预览和任务列表
+                    Box(Modifier.fillMaxSize()) {
+                        when (filterState) {
+                            Parsing -> {
+                                Column(
+                                    verticalArrangement = Arrangement.Center,
+                                    horizontalAlignment = Alignment.CenterHorizontally,
+                                    modifier = Modifier.align(Alignment.Center).fillMaxSize()
+                                ) {
+                                    CircularProgressIndicator(
+                                        Modifier.width(60.dp).padding(bottom = 60.dp)
+                                    )
+                                    Text(text = progressText, color = MaterialTheme.colors.onBackground)
+                                }
+                            }
+                            Filtering -> {
+                                CircularProgressIndicator(
+                                    Modifier.width(60.dp).align(Alignment.Center)
+                                )
+                                scope.launch (Dispatchers.Default) {
+                                    // 根据词频或原型过滤单词
+                                    val filteredDocumentList = filterDocumentWords(
+                                        previewList,
+                                        numberFilter,
+                                        state.global.bncNum,
+                                        bncNumberFilter,
+                                        state.global.frqNum,
+                                        frqNumFilter,
+                                        bncZeroFilter,
+                                        frqZeroFilter,
+                                        replaceToLemma,
+                                        selectedFileList.isNotEmpty()
+                                    )
+                                    previewList.clear()
+                                    // 根据选择的词库过滤单词
+                                    val filteredList = filterSelectVocabulary(
+                                        selectedFileList = vocabularyFilterList,
+                                        filteredDocumentList = filteredDocumentList
+                                    )
+                                    // 过滤手动删除的单词
+                                    filteredList.removeAll(removedWords)
+                                    previewList.addAll(filteredList)
+                                    filterState = End
+                                }
+
+
+                            }
+                            End -> {
+                                PreviewWords(
+                                    previewList = previewList,
+                                    summaryVocabulary = summaryVocabulary,
+                                    removeWord = { removeWord(it) },
+                                    sort = sort,
+                                    changeSort = {sort = it}
+                                )
+                            }
+                            Idle -> {
+                                if(!loading){
+                                    Text(
+                                        text = "可以拖放文件到这里",
+                                        color = MaterialTheme.colors.onBackground,
+                                        style = MaterialTheme.typography.h6,
+                                        modifier = Modifier.align(Alignment.Center)
+                                    )
+                                }
+
+                            }
+                        }
+
+                        if (loading) {
+                            Column(
+                                verticalArrangement = Arrangement.Center,
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.align(Alignment.Center).fillMaxSize()
+                            ) {
+                                CircularProgressIndicator(
+                                    Modifier.width(60.dp).padding(bottom = 60.dp)
+                                )
+                                val text = if (selectedFileList.isNotEmpty()) {
+                                    "正在读取第一个视频的字幕轨道列表"
+                                } else {
+                                    "正在读取字幕轨道列表"
+                                }
+                                Text(text = text, color = MaterialTheme.colors.onBackground)
+                            }
+                        }
+                        if (showTaskList) {
+                            TaskList(
+                                selectedFileList = selectedFileList,
+                                updateOrder = {
+                                    scope.launch {
+                                        selectedFileList.clear()
+                                        selectedFileList.addAll(it)
+                                    }
+                                },
+                                tasksState = tasksState,
+                                currentTask = currentTask,
+                                errorMessages = errorMessages,
+                                selectable = selectable,
+                                checkedFileMap = checkedFileMap,
+                                checkedChange = {
+                                    checkedFileMap[it.first] = it.second
+                                }
+                            )
+                        }
+                    }
+                }
             }
 
         }
-        SwingPanel(
-            background = Color(MaterialTheme.colors.background.toArgb()),
-            modifier = Modifier.fillMaxWidth().fillMaxHeight(),
-            factory = {
-                JPanel().apply {
-                    layout = BorderLayout()
-                    add(bottomPanel, BorderLayout.SOUTH)
-                    add(contentPanel, BorderLayout.CENTER)
+        // Bottom
+        Column(
+            horizontalAlignment = Alignment.End,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .height(60.dp)
+                .background(MaterialTheme.colors.background)
+        ) {
+            val fileName = File(selectedFilePath).nameWithoutExtension
+            val saveEnabled = previewList.isNotEmpty()
+            var saveOtherFormats by remember { mutableStateOf(false) }
+            val vType = if (title == "过滤词库") {
+                filteringType
+            } else if (selectedFileList.isNotEmpty()) {
+                DOCUMENT
+            } else type
+            Divider()
+            Row(
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().height(60.dp)
+            ) {
+                SaveButton(
+                    enabled = saveEnabled,
+                    saveClick = {
+                        scope.launch (Dispatchers.Default) {
+                            val fileChooser =
+                                withContext(Dispatchers.IO) {
+                                    state.futureFileChooser.get()
+                                }
+                            fileChooser.dialogType = JFileChooser.SAVE_DIALOG
+                            fileChooser.dialogTitle = "保存词库"
+                            val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
+                            if (state.filterVocabulary && File(selectedFilePath).nameWithoutExtension == "FamiliarVocabulary") {
+                                fileChooser.selectedFile = File(selectedFilePath)
+                            } else {
+                                fileChooser.selectedFile = File("$myDocuments${File.separator}$fileName.json")
+                            }
+                            val userSelection = fileChooser.showSaveDialog(window)
+                            if (userSelection == JFileChooser.APPROVE_OPTION) {
+                                val selectedFile = fileChooser.selectedFile
+                                val vocabularyDirPath = Paths.get(getResourcesFile("vocabulary").absolutePath)
+                                val savePath = Paths.get(selectedFile.absolutePath)
+                                if (savePath.startsWith(vocabularyDirPath)) {
+                                    JOptionPane.showMessageDialog(
+                                        null,
+                                        "不能把词库保存到应用程序安装目录，因为软件更新或卸载时，生成的词库会被删除"
+                                    )
+                                } else {
+                                    val vocabulary = Vocabulary(
+                                        name = selectedFile.nameWithoutExtension,
+                                        type = vType,
+                                        language = "english",
+                                        size = previewList.size,
+                                        relateVideoPath = relateVideoPath,
+                                        subtitlesTrackId = selectedTrackId,
+                                        wordList = previewList
+                                    )
+                                    try {
+                                        saveVocabulary(vocabulary, selectedFile.absolutePath)
+                                        state.saveToRecentList(vocabulary.name, selectedFile.absolutePath, 0)
+
+                                        // 清理状态
+                                        selectedFileList.clear()
+                                        showTaskList = false
+                                        tasksState.clear()
+                                        currentTask = null
+                                        errorMessages.clear()
+                                        selectedFilePath = ""
+                                        selectedSubtitlesName = ""
+                                        previewList.clear()
+                                        relateVideoPath = ""
+                                        selectedTrackId = 0
+                                        filteringType = DOCUMENT
+                                        trackList.clear()
+                                        filterState = Idle
+                                        vocabularyFilterList.clear()
+                                        numberFilter = false
+                                        frqNumFilter = false
+                                        bncNumberFilter = false
+                                        bncZeroFilter = false
+                                        frqZeroFilter = false
+                                        replaceToLemma = false
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
+                                        JOptionPane.showMessageDialog(
+                                            window,
+                                            "保存词库失败,错误信息：\n${e.message}"
+                                        )
+                                    }
+
+
+                                }
+
+
+                            }
+                        }
+
+
+                    },
+                    otherClick = {saveOtherFormats = true}
+                )
+                Spacer(Modifier.width(10.dp))
+                OutlinedButton(onClick = {
+                    onCloseRequest(state, title)
+                }) {
+                    Text("取消")
                 }
+                Spacer(Modifier.width(10.dp))
             }
-        )
+
+            if (saveOtherFormats) {
+                SaveOtherVocabulary(
+                    fileName = fileName,
+                    wordList = previewList,
+                    vocabularyType = vType,
+                    futureFileChooser = state.futureFileChooser,
+                    colors = state.colors,
+                    close = { saveOtherFormats = false }
+                )
+            }
+        }
+    }
 
     }
 }
@@ -2372,10 +2355,10 @@ fun PreviewWords(
         Box(Modifier.fillMaxWidth()) {
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(130.dp),
-                contentPadding = PaddingValues(10.dp),
+                contentPadding = PaddingValues(15.dp),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 50.dp, end = 60.dp),
+                ,
                 state = listState
             ) {
                 itemsIndexed(sortedList) { _: Int, word ->
@@ -2466,6 +2449,7 @@ fun PreviewWords(
             }
 
             VerticalScrollbar(
+                style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
                 modifier = Modifier.align(Alignment.CenterEnd)
                     .fillMaxHeight(),
                 adapter = rememberScrollbarAdapter(
