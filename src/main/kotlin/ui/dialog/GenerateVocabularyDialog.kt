@@ -22,7 +22,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -72,10 +71,10 @@ import org.mozilla.universalchardet.UniversalDetector
 import player.isWindows
 import player.parseTrackList
 import state.AppState
-import state.composeAppResource
 import state.getResourcesFile
 import subtitleFile.FormatSRT
 import subtitleFile.TimedTextObject
+import ui.components.BuiltInVocabularyMenu
 import ui.components.SaveButton
 import ui.createTransferHandler
 import ui.dialog.FilterState.*
@@ -92,12 +91,8 @@ import java.util.*
 import java.util.concurrent.FutureTask
 import java.util.regex.Pattern
 import javax.swing.*
-import javax.swing.event.TreeSelectionEvent
-import javax.swing.event.TreeSelectionListener
 import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.filechooser.FileSystemView
-import javax.swing.tree.DefaultMutableTreeNode
-import javax.swing.tree.TreePath
 
 /**
  * 生成词库
@@ -1508,52 +1503,12 @@ fun VocabularyFilter(
 ) {
     val scope = rememberCoroutineScope()
     Row(Modifier.fillMaxWidth().background(MaterialTheme.colors.background)) {
-        var selectedPath: TreePath? = null
-        val vocabulary = composeAppResource("vocabulary")
-        val pathNameMap = searchPaths(vocabulary)
-        val tree = JTree(addNodes(null, vocabulary))
-
-        val treeSelectionListener: TreeSelectionListener = object : TreeSelectionListener {
-            override fun valueChanged(event: TreeSelectionEvent?) {
-                if (event != null) {
-                    val path = event.path
-                    val node = path.lastPathComponent as DefaultMutableTreeNode
-                    val name = node.userObject.toString()
-                    if (node.isLeaf) {
-                        val filePath = pathNameMap[name]
-                        if (filePath != null) {
-                            val file = File(filePath)
-                            if (!vocabularyFilterList.contains(file)) {
-                                vocabularyFilterListAdd(file)
-                            }
-                        }
-
-                    }
-                    selectedPath = path
-                }
-
-            }
-
-        }
-
-        tree.addTreeSelectionListener(treeSelectionListener)
-
-        val scrollPane = JScrollPane(
-            tree,
-            JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-            JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
-        )
-        if (!MaterialTheme.colors.isLight) {
-            tree.background = java.awt.Color(32, 33, 34)
-            scrollPane.background = java.awt.Color(32, 33, 34)
-        }
-        scrollPane.border = BorderFactory.createEmptyBorder(0, 0, 0, 0)
 
         Column(Modifier.width(180.dp).fillMaxHeight().background(MaterialTheme.colors.background)) {
 
             if (recentList.isNotEmpty()) {
-                var expanded by remember { mutableStateOf(false) }
                 Box(Modifier.width(180.dp).height(IntrinsicSize.Max).padding(top = 10.dp)) {
+                    var expanded by remember { mutableStateOf(false) }
                     OutlinedButton(
                         onClick = { expanded = true },
                         modifier = Modifier
@@ -1621,6 +1576,7 @@ fun VocabularyFilter(
                     }
                 }
             }
+
             Box(Modifier.width(180.dp).height(IntrinsicSize.Max).background(MaterialTheme.colors.background)) {
                 var expanded by remember { mutableStateOf(false) }
                 OutlinedButton(
@@ -1631,18 +1587,15 @@ fun VocabularyFilter(
                 ) {
                     Text(text = "内置词库")
                 }
-                DropdownMenu(
+                BuiltInVocabularyMenu(
                     expanded = expanded,
-                    offset = DpOffset(20.dp, 0.dp),
                     onDismissRequest = { expanded = false },
-                ) {
-                    SwingPanel(
-                        modifier = Modifier.width(400.dp).height(400.dp),
-                        factory = {
-                            scrollPane
+                    addVocabulary = { file ->
+                        if (!vocabularyFilterList.contains(file)) {
+                            vocabularyFilterListAdd(file)
                         }
-                    )
-                }
+                    }
+                )
             }
             Row(
                 horizontalArrangement = Arrangement.Center,
@@ -1741,10 +1694,6 @@ fun VocabularyFilter(
             SelectedList(
                 vocabularyFilterList,
                 removeFile = {
-                    if (selectedPath != null) {
-                        tree.removeSelectionPath(selectedPath)
-                        selectedPath = null
-                    }
                     vocabularyFilterListRemove(it)
                 })
         }
@@ -1796,72 +1745,6 @@ fun SelectedList(
 
 }
 
-/**
- * Map<String,String> 的类型参数，第一个代表文件名，第二个代表文件的绝对路径
- */
-fun searchPaths(dir: File): MutableMap<String, String> {
-    val pathNameMap: MutableMap<String, String> = hashMapOf()
-    dir.listFiles().forEach { file ->
-        if (file.isDirectory) {
-            pathNameMap.putAll(searchPaths(file))
-        }
-        if (!file.isDirectory) {
-            var name = file.nameWithoutExtension
-            if(file.parentFile.nameWithoutExtension == "人教版英语" ||
-                file.parentFile.nameWithoutExtension == "外研版英语"||
-                file.parentFile.nameWithoutExtension == "北师大版高中英语"){
-                if(name.contains(" ")){
-                    name = name.split(" ")[1]
-                }
-
-            }
-            pathNameMap.put(name, file.absolutePath)
-        }
-    }
-    return pathNameMap
-}
-
-fun addNodes(curTop: DefaultMutableTreeNode?, dir: File): DefaultMutableTreeNode {
-    val curDir = DefaultMutableTreeNode(dir.nameWithoutExtension)
-    curTop?.add(curDir)
-    val ol = Vector<File>()
-    dir.listFiles().forEach { ol.addElement(it) }
-    if(dir.nameWithoutExtension.contains("人教版英语")||
-        dir.nameWithoutExtension.contains("外研版英语")||
-        dir.nameWithoutExtension.contains("北师大版高中英语")
-        ){
-        ol.sortBy{it.nameWithoutExtension.split(" ")[0].toFloat()}
-    }else{
-        ol.sort()
-    }
-
-    val files = Vector<String>()
-
-    ol.forEach { file ->
-        if (file.isDirectory)
-            addNodes(curDir, file)
-        else{
-            var name = file.nameWithoutExtension
-            if(file.parentFile.nameWithoutExtension == "人教版英语" ||
-                file.parentFile.nameWithoutExtension == "外研版英语"||
-                file.parentFile.nameWithoutExtension == "北师大版高中英语"){
-                if(name.contains(" ")){
-                    name = name.split(" ")[1]
-                }
-
-            }
-            files.addElement(name)
-        }
-
-    }
-
-//    val cmp = Collator.getInstance(Locale.SIMPLIFIED_CHINESE)
-//    Collections.sort(files, cmp)
-    files.forEach {
-        curDir.add(DefaultMutableTreeNode(it))
-    }
-    return curDir
-}
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
