@@ -348,6 +348,10 @@ fun GenerateVocabularyDialog(
                                             )
                                             loading = false
                                         } else { // 窗口已经有文件了
+                                            // 已经有一个相同的 MKV 视频，不再添加
+                                            if(file.absolutePath == selectedFilePath){
+                                                return@launch
+                                            }
                                             // 如果之前有一个 MKV 视频,把之前的视频加入到 selectedFileList
                                             if (selectedFilePath.isNotEmpty() && selectedFileList.isEmpty()) {
                                                 val f = File(selectedFilePath)
@@ -357,9 +361,14 @@ fun GenerateVocabularyDialog(
                                                 selectedFilePath = ""
                                                 relateVideoPath = ""
                                             }
-                                            selectedFileList.add(file)
-                                            selectedFileList.sortBy { it.nameWithoutExtension }
-                                            if (selectedFileList.isNotEmpty()) showTaskList = true
+                                            // 列表里面没有这个文件，就添加
+                                            if(!selectedFileList.contains(file)){
+                                                selectedFileList.add(file)
+                                                selectedFileList.sortBy { it.nameWithoutExtension }
+                                                if (selectedFileList.isNotEmpty()) showTaskList = true
+                                            }
+
+
                                         }
 
                                     }
@@ -433,7 +442,10 @@ fun GenerateVocabularyDialog(
                         var extensionWrong = ""
                         files.forEach { file ->
                             if (file.extension == "mkv") {
-                                selectedFileList.add(file)
+                                if(!selectedFileList.contains(file)){
+                                    selectedFileList.add(file)
+                                }
+
                             } else {
                                 extensionWrong = extensionWrong + file.name + "\n"
                             }
