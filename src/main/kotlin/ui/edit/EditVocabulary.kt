@@ -304,56 +304,6 @@ fun Table(
         JScrollPane(table, JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED)
 
 
-    val addRow = {
-        if (!dialogOpen) {
-            dialogOpen = true
-            val index = model.rowCount + 1
-            editWordSwing(
-                word = Word(value = ""),
-                title = "添加单词",
-                appState = appState,
-                vocabulary = vocabulary,
-                vocabularyDir = File(vocabularyPath).parentFile!!,
-                save = {
-//                    dialogOpen = false
-                    val captions = displayCaptions(it, vocabulary.type)
-                    val exchange = displayExchange(it.exchange)
-                    val row = arrayOf(
-                        index,
-                        it.value,
-                        it.translation,
-                        it.definition,
-                        it.usphone,
-                        it.ukphone,
-                        captions,
-                        exchange
-                    )
-                    model.addRow(row)
-                    wordList.add(it)
-                    vocabulary.size = wordList.size
-                    saveVocabulary("添加成功")
-                    // 滚动到最后以后,还差一点，第一次不会滚动到最底部，后面几次可以看到最后一行，但是没有完全显示。
-                    table.changeSelection(table.getRowCount()-1, 1,false,false)
-                },
-                close = { dialogOpen = false },
-            )
-        }
-
-    }
-
-    val removeRow = {
-        val rows = table.selectedRows
-        if (rows.isNotEmpty()) {
-            for (row in rows.reversed()) {
-                model.removeRow(row)
-                vocabulary.wordList.removeAt(row)
-            }
-            vocabulary.size = wordList.size
-            saveVocabulary("保存成功")
-        }
-    }
-
-
     val onBackgroundColor = if (FlatLaf.isLafDark()) Color(137, 148, 155) else Color.darkGray
 
     val settings = FlatButton()
@@ -813,7 +763,56 @@ fun Table(
 
     })
 
+    val addRow = {
+        if (!dialogOpen) {
+            dialogOpen = true
+            val index = model.rowCount + 1
+            editWordSwing(
+                word = Word(value = ""),
+                title = "添加单词",
+                appState = appState,
+                vocabulary = vocabulary,
+                vocabularyDir = File(vocabularyPath).parentFile!!,
+                save = {
+//                    dialogOpen = false
+                    val captions = displayCaptions(it, vocabulary.type)
+                    val exchange = displayExchange(it.exchange)
+                    val row = arrayOf(
+                        index,
+                        it.value,
+                        it.translation,
+                        it.definition,
+                        it.usphone,
+                        it.ukphone,
+                        captions,
+                        exchange
+                    )
+                    model.addRow(row)
+                    wordList.add(it)
+                    vocabulary.size = wordList.size
+                    saveVocabulary("添加成功")
+                    // 滚动到最后以后,还差一点，第一次不会滚动到最底部，后面几次可以看到最后一行，但是没有完全显示。
+                    table.changeSelection(table.getRowCount()-1, 1,false,false)
+                },
+                close = { dialogOpen = false },
+            )
+        }
 
+    }
+
+    val removeRow = {
+        val rows = table.selectedRows
+        if (rows.isNotEmpty()) {
+            for (row in rows.reversed()) {
+                model.removeRow(row)
+                vocabulary.wordList.removeAt(row)
+            }
+            vocabulary.size = wordList.size
+            saveVocabulary("保存成功")
+        }
+        // 如果搜索框里还有单词，再重新搜索一次，重建单词高亮。
+        search()
+    }
 
     addButton.addActionListener { addRow() }
     removeButton.addActionListener { removeRow() }
