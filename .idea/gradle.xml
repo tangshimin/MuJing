@@ -12,10 +12,10 @@
         </option>
       </GradleProjectSettings>
       <GradleProjectSettings>
-        <option name="externalProjectPath" value="$PROJECT_DIR$/uninstall" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/RemoveConfig" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$/uninstall" />
+            <option value="$PROJECT_DIR$/RemoveConfig" />
           </set>
         </option>
       </GradleProjectSettings>
