@@ -294,18 +294,7 @@ private fun editWixTask(
     uninstallComponent.appendChild(uninstallRegistry)
 
     programeMenuDir.appendChild(uninstallComponent)
-//    programMenuFolderElement.appendChild(uninstallComponent)
-
     targetDirectory.appendChild(programMenuFolderElement)
-
-    // 设置所有组件的架构为 64 位
-    val components = doc.documentElement.getElementsByTagName("Component")
-    for (i in 0 until components.length) {
-        val component = components.item(i) as Element
-        val win64 = doc.createAttribute("Win64")
-        win64.value = "yes"
-        component.setAttributeNode(win64)
-    }
 
     // 添加 ProgramFiles64Folder 节点
     val programFilesElement = doc.createElement("Directory")
@@ -332,6 +321,33 @@ private fun editWixTask(
             file.setAttribute("Id","RemoveConfig.exe")
             break
         }
+    }
+
+    // <Component Guid="{GUID}" Id="installProduct">
+    //    <RegistryValue Root="HKLM" Key="Software\MuJing"
+    //                   Name="InstallLocation" Type="string" Value="[INSTALLDIR]" KeyPath="yes"/>
+    //</Component>
+    val installGuid = createNameUUID("installProduct")
+    val installComponent = componentBuilder(doc, id = "installProduct", guid = installGuid)
+    val installRegistry = doc.createElement("RegistryValue").apply{
+        setAttributeNode(doc.createAttribute("Root").also { it.value = "HKLM" })
+        setAttributeNode(doc.createAttribute("Key").also { it.value = "Software\\MuJing" })
+        setAttributeNode(doc.createAttribute("Name").also { it.value = "InstallLocation" })
+        setAttributeNode(doc.createAttribute("Type").also { it.value = "string" })
+        setAttributeNode(doc.createAttribute("Value").also { it.value = "[INSTALLDIR]" })
+        setAttributeNode(doc.createAttribute("KeyPath").also { it.value = "yes" })
+    }
+    installComponent.appendChild(installRegistry)
+    installDirElement.appendChild(installComponent)
+
+
+    // 设置所有组件的架构为 64 位
+    val components = doc.documentElement.getElementsByTagName("Component")
+    for (i in 0 until components.length) {
+        val component = components.item(i) as Element
+        val win64 = doc.createAttribute("Win64")
+        win64.value = "yes"
+        component.setAttributeNode(win64)
     }
 
     // 设置 Feature 节点
@@ -442,9 +458,11 @@ private fun editWixTask(
     val desktopFolderRef = componentRefBuilder(doc, "DesktopFolder")
     val programMenuDirRef = componentRefBuilder(doc, "programeMenuDirComponent")
     val uninstallProductRef = componentRefBuilder(doc, "UninstallProduct")
+    val installProductRef = componentRefBuilder(doc, "installProduct")
     componentGroup.appendChild(desktopFolderRef)
     componentGroup.appendChild(programMenuDirRef)
     componentGroup.appendChild(uninstallProductRef)
+    componentGroup.appendChild(installProductRef)
 
     generateXml(doc, wixFile)
 }
