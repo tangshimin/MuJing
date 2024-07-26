@@ -55,13 +55,13 @@ tasks.register<Exec>("createRemoveConfigExe") {
     val renameApp = tasks.named("renameApp")
     dependsOn(renameApp)
     doLast{
-        val removeConfigApp =project.layout.projectDirectory.dir("RemoveConfig/build/compose/binaries/main/app/RemoveConfig/app/").getAsFile()
-        val mujingApp = project.layout.projectDirectory.dir("build/compose/binaries/main/app/MuJing/app/").getAsFile()
-        val mujing = project.layout.projectDirectory.dir("build/compose/binaries/main/app/MuJing/").getAsFile()
+        val removeConfigApp =project.layout.projectDirectory.dir("RemoveConfig/build/compose/binaries/main/app/RemoveConfig/app/").asFile
+        val mujingApp = project.layout.projectDirectory.dir("build/compose/binaries/main/app/MuJing/app/").asFile
+        val mujing = project.layout.projectDirectory.dir("build/compose/binaries/main/app/MuJing/").asFile
 
         val removeJar = removeConfigApp.listFiles { file -> file.name.startsWith("RemoveConfig") && file.extension == "jar" }?.first()
-        val removecfg = project.layout.projectDirectory.dir("RemoveConfig/build/compose/binaries/main/app/RemoveConfig/app/RemoveConfig.cfg").getAsFile()
-        val removeExe = project.layout.projectDirectory.dir("RemoveConfig/build/compose/binaries/main/app/RemoveConfig/RemoveConfig.exe").getAsFile()
+        val removecfg = project.layout.projectDirectory.dir("RemoveConfig/build/compose/binaries/main/app/RemoveConfig/app/RemoveConfig.cfg").asFile
+        val removeExe = project.layout.projectDirectory.dir("RemoveConfig/build/compose/binaries/main/app/RemoveConfig/RemoveConfig.exe").asFile
 
         // 需要把 RemoveConfig.cfg 和 RemoveConfig.jar 复制到 mujingApp 里面, 把 RemoveConfig.exe 复制到 mujing 里面
         removeJar?.copyTo(File(mujingApp, removeJar?.name))
@@ -77,7 +77,7 @@ project.tasks.register<Exec>("harvest") {
     val removeConfig = tasks.named("createRemoveConfigExe")
     dependsOn(removeConfig)
     workingDir(appDir)
-    val heat = project.layout.projectDirectory.file("build/wix311/heat.exe").getAsFile().absolutePath
+    val heat = project.layout.projectDirectory.file("build/wix311/heat.exe").asFile.absolutePath
 
     // heat dir "./MuJing" -cg DefaultFeature -gg -sfrag -sreg -template product -out MuJing.wxs -var var.SourceDir
     commandLine(
@@ -122,7 +122,7 @@ project.tasks.register<Exec>("compileWxs") {
     val editWxs = tasks.named("editWxs")
     dependsOn(editWxs)
     workingDir(appDir)
-    val candle = project.layout.projectDirectory.file("build/wix311/candle.exe").getAsFile().absolutePath
+    val candle = project.layout.projectDirectory.file("build/wix311/candle.exe").asFile.absolutePath
     // candle main.wxs -dSourceDir=".\MuJing"
     commandLine(candle, "MuJing.wxs","-nologo", "-dSourceDir=.\\MuJing")
 }
@@ -133,7 +133,7 @@ project.tasks.register<Exec>("light") {
     val compileWxs = tasks.named("compileWxs")
     dependsOn(compileWxs)
     workingDir(appDir)
-    val light = project.layout.projectDirectory.file("build/wix311/light.exe").getAsFile().absolutePath
+    val light = project.layout.projectDirectory.file("build/wix311/light.exe").asFile.absolutePath
 
     // light -ext WixUIExtension -cultures:zh-CN -spdb MuJing.wixobj -o MuJing.msi
     commandLine(light, "-ext", "WixUIExtension", "-cultures:zh-CN", "-spdb","-nologo", "MuJing.wixobj", "-o", "MuJing-${project.version}.msi")
@@ -149,7 +149,7 @@ private fun editWixTask(
     licensePath: String,
     manufacturer:String
 ) {
-    val wixFile = project.layout.projectDirectory.dir("build/compose/binaries/main/app/MuJing.wxs").getAsFile()
+    val wixFile = project.layout.projectDirectory.dir("build/compose/binaries/main/app/MuJing.wxs").asFile
 
     val dbf = DocumentBuilderFactory.newInstance()
     val doc = dbf.newDocumentBuilder().parse(wixFile)
@@ -169,7 +169,7 @@ private fun editWixTask(
     // 设置升级码, 用于升级,大版本更新时，可能需要修改这个值
     // 如果要修改这个值，可能还需要修改安装位置，如果不修改安装位置，两个版本会安装在同一个位置
     // 这段代码和 MajorUpgrade 相关，如果 UpgradeCode 一直保持不变，安装新版的时候会自动卸载旧版本。
-    val upgradeCode = createNameUUID("UpgradeCode")
+    val upgradeCode = createNameUUID("111111111111111111111111111111111")
     productElement.setAttribute("UpgradeCode", upgradeCode)
 
 
@@ -191,25 +191,14 @@ private fun editWixTask(
     //    <InstallExecuteSequence>
     //        <Custom Action="RunRemoveConfigExe" After="UnpublishFeatures">(REMOVE = "ALL") AND (NOT UPGRADINGPRODUCTCODE)</Custom>
     //    </InstallExecuteSequence>
-    val removeConfig = doc.createElement("CustomAction")
-    val removeConfigId = doc.createAttribute("Id")
-    removeConfigId.value = "RunRemoveConfigExe"
-    val removeConfigFileKey = doc.createAttribute("FileKey")
-    removeConfigFileKey.value = "RemoveConfig.exe"
-    val removeConfigExeCommand = doc.createAttribute("ExeCommand")
-    removeConfigExeCommand.value = ""
-    val removeConfigExecute = doc.createAttribute("Execute")
-    removeConfigExecute.value = "deferred"
-    val removeConfigImpersonate = doc.createAttribute("Impersonate")
-    removeConfigImpersonate.value = "yes"
-    val removeConfigReturn = doc.createAttribute("Return")
-    removeConfigReturn.value = "ignore"
-    removeConfig.setAttributeNode(removeConfigId)
-    removeConfig.setAttributeNode(removeConfigFileKey)
-    removeConfig.setAttributeNode(removeConfigExeCommand)
-    removeConfig.setAttributeNode(removeConfigExecute)
-    removeConfig.setAttributeNode(removeConfigImpersonate)
-    removeConfig.setAttributeNode(removeConfigReturn)
+    val removeConfig = doc.createElement("CustomAction").apply {
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "RunRemoveConfigExe" })
+        setAttributeNode(doc.createAttribute("FileKey").also { it.value = "RemoveConfig.exe" })
+        setAttributeNode(doc.createAttribute("ExeCommand").also { it.value = "" })
+        setAttributeNode(doc.createAttribute("Execute").also { it.value = "deferred" })
+        setAttributeNode(doc.createAttribute("Impersonate").also { it.value = "yes" })
+        setAttributeNode(doc.createAttribute("Return").also { it.value = "ignore" })
+    }
     productElement.appendChild(removeConfig)
 
     //    <CustomAction Id="RunVlcCacheGen"
@@ -218,53 +207,33 @@ private fun editWixTask(
     //                  Directory="INSTALLDIR"
     //                  ExeCommand="[INSTALLDIR]app\\resources\\VLC\\vlc-cache-gen.exe [INSTALLDIR]app\\resources\\VLC\\plugins"
     //                  Return="check" />
-
-    val runVlcCacheGen = doc.createElement("CustomAction")
-    val runVlcCacheGenId = doc.createAttribute("Id")
-    runVlcCacheGenId.value = "RunVlcCacheGen"
-    val runVlcCacheGenExecute = doc.createAttribute("Execute")
-    runVlcCacheGenExecute.value = "deferred"
-    val runVlcCacheGenImpersonate = doc.createAttribute("Impersonate")
-    runVlcCacheGenImpersonate.value = "no"
-    val runVlcCacheGenDirectory = doc.createAttribute("Directory")
-    runVlcCacheGenDirectory.value = "INSTALLDIR"
-    val runVlcCacheGenExeCommand = doc.createAttribute("ExeCommand")
-    runVlcCacheGenExeCommand.value = "[INSTALLDIR]app\\resources\\VLC\\vlc-cache-gen.exe [INSTALLDIR]app\\resources\\VLC\\plugins"
-    val runVlcCacheGenReturn = doc.createAttribute("Return")
-    runVlcCacheGenReturn.value = "check"
-    runVlcCacheGen.setAttributeNode(runVlcCacheGenId)
-    runVlcCacheGen.setAttributeNode(runVlcCacheGenExecute)
-    runVlcCacheGen.setAttributeNode(runVlcCacheGenImpersonate)
-    runVlcCacheGen.setAttributeNode(runVlcCacheGenDirectory)
-    runVlcCacheGen.setAttributeNode(runVlcCacheGenExeCommand)
-    runVlcCacheGen.setAttributeNode(runVlcCacheGenReturn)
+    val runVlcCacheGen = doc.createElement("CustomAction").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "RunVlcCacheGen" })
+        setAttributeNode(doc.createAttribute("Execute").also { it.value = "deferred" })
+        setAttributeNode(doc.createAttribute("Impersonate").also { it.value = "no" })
+        setAttributeNode(doc.createAttribute("Directory").also { it.value = "INSTALLDIR" })
+        setAttributeNode(doc.createAttribute("ExeCommand").also { it.value = "[INSTALLDIR]app\\resources\\VLC\\vlc-cache-gen.exe [INSTALLDIR]app\\resources\\VLC\\plugins" })
+        setAttributeNode(doc.createAttribute("Return").also { it.value = "check" })
+    }
     productElement.appendChild(runVlcCacheGen)
 
     val installExecuteSequence = doc.createElement("InstallExecuteSequence")
-    val customActionRef = doc.createElement("Custom")
-    val customActionRefAction = doc.createAttribute("Action")
-    customActionRefAction.value = "RunRemoveConfigExe"
-    val customActionRefAfter = doc.createAttribute("After")
-    customActionRefAfter.value = "UnpublishFeatures"
-    val customActionRefCondition = doc.createTextNode("(REMOVE = \"ALL\") AND (NOT UPGRADINGPRODUCTCODE)")
-    customActionRef.appendChild(customActionRefCondition)
-    customActionRef.setAttributeNode(customActionRefAction)
-    customActionRef.setAttributeNode(customActionRefAfter)
-
-    // <Custom Action="RunVlcCacheGen" After="InstallFiles" />
-    val customActionGenCache = doc.createElement("Custom")
-    val customActionGenCacheAction = doc.createAttribute("Action")
-    customActionGenCacheAction.value = "RunVlcCacheGen"
-    val customActionGenCacheAfter = doc.createAttribute("After")
-    customActionGenCacheAfter.value = "InstallFiles"
-    val customActionGenCacheCondition = doc.createTextNode("NOT Installed")
-    customActionGenCache.appendChild(customActionGenCacheCondition)
-    customActionGenCache.setAttributeNode(customActionGenCacheAction)
-    customActionGenCache.setAttributeNode(customActionGenCacheAfter)
-    installExecuteSequence.appendChild(customActionRef)
-    installExecuteSequence.appendChild(customActionGenCache)
     productElement.appendChild(installExecuteSequence)
+//    <Custom Action="RunRemoveConfigExe" After="UnpublishFeatures">(REMOVE = "ALL") AND (NOT UPGRADINGPRODUCTCODE)</Custom>
+    val customActionRef = doc.createElement("Custom").apply{
+        setAttributeNode(doc.createAttribute("Action").also { it.value = "RunRemoveConfigExe" })
+        setAttributeNode(doc.createAttribute("After").also { it.value = "UnpublishFeatures" })
+        appendChild(doc.createTextNode("(REMOVE = \"ALL\") AND (NOT UPGRADINGPRODUCTCODE)"))
+    }
+    installExecuteSequence.appendChild(customActionRef)
 
+    // <Custom Action="RunVlcCacheGen" After="InstallFiles">NOT Installed</Custom>
+    val customActionGenCache = doc.createElement("Custom").apply{
+        setAttributeNode(doc.createAttribute("Action").also { it.value = "RunVlcCacheGen" })
+        setAttributeNode(doc.createAttribute("After").also { it.value = "InstallFiles" })
+        appendChild(doc.createTextNode("NOT Installed"))
+    }
+    installExecuteSequence.appendChild(customActionGenCache)
 
     val targetDirectory = doc.documentElement.getElementsByTagName("Directory").item(0) as Element
 
@@ -372,83 +341,65 @@ private fun editWixTask(
 
     // 设置 UI
     // 添加 <Property Id="WIXUI_INSTALLDIR" Value="INSTALLDIR" />
-    val installUI = doc.createElement("Property")
-    val propertyId = doc.createAttribute("Id")
-    propertyId.value = "WIXUI_INSTALLDIR"
-    val peopertyValue = doc.createAttribute("Value")
-    peopertyValue.value = "INSTALLDIR"
-    installUI.setAttributeNode(propertyId)
-    installUI.setAttributeNode(peopertyValue)
+    val installUI = doc.createElement("Property").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "WIXUI_INSTALLDIR" })
+        setAttributeNode(doc.createAttribute("Value").also { it.value = "INSTALLDIR" })
+    }
     productElement.appendChild(installUI)
 
     // 添加 <UIRef Id="WixUI_InstallDir" />
-    val installDirUIRef = doc.createElement("UIRef")
-    val dirUiId = doc.createAttribute("Id")
-    dirUiId.value = "WixUI_InstallDir"
-    installDirUIRef.setAttributeNode(dirUiId)
+    val installDirUIRef = doc.createElement("UIRef").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "WixUI_InstallDir" })
+    }
     productElement.appendChild(installDirUIRef)
 
     // 添加 <UIRef Id="WixUI_ErrorProgressText" />
-    val errText = doc.createElement("UIRef")
-    val errUiId = doc.createAttribute("Id")
-    errUiId.value = "WixUI_ErrorProgressText"
-    errText.setAttributeNode(errUiId)
+    val errText = doc.createElement("UIRef").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "WixUI_ErrorProgressText" })
+    }
     productElement.appendChild(errText)
 
     //  添加 Icon, 这个 Icon 会显示在控制面板的应用程序列表
     //  <Icon Id="icon.ico" SourceFile="D:\MuJing\wix\MuJing\logo.ico"/>
-    //  <Property Id="ARPPRODUCTICON" Value="icon.ico" />
-    val iconElement = doc.createElement("Icon")
-    val iconId = doc.createAttribute("Id")
-    iconId.value = "icon.ico"
-    val iconSourceF = doc.createAttribute("SourceFile")
-    iconSourceF.value = iconPath
-    iconElement.setAttributeNode(iconId)
-    iconElement.setAttributeNode(iconSourceF)
 
-    val iconProperty = doc.createElement("Property")
-    val iconPropertyId = doc.createAttribute("Id")
-    iconPropertyId.value = "ARPPRODUCTICON"
-    val iconPropertyValue = doc.createAttribute("Value")
-    iconPropertyValue.value = "icon.ico"
-    iconProperty.setAttributeNode(iconPropertyId)
-    iconProperty.setAttributeNode(iconPropertyValue)
-
+    val iconElement = doc.createElement("Icon").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "icon.ico" })
+        setAttributeNode(doc.createAttribute("SourceFile").also { it.value = iconPath })
+    }
     productElement.appendChild(iconElement)
+
+    //  <Property Id="ARPPRODUCTICON" Value="icon.ico" />
+    val iconProperty = doc.createElement("Property").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "ARPPRODUCTICON" })
+        setAttributeNode(doc.createAttribute("Value").also { it.value = "icon.ico" })
+    }
     productElement.appendChild(iconProperty)
 
+
     //<Icon Id="removeIcon.ico" SourceFile="removeIconPath"/>
-    val removeIconElement = doc.createElement("Icon")
-    val removeIconId = doc.createAttribute("Id")
-    removeIconId.value = "removeIcon.ico"
-    val removeIconSourceF = doc.createAttribute("SourceFile")
-    removeIconSourceF.value = removeIconPath
-    removeIconElement.setAttributeNode(removeIconId)
-    removeIconElement.setAttributeNode(removeIconSourceF)
+    val removeIconElement = doc.createElement("Icon").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "removeIcon.ico" })
+        setAttributeNode(doc.createAttribute("SourceFile").also { it.value = removeIconPath })
+    }
     productElement.appendChild(removeIconElement)
 
     // 设置 license file
     //  <WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
-    val wixVariable = doc.createElement("WixVariable")
-    val wixVariableId = doc.createAttribute("Id")
-    wixVariableId.value = "WixUILicenseRtf"
-    val wixVariableValue = doc.createAttribute("Value")
-    wixVariableValue.value = licensePath
-    wixVariable.setAttributeNode(wixVariableId)
-    wixVariable.setAttributeNode(wixVariableValue)
+    val wixVariable = doc.createElement("WixVariable").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "WixUILicenseRtf" })
+        setAttributeNode(doc.createAttribute("Value").also { it.value = licensePath })
+    }
     productElement.appendChild(wixVariable)
 
     // 安装新版时，自动卸载旧版本，已经安装新版，再安装旧版本，提示用户先卸载新版。
     // 这段逻辑要和 UpgradeCode 一起设置，如果 UpgradeCode 一直保持不变，安装新版的时候会自动卸载旧版本。
     // 如果 UpgradeCode 改变了，可能会安装两个版本
-    // <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-    val majorUpgrade = doc.createElement("MajorUpgrade")
-    val majorUpgradeDowngradeErrorMessage = doc.createAttribute("DowngradeErrorMessage")
-    majorUpgradeDowngradeErrorMessage.value = "新版的[ProductName]已经安装，如果要安装旧版本，请先把新版本卸载。"
-    val majorUpgradeAllowSameVersionUpgrades = doc.createAttribute("AllowSameVersionUpgrades")
-    majorUpgradeAllowSameVersionUpgrades.value = "yes"
-    majorUpgrade.setAttributeNode(majorUpgradeAllowSameVersionUpgrades)
-    majorUpgrade.setAttributeNode(majorUpgradeDowngradeErrorMessage)
+    // <MajorUpgrade AllowSameVersionUpgrades="yes" DowngradeErrorMessage="新版的[ProductName]已经安装，如果要安装旧版本，请先把新版本卸载。" />
+    val majorUpgrade = doc.createElement("MajorUpgrade").apply{
+        setAttributeNode(doc.createAttribute("AllowSameVersionUpgrades").also { it.value = "yes" })
+        val message = "新版的[ProductName]已经安装，如果要安装旧版本，请先把新版本卸载。"
+        setAttributeNode(doc.createAttribute("DowngradeErrorMessage").also { it.value = message })
+    }
     productElement.appendChild(majorUpgrade)
 
 
@@ -477,12 +428,11 @@ private fun editWixTask(
     //    <Condition Message="已经安装了幕境的另一个版本，无法继续安装此版本。可以使用”控制面板“中”添加/删除程序“来删除该版本">
     //        <![CDATA[NOT INSTALLED]]>
     //    </Condition>
-    val installCondition = doc.createElement("Condition")
-    val installMessage = doc.createAttribute("Message")
-    installMessage.value = "已经安装了幕境的另一个版本，无法继续安装此版本。可以使用”控制面板“中”添加/删除程序“来删除该版本"
-    installCondition.setAttributeNode(installMessage)
-    val cData= doc.createCDATASection("NOT INSTALLED")
-    installCondition.appendChild(cData)
+    val installCondition = doc.createElement("Condition").apply{
+        val message = "已经安装了幕境的另一个版本，无法继续安装此版本。可以使用”控制面板“中”添加/删除程序“来删除该版本"
+        setAttributeNode(doc.createAttribute("Message").also { it.value = message })
+        appendChild(doc.createCDATASection("NOT INSTALLED"))
+    }
     productElement.appendChild(installCondition)
 
 
@@ -496,7 +446,6 @@ private fun editWixTask(
     componentGroup.appendChild(programMenuDirRef)
     componentGroup.appendChild(uninstallProductRef)
 
-//    val newWixFile = project.layout.projectDirectory.dir("build/compose/binaries/main/app/MuJing-New.wxs").getAsFile()
     generateXml(doc, wixFile)
 }
 
@@ -520,76 +469,45 @@ private fun generateXml(doc: Document, file: File) {
 
 
 private fun directoryBuilder(doc: Document, id: String, name: String = ""): Element {
-    val directory = doc.createElement("Directory")
-    val attrId = doc.createAttribute("Id")
-    attrId.value = id
-    directory.setAttributeNode(attrId)
-    if (name.isNotEmpty()) {
-        val attrName = doc.createAttribute("Name")
-        attrName.value = name
-        directory.setAttributeNode(attrName)
+    val directory = doc.createElement("Directory").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = id })
+        if(name.isNotEmpty()){
+            setAttributeNode(doc.createAttribute("Name").also { it.value = name })
+        }
     }
     return directory
 }
 
 private fun componentBuilder(doc: Document, id: String, guid: String): Element {
-    val component = doc.createElement("Component")
-    val scAttrId = doc.createAttribute("Id")
-    scAttrId.value = id
-    component.setAttributeNode(scAttrId)
-    val scGuid = doc.createAttribute("Guid")
-    scGuid.value = guid
-    component.setAttributeNode(scGuid)
+    val component = doc.createElement("Component").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = id })
+        setAttributeNode(doc.createAttribute("Guid").also { it.value = guid })
+    }
     return component
 }
 
 private fun registryBuilder(doc: Document, id: String, productCode: String): Element {
-    val regComponentElement = doc.createElement("RegistryValue")
-    val regAttrId = doc.createAttribute("Id")
-    regAttrId.value = "$id"
-    val regAttrRoot = doc.createAttribute("Root")
-    regAttrRoot.value = "HKCU"
-    val regKey = doc.createAttribute("Key")
-    regKey.value = "Software\\MuJing"
-    val regType = doc.createAttribute("Type")
-    regType.value = "string"
-    val regName = doc.createAttribute("Name")
-    regName.value = "ProductCode"
-    val regValue = doc.createAttribute("Value")
-    regValue.value = productCode
-    val regKeyPath = doc.createAttribute("KeyPath")
-    regKeyPath.value = "yes"
-    regComponentElement.setAttributeNode(regAttrId)
-    regComponentElement.setAttributeNode(regAttrRoot)
-    regComponentElement.setAttributeNode(regAttrRoot)
-    regComponentElement.setAttributeNode(regKey)
-    regComponentElement.setAttributeNode(regType)
-    regComponentElement.setAttributeNode(regName)
-    regComponentElement.setAttributeNode(regValue)
-    regComponentElement.setAttributeNode(regKeyPath)
+    val regComponentElement = doc.createElement("RegistryValue").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = id })
+        setAttributeNode(doc.createAttribute("Root").also { it.value = "HKCU" })
+        setAttributeNode(doc.createAttribute("Key").also { it.value = "Software\\MuJing" })
+        setAttributeNode(doc.createAttribute("Type").also { it.value = "string" })
+        setAttributeNode(doc.createAttribute("Name").also { it.value = "ProductCode" })
+        setAttributeNode(doc.createAttribute("Value").also { it.value = productCode })
+        setAttributeNode(doc.createAttribute("KeyPath").also { it.value = "yes" })
+    }
     return regComponentElement
 }
 
 private fun registrySearchBuilder(doc:Document,version:String,id:Int):Element{
-    val registrySearch = doc.createElement("RegistrySearch")
-    val registrySearchId = doc.createAttribute("Id")
-    registrySearchId.value = "SearchOldVersion$id"
-    val registryRoot = doc.createAttribute("Root")
-    registryRoot.value = "HKCU"
-    val registryKey = doc.createAttribute("Key")
-    registryKey.value = "Software\\深圳市龙华区幕境网络工作室\\幕境\\$version"
-    val registryName = doc.createAttribute("Name")
-    registryName.value = "ProductCode"
-    val registryType = doc.createAttribute("Type")
-    registryType.value = "raw"
-    val registryWin64 = doc.createAttribute("Win64")
-    registryWin64.value = "yes"
-    registrySearch.setAttributeNode(registrySearchId)
-    registrySearch.setAttributeNode(registryRoot)
-    registrySearch.setAttributeNode(registryKey)
-    registrySearch.setAttributeNode(registryName)
-    registrySearch.setAttributeNode(registryType)
-    registrySearch.setAttributeNode(registryWin64)
+    val registrySearch = doc.createElement("RegistrySearch").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "SearchOldVersion$id" })
+        setAttributeNode(doc.createAttribute("Root").also { it.value = "HKCU" })
+        setAttributeNode(doc.createAttribute("Key").also { it.value = "Software\\深圳市龙华区幕境网络工作室\\幕境\\$version" })
+        setAttributeNode(doc.createAttribute("Name").also { it.value = "ProductCode" })
+        setAttributeNode(doc.createAttribute("Type").also { it.value = "raw" })
+        setAttributeNode(doc.createAttribute("Win64").also { it.value = "yes" })
+    }
     return registrySearch
 }
 private fun shortcutBuilder(
@@ -603,65 +521,42 @@ private fun shortcutBuilder(
     arguments: String = "",
     icon:String = ""
 ): Element {
-    val shortcut = doc.createElement("Shortcut")
-    val shortcutId = doc.createAttribute("Id")
-    shortcutId.value = id
-    val shortcutName = doc.createAttribute("Name")
-    shortcutName.value = name
-    val shortcutTarget = doc.createAttribute("Target")
-    shortcutTarget.value = target
-    shortcut.setAttributeNode(shortcutId)
-
-    shortcut.setAttributeNode(shortcutName)
-    shortcut.setAttributeNode(shortcutTarget)
-
-    if (directory.isNotEmpty()) {
-        val shortcutDir = doc.createAttribute("Directory")
-        shortcutDir.value = directory
-        shortcut.setAttributeNode(shortcutDir)
-    }
-
-    if (workingDirectory.isNotEmpty()) {
-        val shortcutWorkDir = doc.createAttribute("WorkingDirectory")
-        shortcutWorkDir.value = workingDirectory
-        shortcut.setAttributeNode(shortcutWorkDir)
-    }
-    if (description.isNotEmpty()) {
-        val shortcutDescription = doc.createAttribute("Description")
-        shortcutDescription.value = description
-        shortcut.setAttributeNode(shortcutDescription)
-    }
-
-    if (arguments.isNotEmpty()) {
-        val shortcutArguments = doc.createAttribute("Arguments")
-        shortcutArguments.value = arguments
-        shortcut.setAttributeNode(shortcutArguments)
-    }
-    if(icon.isNotEmpty()){
-        val shortcutIcon = doc.createAttribute("Icon")
-        shortcutIcon.value = icon
-        shortcut.setAttributeNode(shortcutIcon)
+    val shortcut = doc.createElement("Shortcut").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = id })
+        setAttributeNode(doc.createAttribute("Name").also { it.value = name })
+        setAttributeNode(doc.createAttribute("Target").also { it.value = target })
+        if(directory.isNotEmpty()){
+            setAttributeNode(doc.createAttribute("Directory").also { it.value = directory })
+        }
+        if(workingDirectory.isNotEmpty()){
+            setAttributeNode(doc.createAttribute("WorkingDirectory").also { it.value = workingDirectory })
+        }
+        if(description.isNotEmpty()){
+            setAttributeNode(doc.createAttribute("Description").also { it.value = description })
+        }
+        if(arguments.isNotEmpty()){
+            setAttributeNode(doc.createAttribute("Arguments").also { it.value = arguments })
+        }
+        if(icon.isNotEmpty()){
+            setAttributeNode(doc.createAttribute("Icon").also { it.value = icon })
+        }
     }
 
     return shortcut
 }
 
 private fun removeFolderBuilder(doc: Document, id: String): Element {
-    val removeFolder = doc.createElement("RemoveFolder")
-    val attrId = doc.createAttribute("Id")
-    attrId.value = id
-    removeFolder.setAttributeNode(attrId)
-    val attrOn = doc.createAttribute("On")
-    attrOn.value = "uninstall"
-    removeFolder.setAttributeNode(attrOn)
+    val removeFolder = doc.createElement("RemoveFolder").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = id })
+        setAttributeNode(doc.createAttribute("On").also { it.value = "uninstall" })
+    }
     return removeFolder
 }
 
 private fun componentRefBuilder(doc: Document, id: String): Element {
-    val componentRef = doc.createElement("ComponentRef")
-    val attrId = doc.createAttribute("Id")
-    attrId.value = id
-    componentRef.setAttributeNode(attrId)
+    val componentRef = doc.createElement("ComponentRef").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = id })
+    }
     return componentRef
 }
 
