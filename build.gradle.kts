@@ -102,26 +102,6 @@ compose.desktop {
     }
 }
 
-val createVlcCacheDistributable by tasks.registering{
-    group = "compose desktop"
-    description = "Run vlc-cache-gen to generate VLC Plugins cache"
-    val createDistributable = tasks.named<org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask>("createDistributable")
-    dependsOn(createDistributable)
-    doLast{
-        println("Running custom task to generate VLC Plugins cache")
-        val cacheGen =  project.layout.projectDirectory.dir("build/compose/binaries/main/app/幕境/app/resources/VLC/vlc-cache-gen.exe").getAsFile().absolutePath
-        val plugins =  project.layout.projectDirectory.dir("build/compose/binaries/main/app/幕境/app/resources/VLC/plugins").getAsFile().absolutePath
-
-        val command = listOf(cacheGen, plugins)
-        try {
-            val process = ProcessBuilder(command).start()
-            process.waitFor()
-        } catch (e: Exception) {
-            println("Error running vlc-cache-gen: ${e.message}")
-        }
-    }
-}
-
 tasks.withType(JavaCompile::class.java) {
     options.encoding = "UTF-8"
 }

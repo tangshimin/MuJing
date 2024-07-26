@@ -22,8 +22,8 @@ val appName = "幕境"
 project.tasks.register("renameApp") {
     group = "compose wix"
     description = "rename the app-image"
-    val createVlcCacheDistributable = tasks.named("createVlcCacheDistributable")
-    dependsOn(createVlcCacheDistributable)
+    val createDistributable = tasks.named("createDistributable")
+    dependsOn(createDistributable)
     doLast {
         val imageDir = project.layout.projectDirectory.dir("build/compose/binaries/main/app/幕境")
         val appDirFile = imageDir.getAsFile()
@@ -191,26 +191,54 @@ private fun editWixTask(
     //    <InstallExecuteSequence>
     //        <Custom Action="RunRemoveConfigExe" After="UnpublishFeatures">(REMOVE = "ALL") AND (NOT UPGRADINGPRODUCTCODE)</Custom>
     //    </InstallExecuteSequence>
-    val customAction = doc.createElement("CustomAction")
-    val customActionId = doc.createAttribute("Id")
-    customActionId.value = "RunRemoveConfigExe"
-    val customActionFileKey = doc.createAttribute("FileKey")
-    customActionFileKey.value = "RemoveConfig.exe"
-    val customActionExeCommand = doc.createAttribute("ExeCommand")
-    customActionExeCommand.value = ""
-    val customActionExecute = doc.createAttribute("Execute")
-    customActionExecute.value = "deferred"
-    val customActionImpersonate = doc.createAttribute("Impersonate")
-    customActionImpersonate.value = "yes"
-    val customActionReturn = doc.createAttribute("Return")
-    customActionReturn.value = "ignore"
-    customAction.setAttributeNode(customActionId)
-    customAction.setAttributeNode(customActionFileKey)
-    customAction.setAttributeNode(customActionExeCommand)
-    customAction.setAttributeNode(customActionExecute)
-    customAction.setAttributeNode(customActionImpersonate)
-    customAction.setAttributeNode(customActionReturn)
-    productElement.appendChild(customAction)
+    val removeConfig = doc.createElement("CustomAction")
+    val removeConfigId = doc.createAttribute("Id")
+    removeConfigId.value = "RunRemoveConfigExe"
+    val removeConfigFileKey = doc.createAttribute("FileKey")
+    removeConfigFileKey.value = "RemoveConfig.exe"
+    val removeConfigExeCommand = doc.createAttribute("ExeCommand")
+    removeConfigExeCommand.value = ""
+    val removeConfigExecute = doc.createAttribute("Execute")
+    removeConfigExecute.value = "deferred"
+    val removeConfigImpersonate = doc.createAttribute("Impersonate")
+    removeConfigImpersonate.value = "yes"
+    val removeConfigReturn = doc.createAttribute("Return")
+    removeConfigReturn.value = "ignore"
+    removeConfig.setAttributeNode(removeConfigId)
+    removeConfig.setAttributeNode(removeConfigFileKey)
+    removeConfig.setAttributeNode(removeConfigExeCommand)
+    removeConfig.setAttributeNode(removeConfigExecute)
+    removeConfig.setAttributeNode(removeConfigImpersonate)
+    removeConfig.setAttributeNode(removeConfigReturn)
+    productElement.appendChild(removeConfig)
+
+    //    <CustomAction Id="RunVlcCacheGen"
+    //                  Execute="deferred"
+    //                  Impersonate="no"
+    //                  Directory="INSTALLDIR"
+    //                  ExeCommand="[INSTALLDIR]app\\resources\\VLC\\vlc-cache-gen.exe [INSTALLDIR]app\\resources\\VLC\\plugins"
+    //                  Return="check" />
+
+    val runVlcCacheGen = doc.createElement("CustomAction")
+    val runVlcCacheGenId = doc.createAttribute("Id")
+    runVlcCacheGenId.value = "RunVlcCacheGen"
+    val runVlcCacheGenExecute = doc.createAttribute("Execute")
+    runVlcCacheGenExecute.value = "deferred"
+    val runVlcCacheGenImpersonate = doc.createAttribute("Impersonate")
+    runVlcCacheGenImpersonate.value = "no"
+    val runVlcCacheGenDirectory = doc.createAttribute("Directory")
+    runVlcCacheGenDirectory.value = "INSTALLDIR"
+    val runVlcCacheGenExeCommand = doc.createAttribute("ExeCommand")
+    runVlcCacheGenExeCommand.value = "[INSTALLDIR]app\\resources\\VLC\\vlc-cache-gen.exe [INSTALLDIR]app\\resources\\VLC\\plugins"
+    val runVlcCacheGenReturn = doc.createAttribute("Return")
+    runVlcCacheGenReturn.value = "check"
+    runVlcCacheGen.setAttributeNode(runVlcCacheGenId)
+    runVlcCacheGen.setAttributeNode(runVlcCacheGenExecute)
+    runVlcCacheGen.setAttributeNode(runVlcCacheGenImpersonate)
+    runVlcCacheGen.setAttributeNode(runVlcCacheGenDirectory)
+    runVlcCacheGen.setAttributeNode(runVlcCacheGenExeCommand)
+    runVlcCacheGen.setAttributeNode(runVlcCacheGenReturn)
+    productElement.appendChild(runVlcCacheGen)
 
     val installExecuteSequence = doc.createElement("InstallExecuteSequence")
     val customActionRef = doc.createElement("Custom")
@@ -222,7 +250,19 @@ private fun editWixTask(
     customActionRef.appendChild(customActionRefCondition)
     customActionRef.setAttributeNode(customActionRefAction)
     customActionRef.setAttributeNode(customActionRefAfter)
+
+    // <Custom Action="RunVlcCacheGen" After="InstallFiles" />
+    val customActionGenCache = doc.createElement("Custom")
+    val customActionGenCacheAction = doc.createAttribute("Action")
+    customActionGenCacheAction.value = "RunVlcCacheGen"
+    val customActionGenCacheAfter = doc.createAttribute("After")
+    customActionGenCacheAfter.value = "InstallFiles"
+    val customActionGenCacheCondition = doc.createTextNode("NOT Installed")
+    customActionGenCache.appendChild(customActionGenCacheCondition)
+    customActionGenCache.setAttributeNode(customActionGenCacheAction)
+    customActionGenCache.setAttributeNode(customActionGenCacheAfter)
     installExecuteSequence.appendChild(customActionRef)
+    installExecuteSequence.appendChild(customActionGenCache)
     productElement.appendChild(installExecuteSequence)
 
 
