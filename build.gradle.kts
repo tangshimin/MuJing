@@ -113,8 +113,8 @@ project.afterEvaluate {
         tasks.named("prepareAppResources") {
             doLast {
                 println("Running custom task after prepareAppResources")
-                val plugins =  project.layout.projectDirectory.dir("build/compose/tmp/prepareAppResources/VLC/plugins").getAsFile().absolutePath
-                val cacheGen =  project.layout.projectDirectory.dir("build/compose/tmp/prepareAppResources/VLC/vlc-cache-gen.exe").getAsFile().absolutePath
+                val plugins =  project.layout.projectDirectory.dir("build/compose/tmp/prepareAppResources/VLC/plugins").asFile.absolutePath
+                val cacheGen =  project.layout.projectDirectory.dir("build/compose/tmp/prepareAppResources/VLC/vlc-cache-gen.exe").asFile.absolutePath
                 val command = listOf(cacheGen, plugins)
                 try {
                     val process = ProcessBuilder(command).start()
@@ -129,7 +129,7 @@ project.afterEvaluate {
      // github 的下载地址不支持中文名称，所以需要在打包之后修改安装包的名称
         tasks.register("renameDmg") {
             doLast {
-                val dmgFile = fileTree("${buildDir}/compose/binaries/main/dmg") {
+                val dmgFile = fileTree( project.layout.projectDirectory.dir("build/compose/binaries/main/dmg")) {
                     include("*.dmg")
                 }.singleFile
                 val arch = System.getProperty("os.arch").lowercase()
