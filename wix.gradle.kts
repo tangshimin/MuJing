@@ -169,7 +169,7 @@ private fun editWixTask(
     // 设置升级码, 用于升级,大版本更新时，可能需要修改这个值
     // 如果要修改这个值，可能还需要修改安装位置，如果不修改安装位置，两个版本会安装在同一个位置
     // 这段代码和 MajorUpgrade 相关，如果 UpgradeCode 一直保持不变，安装新版的时候会自动卸载旧版本。
-    val upgradeCode = createNameUUID("111111111111111111111111111111111")
+    val upgradeCode = createNameUUID("v2.0")
     productElement.setAttribute("UpgradeCode", upgradeCode)
 
 
