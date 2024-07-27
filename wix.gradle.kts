@@ -268,18 +268,6 @@ private fun editWixTask(
         name = shortcutName,
         target = "[INSTALLDIR]MuJing.exe"
     )
-    val removeFolder = removeFolderBuilder(doc, id = "ProgramMenuDir")
-    val pRegistryValue = registryBuilder(doc, id = "ProgramMenuShortcutReg", productCode = "[ProductCode]")
-
-    programMenuFolderElement.appendChild(programeMenuDir)
-    programeMenuDir.appendChild(programeMenuDirComponent)
-    programeMenuDirComponent.appendChild(startMenuShortcut)
-    programeMenuDirComponent.appendChild(removeFolder)
-    programeMenuDirComponent.appendChild(pRegistryValue)
-
-    // 添加卸载软件的快捷方式
-    val uninstallGuid = createNameUUID("UninstallProduct")
-    val uninstallComponent = componentBuilder(doc, id = "UninstallProduct", guid = uninstallGuid)
     val uninstallShortcut = shortcutBuilder(
         doc,
         id = "uninstallShortcut",
@@ -289,11 +277,16 @@ private fun editWixTask(
         arguments = "/x [ProductCode]",
         icon = "removeIcon.ico"
     )
-    val uninstallRegistry = registryBuilder(doc, id = "uninstallShortcutReg", productCode = "[ProductCode]")
-    uninstallComponent.appendChild(uninstallShortcut)
-    uninstallComponent.appendChild(uninstallRegistry)
+    val removeFolder = removeFolderBuilder(doc, id = "CleanUpShortCut", directory = "ProgramMenuDir")
+    val pRegistryValue = registryBuilder(doc, id = "ProgramMenuShortcutReg", productCode = "[ProductCode]")
 
-    programeMenuDir.appendChild(uninstallComponent)
+    programMenuFolderElement.appendChild(programeMenuDir)
+    programeMenuDir.appendChild(programeMenuDirComponent)
+    programeMenuDirComponent.appendChild(startMenuShortcut)
+    programeMenuDirComponent.appendChild(uninstallShortcut)
+    programeMenuDirComponent.appendChild(removeFolder)
+    programeMenuDirComponent.appendChild(pRegistryValue)
+
     targetDirectory.appendChild(programMenuFolderElement)
 
     // 添加 ProgramFiles64Folder 节点
@@ -457,11 +450,9 @@ private fun editWixTask(
     val componentGroup = fragmentElement.getElementsByTagName("ComponentGroup").item(0) as Element
     val desktopFolderRef = componentRefBuilder(doc, "DesktopFolder")
     val programMenuDirRef = componentRefBuilder(doc, "programeMenuDirComponent")
-    val uninstallProductRef = componentRefBuilder(doc, "UninstallProduct")
     val installProductRef = componentRefBuilder(doc, "installProduct")
     componentGroup.appendChild(desktopFolderRef)
     componentGroup.appendChild(programMenuDirRef)
-    componentGroup.appendChild(uninstallProductRef)
     componentGroup.appendChild(installProductRef)
 
     generateXml(doc, wixFile)
@@ -563,9 +554,10 @@ private fun shortcutBuilder(
     return shortcut
 }
 
-private fun removeFolderBuilder(doc: Document, id: String): Element {
+private fun removeFolderBuilder(doc: Document, id: String,directory:String): Element {
     val removeFolder = doc.createElement("RemoveFolder").apply{
         setAttributeNode(doc.createAttribute("Id").also { it.value = id })
+        setAttributeNode(doc.createAttribute("Directory").also { it.value = directory })
         setAttributeNode(doc.createAttribute("On").also { it.value = "uninstall" })
     }
     return removeFolder
