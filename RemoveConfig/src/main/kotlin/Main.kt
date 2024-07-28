@@ -108,7 +108,7 @@ fun main() = application {
                                 exitApplication()
                             },
                         ) {
-                            Text("取消")
+                            Text("不删除缓存")
                         }
                     }
                 }
