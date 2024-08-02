@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
@@ -2123,12 +2124,25 @@ fun Captions(
                 val scope = rememberCoroutineScope()
                 playTripleMap.forEach { (index, playTriple) ->
                     var captionContent = playTriple.first.content
-                    if (captionContent.contains("\r\n")) {
-                        captionContent = captionContent.replace("\r\n", " ")
-                    } else if (captionContent.contains("\n")) {
-                        captionContent = captionContent.replace("\n", " ")
+                    if(!isWriteSubtitles){
+                        if (captionContent.endsWith("\r\n")) {
+                            captionContent = captionContent.dropLast(2)
+                        } else if (captionContent.endsWith("\n")) {
+                            captionContent = captionContent.dropLast(1)
+                        }
+                    }else{
+                        if (captionContent.contains("\r\n")) {
+                            captionContent = captionContent.replace("\r\n", " ")
+                        } else if (captionContent.contains("\n")) {
+                            captionContent = captionContent.replace("\n", " ")
+                        }
                     }
-                    val textFieldValue = textFieldValueList[index]
+                    // 当前的字幕是否获得焦点
+                    var focused by remember { mutableStateOf(false) }
+                    var textFieldValue = textFieldValueList[index]
+                    if(!isWriteSubtitles){
+                        textFieldValue = captionContent
+                    }
                     var typingResult = typingResultMap[index]
                     if (typingResult == null) {
                         typingResult = mutableListOf()
@@ -2160,7 +2174,7 @@ fun Captions(
                             }
 
                         }
-                        if(isWriteSubtitles){
+                        if(isWriteSubtitles || focused){
                             focusRequesterList[index].requestFocus()
                         }else{
                             jumpToWord()
@@ -2220,6 +2234,7 @@ fun Captions(
 
                     Caption(
                         isPlaying = isPlaying,
+                        isWriteSubtitles = isWriteSubtitles,
                         captionContent = captionContent,
                         textFieldValue = textFieldValue,
                         typingResult = typingResult,
@@ -2229,6 +2244,8 @@ fun Captions(
                         index = index,
                         playingIndex = plyingIndex,
                         focusRequester = focusRequesterList[index],
+                        focused = focused,
+                        focusChanged = { focused = it },
                         playCurrentCaption = {playCurrentCaption()},
                         captionKeyEvent = {captionKeyEvent(it)},
                         selectable = selectable,
@@ -2306,6 +2323,7 @@ fun secondsToString(seconds: Double): String {
 /**
  * 字幕组件
  * @param isPlaying 是否正在播放
+ * @param isWriteSubtitles 是否抄写字幕
  * @param captionContent 字幕的内容
  * @param textFieldValue 输入的字幕
  * @param typingResult 输入字幕的结果
@@ -2313,6 +2331,8 @@ fun secondsToString(seconds: Double): String {
  * @param index 当前字幕的索引
  * @param playingIndex 正在播放的字幕索引
  * @param focusRequester 焦点请求器
+ * @param focused 是否获得焦点
+ * @param focusChanged 处理焦点变化的函数
  * @param playCurrentCaption 播放当前字幕的函数
  * @param captionKeyEvent 处理当前字幕的快捷键函数
  * @param selectable 是否可选择复制
@@ -2321,11 +2341,11 @@ fun secondsToString(seconds: Double): String {
  */
 @OptIn(
     ExperimentalFoundationApi::class,
-    ExperimentalComposeUiApi::class
 )
 @Composable
 fun Caption(
     isPlaying: Boolean,
+    isWriteSubtitles: Boolean,
     captionContent: String,
     textFieldValue: String,
     typingResult: List<Pair<Char, Boolean>>,
@@ -2333,6 +2353,8 @@ fun Caption(
     index: Int,
     playingIndex: Int,
     focusRequester:FocusRequester,
+    focused: Boolean,
+    focusChanged:(Boolean) -> Unit,
     playCurrentCaption:()-> Unit,
     captionKeyEvent:(KeyEvent) -> Boolean,
     selectable:Boolean,
@@ -2345,26 +2367,28 @@ fun Caption(
 ) {
     val scope = rememberCoroutineScope()
     Column(modifier = Modifier.width(IntrinsicSize.Max)) {
+        // 字幕的行数
+        val row = if(isWriteSubtitles) 1 else captionContent.split("\n").size
         val rowHeight = when (fontSize) {
             MaterialTheme.typography.h5.fontSize -> {
-                24.dp * 2 + 4.dp
+                24.dp * 2 * row + 4.dp
             }
             MaterialTheme.typography.h6.fontSize -> {
-                20.dp * 2 + 4.dp
+                20.dp * 2 * row + 4.dp
             }
             MaterialTheme.typography.subtitle1.fontSize -> {
-                16.dp * 2 + 4.dp
+                16.dp * 2 * row + 4.dp
             }
             MaterialTheme.typography.subtitle2.fontSize -> {
-                14.dp * 2 + 4.dp
+                14.dp * 2 * row + 4.dp
             }
             MaterialTheme.typography.body1.fontSize -> {
-                16.dp * 2 + 4.dp
+                16.dp * 2 * row + 4.dp
             }
             MaterialTheme.typography.body2.fontSize -> {
-                14.dp * 2 + 4.dp
+                14.dp * 2 * row + 4.dp
             }
-            else -> 16.dp * 2 + 4.dp
+            else -> 16.dp * 2 * row + 4.dp
         }
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -2372,7 +2396,8 @@ fun Caption(
             modifier = Modifier.height(rowHeight).width(IntrinsicSize.Max)
         ) {
             val dropMenuFocusRequester = remember { FocusRequester() }
-            Box(Modifier.width(IntrinsicSize.Max)) {
+            val background = if(focused && !isWriteSubtitles) MaterialTheme.colors.primary.copy(alpha = 0.05f) else MaterialTheme.colors.background
+            Box(Modifier.width(IntrinsicSize.Max).background(background)) {
                 val textHeight = rowHeight -4.dp
                 CustomTextMenuProvider {
                     BasicTextField(
@@ -2380,83 +2405,39 @@ fun Caption(
                         onValueChange = { input ->
                             checkTyping(index, input, captionContent)
                         },
-                        singleLine = true,
+                        singleLine = isWriteSubtitles,
+                        readOnly = !isWriteSubtitles,
                         cursorBrush = SolidColor(MaterialTheme.colors.primary),
-                        textStyle = LocalTextStyle.current.copy(color = Color.Transparent, fontSize = fontSize),
+                        textStyle = LocalTextStyle.current.copy(
+                            color = if(focused && !isWriteSubtitles) MaterialTheme.colors.primary else  MaterialTheme.colors.onBackground,
+                            fontSize = fontSize
+                        ),
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(textHeight)
                             .align(Alignment.CenterStart)
                             .focusRequester(focusRequester)
+                            .onFocusChanged {focusChanged(it.isFocused)}
                             .onKeyEvent { captionKeyEvent(it) }
                     )
                 }
-                Text(
-                    textAlign = TextAlign.Start,
-                    color = MaterialTheme.colors.onBackground,
-                    modifier = Modifier.align(Alignment.CenterStart).height(textHeight),
-                    overflow = TextOverflow.Ellipsis,
-                    text = buildAnnotatedString {
-                        typingResult.forEach { (char, correct) ->
-                            if (correct) {
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = MaterialTheme.colors.primary,
-                                        fontSize = fontSize,
-                                        letterSpacing = LocalTextStyle.current.letterSpacing,
-                                        fontFamily = LocalTextStyle.current.fontFamily,
-                                    )
-                                ) {
-                                    append(char)
-                                }
-                            } else {
-                                withStyle(
-                                    style = SpanStyle(
-                                        color = Color.Red,
-                                        fontSize = fontSize,
-                                        letterSpacing = LocalTextStyle.current.letterSpacing,
-                                        fontFamily = LocalTextStyle.current.fontFamily,
-                                    )
-                                ) {
-                                    if (char == ' ') {
-                                        append("_")
-                                    } else {
-                                        append(char)
-                                    }
 
-                                }
-                            }
-                        }
+                if(isWriteSubtitles){
+                    Text(
+                        textAlign = TextAlign.Start,
+                        color = MaterialTheme.colors.onBackground,
+                        modifier = Modifier.align(Alignment.CenterStart).height(textHeight),
+                        overflow = TextOverflow.Ellipsis,
+                        text = buildAnnotatedString(captionContent, typingResult, fontSize)
+                    )
+                }
 
-                        if (!(typingResult.isNotEmpty() && captionContent.length < typingResult.size)) {
-                            var remainChars = captionContent.substring(typingResult.size)
-                            // 增加一个检查，检查字幕的字符长度，有的字幕是机器生成的，一段可能会有很多字幕，
-                            // 可能会超出限制，导致程序崩溃。
-                            if (remainChars.length > 400) {
-                                remainChars = remainChars.substring(0, 400)
-                            }
-
-                            withStyle(
-                                style = SpanStyle(
-                                    color = MaterialTheme.colors.onBackground,
-                                    fontSize = fontSize,
-                                    letterSpacing = LocalTextStyle.current.letterSpacing,
-                                    fontFamily = LocalTextStyle.current.fontFamily,
-                                )
-                            ) {
-                                append(remainChars)
-                            }
-                        }
-
-                    },
-                )
 
                 DropdownMenu(
                     expanded = selectable,
                     onDismissRequest = { setSelectable(false) },
-                    offset = DpOffset(0.dp, (-30).dp)
+                    offset = DpOffset(0.dp, (if(isWriteSubtitles)-30 else -70).dp)
                 ) {
-
                     // 增加一个检查，检查字幕的字符长度，有的字幕是机器生成的，一段可能会有很多字幕，
                     // 可能会超出限制，导致程序崩溃。
                     val content = if(captionContent.length>400){
@@ -2466,7 +2447,7 @@ fun Caption(
                     BasicTextField(
                         value = content,
                         onValueChange = {},
-                        singleLine = true,
+                        singleLine = isWriteSubtitles,
                         cursorBrush = SolidColor(MaterialTheme.colors.primary),
                         textStyle =  LocalTextStyle.current.copy(
                             color = MaterialTheme.colors.onBackground.copy(alpha = ContentAlpha.high),
@@ -2539,6 +2520,67 @@ fun Caption(
     }
 
 
+}
+
+@Composable
+fun buildAnnotatedString(
+    captionContent:String,
+    typingResult:List<Pair<Char, Boolean>>,
+    fontSize: TextUnit,
+):AnnotatedString{
+    return buildAnnotatedString {
+        typingResult.forEach { (char, correct) ->
+            if (correct) {
+                withStyle(
+                    style = SpanStyle(
+                        color = MaterialTheme.colors.primary,
+                        fontSize = fontSize,
+                        letterSpacing = LocalTextStyle.current.letterSpacing,
+                        fontFamily = LocalTextStyle.current.fontFamily,
+                    )
+                ) {
+                    append(char)
+                }
+            } else {
+                withStyle(
+                    style = SpanStyle(
+                        color = Color.Red,
+                        fontSize = fontSize,
+                        letterSpacing = LocalTextStyle.current.letterSpacing,
+                        fontFamily = LocalTextStyle.current.fontFamily,
+                    )
+                ) {
+                    if (char == ' ') {
+                        append("_")
+                    } else {
+                        append(char)
+                    }
+
+                }
+            }
+        }
+
+        if (!(typingResult.isNotEmpty() && captionContent.length < typingResult.size)) {
+            var remainChars = captionContent.substring(typingResult.size)
+            // 增加一个检查，检查字幕的字符长度，有的字幕是机器生成的，一段可能会有很多字幕，
+            // 可能会超出限制，导致程序崩溃。
+            if (remainChars.length > 400) {
+                remainChars = remainChars.substring(0, 400)
+            }
+
+            withStyle(
+                style = SpanStyle(
+                    color = MaterialTheme.colors.onBackground,
+                    fontSize = fontSize,
+                    letterSpacing = LocalTextStyle.current.letterSpacing,
+                    fontFamily = LocalTextStyle.current.fontFamily,
+                )
+            ) {
+                append(remainChars)
+            }
+        }
+
+    }
 }
 
 /** 删除按钮*/
