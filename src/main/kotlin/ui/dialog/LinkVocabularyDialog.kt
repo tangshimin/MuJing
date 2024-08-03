@@ -38,7 +38,7 @@ import player.isMacOS
 import player.play
 import state.AppState
 import state.getResourcesFile
-import ui.createTransferHandler
+import ui.subtitleScreen.createTransferHandler
 import ui.edit.computeNameMap
 import java.awt.Point
 import java.awt.Rectangle

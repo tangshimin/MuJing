@@ -48,7 +48,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import state.getSettingsDirectory
 import tts.rememberAzureTTS
-import ui.createTransferHandler
+import ui.subtitleScreen.createTransferHandler
 import ui.dialog.MessageDialog
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter

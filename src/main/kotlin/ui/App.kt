@@ -46,6 +46,7 @@ import ui.edit.EditVocabulary
 import ui.edit.checkVocabulary
 import ui.flatlaf.setupFileChooser
 import ui.flatlaf.updateFlatLaf
+import ui.subtitleScreen.SubtitleScreen
 import java.awt.Rectangle
 import java.io.File
 import java.util.*

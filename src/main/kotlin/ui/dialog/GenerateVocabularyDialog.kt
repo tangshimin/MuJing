@@ -76,7 +76,7 @@ import subtitleFile.FormatSRT
 import subtitleFile.TimedTextObject
 import ui.components.BuiltInVocabularyMenu
 import ui.components.SaveButton
-import ui.createTransferHandler
+import ui.subtitleScreen.createTransferHandler
 import ui.dialog.FilterState.*
 import ui.edit.SaveOtherVocabulary
 import java.awt.Desktop

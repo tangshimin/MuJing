@@ -46,6 +46,9 @@ import player.isWindows
 import state.GlobalState
 import state.TextState
 import ui.dialog.FormatDialog
+import ui.subtitleScreen.OpenMode
+import ui.subtitleScreen.createTransferHandler
+import ui.subtitleScreen.videoFormatList
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -215,7 +218,7 @@ fun TextScreen(
             showWrongMessage = { message ->
                 JOptionPane.showMessageDialog(window, message)
             },
-            parseImportFile = { parseImportFile(it,OpenMode.Drag) }
+            parseImportFile = { parseImportFile(it, OpenMode.Drag) }
         )
         window.transferHandler = transferHandler
     }

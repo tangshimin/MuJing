@@ -1,4 +1,4 @@
-package ui
+package ui.subtitleScreen
 
 import LocalCtrl
 import androidx.compose.foundation.*
@@ -46,6 +46,10 @@ import kotlinx.coroutines.launch
 import player.*
 import state.GlobalState
 import state.SubtitlesState
+import ui.MacOSTitle
+import ui.RemoveButton
+import ui.Toolbar
+import ui.playSound
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import java.awt.Component
@@ -178,7 +182,7 @@ fun SubtitleScreen(
     val audioFormatList = listOf("wav","mp3","aac")
 
     /** 解析打开的文件 */
-    val parseImportFile: (List<File>,OpenMode) -> Unit = {files,openMode ->
+    val parseImportFile: (List<File>, OpenMode) -> Unit = { files, openMode ->
         if(files.size == 1){
             val file = files.first()
             loading = true
@@ -537,7 +541,7 @@ fun SubtitleScreen(
             showWrongMessage = { message ->
                 JOptionPane.showMessageDialog(window, message)
             },
-            parseImportFile = { parseImportFile(it,OpenMode.Drag) }
+            parseImportFile = { parseImportFile(it, OpenMode.Drag) }
         )
         window.transferHandler = transferHandler
     }
@@ -1768,6 +1772,6 @@ class MultipleLines{
 }
 
 @Composable
-fun rememberMultipleLines():MultipleLines = remember{
+fun rememberMultipleLines(): MultipleLines = remember{
     MultipleLines()
 }
