@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
-import ui.subtitleScreen.createTransferHandler
+import util.createTransferHandler
 import data.*
 import java.io.File
 import java.util.concurrent.FutureTask

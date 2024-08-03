@@ -52,20 +52,17 @@ import ui.Toolbar
 import ui.playSound
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
+import util.createTransferHandler
 import java.awt.Component
 import java.awt.GraphicsEnvironment
 import java.awt.Point
 import java.awt.Rectangle
-import java.awt.datatransfer.DataFlavor
-import java.awt.datatransfer.UnsupportedFlavorException
 import java.io.File
-import java.io.IOException
 import java.util.concurrent.FutureTask
 import java.util.regex.Pattern
 import javax.swing.JFileChooser
 import javax.swing.JFrame
 import javax.swing.JOptionPane
-import javax.swing.TransferHandler
 import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.filechooser.FileSystemView
 
@@ -1691,51 +1688,6 @@ fun SubtitlesSidebar(
     }
 }
 
-/** 创建拖放处理器
- * @param singleFile 是否只接收单个文件
- * @param parseImportFile 处理导入的文件的函数
- * @param showWrongMessage 显示提示信息的函数
- */
-fun createTransferHandler(
-    singleFile: Boolean = true,
-    parseImportFile: (List<File>) -> Unit,
-    showWrongMessage: (String) -> Unit,
-): TransferHandler {
-    return object : TransferHandler() {
-        override fun canImport(support: TransferSupport): Boolean {
-            if (!support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)) {
-                return false
-            }
-            return true
-        }
-
-        override fun importData(support: TransferSupport): Boolean {
-            if (!canImport(support)) {
-                return false
-            }
-            val transferable = support.transferable
-            try {
-                val files = transferable.getTransferData(DataFlavor.javaFileListFlavor) as List<File>
-                if (singleFile) {
-                    if (files.size == 1) {
-                        parseImportFile(files)
-                    } else {
-                        showWrongMessage("一次只能读取一个文件")
-                    }
-                } else {
-                    parseImportFile(files)
-                }
-
-
-            } catch (exception: UnsupportedFlavorException) {
-                return false
-            } catch (exception: IOException) {
-                return false
-            }
-            return true
-        }
-    }
-}
 
  private fun computeCharWidth(description:String):Int{
     val regex = "Chinese|Japanese|Korean"

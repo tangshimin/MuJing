@@ -19,7 +19,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import ui.subtitleScreen.createTransferHandler
+import util.createTransferHandler
 import java.io.File
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser

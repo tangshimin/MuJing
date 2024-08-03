@@ -55,7 +55,7 @@ import ui.dialog.DocumentWindow
 import ui.dialog.EditWordDialog
 import ui.dialog.GenerateVocabularyListDialog
 import ui.dialog.SelectChapterDialog
-import ui.subtitleScreen.createTransferHandler
+import util.createTransferHandler
 import java.awt.Component
 import java.awt.Rectangle
 import java.io.File

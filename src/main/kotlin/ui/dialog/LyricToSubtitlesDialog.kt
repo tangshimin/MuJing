@@ -19,7 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import lyric.FileManager
 import lyric.SongLyric
-import ui.subtitleScreen.createTransferHandler
+import util.createTransferHandler
 import java.io.File
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser

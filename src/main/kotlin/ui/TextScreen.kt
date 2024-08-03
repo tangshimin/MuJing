@@ -47,7 +47,7 @@ import state.GlobalState
 import state.TextState
 import ui.dialog.FormatDialog
 import ui.subtitleScreen.OpenMode
-import ui.subtitleScreen.createTransferHandler
+import util.createTransferHandler
 import ui.subtitleScreen.videoFormatList
 import java.io.File
 import java.nio.file.Files
