@@ -7,7 +7,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -18,11 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.layout.boundsInWindow
 import androidx.compose.ui.layout.onGloballyPositioned
@@ -34,8 +31,6 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.platform.Font
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -70,7 +65,7 @@ import javax.swing.filechooser.FileSystemView
 /** 支持的视频类型 */
 val videoFormatList = listOf("mp4","mkv")
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SubtitleScreen(
     subtitlesState: SubtitlesState,
@@ -101,10 +96,8 @@ fun SubtitleScreen(
     val trackList = remember { mutableStateListOf<Pair<Int, String>>() }
     var textRect by remember{ mutableStateOf(Rect(0.0F,0.0F,0.0F,0.0F))}
     val videoPlayerBounds by remember { mutableStateOf(Rectangle(0, 0, 540, 303)) }
-    val monospace by remember { mutableStateOf(FontFamily(Font("font/Inconsolata-Regular.ttf", FontWeight.Normal, FontStyle.Normal))) }
     var loading by remember { mutableStateOf(false) }
     var mediaType by remember { mutableStateOf(computeMediaType(subtitlesState.mediaPath)) }
-    var pgUp by remember { mutableStateOf(false) }
     val audioPlayerComponent = LocalAudioPlayerComponent.current
     var isVideoBoundsChanged by remember{ mutableStateOf(false) }
     /** 如果移动了播放器的位置，用这个变量保存计算的位置，点击恢复按钮的时候用这个临时的变量恢复 */
@@ -604,12 +597,7 @@ fun SubtitleScreen(
                             .horizontalScroll(stateHorizontal),
                     ) {
                         itemsIndexed(captionList) { index, caption ->
-                            val captionContent = caption.content
-                            // 当 709 行的 BasicTextField 失去焦点时自动清理 typingResult 和 textFieldValue
-                            val typingResult = remember { mutableStateListOf<Pair<Char, Boolean>>() }
-                            var textFieldValue by remember { mutableStateOf("") }
                             var selectable by remember { mutableStateOf(false) }
-                            val selectRequester = remember { FocusRequester() }
                             val textFieldRequester = remember { FocusRequester() }
                             val next :() -> Unit = {
                                 scope.launch {
@@ -630,48 +618,13 @@ fun SubtitleScreen(
                                         if(top < 0) top = 0
                                         listState.scrollToItem(top)
                                         subtitlesState.currentIndex = index-1
-                                        pgUp = true
                                     }else if(subtitlesState.currentIndex > 0){
                                         subtitlesState.currentIndex = subtitlesState.currentIndex - 1
                                     }
 
                                 }
                             }
-                            /** 检查输入的回调函数 */
-                            val checkTyping: (String) -> Unit = { input ->
-                                    if (textFieldValue.length > captionContent.length) {
-                                        typingResult.clear()
-                                        textFieldValue = ""
 
-                                    } else if (input.length <= captionContent.length) {
-                                        textFieldValue = input
-                                        typingResult.clear()
-                                        val inputChars = input.toMutableList()
-                                        for (i in inputChars.indices) {
-                                            val inputChar = inputChars[i]
-                                            val char = captionContent[i]
-                                            if (inputChar == char) {
-                                                typingResult.add(Pair(inputChar, true))
-                                                // 方括号的语义很弱，又不好输入，所以可以使用空格替换
-                                            } else if (inputChar == ' ' && (char == '[' || char == ']')) {
-                                                typingResult.add(Pair(char, true))
-                                                // 音乐符号不好输入，所以可以使用空格替换
-                                            }else if (inputChar == ' ' && (char == '♪')) {
-                                                typingResult.add(Pair(char, true))
-//                                              // 音乐符号占用两个空格，所以插入♪ 再删除一个空格
-                                                inputChars.add(i,'♪')
-                                                inputChars.removeAt(i+1)
-                                                textFieldValue = String(inputChars.toCharArray())
-                                            } else {
-                                                typingResult.add(Pair(inputChar, false))
-                                            }
-                                        }
-                                        if(input.length == captionContent.length){
-                                            next()
-                                        }
-
-                                    }
-                            }
 
                             val enableMultipleLines:() -> Unit = {
                                 if(!multipleLines.enabled){
@@ -776,23 +729,6 @@ fun SubtitleScreen(
                                     .background(rowBackgroundColor)
                             ) {
 
-                                val lineColor =  if(index <  subtitlesState.currentIndex){
-                                    MaterialTheme.colors.primary.copy(alpha = if(MaterialTheme.colors.isLight) ContentAlpha.high else ContentAlpha.medium)
-                                }else if(subtitlesState.currentIndex == index){
-                                    if(multipleLines.enabled || !subtitlesState.transcriptionCaption) {
-                                        MaterialTheme.colors.primary.copy(alpha = if(MaterialTheme.colors.isLight) ContentAlpha.high else ContentAlpha.medium)
-                                    }else if(subtitlesState.currentCaptionVisible){
-                                        MaterialTheme.colors.onBackground.copy(alpha = alpha)
-                                    }else{
-                                        Color.Transparent
-                                    }
-                                }else{
-                                    if(subtitlesState.notWroteCaptionVisible || !subtitlesState.transcriptionCaption){
-                                        MaterialTheme.colors.onBackground.copy(alpha = alpha)
-                                    }else{
-                                        Color.Transparent
-                                    }
-                                }
                                 val indexColor =  if(index <=  subtitlesState.currentIndex){
                                     MaterialTheme.colors.primary.copy(alpha = ContentAlpha.medium)
                                 }else{
@@ -968,169 +904,29 @@ fun SubtitleScreen(
                                 }
 
                                 Spacer(Modifier.width(20.dp))
-                                Box(Modifier.width(IntrinsicSize.Max)) {
-                                    if (subtitlesState.currentIndex == index) {
-                                        Divider(
-                                            Modifier.align(Alignment.BottomCenter)
-                                                .background(MaterialTheme.colors.primary)
-                                        )
-                                    }
 
-                                    BasicTextField(
-                                        value =  if(subtitlesState.transcriptionCaption) textFieldValue else captionContent,
-                                        onValueChange = { checkTyping(it) },
-                                        singleLine = true,
-                                        readOnly = !subtitlesState.transcriptionCaption,
-                                        cursorBrush = SolidColor(MaterialTheme.colors.primary),
-                                        textStyle = MaterialTheme.typography.h5.copy(
-                                            color =  if(!subtitlesState.transcriptionCaption) lineColor else Color.Transparent,
-                                            fontFamily = monospace
-                                        ),
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(bottom = 5.dp)
-                                            .align(Alignment.CenterStart)
-                                            .focusable(subtitlesState.transcriptionCaption)
-                                            .onKeyEvent { textFieldKeyEvent(it) }
-                                            .focusRequester(textFieldRequester)
-                                            .onFocusChanged {
-                                                if (it.isFocused) {
-                                                    scope.launch {
-                                                        if (!multipleLines.enabled) {
-                                                            subtitlesState.currentIndex = index
-                                                            subtitlesState.firstVisibleItemIndex =
-                                                                listState.firstVisibleItemIndex
-                                                            saveSubtitlesState()
-                                                        }
-
-                                                    }
-                                                } else if (textFieldValue.isNotEmpty()) {
-                                                    typingResult.clear()
-                                                    textFieldValue = ""
-                                                }
-                                            }
-                                    )
-                                    if(pgUp){
-                                        SideEffect {
-                                            if(subtitlesState.currentIndex == index){
-                                                textFieldRequester.requestFocus()
-                                                pgUp = false
-                                            }
-                                        }
-                                    }
-                                    SideEffect {
-                                        if (subtitlesState.currentIndex == index) {
-                                            textFieldRequester.requestFocus()
-                                        }
-                                    }
-
-                                    if(subtitlesState.transcriptionCaption){
-                                        Text(
-                                            text = buildAnnotatedString {
-
-                                                typingResult.forEach { (char, correct) ->
-                                                    if (correct) {
-                                                        withStyle(
-                                                            style = SpanStyle(
-                                                                color = MaterialTheme.colors.primary.copy(alpha = alpha),
-                                                                fontSize = MaterialTheme.typography.h5.fontSize,
-                                                                letterSpacing = MaterialTheme.typography.h5.letterSpacing,
-                                                                fontFamily = monospace,
-                                                            )
-                                                        ) {
-                                                            append(char)
-                                                        }
-                                                    } else {
-                                                        withStyle(
-                                                            style = SpanStyle(
-                                                                color = Color.Red,
-                                                                fontSize = MaterialTheme.typography.h5.fontSize,
-                                                                letterSpacing = MaterialTheme.typography.h5.letterSpacing,
-                                                                fontFamily = monospace,
-                                                            )
-                                                        ) {
-                                                            if (char == ' ') {
-                                                                append("_")
-                                                            } else {
-                                                                append(char)
-                                                            }
-
-                                                        }
-                                                    }
-                                                }
-                                                val remainChars = captionContent.substring(typingResult.size)
-
-
-                                                withStyle(
-                                                    style = SpanStyle(
-                                                        color = lineColor,
-                                                        fontSize = MaterialTheme.typography.h5.fontSize,
-                                                        letterSpacing = MaterialTheme.typography.h5.letterSpacing,
-                                                        fontFamily = monospace,
-                                                    )
-                                                ) {
-                                                    append(remainChars)
-                                                }
-                                            },
-                                            textAlign = TextAlign.Start,
-                                            color = MaterialTheme.colors.onBackground,
-                                            overflow = TextOverflow.Ellipsis,
-                                            maxLines = 1,
-                                            modifier = Modifier
-                                                .align(Alignment.CenterStart)
-                                                .padding(bottom = 5.dp)
-                                                .onGloballyPositioned { coordinates ->
-                                                    if (subtitlesState.currentIndex == index) {
-                                                        // 如果视频播放按钮被遮挡，就使用这个位置计算出视频播放器的位置
-                                                        textRect = coordinates.boundsInWindow()
-                                                    }
-
-                                                }
-                                        )
-                                    }
-
-
-
-                                    DropdownMenu(
-                                        expanded = selectable,
-                                        onDismissRequest = {
-                                            selectable = false
-                                        },
-                                        offset = DpOffset(0.dp, (-50).dp)
-                                    ) {
-                                        BasicTextField(
-                                            value = captionContent,
-                                            onValueChange = {},
-                                            singleLine = true,
-                                            cursorBrush = SolidColor(MaterialTheme.colors.primary),
-                                            textStyle = MaterialTheme.typography.h5.copy(
-                                                fontFamily = monospace,
-                                                color = MaterialTheme.colors.onBackground.copy(alpha = ContentAlpha.high),
-                                            ),
-                                            modifier = Modifier.focusable()
-                                                .height(32.dp)
-                                                .focusRequester(selectRequester)
-                                                .onKeyEvent {
-                                                    if (it.isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) {
-                                                        scope.launch {
-                                                            if(subtitlesState.transcriptionCaption){
-                                                                selectable = !selectable
-                                                            }
-                                                        }
-                                                        true
-                                                    }else if (it.isCtrlPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) {
-                                                        scope.launch { openSearch() }
-                                                        true
-                                                    } else false
-                                                }
-                                        )
-                                        LaunchedEffect(Unit) {
-                                            selectRequester.requestFocus()
-                                        }
-
-                                    }
-
-                                }
+                                Caption(
+                                    caption = caption,
+                                    showUnderline = subtitlesState.currentIndex == index,
+                                    isTranscribe = subtitlesState.transcriptionCaption,
+                                    notWroteCaptionVisible = subtitlesState.notWroteCaptionVisible,
+                                    index = index,
+                                    currentIndex = subtitlesState.currentIndex,
+                                    currentIndexChanged = {
+                                        subtitlesState.currentIndex = index
+                                        subtitlesState.firstVisibleItemIndex = listState.firstVisibleItemIndex
+                                        saveSubtitlesState()
+                                    },
+                                    visible = subtitlesState.currentCaptionVisible,
+                                    multipleLines = multipleLines,
+                                    next = next,
+                                    updateCaptionBounds = {textRect = it},
+                                    alpha =if(subtitlesState.currentIndex == index) 1.0f else 0.74f,
+                                    keyEvent = textFieldKeyEvent,
+                                    focusRequester = textFieldRequester,
+                                    selectable = selectable,
+                                    exitSelection = {selectable = false},
+                                )
 
                                 Row(Modifier.width(48.dp).height(IntrinsicSize.Max)) {
                                     if (subtitlesState.currentIndex == index && !multipleLines.enabled) {
