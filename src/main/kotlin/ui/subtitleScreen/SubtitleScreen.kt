@@ -1334,17 +1334,7 @@ fun SelectTrack(
     }
 }
 
-@Composable
-fun Settings(
-    modifier: Modifier
-) {
-    Icon(
-        Icons.Filled.ArrowBack,
-        contentDescription = "Localized description",
-        tint = MaterialTheme.colors.primary,
-        modifier = modifier,
-    )
-}
+
 
 
 @Composable
