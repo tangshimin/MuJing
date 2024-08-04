@@ -33,6 +33,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberWindowState
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
+import util.rememberMonospace
 import javax.swing.JOptionPane
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -63,17 +64,7 @@ fun ColorPicker(
         )
     ) {
         MaterialTheme(colors = appState.colors) {
-            val fontFamily by remember {
-                mutableStateOf(
-                    FontFamily(
-                        Font(
-                            "font/Inconsolata-Regular.ttf",
-                            FontWeight.Normal,
-                            FontStyle.Normal
-                        )
-                    )
-                )
-            }
+            val fontFamily  = rememberMonospace()
 
 
             Box(Modifier.fillMaxSize()

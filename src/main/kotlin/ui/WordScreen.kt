@@ -56,6 +56,7 @@ import ui.dialog.EditWordDialog
 import ui.dialog.GenerateVocabularyListDialog
 import ui.dialog.SelectChapterDialog
 import util.createTransferHandler
+import util.rememberMonospace
 import java.awt.Component
 import java.awt.Rectangle
 import java.io.File
@@ -405,7 +406,7 @@ fun MainContent(
         val (focusRequester1,focusRequester2,focusRequester3) = remember { FocusRequester.createRefs() }
 
         /** 等宽字体*/
-        val monospace by remember { mutableStateOf(FontFamily(Font("font/Inconsolata-Regular.ttf", FontWeight.Normal, FontStyle.Normal))) }
+        val monospace  = rememberMonospace()
 
         val audioPlayerComponent = LocalAudioPlayerComponent.current
 

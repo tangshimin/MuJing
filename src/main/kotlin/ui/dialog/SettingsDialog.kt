@@ -35,6 +35,7 @@ import state.WordScreenState
 import theme.createColors
 import ui.*
 import ui.flatlaf.updateFlatLaf
+import util.rememberMonospace
 
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -138,17 +139,7 @@ fun SettingTextStyle(
     state: AppState,
     wordScreenState: WordScreenState,
 ) {
-    val fontFamily by remember {
-        mutableStateOf(
-            FontFamily(
-                Font(
-                    "font/Inconsolata-Regular.ttf",
-                    FontWeight.Normal,
-                    FontStyle.Normal
-                )
-            )
-        )
-    }
+    val fontFamily  = rememberMonospace()
     if (wordScreenState.vocabulary.size > 1) {
         Column(
             verticalArrangement = Arrangement.Top,

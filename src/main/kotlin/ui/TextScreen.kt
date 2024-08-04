@@ -49,6 +49,7 @@ import ui.dialog.FormatDialog
 import ui.subtitleScreen.OpenMode
 import util.createTransferHandler
 import ui.subtitleScreen.videoFormatList
+import util.rememberMonospace
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -82,7 +83,7 @@ fun TextScreen(
     var pgUp by remember { mutableStateOf(false) }
     val lines = remember { readAllLines(textState.textPath) }
     val lastModified by remember { mutableStateOf(File(textState.textPath).lastModified()) }
-    val monospace by remember { mutableStateOf(FontFamily(Font("font/Inconsolata-Regular.ttf", FontWeight.Normal, FontStyle.Normal))) }
+    val monospace  = rememberMonospace()
     /** 汉语使用输入法输入文字时，可以一次输入多个汉字，可能会超出正在抄写的那一行的文本 */
     var remainWords by remember{ mutableStateOf("") }
     /** 正在抄写的下一行 */

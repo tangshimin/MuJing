@@ -53,6 +53,7 @@ import ui.dialog.MessageDialog
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
+import util.rememberMonospace
 import java.awt.Cursor
 import java.awt.Dimension
 import java.awt.Point
@@ -1406,17 +1407,7 @@ fun DanmakuBox(
     }
 
     /** 等宽字体*/
-    val monospace by remember {
-        mutableStateOf(
-            FontFamily(
-                Font(
-                    "font/Inconsolata-Regular.ttf",
-                    FontWeight.Normal,
-                    FontStyle.Normal
-                )
-            )
-        )
-    }
+    val monospace  = rememberMonospace()
 
     // 在这个 Box 使用 Modifier.fillMaxSize() 可能会导致 DropdownMenu 显示的位置不准。
     Box {

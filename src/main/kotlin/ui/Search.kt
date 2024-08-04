@@ -37,6 +37,7 @@ import player.playAudio
 import state.AppState
 import state.WordScreenState
 import tts.rememberAzureTTS
+import util.rememberMonospace
 import java.awt.Point
 import java.awt.Rectangle
 import java.io.File
@@ -54,7 +55,7 @@ fun Search(
     var searchResult by remember{ mutableStateOf<Word?>(null) }
     var isPlayingAudio by remember { mutableStateOf(false) }
     /** 等宽字体*/
-    val monospace by remember { mutableStateOf(FontFamily(Font("font/Inconsolata-Regular.ttf", FontWeight.Normal, FontStyle.Normal))) }
+    val monospace  = rememberMonospace()
     val onDismissRequest :() -> Unit = {
         appState.searching = false
     }

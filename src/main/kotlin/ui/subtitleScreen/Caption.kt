@@ -21,9 +21,6 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -31,6 +28,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import data.Caption
 import kotlinx.coroutines.launch
+import util.rememberMonospace
 
 
 /**
@@ -193,24 +191,6 @@ fun Caption(
     }
 }
 
-/**
- * Monospace 字体
- */
-@Composable
-fun rememberMonospace() :FontFamily{
-    val monospace by remember {
-        mutableStateOf(
-            FontFamily(
-                Font(
-                    "font/Inconsolata-Regular.ttf",
-                    FontWeight.Normal,
-                    FontStyle.Normal
-                )
-            )
-        )
-    }
-    return monospace
-}
 
 /**
  * 设置字幕颜色
