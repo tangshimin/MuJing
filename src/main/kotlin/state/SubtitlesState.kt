@@ -65,7 +65,7 @@ class SubtitlesState(dataSubtitlesState: DataSubtitlesState) {
     /** 字幕的最大长度，用来计算字幕的宽度  */
     var sentenceMaxLength by mutableStateOf(dataSubtitlesState.sentenceMaxLength)
 
-    /** 当前字幕的可见性 */
+    /** 是否抄写字幕 */
     var transcriptionCaption by mutableStateOf(dataSubtitlesState.transcriptionCaption)
 
     /** 当前字幕的可见性 */
