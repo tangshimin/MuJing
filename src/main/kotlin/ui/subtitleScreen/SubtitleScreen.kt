@@ -602,7 +602,7 @@ fun SubtitleScreen(
                                         listState.scrollToItem(index)
                                     }
                                    if(index+1 != captionList.size){
-                                       subtitlesState.currentIndex = subtitlesState.currentIndex + 1
+                                       subtitlesState.currentIndex += 1
                                    }
                                 }
                             }
@@ -614,7 +614,7 @@ fun SubtitleScreen(
                                         listState.scrollToItem(top)
                                         subtitlesState.currentIndex = index-1
                                     }else if(subtitlesState.currentIndex > 0){
-                                        subtitlesState.currentIndex = subtitlesState.currentIndex - 1
+                                        subtitlesState.currentIndex -= 1
                                     }
 
                                 }
@@ -1363,7 +1363,6 @@ fun SubtitlesSidebar(
         ) {
             Spacer(Modifier.fillMaxWidth().height(if (isMacOS()) 78.dp else 48.dp))
             Divider()
-            val ctrl = LocalCtrl.current
             val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
 
             if (trackSize > 1) {
