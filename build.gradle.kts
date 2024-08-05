@@ -1,6 +1,10 @@
 
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.io.FileOutputStream
+import java.io.IOException
+import org.apache.commons.compress.archivers.sevenz.SevenZFile
+import java.nio.file.Files
 
 plugins {
     kotlin("jvm")
@@ -56,6 +60,15 @@ dependencies {
     implementation ("net.java.dev.jna:jna-platform:5.14.0")
 }
 
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.apache.commons:commons-compress:1.26.0")
+        classpath("org.tukaani:xz:1.10")
+    }
+}
 
 tasks.withType<KotlinCompile>().configureEach {
     kotlinOptions {
@@ -106,6 +119,19 @@ tasks.withType(JavaCompile::class.java) {
     options.encoding = "UTF-8"
 }
 
+// 第一次编译之前要解压缩词典文件
+tasks.named("compileKotlin") {
+    doFirst{
+        val dictFile = layout.projectDirectory.dir("resources/common/dictionary/ecdict.db").asFile
+        if (!dictFile.exists()) {
+            println("解压缩词典文件")
+            val input = layout.projectDirectory.dir("dict/ecdict.7z").asFile
+            val destination = layout.projectDirectory.dir("resources/common/dictionary").asFile
+            decompressDict(input, destination)
+        }
+    }
+}
+
 project.afterEvaluate {
     val os = System.getProperty("os.name", "generic").lowercase()
     if(os.indexOf("windows") >= 0){
@@ -150,3 +176,26 @@ project.afterEvaluate {
 
 apply(from = "wix.gradle.kts")
 
+
+/**
+ * 解压缩 7z 文件
+ */
+@Throws(IOException::class)
+fun decompressDict(input: File, destination: File) {
+    SevenZFile.builder()
+        .setSeekableByteChannel(Files.newByteChannel(input.toPath()))
+        .get().use { sevenZFile ->
+
+        val entry = sevenZFile.nextEntry
+        if (entry != null && !entry.isDirectory) {
+            val outFile = File(destination, entry.name)
+            outFile.parentFile.mkdirs()
+
+            FileOutputStream(outFile).use { out ->
+                val content = ByteArray(entry.size.toInt())
+                sevenZFile.read(content, 0, content.size)
+                out.write(content)
+            }
+        }
+    }
+}
