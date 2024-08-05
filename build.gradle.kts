@@ -135,6 +135,16 @@ tasks.named("compileKotlin") {
 project.afterEvaluate {
     val os = System.getProperty("os.name", "generic").lowercase()
     if(os.indexOf("windows") >= 0){
+        tasks.named("prepareAppResources") {
+            doFirst {
+                val pluginsCache =  layout.projectDirectory.dir("resources/windows/VLC/plugins/plugins.dat").asFile
+                if(pluginsCache.exists()){
+                    println("删除 从 Main.kt 启动程序后生产的 VLC 插件缓存")
+                    pluginsCache.delete()
+                }
+            }
+        }
+
         tasks.named("runDistributable") {
             doFirst {
                 println("更新 VLC 的插件缓存")
