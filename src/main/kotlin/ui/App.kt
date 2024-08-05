@@ -33,6 +33,8 @@ import androidx.compose.ui.window.*
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import com.movcontext.MuJing.BuildConfig
 import data.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
@@ -245,13 +247,14 @@ fun App() {
                         .onEach { onWindowRelocate(windowState.position,appState) }
                         .launchIn(this)
                 }
-
+                val scope = rememberCoroutineScope()
                 /** 启动应用后，自动检查更新 */
-                LaunchedEffect(Unit){
-                    if( appState.global.autoUpdate){
-                        Timer("update",false).schedule(5000){
+                LaunchedEffect(Unit) {
+                    if (appState.global.autoUpdate) {
+                        scope.launch(Dispatchers.IO) {
+                            delay(5000)
                             val result = autoDetectingUpdates(BuildConfig.APP_VERSION)
-                            if(result.first && result.second != appState.global.ignoreVersion){
+                            if (result.first && result.second != appState.global.ignoreVersion) {
                                 appState.showUpdateDialog = true
                                 appState.latestVersion = result.second
                                 appState.releaseNote = result.third

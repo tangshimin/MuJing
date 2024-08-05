@@ -40,7 +40,6 @@ dependencies {
     implementation("com.formdev:flatlaf-extras:2.6")
     implementation("org.apache.opennlp:opennlp-tools:1.9.4")
     implementation("org.apache.pdfbox:pdfbox:2.0.24")
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
     implementation(files("lib/ebml-reader-0.1.1.jar"))
     implementation(files("lib/subtitleConvert-1.0.2.jar"))
     implementation(files("lib/jacob-1.20.jar"))

@@ -1,8 +1,10 @@
 package ui.dialog
 
-import androidx.compose.foundation.*
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -16,16 +18,17 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.GitHubRelease
+import io.ktor.client.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.apache.maven.artifact.versioning.ComparableVersion
-import player.isWindows
-import java.io.IOException
-import java.util.*
-import kotlin.concurrent.schedule
 
 @OptIn(ExperimentalSerializationApi::class)
 @Composable
@@ -57,61 +60,66 @@ fun UpdateDialog(
             var body by remember { mutableStateOf("") }
             var releaseTagName by remember { mutableStateOf("") }
 
-            fun detectingUpdates(version: String) {
-                val client = OkHttpClient()
+            suspend fun detectingUpdates(version: String) {
+                val client = HttpClient()
                 val url = "https://api.github.com/repos/tangshimin/mujing/releases/latest"
                 val headerName = "Accept"
                 val headerValue = "application/vnd.github.v3+json"
-                val request = Request.Builder()
-                    .url(url)
-                    .addHeader(headerName, headerValue)
-                    .build()
-                try{
-                    client.newCall(request).execute().use { response ->
-                        detecting = false
-                        if (response.code == 200) {
-                            if (response.body != null) {
-                                val string = response.body!!.string()
-                                val format = Json { ignoreUnknownKeys = true }
-                                val releases = format.decodeFromString<GitHubRelease>(string)
-                                val releaseVersion = ComparableVersion(releases.tag_name)
-                                val currentVersion = ComparableVersion(version)
-                                body = if (releaseVersion >currentVersion) {
-                                    downloadable = true
-                                    releaseTagName = releases.tag_name
-                                    var releaseContent = "最新版本：${releases.tag_name}\n"
-                                    val contentBody = releases.body
-                                    if(contentBody != null){
-                                        val end = contentBody.indexOf("---")
-                                        if(end != -1){
-                                            releaseContent += contentBody.substring(0,end)
-                                        }
+
+                try {
+                    val response: HttpResponse = client.get(url) {
+                        header(headerName, headerValue)
+                    }
+
+                    detecting = false
+                    when (response.status) {
+                        HttpStatusCode.OK -> {
+                            val string = response.readText()
+                            val format = Json { ignoreUnknownKeys = true }
+                            val releases = format.decodeFromString<GitHubRelease>(string)
+                            val releaseVersion = ComparableVersion(releases.tag_name)
+                            val currentVersion = ComparableVersion(version)
+                            body = if (releaseVersion > currentVersion) {
+                                downloadable = true
+                                releaseTagName = releases.tag_name
+                                var releaseContent = "最新版本：${releases.tag_name}\n"
+                                val contentBody = releases.body
+                                if (contentBody != null) {
+                                    val end = contentBody.indexOf("---")
+                                    if (end != -1) {
+                                        releaseContent += contentBody.substring(0, end)
                                     }
-                                    releaseContent
-                                } else {
-                                    downloadable = false
-                                    "没有可用更新"
                                 }
+                                releaseContent
+                            } else {
+                                downloadable = false
+                                "没有可用更新"
                             }
-                        } else if (response.code == 404) {
+                        }
+                        HttpStatusCode.NotFound -> {
                             body = "网页没找到"
-                        } else if (response.code == 500) {
+                        }
+                        HttpStatusCode.InternalServerError -> {
                             body = "服务器错误"
                         }
+                        else -> {
+                            body = "未知错误"
+                        }
                     }
-                }catch (exception: IOException){
+                } catch (exception: Exception) {
                     detecting = false
                     body = exception.toString()
-
                 }
-
             }
 
+            val scope = rememberCoroutineScope()
             LaunchedEffect(Unit) {
-                if(latestVersion.isEmpty()){
-                    Timer("update",false).schedule(500){
+                scope.launch(Dispatchers.IO){
+                    if(latestVersion.isEmpty()){
+                        delay(500)
                         detectingUpdates(version)
                     }
+
                 }
             }
 
@@ -217,40 +225,38 @@ fun UpdateDialog(
  * 自动检查更新
  */
 @OptIn(ExperimentalSerializationApi::class)
-fun autoDetectingUpdates(version: String):Triple<Boolean,String,String>{
-    val client = OkHttpClient()
+suspend fun autoDetectingUpdates(version: String): Triple<Boolean, String, String> {
+    val client = HttpClient()
     val url = "https://api.github.com/repos/tangshimin/mujing/releases/latest"
     val headerName = "Accept"
     val headerValue = "application/vnd.github.v3+json"
-    val request = Request.Builder()
-        .url(url)
-        .addHeader(headerName, headerValue)
-        .build()
 
-    try{
-        client.newCall(request).execute().use { response ->
-            if (response.code == 200 && response.body != null) {
-                val string = response.body!!.string()
-                val format = Json { ignoreUnknownKeys = true }
-                val releases = format.decodeFromString<GitHubRelease>(string)
-                val releaseVersion = ComparableVersion(releases.tag_name)
-                val currentVersion = ComparableVersion(version)
-                if (releaseVersion >currentVersion) {
-                    var note = ""
-                    val body = releases.body
-                    if(body != null){
-                        val end = body.indexOf("---")
-                        if(end != -1){
-                            note += body.substring(0,end)
-                        }
+    try {
+        val response: HttpResponse = client.get(url) {
+            header(headerName, headerValue)
+        }
+
+        if (response.status == HttpStatusCode.OK) {
+            val string = response.readText()
+            val format = Json { ignoreUnknownKeys = true }
+            val releases = format.decodeFromString<GitHubRelease>(string)
+            val releaseVersion = ComparableVersion(releases.tag_name)
+            val currentVersion = ComparableVersion(version)
+            if (releaseVersion > currentVersion) {
+                var note = ""
+                val body = releases.body
+                if (body != null) {
+                    val end = body.indexOf("---")
+                    if (end != -1) {
+                        note += body.substring(0, end)
                     }
-                    return Triple(true, releases.tag_name,note)
                 }
+                return Triple(true, releases.tag_name, note)
             }
         }
-    }catch (exception: IOException){
+    } catch (exception: Exception) {
         exception.printStackTrace()
-        return Triple(false, "","")
+        return Triple(false, "", "")
     }
-    return Triple(false, "","")
+    return Triple(false, "", "")
 }
