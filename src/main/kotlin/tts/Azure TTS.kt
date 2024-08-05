@@ -3,12 +3,10 @@ package tts
 import androidx.compose.runtime.*
 import data.Crypt
 import io.ktor.client.*
+import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
-import io.ktor.http.content.*
-import io.ktor.utils.io.*
-import io.ktor.utils.io.core.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -24,7 +22,6 @@ import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.time.LocalDateTime
-import kotlin.text.toByteArray
 
 @ExperimentalSerializationApi
 @Serializable
@@ -92,7 +89,7 @@ class AzureTTS(
                     append("Ocp-Apim-Subscription-Key", subscriptionKey)
                 }
             }
-            response.readText()
+            response.bodyAsText()
         }  catch (e: Exception) {
             // Handle any other exceptions
             println("An error occurred: ${e.message}")
@@ -121,12 +118,12 @@ class AzureTTS(
                         append(HttpHeaders.Authorization, "Bearer $accessToken")
                         append("X-Microsoft-OutputFormat", "audio-48khz-192kbitrate-mono-mp3")
                     }
-                    body = ByteArrayContent(ssml.toByteArray(Charsets.UTF_8), contentType)
+                    setBody(ssml)
                 }
                 var path :String? = null
                 if (response.status == HttpStatusCode.OK) {
                     withContext(Dispatchers.IO) {
-                        val bytes = response.content.readRemaining().readBytes()
+                        val bytes = response.body<ByteArray>()
                         val file = File(getAudioDirectory(), text +"_Azure_${displayName}_${pronunciationStyle}.mp3")
                         Files.write(Paths.get(file.toURI()), bytes)
                         path =  file.absolutePath
@@ -160,7 +157,7 @@ class AzureTTS(
             }
             if(response.status.value == 200){
                 val format = Json { ignoreUnknownKeys = true }
-                val list = format.decodeFromString<List<Voice>>(response.readText())
+                val list = format.decodeFromString<List<Voice>>(response.bodyAsText())
                 for (voice in list) {
                     if(voice.Locale == pronunciationStyle){
                         voiceList.add(voice)

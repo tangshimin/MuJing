@@ -74,7 +74,7 @@ fun UpdateDialog(
                     detecting = false
                     when (response.status) {
                         HttpStatusCode.OK -> {
-                            val string = response.readText()
+                            val string = response.bodyAsText()
                             val format = Json { ignoreUnknownKeys = true }
                             val releases = format.decodeFromString<GitHubRelease>(string)
                             val releaseVersion = ComparableVersion(releases.tag_name)
@@ -237,7 +237,7 @@ suspend fun autoDetectingUpdates(version: String): Triple<Boolean, String, Strin
         }
 
         if (response.status == HttpStatusCode.OK) {
-            val string = response.readText()
+            val string = response.bodyAsText()
             val format = Json { ignoreUnknownKeys = true }
             val releases = format.decodeFromString<GitHubRelease>(string)
             val releaseVersion = ComparableVersion(releases.tag_name)
