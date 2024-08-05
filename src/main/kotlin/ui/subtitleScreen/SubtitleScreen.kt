@@ -52,7 +52,6 @@ import javax.swing.JOptionPane
 import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.filechooser.FileSystemView
 
-
 /** 支持的视频类型 */
 val videoFormatList = listOf("mp4","mkv")
 
@@ -780,7 +779,7 @@ fun SubtitleScreen(
                                     multipleLines = multipleLines,
                                     next = next,
                                     updateCaptionBounds = {textRect = it},
-                                    alpha =if(subtitlesState.currentIndex == index) 1.0f else 0.74f,
+                                    alpha = alpha,
                                     keyEvent = textFieldKeyEvent,
                                     focusRequester = textFieldRequester,
                                     selectable = selectable,
