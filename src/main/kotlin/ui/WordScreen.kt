@@ -2392,14 +2392,14 @@ fun Caption(
             }
             else -> 16.dp * 2 * row + 4.dp
         }
+        val background = if(focused && !isWriteSubtitles) MaterialTheme.colors.primary.copy(alpha = 0.05f) else MaterialTheme.colors.background
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.height(rowHeight).width(IntrinsicSize.Max)
+            modifier = Modifier.height(rowHeight).width(IntrinsicSize.Max).background(background)
         ) {
             val dropMenuFocusRequester = remember { FocusRequester() }
-            val background = if(focused && !isWriteSubtitles) MaterialTheme.colors.primary.copy(alpha = 0.05f) else MaterialTheme.colors.background
-            Box(Modifier.width(IntrinsicSize.Max).background(background)) {
+            Box(Modifier.width(IntrinsicSize.Max)) {
                 val textHeight = rowHeight -4.dp
                 CustomTextMenuProvider {
                     BasicTextField(
