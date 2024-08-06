@@ -1491,7 +1491,7 @@ fun MainContent(
                 .padding(bottom = 0.dp, start = startPadding)
                 .onKeyEvent {
                     when {
-                        ((it.key == Key.Enter || it.key == Key.NumPadEnter || it.key == Key.PageDown || it.key == Key.DirectionRight)
+                        ((it.key == Key.Enter || it.key == Key.NumPadEnter || it.key == Key.PageDown || (it.key == Key.DirectionRight && !it.isShiftPressed))
                                 && it.type == KeyEventType.KeyUp
                                 ) -> {
                             toNext()
@@ -1500,7 +1500,7 @@ fun MainContent(
                             }
                             true
                         }
-                        ((it.key == Key.PageUp  ||  it.key == Key.DirectionLeft) && it.type == KeyEventType.KeyUp) -> {
+                        ((it.key == Key.PageUp  ||  (it.key == Key.DirectionLeft && !it.isShiftPressed)) && it.type == KeyEventType.KeyUp) -> {
                             previous()
                             true
                         }
@@ -2214,11 +2214,11 @@ fun Captions(
                                 scope.launch {  playCurrentCaption() }
                                 true
                             }
-                            (it.key == Key.DirectionDown && it.type == KeyEventType.KeyUp) -> {
+                            (it.key == Key.DirectionDown && !it.isShiftPressed && it.type == KeyEventType.KeyUp) -> {
                                 focusMoveDown()
                                 true
                             }
-                            (it.key == Key.DirectionUp && it.type == KeyEventType.KeyUp) -> {
+                            (it.key == Key.DirectionUp && !it.isShiftPressed && it.type == KeyEventType.KeyUp) -> {
                                 focusMoveUp()
                                 true
                             }
