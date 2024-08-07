@@ -29,11 +29,7 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.buildAnnotatedString
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
@@ -46,9 +42,9 @@ import player.isWindows
 import state.GlobalState
 import state.TextState
 import ui.dialog.FormatDialog
-import ui.subtitleScreen.OpenMode
+import ui.subtitle.OpenMode
 import util.createTransferHandler
-import ui.subtitleScreen.videoFormatList
+import ui.subtitle.videoFormatList
 import util.rememberMonospace
 import java.io.File
 import java.nio.file.Files
