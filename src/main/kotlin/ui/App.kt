@@ -51,6 +51,7 @@ import ui.flatlaf.setupFileChooser
 import ui.flatlaf.updateFlatLaf
 import ui.search.Search
 import ui.subtitle.SubtitleScreen
+import ui.text.TextScreen
 import ui.word.WordScreen
 import java.awt.Rectangle
 import java.io.File

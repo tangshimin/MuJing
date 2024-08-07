@@ -1,4 +1,4 @@
-package ui
+package ui.components
 
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.material.MaterialTheme

@@ -46,6 +46,7 @@ import state.MemoryStrategy.*
 import tts.AzureTTS
 import tts.rememberAzureTTS
 import ui.*
+import ui.components.MacOSTitle
 import ui.components.RemoveButton
 import ui.dialog.BuiltInVocabularyDialog
 import ui.dialog.ChapterFinishedDialog

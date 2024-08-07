@@ -17,7 +17,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import state.getResourcesFile
-import ui.LinkText
+import ui.components.LinkText
 
 /**
  * 关于 对话框

@@ -32,10 +32,10 @@ import kotlinx.coroutines.launch
 import player.*
 import state.GlobalState
 import state.SubtitlesState
-import ui.MacOSTitle
+import ui.components.MacOSTitle
 import ui.components.RemoveButton
 import ui.Toolbar
-import ui.playSound
+import ui.word.playSound
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import util.createTransferHandler

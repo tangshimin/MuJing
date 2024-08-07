@@ -1,4 +1,4 @@
-package ui
+package ui.text
 
 import LocalCtrl
 import androidx.compose.foundation.*
@@ -41,11 +41,14 @@ import player.isMacOS
 import player.isWindows
 import state.GlobalState
 import state.TextState
+import ui.Toolbar
+import ui.components.MacOSTitle
 import ui.dialog.FormatDialog
 import ui.subtitle.OpenMode
 import util.createTransferHandler
 import ui.subtitle.videoFormatList
 import ui.components.RemoveButton
+import ui.word.playSound
 import util.rememberMonospace
 import java.io.File
 import java.nio.file.Files

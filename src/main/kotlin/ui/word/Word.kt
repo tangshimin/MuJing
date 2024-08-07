@@ -1,4 +1,4 @@
-package ui
+package ui.word
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ContextMenuArea

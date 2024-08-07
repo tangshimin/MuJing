@@ -29,12 +29,9 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
 import state.WordScreenState
 import theme.createColors
-import ui.*
 import ui.flatlaf.updateFlatLaf
-import ui.word.Definition
-import ui.word.Morphology
-import ui.word.Translation
 import theme.toAwt
+import ui.word.*
 import util.rememberMonospace
 
 
