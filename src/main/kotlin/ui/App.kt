@@ -42,6 +42,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
 import scrollbarStyle
 import state.*
+import theme.toAwt
 import ui.dialog.*
 import ui.edit.ChooseEditVocabulary
 import ui.edit.EditVocabulary

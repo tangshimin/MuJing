@@ -34,6 +34,7 @@ import ui.flatlaf.updateFlatLaf
 import ui.word.Definition
 import ui.word.Morphology
 import ui.word.Translation
+import theme.toAwt
 import util.rememberMonospace
 
 

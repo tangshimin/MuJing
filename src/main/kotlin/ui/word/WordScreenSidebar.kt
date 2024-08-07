@@ -1,4 +1,4 @@
-package ui
+package ui.word
 
 import LocalCtrl
 import androidx.compose.foundation.*
@@ -863,10 +863,3 @@ fun WordScreenSidebar(
     }
 }
 
-fun java.awt.Color.toCompose(): Color {
-    return Color(red, green, blue)
-}
-
-fun Color.toAwt(): java.awt.Color {
-    return java.awt.Color(red, green, blue)
-}

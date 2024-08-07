@@ -27,3 +27,11 @@ fun createColors(
         )
     }
 }
+
+fun java.awt.Color.toCompose(): Color {
+    return Color(red, green, blue)
+}
+
+fun Color.toAwt(): java.awt.Color {
+    return java.awt.Color(red, green, blue)
+}
