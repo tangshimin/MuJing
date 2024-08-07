@@ -49,8 +49,8 @@ import state.getResourcesFile
 import ui.edit.displayExchange
 import ui.edit.toAwtSize
 import ui.edit.toPoint
-import ui.getPlayTripleMap
-import ui.secondsToString
+import ui.word.getPlayTripleMap
+import ui.word.secondsToString
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Point
@@ -1202,8 +1202,8 @@ fun SettingTimeLine(
         val play = {
             scope.launch {
                 val newCaption = caption.copy(
-                    start =secondsToString(start) ,
-                    end =secondsToString(end)
+                    start = secondsToString(start) ,
+                    end = secondsToString(end)
                 )
                 play(
                     window = playerWindow,

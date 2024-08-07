@@ -32,9 +32,9 @@ import androidx.compose.ui.unit.dp
 import data.Word
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import ui.CopyButton
-import ui.DeleteButton
-import ui.FamiliarButton
+import ui.word.CopyButton
+import ui.word.DeleteButton
+import ui.word.FamiliarButton
 
 class DanmakuItem(
     content: String,

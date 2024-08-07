@@ -45,6 +45,7 @@ import ui.dialog.FormatDialog
 import ui.subtitle.OpenMode
 import util.createTransferHandler
 import ui.subtitle.videoFormatList
+import ui.word.RemoveButton
 import util.rememberMonospace
 import java.io.File
 import java.nio.file.Files

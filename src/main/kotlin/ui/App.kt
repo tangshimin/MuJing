@@ -49,6 +49,7 @@ import ui.edit.checkVocabulary
 import ui.flatlaf.setupFileChooser
 import ui.flatlaf.updateFlatLaf
 import ui.subtitle.SubtitleScreen
+import ui.word.WordScreen
 import java.awt.Rectangle
 import java.io.File
 import javax.swing.JOptionPane

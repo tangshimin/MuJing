@@ -33,7 +33,7 @@ import player.*
 import state.GlobalState
 import state.SubtitlesState
 import ui.MacOSTitle
-import ui.RemoveButton
+import ui.word.RemoveButton
 import ui.Toolbar
 import ui.playSound
 import uk.co.caprica.vlcj.player.base.MediaPlayer

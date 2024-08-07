@@ -20,10 +20,6 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import data.*
@@ -37,6 +33,7 @@ import player.playAudio
 import state.AppState
 import state.WordScreenState
 import tts.rememberAzureTTS
+import ui.word.SearchResultInfo
 import util.rememberMonospace
 import java.awt.Point
 import java.awt.Rectangle

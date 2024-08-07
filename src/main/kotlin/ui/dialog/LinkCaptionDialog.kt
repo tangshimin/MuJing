@@ -36,7 +36,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import player.isMacOS
 import player.play
 import state.AppState
-import ui.getPlayTripleMap
+import ui.word.getPlayTripleMap
 import java.awt.Point
 import java.awt.Rectangle
 import java.io.File

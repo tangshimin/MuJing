@@ -1,4 +1,4 @@
-package ui
+package ui.word
 
 import LocalCtrl
 import androidx.compose.animation.ExperimentalAnimationApi
@@ -45,6 +45,7 @@ import state.*
 import state.MemoryStrategy.*
 import tts.AzureTTS
 import tts.rememberAzureTTS
+import ui.*
 import ui.dialog.BuiltInVocabularyDialog
 import ui.dialog.ChapterFinishedDialog
 import ui.dialog.ConfirmDialog
