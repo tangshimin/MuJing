@@ -1,4 +1,4 @@
-package ui
+package ui.search
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -33,7 +33,6 @@ import player.playAudio
 import state.AppState
 import state.WordScreenState
 import tts.rememberAzureTTS
-import ui.word.SearchResultInfo
 import util.rememberMonospace
 import java.awt.Point
 import java.awt.Rectangle
