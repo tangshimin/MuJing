@@ -1,6 +1,5 @@
 ## 幕境
-沉浸式学英语,使用自己感兴趣的电影、美剧或文档，生成词库（单词本）。在记忆单词时，可以练习拼写并观看相关的视频片段，以便更好的理解和记忆单词。播放电影时，以弹幕的形式复习词库中的单词。
-
+通过电影、美剧、文档等生成词库，为单词提供具体语境。记忆单词时，可以通过键盘打字练习拼写、观看相关的视频片段。
 ### [下载地址](https://github.com/tangshimin/MuJing/releases)
 [![downloads](https://img.shields.io/github/downloads/tangshimin/MuJing/total?style=for-the-badge&logo=download&logoColor=white)](https://github.com/tangshimin/MuJing/releases)
 
