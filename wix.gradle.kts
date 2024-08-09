@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets
 
 val appDir = project.layout.projectDirectory.dir("build/compose/binaries/main/app/")
 val iconPath = project.file("src/main/resources/logo/logo.ico").absolutePath
+val removeIconPath = project.file("RemoveConfig/src/main/resources/remove.ico").absolutePath
 val licensePath = project.file("license.rtf").absolutePath
 val manufacturer = "深圳市龙华区幕境网络工作室"
 val shortcutName = "幕境"
@@ -108,6 +109,7 @@ project.tasks.register("editWxs") {
         editWixTask(
             shortcutName = shortcutName,
             iconPath = iconPath,
+            removeIconPath = removeIconPath,
             licensePath = licensePath,
             manufacturer = manufacturer
         )
@@ -143,6 +145,7 @@ project.tasks.register<Exec>("light") {
 private fun editWixTask(
     shortcutName: String,
     iconPath: String,
+    removeIconPath: String,
     licensePath: String,
     manufacturer:String
 ) {
@@ -239,22 +242,84 @@ private fun editWixTask(
     val desktopFolderElement = directoryBuilder(doc, id = "DesktopFolder").apply{
         setAttributeNode(doc.createAttribute("Name").also { it.value = "Desktop" })
     }
+    val desktopGuid = createNameUUID("DesktopShortcutComponent")
+    val desktopComponent = componentBuilder(doc, id = "DesktopShortcutComponent", guid = desktopGuid)
+    val desktopReg = registryBuilder(doc, id = "DesktopShortcutReg", productCode = "[ProductCode]")
+    // <Shortcut Advertise="no" Directory="DesktopFolder" Target = "[INSTALLDIR]MuJing.exe" Icon="icon.ico" IconIndex="0" Id="DesktopShortcut" Name="幕境" WorkingDirectory="INSTALLDIR"/>
+    val desktopShortcut = shortcutBuilder(
+        doc,
+        id = "DesktopShortcut",
+        directory = "DesktopFolder",
+        workingDirectory = "INSTALLDIR",
+        name = shortcutName,
+        target = "[INSTALLDIR]MuJing.exe",
+        icon="icon.ico"
+    )
+    //   <RemoveFile Id="DesktopShortcut" On="uninstall" Name="幕境.lnk" Directory="DesktopFolder"/>
+    val removeDesktopShortcut = doc.createElement("RemoveFile").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "DesktopShortcut" })
+        setAttributeNode(doc.createAttribute("On").also { it.value = "uninstall" })
+        setAttributeNode(doc.createAttribute("Name").also { it.value = "$shortcutName.lnk" })
+        setAttributeNode(doc.createAttribute("Directory").also { it.value = "DesktopFolder" })
+    }
+    desktopComponent.appendChild(desktopShortcut)
+    desktopComponent.appendChild(desktopReg)
+    desktopComponent.appendChild(removeDesktopShortcut)
+    desktopFolderElement.appendChild(desktopComponent)
     targetDirectory.appendChild(desktopFolderElement)
+
+
 
     // 开始菜单文件夹
     val programMenuFolderElement = directoryBuilder(doc, id = "ProgramMenuFolder", name = "Programs")
     val programeMenuDir = directoryBuilder(doc, id = "ProgramMenuDir", name = "幕境")
-    val menuGuid = createNameUUID("programeMenuDirComponent")
-    val programeMenuDirComponent = componentBuilder(doc, id = "programeMenuDirComponent", guid = menuGuid)
+    val menuGuid = createNameUUID("programMenuDirComponent")
+    val programMenuDirComponent = componentBuilder(doc, id = "programMenuDirComponent", guid = menuGuid)
+    val startMenuShortcut = shortcutBuilder(
+        doc,
+        id = "startMenuShortcut",
+        directory = "ProgramMenuDir",
+        workingDirectory = "INSTALLDIR",
+        name = shortcutName,
+        target = "[INSTALLDIR]MuJing.exe"
+    )
+    val uninstallShortcut = shortcutBuilder(
+        doc,
+        id = "uninstallShortcut",
+        name = "卸载幕境",
+        directory = "ProgramMenuDir",
+        target = "[System64Folder]msiexec.exe",
+        arguments = "/x [ProductCode]",
+        icon = "removeIcon.ico"
+    )
     val removeFolder = removeFolderBuilder(doc, id = "CleanUpShortCut", directory = "ProgramMenuDir")
     val pRegistryValue = registryBuilder(doc, id = "ProgramMenuShortcutReg", productCode = "[ProductCode]")
 
     programMenuFolderElement.appendChild(programeMenuDir)
-    programeMenuDir.appendChild(programeMenuDirComponent)
-    programeMenuDirComponent.appendChild(removeFolder)
-    programeMenuDirComponent.appendChild(pRegistryValue)
+    programeMenuDir.appendChild(programMenuDirComponent)
+    programMenuDirComponent.appendChild(startMenuShortcut)
+    programMenuDirComponent.appendChild(uninstallShortcut)
+    programMenuDirComponent.appendChild(removeFolder)
+    programMenuDirComponent.appendChild(pRegistryValue)
+
+    //<Component Guid="*" Id="RemoveShortcutComponent" Win64="yes">
+    //  <RemoveFile Id="RemoveMenuShortcut" On="uninstall" Name="幕境.lnk" Directory="ProgramMenuDir"/>
+    //  <RegistryValue Id="RemoveMenuShortcutReg" Key="Software\MuJing" KeyPath="yes" Name="ProductCode" Root="HKCU" Type="string" Value="[ProductCode]"/>
+    //</Component>
+    val removeShortcutComponent = componentBuilder(doc, id = "RemoveShortcutComponent", guid = createNameUUID("RemoveShortcutComponent"))
+    val removeMenuShortcut = doc.createElement("RemoveFile").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "RemoveMenuShortcut" })
+        setAttributeNode(doc.createAttribute("On").also { it.value = "uninstall" })
+        setAttributeNode(doc.createAttribute("Name").also { it.value = "*.lnk" })
+        setAttributeNode(doc.createAttribute("Directory").also { it.value = "ProgramMenuDir" })
+    }
+    val removeMenuShortcutReg = registryBuilder(doc, id = "RemoveMenuShortcutReg", productCode = "[ProductCode]")
+    removeShortcutComponent.appendChild(removeMenuShortcut)
+    removeShortcutComponent.appendChild(removeMenuShortcutReg)
+
 
     targetDirectory.appendChild(programMenuFolderElement)
+    targetDirectory.appendChild(removeShortcutComponent)
 
     // 添加 ProgramFiles64Folder 节点
     val programFilesElement = doc.createElement("Directory")
@@ -271,26 +336,7 @@ private fun editWixTask(
     val installDirElement = programFilesElement.getElementsByTagName("Directory").item(0) as Element
     installDirElement.setAttribute("Id", "INSTALLDIR")
 
-    // 创建桌面和开始菜单的快捷方式
-    val desktopShortcut = shortcutBuilder(
-        doc,
-        id = "DesktopShortcut",
-        directory = "DesktopFolder",
-        workingDirectory = "INSTALLDIR",
-        name = shortcutName,
-         icon="icon.ico"
-    )
-    val startMenuShortcut = shortcutBuilder(
-        doc,
-        id = "startMenuShortcut",
-        directory = "ProgramMenuDir",
-        workingDirectory = "INSTALLDIR",
-        name = shortcutName,
-        icon="icon.ico"
-    )
-
     val fileComponents = installDirElement.getElementsByTagName("Component")
-    var count = 0
     for (i in 0 until fileComponents.length) {
         val component = fileComponents.item(i) as Element
         val files = component.getElementsByTagName("File")
@@ -298,22 +344,8 @@ private fun editWixTask(
         // 设置 RemoveConfig.exe文件的 Id 为 RemoveConfig.exe
         if(file.getAttribute("Source").endsWith("RemoveConfig.exe")){
             file.setAttribute("Id","RemoveConfig.exe")
-            count++
-            if(count == 2){
-                break
-            }
         }
-        // 设置 MuJing.exe 文件的 Id 为 MuJing.exe
-        // 添加开始菜单和桌面菜单的快捷方式
-        if(file.getAttribute("Source").endsWith("MuJing.exe")){
-            file.setAttribute("Id","MuJing.exe")
-            file.appendChild(desktopShortcut)
-            file.appendChild(startMenuShortcut)
-            count++
-            if(count == 2){
-                break
-            }
-        }
+
     }
 
     // <Component Guid="{GUID}" Id="installProduct">
@@ -384,6 +416,12 @@ private fun editWixTask(
     }
     productElement.appendChild(iconProperty)
 
+    //<Icon Id="removeIcon.ico" SourceFile="removeIconPath"/>
+    val removeIconElement = doc.createElement("Icon").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "removeIcon.ico" })
+        setAttributeNode(doc.createAttribute("SourceFile").also { it.value = removeIconPath })
+    }
+    productElement.appendChild(removeIconElement)
     // 设置 license file
     //  <WixVariable Id="WixUILicenseRtf" Value="license.rtf" />
     val wixVariable = doc.createElement("WixVariable").apply{
@@ -440,10 +478,14 @@ private fun editWixTask(
     // 设置 fragment 节点
     val fragmentElement = doc.getElementsByTagName("Fragment").item(0) as Element
     val componentGroup = fragmentElement.getElementsByTagName("ComponentGroup").item(0) as Element
-    val programMenuDirRef = componentRefBuilder(doc, "programeMenuDirComponent")
+    val desktopShortcuRef = componentRefBuilder(doc, "DesktopShortcutComponent")
+    val programMenuDirRef = componentRefBuilder(doc, "programMenuDirComponent")
+    val removeShortcutRef = componentRefBuilder(doc, "RemoveShortcutComponent")
     val installProductRef = componentRefBuilder(doc, "installProduct")
+    componentGroup.appendChild(desktopShortcuRef)
     componentGroup.appendChild(programMenuDirRef)
     componentGroup.appendChild(installProductRef)
+    componentGroup.appendChild(removeShortcutRef)
 
     generateXml(doc, wixFile)
 }
@@ -515,6 +557,7 @@ private fun shortcutBuilder(
     directory: String = "",
     workingDirectory: String = "",
     name: String,
+    target: String,
     description: String = "",
     arguments: String = "",
     icon:String = ""
@@ -522,8 +565,8 @@ private fun shortcutBuilder(
     val shortcut = doc.createElement("Shortcut").apply{
         setAttributeNode(doc.createAttribute("Id").also { it.value = id })
         setAttributeNode(doc.createAttribute("Name").also { it.value = name })
-        setAttributeNode(doc.createAttribute("Advertise").also { it.value = "yes" })
-        setAttributeNode(doc.createAttribute("IconIndex").also { it.value = "0" })
+        setAttributeNode(doc.createAttribute("Advertise").also { it.value = "no" })
+        setAttributeNode(doc.createAttribute("Target").also { it.value = target })
         if(directory.isNotEmpty()){
             setAttributeNode(doc.createAttribute("Directory").also { it.value = directory })
         }
