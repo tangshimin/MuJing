@@ -1,6 +1,7 @@
 package ui.word
 
 import LocalCtrl
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -45,16 +46,10 @@ import state.*
 import state.MemoryStrategy.*
 import tts.AzureTTS
 import tts.rememberAzureTTS
-import ui.*
+import ui.Toolbar
 import ui.components.MacOSTitle
 import ui.components.RemoveButton
-import ui.dialog.BuiltInVocabularyDialog
-import ui.dialog.ChapterFinishedDialog
-import ui.dialog.ConfirmDialog
-import ui.dialog.DocumentWindow
-import ui.dialog.EditWordDialog
-import ui.dialog.GenerateVocabularyListDialog
-import ui.dialog.SelectChapterDialog
+import ui.dialog.*
 import util.createTransferHandler
 import util.rememberMonospace
 import java.awt.Component
@@ -63,6 +58,7 @@ import java.io.File
 import java.nio.file.Paths
 import java.time.Duration
 import java.util.*
+import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
 import javax.swing.JFrame
 import javax.swing.JOptionPane
@@ -173,7 +169,10 @@ fun WordScreen(
                         openVocabulary = { showFilePicker = true },
                         openBuiltInVocabulary = {showBuiltInVocabulary = true},
                         generateVocabulary = {generateVocabularyListVisible = true},
-                        openDocument = {documentWindowVisible = true}
+                        openDocument = {documentWindowVisible = true},
+                        parentWindow = window,
+                        futureFileChooser = appState.futureFileChooser,
+                        openChooseVocabulary = openChooseVocabulary
                     )
                 }
 
@@ -1714,12 +1713,16 @@ fun MainContent(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun VocabularyEmpty(
     openVocabulary: () -> Unit,
     openBuiltInVocabulary: () -> Unit = {},
     generateVocabulary: () -> Unit = {},
-    openDocument: () -> Unit = {}
+    openDocument: () -> Unit = {},
+    parentWindow : ComposeWindow,
+    futureFileChooser: FutureTask<JFileChooser>,
+    openChooseVocabulary: (String) -> Unit = {},
 ) {
     Surface(Modifier.fillMaxSize()) {
 
@@ -1727,10 +1730,12 @@ fun VocabularyEmpty(
             Column(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.align(Alignment.Center)
+                    .width(288.dp)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = "打开词库",
@@ -1742,33 +1747,7 @@ fun VocabularyEmpty(
                 Row(
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 10.dp)
-                ) {
-
-                    Text(
-                        text = "内置词库",
-                        color = MaterialTheme.colors.primary,
-                        modifier = Modifier.clickable(onClick = {openBuiltInVocabulary()  })
-                            .padding(5.dp)
-                    )
-                }
-
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 10.dp)
-                ) {
-                    Text(
-                        text = "生成词库",
-                        color = MaterialTheme.colors.primary,
-                        modifier = Modifier.clickable(onClick = {generateVocabulary()  })
-                            .padding(5.dp)
-                    )
-                }
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.padding(top = 10.dp)
+                    modifier = Modifier.padding(top = 10.dp).fillMaxWidth()
                 ) {
                     Text(
                         text = "使用手册",
@@ -1778,6 +1757,129 @@ fun VocabularyEmpty(
                             .padding(5.dp)
                     )
                 }
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(top = 10.dp).fillMaxWidth()
+                ) {
+                    Text(
+                        text = "生成词库",
+                        color = MaterialTheme.colors.primary,
+                        modifier = Modifier.clickable(onClick = {generateVocabulary()  })
+                            .padding(5.dp)
+                    )
+                }
+
+                var visible by remember { mutableStateOf(false) }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(100.dp)
+                        .onPointerEvent(PointerEventType.Exit) { visible = false }
+                ){
+                    Row(
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(top = 10.dp).onPointerEvent(PointerEventType.Enter) { visible = true }
+                    ) {
+                        Text(
+                            text = "内置词库",
+                            color = MaterialTheme.colors.primary,
+                            modifier = Modifier.clickable(onClick = {openBuiltInVocabulary()})
+                                .padding(5.dp)
+                        )
+                    }
+                    val scope = rememberCoroutineScope()
+                    AnimatedVisibility(visible = visible){
+
+                        /** 保存词库 */
+                        val save:(File) -> Unit = {file ->
+                            scope.launch(Dispatchers.IO) {
+                                val name = file.nameWithoutExtension
+                                val fileChooser = futureFileChooser.get()
+                                fileChooser.dialogType = JFileChooser.SAVE_DIALOG
+                                fileChooser.dialogTitle = "保存词库"
+                                val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
+                                fileChooser.selectedFile = File("$myDocuments${File.separator}${name}.json")
+                                val userSelection = fileChooser.showSaveDialog(parentWindow)
+                                if (userSelection == JFileChooser.APPROVE_OPTION) {
+
+                                    val fileToSave = fileChooser.selectedFile
+                                    if (fileToSave.exists()) {
+                                        // 是-0,否-1，取消-2
+                                        val answer =
+                                            JOptionPane.showConfirmDialog(parentWindow, "${name}.json 已存在。\n要替换它吗？")
+                                        if (answer == 0) {
+                                            try{
+                                                fileToSave.writeBytes(file.readBytes())
+                                                openChooseVocabulary(file.absolutePath)
+                                            }catch (e:Exception){
+                                                e.printStackTrace()
+                                                JOptionPane.showMessageDialog(parentWindow,"保存失败，错误信息：\n${e.message}")
+                                            }
+
+                                        }
+                                    } else {
+                                        try{
+                                            fileToSave.writeBytes(file.readBytes())
+                                            openChooseVocabulary(file.absolutePath)
+                                        }catch (e:Exception){
+                                            e.printStackTrace()
+                                            JOptionPane.showMessageDialog(parentWindow,"保存失败，错误信息：\n${e.message}")
+                                        }
+
+                                    }
+
+                                }
+                            }
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(top = 5.dp)
+                        ) {
+                            Text(
+                                text = "四级",
+                                color = MaterialTheme.colors.primary,
+                                modifier = Modifier.clickable(onClick = {
+                                    val file = getResourcesFile("vocabulary/大学英语/四级.json")
+                                    save(file)
+                                })
+                                    .padding(5.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "六级",
+                                color = MaterialTheme.colors.primary,
+                                modifier = Modifier.clickable(onClick = {
+                                    val file = getResourcesFile("vocabulary/大学英语/六级.json")
+                                    save(file)
+                                })
+                                    .padding(5.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "牛津核心3000词",
+                                color = MaterialTheme.colors.primary,
+                                modifier = Modifier.clickable(onClick = {
+                                    val file = getResourcesFile("vocabulary/牛津核心词/The_Oxford_3000.json")
+                                    save(file)
+                                })
+                                    .padding(5.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "更多",
+                                color = MaterialTheme.colors.primary,
+                                modifier = Modifier.clickable(onClick = {openBuiltInVocabulary()})
+                                    .padding(5.dp)
+                            )
+                        }
+                    }
+                }
+
             }
         }
 
