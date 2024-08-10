@@ -1608,9 +1608,7 @@ fun MainContent(
                     close = {showChapterDialog = false},
                     wordScreenState = wordScreenState,
                     wordRequestFocus = {
-                        if(currentWord != null){
-                            wordFocusRequester.requestFocus()
-                        }
+                        wordFocusRequester.requestFocus()
                     },
                     isMultiple = true
                 )
