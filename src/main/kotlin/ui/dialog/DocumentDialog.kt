@@ -39,7 +39,7 @@ fun DocumentWindow(
     setCurrentPage:(String) -> Unit
 ) {
     Window(
-        title = "文档",
+        title = "使用手册",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },
         resizable = true,

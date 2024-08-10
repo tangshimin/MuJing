@@ -1771,7 +1771,7 @@ fun VocabularyEmpty(
                     modifier = Modifier.padding(top = 10.dp)
                 ) {
                     Text(
-                        text = "文档",
+                        text = "使用手册",
                         color = MaterialTheme.colors.primary,
                         modifier = Modifier.clickable(onClick = { openDocument() })
                             .width(78.dp)
