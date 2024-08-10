@@ -113,7 +113,7 @@ fun WordScreen(
             wordScreenState.getCurrentWord()
         }else  null
 
-        val  wordRequestFocus: () -> Unit = { ->
+        val  wordRequestFocus: () -> Unit = {
             if(currentWord != null){
                 wordFocusRequester.requestFocus()
             }
@@ -2812,7 +2812,7 @@ fun HardButton(
 
 /** 熟悉单词按钮 */
 @Composable
-@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 fun FamiliarButton(
     onClick: () -> Unit,
 ){
@@ -2882,7 +2882,7 @@ fun BookmarkButton(
 
 /** 复制按钮 */
 @Composable
-@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 fun CopyButton(wordValue:String){
     TooltipArea(
         tooltip = {
