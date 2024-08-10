@@ -77,7 +77,7 @@ fun ShortcutKeyDialog(close: () -> Unit) {
                                 append("  $ctrl + B ")
                             }
                             withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                                append("  激活复制功能，激活后，不用先抄写就可以自由的复制，可用用 Ctrl + A 全选。")
+                                append("  激活复制功能，激活后，不用先抄写就可以自由的复制，可用用 $ctrl + A 全选。")
                             }
 
                         }
