@@ -371,7 +371,7 @@ fun Header(
 fun MainContent(
     appState: AppState,
     wordScreenState: WordScreenState,
-    dictationState:  DictationState,
+    dictationState: DictationState,
     azureTTS: AzureTTS,
     currentWord:Word,
     videoBounds: Rectangle,

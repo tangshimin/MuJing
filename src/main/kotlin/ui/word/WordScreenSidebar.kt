@@ -25,7 +25,6 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.isMacOS
 import state.AppState
-import state.DictationState
 import ui.dialog.AzureTTSDialog
 import ui.dialog.SelectChapterDialog
 import java.awt.Rectangle

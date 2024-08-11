@@ -24,7 +24,7 @@ import androidx.compose.ui.window.rememberDialogState
 import data.Word
 import ui.word.MemoryStrategy
 import ui.word.WordScreenState
-import state.rememberDictationState
+import ui.word.rememberDictationState
 
 /**
  * 选择章节

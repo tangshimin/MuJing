@@ -1,4 +1,4 @@
-package state
+package ui.word
 
 import androidx.compose.runtime.*
 import com.formdev.flatlaf.FlatLightLaf
@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import state.getSettingsDirectory
 import java.io.File
 import javax.swing.JOptionPane
 
@@ -83,7 +84,7 @@ class DictationState(dataDictationState: DataDictationState){
 
 
 @Composable
-fun rememberDictationState():DictationState = remember{
+fun rememberDictationState(): DictationState = remember{
     loadDictationState()
 }
 
