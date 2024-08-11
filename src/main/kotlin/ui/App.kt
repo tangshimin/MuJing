@@ -73,10 +73,13 @@ import javax.swing.JOptionPane
     ExperimentalSerializationApi::class
 )
 @Composable
-fun App() {
-
-    val playerState= rememberPlayerState()
-    val appState = rememberAppState()
+fun App(
+    appState: AppState = rememberAppState(),
+    playerState: PlayerState = rememberPlayerState(),
+    wordState: WordScreenState = rememberWordState(),
+    subtitlesState: SubtitlesState = rememberSubtitlesState(),
+    textState: TextState = rememberTextState()
+) {
 
     var showMainWindow by remember { mutableStateOf(true) }
     if (showMainWindow) {
@@ -110,7 +113,6 @@ fun App() {
                     ){
                         appState.global.wordFontSize = computeFontSize(appState.global.wordTextStyle)
                         appState.global.detailFontSize = computeFontSize(appState.global.detailTextStyle)
-                        val wordState = rememberWordState()
                         WindowMenuBar(
                             window = window,
                             appState = appState,
@@ -167,7 +169,6 @@ fun App() {
                                 )
                             }
                             ScreenType.SUBTITLES -> {
-                                val subtitlesState = rememberSubtitlesState()
                                 title = computeTitle(subtitlesState)
                                 SubtitleScreen(
                                     subtitlesState = subtitlesState,
@@ -190,7 +191,6 @@ fun App() {
                             }
 
                             ScreenType.TEXT -> {
-                                val textState = rememberTextState()
                                 title = computeTitle(textState)
                                 TextScreen(
                                     title = title,
