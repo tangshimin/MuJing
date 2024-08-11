@@ -52,6 +52,8 @@ import ui.flatlaf.updateFlatLaf
 import ui.search.Search
 import ui.subtitle.SubtitleScreen
 import ui.text.TextScreen
+import ui.text.TextState
+import ui.text.rememberTextState
 import ui.word.WordScreen
 import ui.word.WordScreenState
 import ui.word.rememberPronunciation

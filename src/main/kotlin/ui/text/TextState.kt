@@ -1,4 +1,4 @@
-package state
+package ui.text
 
 import androidx.compose.runtime.*
 import com.formdev.flatlaf.FlatLightLaf
@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import state.getSettingsDirectory
 import java.io.File
 import javax.swing.JOptionPane
 
@@ -59,13 +60,13 @@ class TextState(dataTextState: DataTextState){
 }
 
 @Composable
-fun rememberTextState():TextState = remember{
+fun rememberTextState(): TextState = remember{
     loadTextState()
 }
 
 /** 加载抄写文本的配置信息 */
 @OptIn(ExperimentalSerializationApi::class)
-private fun loadTextState():TextState{
+private fun loadTextState(): TextState {
     val typingTextSetting = getTextSettingsFile()
     return if(typingTextSetting.exists()){
         try{

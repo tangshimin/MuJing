@@ -40,7 +40,6 @@ import kotlinx.coroutines.launch
 import player.isMacOS
 import player.isWindows
 import state.GlobalState
-import state.TextState
 import ui.Toolbar
 import ui.components.MacOSTitle
 import ui.dialog.FormatDialog
