@@ -1,4 +1,4 @@
-package state
+package ui.word
 
 import androidx.compose.runtime.*
 import com.formdev.flatlaf.FlatLightLaf
@@ -12,6 +12,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import state.DictationState
+import state.getResourcesFile
+import state.getSettingsDirectory
 import java.awt.Rectangle
 import java.io.File
 import javax.swing.JOptionPane
@@ -393,7 +396,7 @@ class WordScreenState(wordScreenData: WordScreenData) {
 }
 
 @Composable
-fun rememberWordState():WordScreenState = remember{
+fun rememberWordState(): WordScreenState = remember{
     loadWordState()
 }
 @Composable

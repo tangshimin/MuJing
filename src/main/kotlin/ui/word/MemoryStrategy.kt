@@ -1,4 +1,4 @@
-package state
+package ui.word
 
 enum class MemoryStrategy {
     /** 正常的记忆单词，可以多次拼写单词，播放视频，抄写字幕，可以显示所有的信息。 */

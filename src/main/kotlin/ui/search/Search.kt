@@ -31,7 +31,7 @@ import player.getAudioPath
 import player.play
 import player.playAudio
 import state.AppState
-import state.WordScreenState
+import ui.word.WordScreenState
 import tts.rememberAzureTTS
 import util.rememberMonospace
 import java.awt.Point

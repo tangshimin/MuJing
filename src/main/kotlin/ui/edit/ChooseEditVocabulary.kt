@@ -14,7 +14,7 @@ import androidx.compose.ui.window.rememberWindowState
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import data.RecentItem
 import player.isMacOS
-import state.rememberWordState
+import ui.word.rememberWordState
 import java.io.File
 import javax.swing.JOptionPane
 

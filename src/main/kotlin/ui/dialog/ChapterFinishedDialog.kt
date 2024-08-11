@@ -23,7 +23,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.Word
-import state.MemoryStrategy
+import ui.word.MemoryStrategy
 
 
 /**

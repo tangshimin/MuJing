@@ -53,6 +53,9 @@ import ui.search.Search
 import ui.subtitle.SubtitleScreen
 import ui.text.TextScreen
 import ui.word.WordScreen
+import ui.word.WordScreenState
+import ui.word.rememberPronunciation
+import ui.word.rememberWordState
 import java.awt.Rectangle
 import java.io.File
 import javax.swing.JOptionPane
@@ -390,7 +393,7 @@ private fun computeTitle(textState: TextState) :String{
 private fun FrameWindowScope.WindowMenuBar(
     window: ComposeWindow,
     appState: AppState,
-    wordScreenState:WordScreenState,
+    wordScreenState: WordScreenState,
     close: () -> Unit,
 ) = MenuBar {
     Menu("词库(V)", mnemonic = 'V') {

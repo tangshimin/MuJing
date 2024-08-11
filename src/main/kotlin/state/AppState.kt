@@ -21,6 +21,8 @@ import player.isMacOS
 import player.isWindows
 import theme.createColors
 import ui.flatlaf.initializeFileChooser
+import ui.word.MemoryStrategy
+import ui.word.WordScreenState
 import java.io.File
 import java.time.LocalDateTime
 import java.util.concurrent.FutureTask

@@ -43,7 +43,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
 import state.*
-import state.MemoryStrategy.*
+import ui.word.MemoryStrategy.*
 import tts.AzureTTS
 import tts.rememberAzureTTS
 import ui.Toolbar

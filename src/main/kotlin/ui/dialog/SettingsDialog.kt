@@ -27,7 +27,7 @@ import androidx.compose.ui.window.rememberDialogState
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
-import state.WordScreenState
+import ui.word.WordScreenState
 import theme.createColors
 import ui.flatlaf.updateFlatLaf
 import theme.toAwt

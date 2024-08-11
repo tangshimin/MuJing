@@ -13,7 +13,7 @@ import data.Word
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.AudioButton
 import state.AppState
-import state.WordScreenState
+import ui.word.WordScreenState
 import tts.AzureTTS
 import ui.word.Morphology
 
