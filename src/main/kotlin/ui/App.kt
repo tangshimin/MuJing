@@ -23,6 +23,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -704,12 +705,15 @@ fun Toolbar(
                 offset = DpOffset.Zero
             )
         ) {
-            IconButton(onClick = {
-                scope.launch {
-                    globalState.type = ScreenType.WORD
-                    saveGlobalState()
-                }
-            }) {
+            IconButton(
+                onClick = {
+                    scope.launch {
+                        globalState.type = ScreenType.WORD
+                        saveGlobalState()
+                    }
+                },
+                modifier = Modifier.testTag("WordButton")
+            ) {
                 Text(
                     text = "W",
                     style = MaterialTheme.typography.h6,
@@ -740,12 +744,15 @@ fun Toolbar(
             )
         ) {
 
-            IconButton(onClick = {
-                scope.launch {
-                    globalState.type = ScreenType.SUBTITLES
-                    saveGlobalState()
-                }
-            }) {
+            IconButton(
+                onClick = {
+                    scope.launch {
+                        globalState.type = ScreenType.SUBTITLES
+                        saveGlobalState()
+                    }
+                },
+                modifier = Modifier.testTag("SubtitlesButton")
+            ) {
                 Icon(
                     Icons.Filled.Subtitles,
                     contentDescription = "Localized description",
@@ -776,12 +783,15 @@ fun Toolbar(
                 offset = DpOffset.Zero
             )
         ) {
-            IconButton(onClick = {
-                scope.launch {
-                    globalState.type = ScreenType.TEXT
-                    saveGlobalState()
-                }
-            }) {
+            IconButton(
+                onClick = {
+                    scope.launch {
+                        globalState.type = ScreenType.TEXT
+                        saveGlobalState()
+                    }
+                },
+                modifier = Modifier.testTag("TextButton")
+            ) {
                 Icon(
                     Icons.Filled.Title,
                     contentDescription = "Localized description",
@@ -811,7 +821,10 @@ fun Toolbar(
                 offset = DpOffset.Zero
             )
         ) {
-            IconButton(onClick = {showPlayer(true)}) {
+            IconButton(
+                onClick = { showPlayer(true) },
+                modifier = Modifier.testTag("PlayerButton")
+            ) {
                 Icon(
                     Icons.Outlined.PlayCircle,
                     contentDescription = "Localized description",
@@ -843,6 +856,7 @@ fun Settings(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
+                    .testTag("SettingsButton")
                     .width(if (isOpen) 217.dp else 48.dp)
                     .shadow(
                         elevation = 0.dp,
