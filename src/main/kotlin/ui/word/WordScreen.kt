@@ -88,7 +88,7 @@ fun WordScreen(
     resetVideoBounds :() -> Rectangle,
     showPlayer :(Boolean) -> Unit,
     setVideoPath:(String) -> Unit,
-    vocabularyPathChanged:(String) -> Unit
+    setVideoVocabulary:(String) -> Unit
 ) {
 
 
@@ -96,11 +96,11 @@ fun WordScreen(
     LaunchedEffect(Unit){
         setWindowTransferHandler(
             window = window,
-            state = appState,
+            appState = appState,
             wordScreenState = wordScreenState,
             showVideoPlayer = showPlayer,
             setVideoPath = setVideoPath,
-            vocabularyPathChanged = vocabularyPathChanged
+            setVideoVocabulary = setVideoVocabulary
         )
     }
 
@@ -2945,15 +2945,23 @@ fun getPayTriple(currentWord: Word, index: Int): Triple<Caption, String, Int>? {
         null
     }
 }
-/**  设置处理拖放文件的函数 */
+
+/**  设置处理拖放文件的函数
+ *  @param window  主窗口
+ *  @param appState 应用程序的全局状态
+ *  @param wordScreenState 单词记忆界面的状态
+ *  @param showVideoPlayer 显示视频播放器
+ *  @param setVideoPath 设置视频路径
+ *  @param setVideoVocabulary 设置视频对应的词库
+ * */
 @OptIn(ExperimentalSerializationApi::class)
 fun setWindowTransferHandler(
     window: ComposeWindow,
-    state: AppState,
+    appState: AppState,
     wordScreenState: WordScreenState,
     showVideoPlayer:(Boolean) -> Unit,
     setVideoPath:(String) -> Unit,
-    vocabularyPathChanged:(String) -> Unit
+    setVideoVocabulary:(String) -> Unit
 ){
     window.transferHandler = createTransferHandler(
         showWrongMessage = { message ->
@@ -2963,8 +2971,8 @@ fun setWindowTransferHandler(
             val file = files.first()
             if (file.extension == "json") {
                 if (wordScreenState.vocabularyPath != file.absolutePath) {
-                    val index = state.findVocabularyIndex(file)
-                    state.changeVocabulary(file,wordScreenState,index)
+                    val index = appState.findVocabularyIndex(file)
+                    appState.changeVocabulary(file,wordScreenState,index)
                 } else {
                     JOptionPane.showMessageDialog(window, "词库已打开")
                 }
@@ -2972,7 +2980,7 @@ fun setWindowTransferHandler(
             } else if (file.extension == "mkv" || file.extension == "mp4") {
                 showVideoPlayer(true)
                 setVideoPath(file.absolutePath)
-                vocabularyPathChanged(wordScreenState.vocabularyPath)
+                setVideoVocabulary(wordScreenState.vocabularyPath)
             } else {
                 JOptionPane.showMessageDialog(window, "文件格式不支持")
             }

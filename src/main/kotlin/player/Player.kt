@@ -28,31 +28,19 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.platform.Font
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.window.*
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import data.*
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
-import state.getSettingsDirectory
 import tts.rememberAzureTTS
-import util.createTransferHandler
-import ui.dialog.MessageDialog
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
+import util.createTransferHandler
 import util.rememberMonospace
 import java.awt.Cursor
 import java.awt.Dimension
@@ -75,18 +63,19 @@ import kotlin.time.Duration.Companion.milliseconds
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun Player(
-    close: () -> Unit,
-    videoPath: String = "",
-    videoPathChanged:(String) -> Unit,
-    vocabulary: MutableVocabulary? = null,
-    vocabularyPath:String = "",
-    vocabularyPathChanged:(String) -> Unit,
+    playerState: PlayerState,
     audioSet: MutableSet<String>,
     pronunciation:String,
     audioVolume: Float,
     videoVolume: Float,
     videoVolumeChanged: (Float) -> Unit,
 ) {
+
+    val videoPath = playerState.videoPath
+    val videoPathChanged = playerState.videoPathChanged
+    val vocabulary = playerState.vocabulary
+    val vocabularyPath = playerState.vocabularyPath
+    val vocabularyPathChanged = playerState.vocabularyPathChanged
 
     /** 窗口的大小和位置 */
     val windowState = rememberWindowState(
@@ -100,9 +89,6 @@ fun Player(
         height = 854.dp,
         position = WindowPosition(Alignment.Center)
     )
-
-    /** 播放器的设置 */
-    val playerState by rememberPlayerState()
 
     /** 标题 */
     val title by remember (videoPath){
@@ -130,12 +116,6 @@ fun Player(
     /** 全屏之前的尺寸 */
     var fullscreenBeforeSize by remember{ mutableStateOf(DpSize(1289.dp, 854.dp)) }
 
-    /** 显示消息对话框 */
-    var showMessageDialog by remember { mutableStateOf(false) }
-
-    /** 要显示到消息对话框的消息 */
-    var message by remember { mutableStateOf("") }
-
     /** VLC 视频播放组件 */
     val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent()) }
 
@@ -158,7 +138,7 @@ fun Player(
     var counter by remember { mutableStateOf(1) }
 
     /** 这个视频的所有弹幕 */
-    val danmakuMap = rememberDanmakuMap(videoPath, vocabularyPath,vocabulary)
+    val danmakuMap by rememberDanmakuMap(videoPath, vocabularyPath,vocabulary)
 
     /** 正在显示的弹幕,数字定位 */
     val showingDanmakuNum = remember { mutableStateMapOf<Int, DanmakuItem>() }
@@ -220,7 +200,6 @@ fun Player(
     var currentAudioTrack by remember{mutableStateOf(0)}
 
     var hideControlBoxTask :TimerTask? by remember{ mutableStateOf(null)}
-//    var hoverIcon by remember{mutableStateOf(PointerIcon.Default)}
     val azureTTS = rememberAzureTTS()
     /** 使弹幕从右往左移动的定时器 */
     val danmakuTimer by remember {
@@ -259,7 +238,7 @@ fun Player(
     /** 关闭窗口 */
     val closeWindow: () -> Unit = {
         danmakuTimer.stop()
-        close()
+        playerState.closePlayerWindow()
     }
 
     /** 播放 */
@@ -275,7 +254,7 @@ fun Player(
         }
     }
 
-    /** 手动触发暂停，与之对应的是，用鼠标移动弹幕触发的自动暂停和用快速定位触发的自动自动暂停。*/
+    /** 手动触发暂停，与之对应的是，用鼠标移动弹幕触发的自动暂停和用快速定位触发的自动暂停。*/
     val normalPause: () -> Unit = {
         isNormalPause = !isNormalPause
     }
@@ -352,7 +331,7 @@ fun Player(
 
     val addSubtitle:(String) -> Unit = {path->
         videoPlayerComponent.mediaPlayer().subpictures().setSubTitleFile(path)
-        java.util.Timer("update subtitle track list", false).schedule(500) {
+        Timer("update subtitle track list", false).schedule(500) {
             subtitleTrackList.clear()
             videoPlayerComponent.mediaPlayer().subpictures().trackDescriptions().forEach { trackDescription ->
                 subtitleTrackList.add(Pair(trackDescription.id(),trackDescription.description()))
@@ -403,7 +382,7 @@ fun Player(
             }
         }
 
-        Dialog(
+        DialogWindow(
             title = title,
             icon = painterResource("logo/logo.png"),
             state = playerWindowState,
@@ -439,7 +418,7 @@ fun Player(
         }
 
 
-        Dialog(
+        DialogWindow(
             onCloseRequest = { closeWindow() },
             title = title,
             transparent = true,
@@ -509,11 +488,7 @@ fun Player(
             ) {
 
                 LaunchedEffect(controlBoxVisible){
-                    if(controlBoxVisible){
-                        playerCursor = PointerIcon.Default
-                    }else{
-                        playerCursor = PointerIcon.None
-                    }
+                    playerCursor = if(controlBoxVisible) PointerIcon.Default else PointerIcon.None
                 }
 
 
@@ -927,7 +902,7 @@ fun Player(
                                                 if (playerState.showSequence && searchDanmaku.isNotEmpty()) {
                                                     val num = searchDanmaku.toIntOrNull()
                                                     if (num != null) {
-                                                        val danmakuItem = showingDanmakuNum.get(num)
+                                                        val danmakuItem = showingDanmakuNum[num]
                                                         if (danmakuItem != null) {
                                                             danmakuItem.isPause = true
                                                             showingDetail = true
@@ -938,7 +913,7 @@ fun Player(
                                                     }
 
                                                 }else if(!playerState.showSequence  && searchDanmaku.isNotEmpty()){
-                                                    val danmakuItem = showingDanmakuWord.get(searchDanmaku)
+                                                    val danmakuItem = showingDanmakuWord[searchDanmaku]
                                                     if (danmakuItem != null) {
                                                         danmakuItem.isPause = true
                                                         showingDetail = true
@@ -1081,11 +1056,6 @@ fun Player(
                     }
                 }
 
-                MessageDialog(
-                    show = showMessageDialog,
-                    close = { showMessageDialog = false },
-                    message = message
-                )
 
             }
 
@@ -1164,7 +1134,7 @@ fun Player(
                         val startTime = (newTime.milliseconds.inWholeSeconds + widthDuration.div(3000)).toInt()
                         // 每秒执行一次
                         if (playerState.danmakuVisible && danmakuMap.isNotEmpty() && startTime != lastTime) {
-                            val danmakuList = danmakuMap.get(startTime)
+                            val danmakuList = danmakuMap[startTime]
                             var offsetY = if(isFullscreen) 50 else 20
                             val sequenceWidth = if (playerState.showSequence) counter.toString().length * 12 else 0
                             val offsetX = sequenceWidth + lastMaxLength * 12 + 30
@@ -1179,7 +1149,7 @@ fun Player(
 
                                 // TODO 这里还是有多线程问题，可能会出现：这里刚刚添加，在另一个控制动画的 Timer 里面马上就删除了。
                                 danmakuItem.sequence = counter
-                                shouldAddDanmaku.put(counter++, danmakuItem)
+                                shouldAddDanmaku[counter++] = danmakuItem
                                 if(counter == 100) counter = 1
                             }
                             lastMaxLength = maxLength
@@ -1204,7 +1174,7 @@ fun Player(
                     }
                     // 有一个奇怪的 bug,打开视频后只有声音看不到画面，调整窗口大小后就正常了。
                     playerWindowState.size =DpSize(playerWindowState.size.width + 1.dp,playerWindowState.size.height)
-                    java.util.Timer("恢复宽度", false).schedule(500) {
+                    Timer("恢复宽度", false).schedule(500) {
                         playerWindowState.size =DpSize(playerWindowState.size.width - 1.dp,playerWindowState.size.height)
                     }
                 }
@@ -1434,46 +1404,48 @@ fun rememberDanmakuMap(
     vocabularyPath: String,
     vocabulary: MutableVocabulary?
 ) = remember(videoPath, vocabulary){
-    // Key 为秒 > 这一秒出现的单词列表
-    val timeMap = mutableMapOf<Int, MutableList<DanmakuItem>>()
-    val vocabularyDir = File(vocabularyPath).parentFile
-    if (vocabulary != null) {
-        // 使用字幕和MKV 生成的词库
-        if (vocabulary.type == VocabularyType.MKV || vocabulary.type == VocabularyType.SUBTITLES) {
-            val absVideoFile = File(videoPath)
-            val relVideoFile = File(vocabularyDir, absVideoFile.name)
-             // absVideoFile.exists() 为真 视频文件没有移动，还是词库里保存的地址
-            //  relVideoFile.exists() 为真 视频文件移动了，词库里保存的地址是旧地址
-            if ((absVideoFile.exists() && absVideoFile.absolutePath ==  vocabulary.relateVideoPath) ||
-                (relVideoFile.exists() && relVideoFile.name == File(vocabulary.relateVideoPath).name)
-            ) {
+    derivedStateOf{
+        // Key 为秒 > 这一秒出现的单词列表
+        val timeMap = mutableMapOf<Int, MutableList<DanmakuItem>>()
+        val vocabularyDir = File(vocabularyPath).parentFile
+        if (vocabulary != null) {
+            // 使用字幕和MKV 生成的词库
+            if (vocabulary.type == VocabularyType.MKV || vocabulary.type == VocabularyType.SUBTITLES) {
+                val absVideoFile = File(videoPath)
+                val relVideoFile = File(vocabularyDir, absVideoFile.name)
+                // absVideoFile.exists() 为真 视频文件没有移动，还是词库里保存的地址
+                //  relVideoFile.exists() 为真 视频文件移动了，词库里保存的地址是旧地址
+                if ((absVideoFile.exists() && absVideoFile.absolutePath ==  vocabulary.relateVideoPath) ||
+                    (relVideoFile.exists() && relVideoFile.name == File(vocabulary.relateVideoPath).name)
+                ) {
+                    vocabulary.wordList.forEach { word ->
+                        if (word.captions.isNotEmpty()) {
+                            word.captions.forEach { caption ->
+                                val startTime = floor(convertTimeToSeconds(caption.start)).toInt()
+                                addDanmakuToMap(timeMap, startTime, word)
+                            }
+                        }
+                    }
+                }
+
+                // 文档词库，或混合词库
+            } else {
                 vocabulary.wordList.forEach { word ->
-                    if (word.captions.isNotEmpty()) {
-                        word.captions.forEach { caption ->
-                            val startTime = floor(convertTimeToSeconds(caption.start)).toInt()
+                    word.externalCaptions.forEach { externalCaption ->
+                        val absVideoFile = File(videoPath)
+                        val relVideoFile = File(vocabularyDir, absVideoFile.name)
+                        if ((absVideoFile.exists() && absVideoFile.absolutePath == externalCaption.relateVideoPath) ||
+                            (relVideoFile.exists() && relVideoFile.name == File(externalCaption.relateVideoPath).name)
+                        ) {
+                            val startTime = floor(convertTimeToSeconds(externalCaption.start)).toInt()
                             addDanmakuToMap(timeMap, startTime, word)
                         }
                     }
                 }
             }
-
-        // 文档词库，或混合词库
-        } else {
-            vocabulary.wordList.forEach { word ->
-                word.externalCaptions.forEach { externalCaption ->
-                    val absVideoFile = File(videoPath)
-                    val relVideoFile = File(vocabularyDir, absVideoFile.name)
-                    if ((absVideoFile.exists() && absVideoFile.absolutePath == externalCaption.relateVideoPath) ||
-                        (relVideoFile.exists() && relVideoFile.name == File(externalCaption.relateVideoPath).name)
-                    ) {
-                        val startTime = floor(convertTimeToSeconds(externalCaption.start)).toInt()
-                        addDanmakuToMap(timeMap, startTime, word)
-                    }
-                }
-            }
         }
+        timeMap
     }
-    timeMap
 }
 
 private fun addDanmakuToMap(
@@ -1481,33 +1453,13 @@ private fun addDanmakuToMap(
     startTime: Int,
     word: Word
 ) {
-    val dList = timeMap.get(startTime)
+    val dList = timeMap[startTime]
     val item = DanmakuItem(word.value, true, startTime, 0, false, IntOffset(0, 0), word)
     if (dList == null) {
         val newList = mutableListOf(item)
-        timeMap.put(startTime, newList)
+        timeMap[startTime] = newList
     } else {
         dList.add(item)
-    }
-}
-
-@OptIn(ExperimentalSerializationApi::class)
-@Composable
-fun rememberPlayerState() = remember {
-    val playerSettings = getPlayerSettingsFile()
-    if (playerSettings.exists()) {
-        try {
-            val decodeFormat = Json { ignoreUnknownKeys }
-            val playerData = decodeFormat.decodeFromString<PlayerData>(playerSettings.readText())
-            mutableStateOf(PlayerState(playerData))
-        } catch (exception: Exception) {
-            println("解析视频播放器的设置失败，将使用默认值")
-            val playerState = PlayerState(PlayerData())
-            mutableStateOf(playerState)
-        }
-    } else {
-        val playerState = PlayerState(PlayerData())
-        mutableStateOf(playerState)
     }
 }
 
@@ -1521,36 +1473,7 @@ data class PlayerData(
     var preferredChinese: Boolean = true
 )
 
-@OptIn(ExperimentalSerializationApi::class)
-class PlayerState(playerData: PlayerData) {
-    var showSequence by mutableStateOf(playerData.showSequence)
-    var danmakuVisible by mutableStateOf(playerData.danmakuVisible)
-    var autoCopy by mutableStateOf(playerData.autoCopy)
-    var autoSpeak by mutableStateOf(playerData.autoSpeak)
-    var preferredChinese by mutableStateOf(playerData.preferredChinese)
 
-    fun savePlayerState() {
-        runBlocking {
-            launch (Dispatchers.IO){
-                val playerData = PlayerData(
-                    showSequence, danmakuVisible, autoCopy, autoSpeak, preferredChinese
-                )
-                val encodeBuilder = Json {
-                    prettyPrint = true
-                    encodeDefaults = true
-                }
-                val json = encodeBuilder.encodeToString(playerData)
-                val playerSettings = getPlayerSettingsFile()
-                playerSettings.writeText(json)
-            }
-        }
-    }
-}
-
-private fun getPlayerSettingsFile(): File {
-    val settingsDir = getSettingsDirectory()
-    return File(settingsDir, "PlayerSettings.json")
-}
 
 
 val PointerIcon.Companion.None: PointerIcon

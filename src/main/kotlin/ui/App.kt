@@ -9,7 +9,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material.icons.filled.Tune
@@ -67,35 +67,7 @@ import javax.swing.JOptionPane
 @Composable
 fun App() {
 
-    /** 显示视频播放器 */
-    var showPlayerWindow by remember { mutableStateOf(false) }
-    /** 播放器 > 视频地址 */
-    var videoPath by remember{ mutableStateOf("") }
-    /** 与视频关联的词库，用于生成弹幕 */
-    var vocabulary by remember{ mutableStateOf<MutableVocabulary?>(null) }
-    /** 与视频关联的词库地址，用于保存词库，因为看视频时可以查看单词详情，如果觉得太简单了可以删除或加入到熟悉词库 */
-    var vocabularyPath by remember{ mutableStateOf("") }
-    /** 设置视频地址的函数，放到这里是因为记忆单词窗口可以接受拖放的视频，然后打开视频播放器 */
-    val videoPathChanged:(String) -> Unit = {
-        // 已经打开了一个视频再打开一个新的视频，重置与旧视频相关联的词库。
-        if(videoPath.isNotEmpty() && vocabulary != null){
-            vocabularyPath = ""
-            vocabulary = null
-        }
-        videoPath = it
-    }
-    /** 设置词库地址的函数，放到这里是因为记忆单词可以接受拖放的视频，然后把当前词库关联到打开的视频播放器。*/
-    val vocabularyPathChanged:(String) -> Unit = {
-        if(videoPath.isNotEmpty()){
-            vocabularyPath = it
-            val newVocabulary = loadMutableVocabulary(it)
-            vocabulary = newVocabulary
-        }else{
-            JOptionPane.showMessageDialog(null,"先打开视频，再拖放词库。")
-        }
-    }
-
-
+    val playerState= rememberPlayerState()
     val appState = rememberAppState()
 
     var showMainWindow by remember { mutableStateOf(true) }
@@ -174,7 +146,6 @@ fun App() {
                                     wordState.changePlayerBounds(bounds)
                                     bounds
                                 }
-
                                 WordScreen(
                                     window = window,
                                     title = title,
@@ -182,9 +153,9 @@ fun App() {
                                     wordScreenState = wordState,
                                     videoBounds = videoBounds,
                                     resetVideoBounds = resetVideoBounds,
-                                    showPlayer = { showPlayerWindow = it },
-                                    setVideoPath = videoPathChanged,
-                                    vocabularyPathChanged = vocabularyPathChanged
+                                    showPlayer = { playerState.showPlayerWindow = it },
+                                    setVideoPath = playerState.videoPathChanged,
+                                    setVideoVocabulary = playerState.vocabularyPathChanged
                                 )
                             }
                             ScreenType.SUBTITLES -> {
@@ -206,7 +177,7 @@ fun App() {
                                     openLoadingDialog = { appState.openLoadingDialog()},
                                     closeLoadingDialog = { appState.loadingFileChooserVisible = false },
                                     openSearch = {appState.openSearch()},
-                                    showPlayer = { showPlayerWindow = it },
+                                    showPlayer = { playerState.showPlayerWindow = it },
                                 )
                             }
 
@@ -226,8 +197,8 @@ fun App() {
                                     openLoadingDialog = { appState.openLoadingDialog()},
                                     closeLoadingDialog = { appState.loadingFileChooserVisible = false },
                                     openSearch = {appState.openSearch()},
-                                    showVideoPlayer = { showPlayerWindow = it },
-                                    setVideoPath = videoPathChanged,
+                                    showVideoPlayer = { playerState.showPlayerWindow = it },
+                                    setVideoPath = playerState.videoPathChanged,
                                 )
                             }
                         }
@@ -269,25 +240,14 @@ fun App() {
         }
     }
 
-    if(showPlayerWindow){
+    if(playerState.showPlayerWindow){
 
         MaterialTheme(colors = appState.colors) {
             // 和 Compose UI 有关的 LocalProvider 需要放在 MaterialTheme 里面,不然无效。
             PlayerLocalProvider {
-                val closePlayerWindow:() -> Unit = {
-                    showPlayerWindow = false
-                    videoPath = ""
-                    vocabularyPath = ""
-                    vocabulary = null
-                }
                 val pronunciation = rememberPronunciation()
                 Player(
-                    close = {closePlayerWindow()},
-                    videoPath = videoPath,
-                    videoPathChanged = videoPathChanged,
-                    vocabulary = vocabulary,
-                    vocabularyPath = vocabularyPath,
-                    vocabularyPathChanged = vocabularyPathChanged,
+                    playerState = playerState,
                     audioSet = appState.localAudioSet,
                     pronunciation = pronunciation,
                     audioVolume = appState.global.audioVolume,
@@ -306,14 +266,14 @@ fun App() {
     }
 
     var showEditVocabulary by remember { mutableStateOf(false) }
-    var choosedPath by remember { mutableStateOf("") }
+    var chosenPath by remember { mutableStateOf("") }
     if(appState.editVocabulary){
         ChooseEditVocabulary(
             close = {appState.editVocabulary = false},
             recentList = appState.recentList,
             removeRecentItem = {appState.removeRecentItem(it)},
             openEditVocabulary = {
-                choosedPath = it
+                chosenPath = it
                 showEditVocabulary = true
                 appState.editVocabulary = false
                 },
@@ -324,18 +284,18 @@ fun App() {
         NewVocabularyDialog(
             close = { appState.newVocabulary = false },
             setEditPath = {
-                choosedPath = it
+                chosenPath = it
                 showEditVocabulary = true
             },
             colors = appState.colors,
         )
     }
     if(showEditVocabulary){
-        val valid by remember { mutableStateOf(checkVocabulary(choosedPath)) }
+        val valid by remember { mutableStateOf(checkVocabulary(chosenPath)) }
         if(valid){
             EditVocabulary(
                 close = {showEditVocabulary = false},
-                vocabularyPath = choosedPath,
+                vocabularyPath = chosenPath,
                 isDarkTheme = appState.global.isDarkTheme,
                 updateFlatLaf = {
                     updateFlatLaf(appState.global.isDarkTheme,appState.global.backgroundColor.toAwt(),appState.global.onBackgroundColor.toAwt())
@@ -904,7 +864,7 @@ fun Settings(
                 ) {
                     val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
                     Icon(
-                        if (isOpen) Icons.Filled.ArrowBack else Icons.Filled.Tune,
+                        if (isOpen) Icons.AutoMirrored.Filled.ArrowBack else Icons.Filled.Tune,
                         contentDescription = "Localized description",
                         tint = tint,
                         modifier = Modifier.clickable { setIsOpen(!isOpen) }
@@ -1006,7 +966,7 @@ fun MenuDialogs(state: AppState) {
  */
 @Composable
 fun LoadingDialog() {
-    Dialog(
+    DialogWindow(
         title = "正在加载文件选择器",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = {},
