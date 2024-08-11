@@ -31,7 +31,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import player.*
 import state.GlobalState
-import state.SubtitlesState
 import ui.components.MacOSTitle
 import ui.components.RemoveButton
 import ui.Toolbar

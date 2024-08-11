@@ -1,4 +1,4 @@
-package state
+package ui.subtitle
 
 import androidx.compose.runtime.*
 import com.formdev.flatlaf.FlatLightLaf
@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import state.getSettingsDirectory
 import java.io.File
 import javax.swing.JOptionPane
 
@@ -110,7 +111,7 @@ class SubtitlesState(dataSubtitlesState: DataSubtitlesState) {
 
 
 @Composable
-fun rememberSubtitlesState():SubtitlesState = remember{
+fun rememberSubtitlesState(): SubtitlesState = remember{
     loadSubtitlesState()
 }
 

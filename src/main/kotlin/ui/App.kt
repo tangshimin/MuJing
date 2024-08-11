@@ -51,6 +51,8 @@ import ui.flatlaf.setupFileChooser
 import ui.flatlaf.updateFlatLaf
 import ui.search.Search
 import ui.subtitle.SubtitleScreen
+import ui.subtitle.SubtitlesState
+import ui.subtitle.rememberSubtitlesState
 import ui.text.TextScreen
 import ui.text.TextState
 import ui.text.rememberTextState
@@ -357,7 +359,7 @@ private fun computeTitle(
         "请选择词库"
     }
 }
-private fun computeTitle(subtitlesState:SubtitlesState) :String{
+private fun computeTitle(subtitlesState: SubtitlesState) :String{
     val mediaPath = subtitlesState.mediaPath
     return if(mediaPath.isNotEmpty()){
         try{
