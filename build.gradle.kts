@@ -49,7 +49,6 @@ dependencies {
     implementation("junit:junit:4.13.2")
     implementation("org.junit.vintage:junit-vintage-engine:5.9.0")
     implementation("com.darkrockstudios:mpfilepicker:2.0.2")
-    implementation("net.bramp.ffmpeg:ffmpeg:0.7.0")
     implementation("org.apache.poi:poi:5.3.0")
     implementation("org.apache.poi:poi-ooxml:5.3.0")
     implementation("org.xerial:sqlite-jdbc:3.44.1.0")
