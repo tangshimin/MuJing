@@ -1,7 +1,7 @@
 package ui.word
 
 import LocalCtrl
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -147,7 +147,11 @@ fun WordScreen(
                 resetVideoBounds = resetVideoBounds,
                 azureTTS = azureTTS
                 )
-            if (appState.openSettings) {
+            AnimatedVisibility (
+                visible = appState.openSettings,
+                enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
+                exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+            ) {
                 val topPadding = if (isMacOS()) 30.dp else 0.dp
                 Divider(Modifier.fillMaxHeight().width(1.dp).padding(top = topPadding))
             }

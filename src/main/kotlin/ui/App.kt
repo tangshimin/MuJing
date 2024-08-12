@@ -4,6 +4,7 @@ import CustomLocalProvider
 import LocalCtrl
 import PlayerLocalProvider
 import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -852,12 +853,13 @@ fun Settings(
     Box(modifier = modifier) {
         Column(Modifier.width(IntrinsicSize.Max)) {
             if (isOpen && isMacOS()) Divider(Modifier.fillMaxWidth())
+            val width by animateDpAsState(targetValue = if (isOpen) 217.dp else 48.dp)
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier
                     .testTag("SettingsButton")
-                    .width(if (isOpen) 217.dp else 48.dp)
+                    .width(width)
                     .shadow(
                         elevation = 0.dp,
                         shape = if (isOpen) RectangleShape else RoundedCornerShape(50)

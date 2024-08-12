@@ -1,6 +1,7 @@
 package ui.word
 
 import LocalCtrl
+import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
@@ -45,7 +46,11 @@ fun WordScreenSidebar(
     resetVideoBounds :() -> Rectangle,
 ) {
 
-    if (appState.openSettings) {
+    AnimatedVisibility (
+        visible = appState.openSettings,
+        enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
+        exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
+    ){
         val scope = rememberCoroutineScope()
         Box(Modifier.width(216.dp).fillMaxHeight().onKeyEvent { it ->
             if (it.isCtrlPressed && it.key == Key.One && it.type == KeyEventType.KeyUp){
