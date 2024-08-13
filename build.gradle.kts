@@ -56,6 +56,7 @@ dependencies {
     implementation ("io.ktor:ktor-client-cio:2.3.11")
     implementation ("net.java.dev.jna:jna:5.14.0")
     implementation ("net.java.dev.jna:jna-platform:5.14.0")
+    implementation ("ch.qos.logback:logback-classic:1.4.14")
 
     testImplementation(compose.desktop.uiTestJUnit4)
 }
