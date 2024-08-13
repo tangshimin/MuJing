@@ -155,7 +155,7 @@ object Dictionary{
     /** 根据 BNC 词频区间查询单词 */
     fun queryByBncRange(start:Int,end:Int):List<Word>{
         val sql = "SELECT * FROM ecdict WHERE bnc != 0  AND bnc >= $start AND bnc <= $end" +
-                "ORDER BY bnc"
+                " ORDER BY bnc"
         val results = mutableListOf<Word>()
         try{
             val url = getSQLiteURL("ecdict.db")
@@ -199,7 +199,7 @@ object Dictionary{
     /** 根据 FRQ 词频区间查询单词 */
     fun queryByFrqRange(start:Int,end: Int):List<Word>{
         val sql = "SELECT * FROM ecdict WHERE frq != 0   AND frq >= $start AND frq <= $end" +
-                "ORDER BY frq"
+                " ORDER BY frq"
         val results = mutableListOf<Word>()
         try{
             val url = getSQLiteURL("ecdict.db")

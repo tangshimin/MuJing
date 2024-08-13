@@ -4,7 +4,7 @@ package data
 import org.junit.Assert.*
 import org.junit.Test
 
-internal class DictionaryTest {
+class DictionaryTest {
 
     @Test
     fun query() {
@@ -81,6 +81,28 @@ internal class DictionaryTest {
         val result = Dictionary.wordCount()
         assertNotEquals("词典的单词总数不应该为 0",0,result)
         assertEquals("词典的单词总数应该为 740977",740977,result)
+    }
+
+    @Test
+    fun queryByBncRange(){
+        val result = Dictionary.queryByBncRange(1,100)
+        assertEquals("列表不为空",true, result.isNotEmpty())
+        assertEquals("单词的总数应该为",99,result.size)
+        assertEquals("第一个单词是 the ","the",result[0].value)
+        assertEquals("第二个单词是 be ","be",result[1].value)
+        assertEquals("第四个单词是 and ","and",result[3].value)
+        assertEquals("最后一个单词是 those ","those",result[98].value)
+    }
+
+    @Test
+    fun queryByFrqRange(){
+        val result = Dictionary.queryByFrqRange(1,100)
+        assertEquals("列表不为空",true, result.isNotEmpty())
+        assertEquals("单词的总数应该为",96,result.size)
+        assertEquals("第一个单词是 the ","the",result[0].value)
+        assertEquals("第二个单词是 be ","be",result[1].value)
+        assertEquals("第四个单词是 of ","of",result[3].value)
+        assertEquals("最后一个单词是 well ","well",result[95].value)
     }
 
 }
