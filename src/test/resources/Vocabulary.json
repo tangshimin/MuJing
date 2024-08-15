@@ -1,0 +1,1738 @@
+{
+    "name": "COCA list 1 - 100",
+    "type": "DOCUMENT",
+    "language": "english",
+    "size": 96,
+    "relateVideoPath": "",
+    "subtitlesTrackId": 0,
+    "wordList": [
+        {
+            "value": "the",
+            "usphone": "ðə; ði",
+            "ukphone": "ðә",
+            "definition": "v. i. See Thee.\ndefinite article. A word placed before nouns to limit or\n   individualize their meaning.\nadv. By that; by how much; by so much; on that account; -- used\n   before comparatives; as, the longer we continue in sin, the more\n   difficult it is to reform.",
+            "translation": "art. 那",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 1,
+            "frq": 1,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "be",
+            "usphone": "bi",
+            "ukphone": "bi:",
+            "definition": "v. have the quality of being; (copula, used with an adjective or a predicate noun)\nv. be identical to; be someone or something\nv. occupy a certain position or area; be somewhere\nv. happen, occur, take place; this was during the visit to my parents' house\"",
+            "translation": "v. 是, 表示, 在\n[计] 后端, 总线允许",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 2,
+            "frq": 2,
+            "exchange": "p:was/3:is/d:been/i:being",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "and",
+            "usphone": "ənd, ən,ænd",
+            "ukphone": "ænd",
+            "definition": "conj. A particle which expresses the relation of connection or\n   addition. It is used to conjoin a word with a word, a clause with a\n   clause, or a sentence with a sentence.\nconj. In order to; -- used instead of the infinitival to,\n   especially after try, come, go.\nconj. It is sometimes, in old songs, a mere expletive.\nconj. If; though. See An, conj.",
+            "translation": "conj. 和, 与\n[计] 与",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 4,
+            "frq": 3,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "of",
+            "usphone": "ʌv; əv",
+            "ukphone": "ɒv",
+            "definition": "prep. In a general sense, from, or out from; proceeding from;\n   belonging to; relating to; concerning; -- used in a variety of\n   applications; as:\nprep. Denoting that from which anything proceeds; indicating\n   origin, source, descent, and the like; as, he is of a race of kings; he\n   is of noble blood.\nprep. Denoting possession or ownership, or the relation of subject\n   to attribute; as, the apartment of the consul: the power of the king; a\n   man of courage; the gate of heaven.\nprep. Denoting the material of which anything is composed, or that\n   which it contains; as, a throne of gold; a sword of steel; a wreath of\n   mist; a cup of water.\nprep. Denoting part of an aggregate or whole; belonging to a\n   number or quantity mentioned; out of; from amongst; as, of this little\n   he had some to spare; some of the mines were unproductive; most of the\n   company.\nprep. Denoting that by which a person or thing is actuated or\n   impelled; also, the source of a purpose or action; as, they went of\n   their own will; no body can move of itself; he did it of necessity.\nprep. Denoting reference to a thing; about; concerning; relating\n   to; as, to boast of one's achievements.\nprep. Denoting nearness or distance, either in space or time;\n   from; as, within a league of the town; within an hour of the appointed\n   time.\nprep. Denoting identity or equivalence; -- used with a name or\n   appellation, and equivalent to the relation of apposition; as, the\n   continent of America; the city of Rome; the Island of Cuba.\nprep. Denoting the agent, or person by whom, or thing by which,\n   anything is, or is done; by.\nprep. Denoting relation to place or time; belonging to, or\n   connected with; as, men of Athens; the people of the Middle Ages; in\n   the days of Herod.\nprep. Denoting passage from one state to another; from.\nprep. During; in the course of.",
+            "translation": "prep. 的, 属于",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 3,
+            "frq": 4,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "a",
+            "usphone": "ə; e",
+            "ukphone": "ei",
+            "definition": "n. the 1st letter of the Roman alphabet\nn. the blood group whose red cells carry the A antigen",
+            "translation": "第一个字母 A; 一个; 第一的\\r\nart. [计] 累加器, 加法器, 地址, 振幅, 模拟, 区域, 面积, 汇编, 组件, 异步",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 5,
+            "frq": 5,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "in",
+            "usphone": "ɪn",
+            "ukphone": "in",
+            "definition": "s. holding office\ns. directed or bound inward\ns. currently fashionable\nr. to or toward the inside of",
+            "translation": "prep. 在...期间, 在...之内, 处于...之中, 从事于, 按照, 穿着\nadv. 进入, 朝里, 在里面, 在屋里\na. 在里面的, 在朝的\nn. 执政者, 交情",
+            "pos": "",
+            "collins": 2,
+            "oxford": true,
+            "tag": "zk gk ielts",
+            "bnc": 6,
+            "frq": 6,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "to",
+            "usphone": "tə;tu;tuː",
+            "ukphone": "tu:",
+            "definition": "prep. The preposition to primarily indicates approach and arrival,\n   motion made in the direction of a place or thing and attaining it,\n   access; and also, motion or tendency without arrival; movement toward;\n   -- opposed to from.\nprep. Hence, it indicates motion, course, or tendency toward a\n   time, a state or condition, an aim, or anything capable of being\n   regarded as a limit to a tendency, movement, or action; as, he is going\n   to a trade; he is rising to wealth and honor.\nprep. In a very general way, and with innumerable varieties of\n   application, to connects transitive verbs with their remoter or\n   indirect object, and adjectives, nouns, and neuter or passive verbs\n   with a following noun which limits their action. Its sphere verges upon\n   that of for, but it contains less the idea of design or appropriation;\n   as, these remarks were addressed to a large audience; let us keep this\n   seat to ourselves; a substance sweet to the taste; an event painful to\n   the mind; duty to God and to our parents; a dislike to spirituous\n   liquor.\nprep. As sign of the infinitive, to had originally the use of last\n   defined, governing the infinitive as a verbal noun, and connecting it\n   as indirect object with a preceding verb or adjective; thus, ready to\n   go, i.e., ready unto going; good to eat, i.e., good for eating; I do my\n   utmost to lead my life pleasantly. But it has come to be the almost\n   constant prefix to the infinitive, even in situations where it has no\n   prepositional meaning, as where the infinitive is direct object or\n   subject; thus, I love to learn, i.e., I love learning; to die for one's\n   country is noble, i.e., the dying for one's country. Where the\n   infinitive denotes the design or purpose, good usage formerly allowed\n   the prefixing of for to the to; as, what went ye out for see? (Matt.\n   xi. 8).\nprep. In many phrases, and in connection with many other words, to\n   has a pregnant meaning, or is used elliptically.\nprep. Extent; limit; degree of comprehension; inclusion as far as;\n   as, they met us to the number of three hundred.\nprep. Effect; end; consequence; as, the prince was flattered to\n   his ruin; he engaged in a war to his cost; violent factions exist to\n   the prejudice of the state.\nprep. Apposition; connection; antithesis; opposition; as, they\n   engaged hand to hand.\nprep. Accord; adaptation; as, an occupation to his taste; she has\n   a husband to her mind.\nprep. Comparison; as, three is to nine as nine is to twenty-seven;\n   it is ten to one that you will offend him.\nprep. Addition; union; accumulation.\nprep. Accompaniment; as, she sang to his guitar; they danced to\n   the music of a piano.\nprep. Character; condition of being; purpose subserved or office\n   filled.",
+            "translation": "prep. 到, 向, 趋于\nadv. 向前",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 7,
+            "frq": 7,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "have",
+            "usphone": "həv;hæv",
+            "ukphone": "hæv",
+            "definition": "v. have or possess, either in a concrete or an abstract sense\nv. have as a feature\nv. have a personal or business relationship with someone\nv. have left",
+            "translation": "vt. 有, 怀有, 拿, 进行\naux. 已经",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 8,
+            "frq": 8,
+            "exchange": "i:having/p:had/3:has/d:had",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "it",
+            "usphone": "ɪt",
+            "ukphone": "it",
+            "definition": "n the branch of engineering that deals with the use of computers and telecommunications to retrieve and store and transmit information",
+            "translation": "pron. 它\n[计] 信息论, 输入终端, 智能终端, 内捕获",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 9,
+            "frq": 10,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "i",
+            "usphone": "",
+            "ukphone": "ai",
+            "definition": "n. the 9th letter of the Roman alphabet",
+            "translation": "pron. 我\n[计] 电流, 中断, 指令, 指示符",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 4624,
+            "frq": 11,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "that",
+            "usphone": "ðæt",
+            "ukphone": "ðæt",
+            "definition": "pron., a., conj., &  As a demonstrative pronoun (pl. Those),\n   that usually points out, or refers to, a person or thing previously\n   mentioned, or supposed to be understood. That, as a demonstrative, may\n   precede the noun to which it refers; as, that which he has said is\n   true; those in the basket are good apples.\npron., a., conj., &  As an adjective, that has the same\n   demonstrative force as the pronoun, but is followed by a noun.\npron., a., conj., &  As a relative pronoun, that is\n   equivalent to who or which, serving to point out, and make definite, a\n   person or thing spoken of, or alluded to, before, and may be either\n   singular or plural.\npron., a., conj., &  As a conjunction, that retains much of\n   its force as a demonstrative pronoun.\npron., a., conj., &  To introduce a clause employed as the\n   object of the preceding verb, or as the subject or predicate nominative\n   of a verb.\npron., a., conj., &  To introduce, a reason or cause; --\n   equivalent to for that, in that, for the reason that, because.\npron., a., conj., &  To introduce a purpose; -- usually\n   followed by may, or might, and frequently preceded by so, in order, to\n   the end, etc.\npron., a., conj., &  To introduce a consequence, result, or\n   effect; -- usually preceded by so or such, sometimes by that.\npron., a., conj., &  In an elliptical sentence to introduce\n   a dependent sentence expressing a wish, or a cause of surprise,\n   indignation, or the like.\npron., a., conj., &  As adverb: To such a degree; so; as, he\n   was that frightened he could say nothing.",
+            "translation": "a. 那, 那个\nconj. 以致, 因为\npron. 那\nadv. 那么, 那样",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 14,
+            "frq": 12,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "for",
+            "usphone": "fɚ; strong form fɔr",
+            "ukphone": "fɒ:",
+            "definition": "prep. In the most general sense, indicating that in consideration\n   of, in view of, or with reference to, which anything is done or takes\n   place.\nprep. Indicating the antecedent cause or occasion of an action;\n   the motive or inducement accompanying and prompting to an act or state;\n   the reason of anything; that on account of which a thing is or is done.\nprep. Indicating the remoter and indirect object of an act; the\n   end or final cause with reference to which anything is, acts, serves,\n   or is done.\nprep. Indicating that in favor of which, or in promoting which,\n   anything is, or is done; hence, in behalf of; in favor of; on the side\n   of; -- opposed to against.\nprep. Indicating that toward which the action of anything is\n   directed, or the point toward which motion is made; /ntending to go to.\nprep. Indicating that on place of or instead of which anything\n   acts or serves, or that to which a substitute, an equivalent, a\n   compensation, or the like, is offered or made; instead of, or place of.\nprep. Indicating that in the character of or as being which\n   anything is regarded or treated; to be, or as being.\nprep. Indicating that instead of which something else controls in\n   the performing of an action, or that in spite of which anything is\n   done, occurs, or is; hence, equivalent to notwithstanding, in spite of;\n   -- generally followed by all, aught, anything, etc.\nprep. Indicating the space or time through which an action or\n   state extends; hence, during; in or through the space or time of.\nprep. Indicating that in prevention of which, or through fear of\n   which, anything is done.\nconj. Because; by reason that; for that; indicating, in Old\n   English, the reason of anything.\nconj. Since; because; introducing a reason of something before\n   advanced, a cause, motive, explanation, justification, or the like, of\n   an action related or a statement made. It is logically nearly\n   equivalent to since, or because, but connects less closely, and is\n   sometimes used as a very general introduction to something suggested by\n   what has gone before.\nn. One who takes, or that which is said on, the affrimative side;\n   that which is said in favor of some one or something; -- the antithesis\n   of against, and commonly used in connection with it.",
+            "translation": "prep. 为, 因为, 至于\nconj. 因为\n[计] DOS批处理命令:对一组参数重复执行指定的命令",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 12,
+            "frq": 13,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "you",
+            "usphone": "ju",
+            "ukphone": "ju:",
+            "definition": "dat. & obj. The pronoun of the second person, in the nominative,\n   dative, and objective case, indicating the person or persons addressed.\n   See the Note under Ye.",
+            "translation": "pron. 你, 你们",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 15,
+            "frq": 14,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "he",
+            "usphone": "hi",
+            "ukphone": "hi:",
+            "definition": "n. the 5th letter of the Hebrew alphabet",
+            "translation": "pron. 他\nn. 男孩, 男人, 雄性动物",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 11,
+            "frq": 15,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "with",
+            "usphone": "wɪð; wɪθ",
+            "ukphone": "wið",
+            "definition": "n. See Withe.\nprep. With denotes or expresses some situation or relation of\n   nearness, proximity, association, connection, or the like.\nprep. To denote a close or direct relation of opposition or\n   hostility; -- equivalent to against.\nprep. To denote association in respect of situation or\n   environment; hence, among; in the company of.\nprep. To denote a connection of friendship, support, alliance,\n   assistance, countenance, etc.; hence, on the side of.\nprep. To denote the accomplishment of cause, means, instrument,\n   etc; -- sometimes equivalent to by.\nprep. To denote association in thought, as for comparison or\n   contrast.\nprep. To denote simultaneous happening, or immediate succession\n   or consequence.\nprep. To denote having as a possession or an appendage; as, the\n   firmament with its stars; a bride with a large fortune.",
+            "translation": "prep. 和...在一起, 以, 由于",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 16,
+            "frq": 16,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "on",
+            "usphone": "ɑn",
+            "ukphone": "ɒn",
+            "definition": "a. in operation or operational\na. (of events) planned or scheduled\nr. indicates continuity or persistence or concentration\nr. in a state required for something to function or be effective",
+            "translation": "prep. 在...之上\nadv. ...上去\na. 正起作用的\n[计] 打开",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk ielts",
+            "bnc": 17,
+            "frq": 17,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "do",
+            "usphone": "du",
+            "ukphone": "du:",
+            "definition": "n. the syllable naming the first (tonic) note of any major scale in solmization\nv. get (something) done\nv. proceed or get along\nv. create or design, often in a certain way",
+            "translation": "v. 做, 进行, 完成",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 19,
+            "frq": 18,
+            "exchange": "i:doing/p:did/3:does/d:done",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "say",
+            "usphone": "se",
+            "ukphone": "sei",
+            "definition": "n. the chance to speak\nv. communicate or express nonverbally\nv. utter aloud\nv. state as one's opinion or judgement; declare",
+            "translation": "vt. 说, 讲, 念, 说明, 指明\nvi. 说, 讲\nn. 意见, 发言权",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk ielts",
+            "bnc": 32,
+            "frq": 19,
+            "exchange": "p:said/3:says/d:said/i:saying",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "this",
+            "usphone": "ðɪs",
+            "ukphone": "θis",
+            "definition": "pron. & a. As a demonstrative pronoun, this denotes something\n   that is present or near in place or time, or something just mentioned,\n   or that is just about to be mentioned.\npron. & a. As an adjective, this has the same demonstrative\n   force as the pronoun, but is followed by a noun; as, this book; this\n   way to town.",
+            "translation": "pron. 这, 本\na. 这, 本\nadv. 这么",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 23,
+            "frq": 20,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "they",
+            "usphone": "ðe",
+            "ukphone": "ðei",
+            "definition": "obj. The plural of he, she, or it. They is never used\n   adjectively, but always as a pronoun proper, and sometimes refers to\n   persons without an antecedent expressed.",
+            "translation": "pron. 他们, 它们",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 18,
+            "frq": 21,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "at",
+            "usphone": "æt; ət",
+            "ukphone": "æt",
+            "definition": "n. 100 at equal 1 kip in Laos",
+            "translation": "prep. 在, 向, 对\n[计] 地址转换器, 异常传输, 自动订票",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 22,
+            "frq": 22,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "but",
+            "usphone": "bʌt",
+            "ukphone": "bʌt",
+            "definition": "r and nothing more",
+            "translation": "prep. 除了\nconj. 但是\nadv. 仅仅",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 24,
+            "frq": 23,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "we",
+            "usphone": "wi",
+            "ukphone": "wi:",
+            "definition": "pl.  of I\nobj. The plural nominative case of the pronoun of the first\n   person; the word with which a person in speaking or writing denotes a\n   number or company of which he is one, as the subject of an action\n   expressed by a verb.",
+            "translation": "pron. 我们",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 26,
+            "frq": 24,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "his",
+            "usphone": "hɪz",
+            "ukphone": "hiz",
+            "definition": "pron. Belonging or pertaining to him; -- used as a pronominal\n   adjective or adjective pronoun; as, tell John his papers are ready;\n   formerly used also for its, but this use is now obsolete.\npron. The possessive of he; as, the book is his.",
+            "translation": "pron. 他的\n[化] 组氨酸",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 25,
+            "frq": 25,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "from",
+            "usphone": "frʌm",
+            "ukphone": "frɒm",
+            "definition": "prep. Out of the neighborhood of; lessening or losing proximity\n   to; leaving behind; by reason of; out of; by aid of; -- used whenever\n   departure, setting out, commencement of action, being, state,\n   occurrence, etc., or procedure, emanation, absence, separation, etc.,\n   are to be expressed. It is construed with, and indicates, the point of\n   space or time at which the action, state, etc., are regarded as setting\n   out or beginning; also, less frequently, the source, the cause, the\n   occasion, out of which anything proceeds; -- the aritithesis and\n   correlative of to; as, it, is one hundred miles from Boston to\n   Springfield; he took his sword from his side; light proceeds from the\n   sun; separate the coarse wool from the fine; men have all sprung from\n   Adam, and often go from good to bad, and from bad to worse; the merit\n   of an action depends on the principle from which it proceeds; men judge\n   of facts from personal knowledge, or from testimony.",
+            "translation": "prep. 从, 来自, 根据",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 27,
+            "frq": 26,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "not",
+            "usphone": "nɑt",
+            "ukphone": "nɒt",
+            "definition": "r. negation of a word or group of words",
+            "translation": "adv. 不, 非, 未\n[计] 非",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 13,
+            "frq": 28,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "n't",
+            "usphone": "",
+            "ukphone": "nt",
+            "definition": "",
+            "translation": "adv. 不",
+            "pos": "",
+            "collins": 0,
+            "oxford": false,
+            "tag": "",
+            "bnc": 0,
+            "frq": 29,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "by",
+            "usphone": "baɪ",
+            "ukphone": "bai",
+            "definition": "r. so as to pass a given point",
+            "translation": "prep. 被, 经, 由, 在...之旁\nadv. 经过, 在近处",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 20,
+            "frq": 30,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "she",
+            "usphone": "ʃi",
+            "ukphone": "ʃi:",
+            "definition": "obj. This or that female; the woman understood or referred to;\n   the animal of the female sex, or object personified as feminine, which\n   was spoken of.\nobj. A woman; a female; -- used substantively.",
+            "translation": "pron. 她",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 21,
+            "frq": 31,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "or",
+            "usphone": "ɔr",
+            "ukphone": "ɒ:",
+            "definition": "n a state in northwestern United States on the Pacific\nn a room in a hospital equipped for the performance of surgical operations",
+            "translation": "conj. 或, 或者\n[计] 或",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 29,
+            "frq": 32,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "as",
+            "usphone": "æz; əz",
+            "ukphone": "æz",
+            "definition": "n a very poisonous metallic element that has three allotropic forms; arsenic and arsenic compounds are used as herbicides and insecticides and various alloys; found in arsenopyrite and orpiment and realgar\nn a United States territory on the eastern part of the island of Samoa\nn a metric unit of length equal to one ten billionth of a meter (or 0.0001 micron); used to specify wavelengths of electromagnetic radiation\nn any of several fat-soluble vitamins essential for normal vision; prevents night blindness or inflammation or dryness of the eyes\nn one of the four nucleotides used in building DNA; all four nucleotides have a common phosphate group and a sugar (ribose)\nn (biochemistry) purine base found in DNA and RNA; pairs with thymine in DNA and with uracil in RNA\nn the basic unit of electric current adopted under the Systeme International d'Unites\nn the 1st letter of the Roman alphabet\nn the blood group whose red cells carry the A antigen\nr to the same degree (often followed by `as')",
+            "translation": "adv. 同样地, 例如\nprep. 做为, 当作\nconj. 当...之时, 以...的方式, 像...一样, 因为\n[计] 高级系统, 先进系统, 辅助存储器, 自治系统",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk ielts",
+            "bnc": 33,
+            "frq": 33,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "what",
+            "usphone": "hwɒt; hwɑt",
+            "ukphone": "hwɒt",
+            "definition": "pron., a., & adv. As an interrogative pronoun, used in asking\n   questions regarding either persons or things; as, what is this? what\n   did you say? what poem is this? what child is lost?\npron., a., & adv. As an exclamatory word: -- (a) Used absolutely\n   or independently; -- often with a question following.\npron., a., & adv. Used adjectively, meaning how remarkable, or\n   how great; as, what folly! what eloquence! what courage!\npron., a., & adv. Sometimes prefixed to adjectives in an\n   adverbial sense, as nearly equivalent to how; as, what happy boys!\npron., a., & adv. As a relative pronoun\npron., a., & adv. Used substantively with the antecedent\n   suppressed, equivalent to that which, or those [persons] who, or those\n   [things] which; -- called a compound relative.\npron., a., & adv. Used adjectively, equivalent to the . . .\n   which; the sort or kind of . . . which; rarely, the . . . on, or at,\n   which.\npron., a., & adv. Used adverbially in a sense corresponding to\n   the adjectival use; as, he picked what good fruit he saw.\npron., a., & adv. Whatever; whatsoever; what thing soever; --\n   used indefinitely.\npron., a., & adv. Used adverbially, in part; partly; somewhat;\n   -- with a following preposition, especially, with, and commonly with\n   repetition.\nn. Something; thing; stuff.\ninterrog. adv. Why? For what purpose? On what account?",
+            "translation": "pron. 什么\ninterj. 怎么, 多么\na. 什么的\nadv. 到什么程度",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 38,
+            "frq": 34,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "go",
+            "usphone": "go",
+            "ukphone": "gou",
+            "definition": "n. a time for working (after which you will be relieved by someone else)\nn. a board game for two players who place counters on a grid; the object is to surround and so capture the opponent's counters\nv. follow a procedure or take a course\nv. move away from a place into another direction",
+            "translation": "vi. 去, 走, 达到, 运转, 查阅, 消失, 结束, 放弃, 花费, 流传, 趋于, 打算, 剩下\nvt. 以...打赌, 对付, 忍受, 出产, 为被捕者出(保释金)\nn. 去, 尝试, 进行",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk ielts",
+            "bnc": 44,
+            "frq": 35,
+            "exchange": "i:going/p:went/d:gone/3:goes",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "their",
+            "usphone": "ðɛr",
+            "ukphone": "ðєә",
+            "definition": "pron. & a. The possessive case of the personal pronoun they;\n   as, their houses; their country.",
+            "translation": "pron. 他们的",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 36,
+            "frq": 36,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "can",
+            "usphone": "kæn",
+            "ukphone": "kæn",
+            "definition": "n. airtight sealed metal container for food or drink or paint etc.\nn. the quantity contained in a can\nn. a buoy with a round bottom and conical top\nv. preserve in a can or tin",
+            "translation": "vt. 装罐\nn. 罐头, 容器\naux. 能, 可以\n[计] 作废字符",
+            "pos": "",
+            "collins": 2,
+            "oxford": true,
+            "tag": "zk gk toefl",
+            "bnc": 35,
+            "frq": 37,
+            "exchange": "s:cans/i:/p:could/3:can/d:",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "who",
+            "usphone": "hu",
+            "ukphone": "hu:",
+            "definition": "n a United Nations agency to coordinate international health activities and to help governments improve health services",
+            "translation": "pron. 谁",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 45,
+            "frq": 38,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "get",
+            "usphone": "ɡɛt",
+            "ukphone": "get",
+            "definition": "n. a return on a shot that seemed impossible to reach and would normally have resulted in a point for the opponent\nv. come into the possession of something concrete or abstract\nv. cause to move; cause to be in a certain position or condition\nv. succeed in catching or seizing, especially after a chase",
+            "translation": "vt. 得到, 获得, 变成, 使得, 收获, 接通, 抓住, 染上\nvi. 到达, 成为, 变得\nn. (网球等)救球, 生殖, 幼兽\n[计] 取得指令, 获取文件",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk ielts",
+            "bnc": 41,
+            "frq": 39,
+            "exchange": "d:got/p:got/i:getting/3:gets",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "if",
+            "usphone": "ɪf",
+            "ukphone": "if",
+            "definition": "conj. In case that; granting, allowing, or supposing that; --\n   introducing a condition or supposition.\nconj. Whether; -- in dependent questions.",
+            "translation": "conj. 如果, 是否, 无论何时, 假设, 即使\nn. 条件\n[计] DOS批处理命令:根据所测试的条件决定是否执行另一条命令",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 40,
+            "frq": 40,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "would",
+            "usphone": "wʊd; wəd",
+            "ukphone": "wud",
+            "definition": "imp. of Will\nv. t. Commonly used as an auxiliary verb, either in the past\n   tense or in the conditional or optative present. See 2d & 3d Will.\nn. See 2d Weld.",
+            "translation": "aux. 将, 愿意",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 34,
+            "frq": 41,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "her",
+            "usphone": "hɚ",
+            "ukphone": "hә:",
+            "definition": "pron. & a. The form of the objective and the possessive case of\n   the personal pronoun she; as, I saw her with her purse out.\npron. pl. Alt. of Here",
+            "translation": "pron. 她的, 她",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 42,
+            "frq": 42,
+            "exchange": "i:hering",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "all",
+            "usphone": "ɔl",
+            "ukphone": "ɒ:l",
+            "definition": "a. quantifier; used with either mass or count nouns to indicate the whole number or amount of or every one of a class\ns. completely given to or absorbed by",
+            "translation": "a. 所有的, 全部的, 一切的\nadv. 全部, 全然\npron. 全部\nn. 全部",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk ielts",
+            "bnc": 39,
+            "frq": 43,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "my",
+            "usphone": "maɪ",
+            "ukphone": "mai",
+            "definition": "a. Of or belonging to me; -- used always attributively; as, my\n   body; my book; -- mine is used in the predicate; as, the book is mine.\n   See Mine.",
+            "translation": "pron. 我的\n[医] 迈尔(热容单位)",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 61,
+            "frq": 44,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "make",
+            "usphone": "mek",
+            "ukphone": "meik",
+            "definition": "v. engage in\nv. give certain properties to something\nv. make or cause to be or to become\nv. compel or make somebody or something to act in a certain way",
+            "translation": "vt. 制造, 安排, 创造, 构成, 使得, 产生, 造成, 整理, 布置, 引起, 到达, 进行\nvi. 开始, 前进, 增大, 被制造, 被处理\nn. 制造, 构造, 性情",
+            "pos": "",
+            "collins": 3,
+            "oxford": true,
+            "tag": "zk gk ielts",
+            "bnc": 43,
+            "frq": 45,
+            "exchange": "d:made/p:made/i:making/3:makes",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "about",
+            "usphone": "ə'baʊt",
+            "ukphone": "ә'baut",
+            "definition": "s. on the move\nr. all around or on all sides\nr. in the area or vicinity\nr. used of movement to or among many different places or in no particular direction",
+            "translation": "prep. 在...周围, 大约, 有关, 关于\nadv. 大约, 四处, 在附近, 周围",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 63,
+            "frq": 46,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "know",
+            "usphone": "no",
+            "ukphone": "nәu",
+            "definition": "n. the fact of being aware of information that is known to few people\nv. be cognizant or aware of a fact or a specific piece of information; possess knowledge or information about\nv. know how to do or perform something\nv. be aware of the truth of something; have a belief or faith in something; regard as true beyond any doubt",
+            "translation": "v. 知道, 了解, 认识, 确信",
+            "pos": "",
+            "collins": 3,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 49,
+            "frq": 47,
+            "exchange": "p:knew/d:known/3:knows/i:knowing",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "will",
+            "usphone": "wɪl",
+            "ukphone": "wil",
+            "definition": "n. a fixed and persistent intent or purpose\nn. a legal document declaring a person's wishes regarding the disposal of their property when they die\nv. decree or ordain\nv. determine by choice",
+            "translation": "n. 意志, 决心, 意愿, 意向, 干劲, 遗嘱\nvt. 用意志的力量驱使, 决意, 愿意, 立遗嘱\nvi. 下决心, 愿意\naux. 将, 愿意, 必须",
+            "pos": "",
+            "collins": 4,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 31,
+            "frq": 48,
+            "exchange": "i:willing/p:willed/3:wills/d:willed",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "up",
+            "usphone": "ʌp",
+            "ukphone": "ʌp",
+            "definition": "v. raise\na. being or moving higher in position or greater in some value; being above a former position or level\ns. extending or moving toward a higher place\ns. (usually followed by `on' or `for') in readiness",
+            "translation": "a. 向上的, 起床的, 涨的\nadv. 向上, 上涨\nprep. 在...上面, 向...的较高处",
+            "pos": "",
+            "collins": 2,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 52,
+            "frq": 50,
+            "exchange": "d:upped/0:up/i:upping/3:up/1:3/p:upped/s:ups",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "one",
+            "usphone": "wʌn",
+            "ukphone": "wʌn",
+            "definition": "n. the smallest whole number or a numeral representing this number\nn. a single person or thing\ns. used of a single unit or thing; not two or more\ns. having the indivisible character of a unit",
+            "translation": "n. 一(个)\npron. 一, 任何人\nnum. 一, 一个\na. 一致的, 完整的",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk ielts",
+            "bnc": 46,
+            "frq": 51,
+            "exchange": "s:ones",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "time",
+            "usphone": "taɪm",
+            "ukphone": "taim",
+            "definition": "n. an instance or single occasion for some event\nn. a period of time considered as a resource under your control and sufficient to accomplish something\nn. an indefinite period (usually marked by specific attributes or activities)\nn. a suitable moment",
+            "translation": "n. 时间, 时侯, 时机, 时期, 期限, 次数, 节拍, 暂停, 规定时间\nvt. 测定...的时间, 记录...的时间, 计时, 定时\na. 时间的, 记时的, 定时的, 定期的, 分期的\n[计] DOS内部命令:用于显示或设定系统的时间",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk ielts",
+            "bnc": 50,
+            "frq": 52,
+            "exchange": "s:times/d:timed/i:timing/p:timed/3:times",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "there",
+            "usphone": "ðɛr",
+            "ukphone": "ðєә",
+            "definition": "n. a location other than here; that place\nr. in or at that place\nr. in that matter\nr. to or toward that place; away from the speaker",
+            "translation": "adv. 在那里",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 37,
+            "frq": 53,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "year",
+            "usphone": "yir",
+            "ukphone": "jiә",
+            "definition": "n. a period of time containing 365 (or 366) days\nn. a period of time occupying a regular part of a calendar year that is used for some particular activity\nn. the period of time that it takes for a planet (as, e.g., Earth or Mars) to make a complete revolution around the sun",
+            "translation": "n. 年, 年度, 年龄\n[经] 年度",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 56,
+            "frq": 54,
+            "exchange": "s:years",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "so",
+            "usphone": "so",
+            "ukphone": "sәu",
+            "definition": "r. to a very great extent or degree\nr. in a manner that facilitates\nr. in such a condition or manner, especially as expressed or implied\nr. to a certain unspecified extent or degree",
+            "translation": "adv. 如此, 如是, 如...那样\nconj. 所以, 因此\npron. 这样",
+            "pos": "",
+            "collins": 3,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 48,
+            "frq": 55,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "think",
+            "usphone": "θɪŋk",
+            "ukphone": "θiŋk",
+            "definition": "n. an instance of deliberate thinking\nv. judge or regard; look upon; judge\nv. expect, believe, or suppose\nv. use or exercise the mind or one's power of reason in order to make inferences, decisions, or arrive at a solution or judgments",
+            "translation": "vt. 想, 考虑, 想起, 想像, 打算, 认为\nvi. 思考, 料想\nn. 想法\na. 思想的",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 64,
+            "frq": 56,
+            "exchange": "p:thought/d:thought/i:thinking/3:thinks",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "when",
+            "usphone": "hwen; hwɛn",
+            "ukphone": "hwen",
+            "definition": "adv. At what time; -- used interrogatively.\nadv. At what time; at, during, or after the time that; at or\n   just after, the moment that; -- used relatively.\nadv. While; whereas; although; -- used in the manner of a\n   conjunction to introduce a dependent adverbial sentence or clause,\n   having a causal, conditional, or adversative relation to the principal\n   proposition; as, he chose to turn highwayman when he might have\n   continued an honest man; he removed the tree when it was the best in\n   the grounds.\nadv. Which time; then; -- used elliptically as a noun.",
+            "translation": "conj. 当...的时候\nadv. 何时, 什么时候\npron. 什么时侯\nn. 时间",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 54,
+            "frq": 57,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "which",
+            "usphone": "wɪtʃ",
+            "ukphone": "hwitʃ",
+            "definition": "a. Of what sort or kind; what; what a; who.\na. A interrogative pronoun, used both substantively and\n   adjectively, and in direct and indirect questions, to ask for, or refer\n   to, an individual person or thing among several of a class; as, which\n   man is it? which woman was it? which is the house? he asked which route\n   he should take; which is best, to live or to die? See the Note under\n   What, pron., 1.\npron. A relative pronoun, used esp. in referring to an\n   antecedent noun or clause, but sometimes with reference to what is\n   specified or implied in a sentence, or to a following noun or clause\n   (generally involving a reference, however, to something which has\n   preceded). It is used in all numbers and genders, and was formerly used\n   of persons.\npron. A compound relative or indefinite pronoun, standing for\n   any one which, whichever, that which, those which, the . . . which, and\n   the like; as, take which you will.",
+            "translation": "pron. 哪一个, 那一个",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 28,
+            "frq": 58,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "them",
+            "usphone": "ðɛm; ðəm",
+            "ukphone": "ðem",
+            "definition": "pron. The objective case of they. See They.",
+            "translation": "pron. 他们, 她们, 它们",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 46212,
+            "frq": 59,
+            "exchange": "s:thems",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "some",
+            "usphone": "sʌm;səm",
+            "ukphone": "sʌm",
+            "definition": "a. quantifier; used with either mass nouns or plural count nouns to indicate an unspecified number or quantity\ns. relatively much but unspecified in amount or extent\ns. relatively many but unspecified in number\ns. remarkable",
+            "translation": "pron. 一些, 一部分, 若干\nadv. 大约\na. 一些的, 少许的, 某一的",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 53,
+            "frq": 60,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "me",
+            "usphone": "mi",
+            "ukphone": "mi:",
+            "definition": "n a state in New England",
+            "translation": "pron. 我",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 15312,
+            "frq": 61,
+            "exchange": "s:mes",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "people",
+            "usphone": "'pipl",
+            "ukphone": "'pi:pl",
+            "definition": "n. (plural) any group of human beings (men or women or children) collectively\nn. members of a family line\nv. fill with people\nv. furnish with people",
+            "translation": "n. 人, 人民, 民族, 平民\nvt. 使住满人, 居住于",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 75,
+            "frq": 62,
+            "exchange": "s:peoples/i:peopling/p:peopled/3:peoples/d:peopled",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "take",
+            "usphone": "tek",
+            "ukphone": "teik",
+            "definition": "n. the act of photographing a scene or part of a scene without interruption\nv. carry out\nv. require (time or space)\nv. get into one's hands, take physically",
+            "translation": "vt. 拿, 取, 抓, 带领, 获得, 就座, 接受, 吃, 吸引, 采取, 乘, 需要, 花费\nvi. 吃掉对方棋子, 抓住, 起作用, 依法获得财产\nn. 拿, 取, 收成, 奏效",
+            "pos": "",
+            "collins": 1,
+            "oxford": true,
+            "tag": "zk gk ielts",
+            "bnc": 51,
+            "frq": 63,
+            "exchange": "p:took/d:taken/i:taking/3:takes",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "out",
+            "usphone": "aʊt",
+            "ukphone": "aut",
+            "definition": "n. (baseball) a failure by a batter or runner to reach a base safely in baseball\nv. reveal (something) about somebody's identity or lifestyle\nv. be made known; be disclosed or revealed\na. not allowed to continue to bat or run",
+            "translation": "a. 外面的, 熄灭的, 结束的\nadv. 在外, 熄灭, 出现\nprep. 出自, 离去, 向",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 62,
+            "frq": 64,
+            "exchange": "i:outing/p:outed/3:outs/d:outed",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "into",
+            "usphone": "ˈɪntu",
+            "ukphone": "'intu:",
+            "definition": "prep. To the inside of; within. It is used in a variety of\n   applications.\nprep. Expressing entrance, or a passing from the outside of a\n   thing to its interior parts; -- following verbs expressing motion; as,\n   come into the house; go into the church; one stream falls or runs into\n   another; water enters into the fine vessels of plants.\nprep. Expressing penetration beyond the outside or surface, or\n   access to the inside, or contents; as, to look into a letter or book;\n   to look into an apartment.\nprep. Indicating insertion; as, to infuse more spirit or\n   animation into a composition.\nprep. Denoting inclusion; as, put these ideas into other words.\nprep. Indicating the passing of a thing from one form,\n   condition, or state to another; as, compound substances may be resolved\n   into others which are more simple; ice is convertible into water, and\n   water into vapor; men are more easily drawn than forced into\n   compliance; we may reduce many distinct substances into one mass; men\n   are led by evidence into belief of truth, and are often enticed into\n   the commission of crimes'into; she burst into tears; children are\n   sometimes frightened into fits; all persons are liable to be seduced\n   into error and folly.",
+            "translation": "prep. 进入...之内, 朝..., 深入...之中, 成为...状况",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 57,
+            "frq": 65,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "just",
+            "usphone": "dʒʌst",
+            "ukphone": "dʒʌst",
+            "definition": "a. used especially of what is legally or ethically right or proper or fitting\nr. only a moment ago\nr. absolutely\nr. exactly at this moment or the moment described;",
+            "translation": "a. 正直的, 合理的, 正确的, 应得的\nadv. 刚刚, 正好, 仅仅",
+            "pos": "",
+            "collins": 1,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 72,
+            "frq": 66,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "see",
+            "usphone": "si",
+            "ukphone": "si:",
+            "definition": "n. the seat within a bishop's diocese where his cathedral is located\nv. perceive by sight or have the power to perceive by sight\nv. deem to be\nv. be careful or certain to do something; make certain of something",
+            "translation": "vt. 看见, 查看, 参观, 游览, 理解, 知道, 同意\nvi. 看, 观看, 注意, 知道, 考虑\nn. 主教的职位",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 47,
+            "frq": 67,
+            "exchange": "d:seen/p:saw/i:seeing/3:sees",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "him",
+            "usphone": "hɪm",
+            "ukphone": "him",
+            "definition": "pron. Them. See Hem.\npron. The objective case of he. See He.",
+            "translation": "pron. 他",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 0,
+            "frq": 68,
+            "exchange": "s:hims",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "your",
+            "usphone": "jʊər; jʊr",
+            "ukphone": "juә",
+            "definition": "pron. & a. The form of the possessive case of the personal\n   pronoun you.",
+            "translation": "pron. 你的, 你们的",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 66,
+            "frq": 69,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "come",
+            "usphone": "kʌm",
+            "ukphone": "kʌm",
+            "definition": "v. move toward, travel toward something or somebody or approach something or somebody\nv. come to pass; arrive, as in due course\nv. reach or enter a state, relation, condition, use, or position\nv. to be the product or result",
+            "translation": "vi. 过来, 来, 到达, 出现, 开始\ninterj. 喂",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk ielts",
+            "bnc": 65,
+            "frq": 70,
+            "exchange": "p:came/i:coming/3:comes/d:come/0:come/1:d",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "could",
+            "usphone": "kəd; kʊd",
+            "ukphone": "kud",
+            "definition": "imp. of Can\nimp. Was, should be, or would be, able, capable, or\n   susceptible. Used as an auxiliary, in the past tense or in the\n   conditional present.",
+            "translation": "aux. 可以, 能",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk",
+            "bnc": 55,
+            "frq": 71,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "now",
+            "usphone": "naʊ",
+            "ukphone": "nau",
+            "definition": "n. the momentary present\nr. in the historical present; at this point in the narration of a series of past events\nr. used to preface a command or reproof or request\nr. at the present moment",
+            "translation": "adv. 现在, 刚才, 目前\nn. 现在\na. 现在的\nconj. 由于",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 67,
+            "frq": 72,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "than",
+            "usphone": "ðæn",
+            "ukphone": "ðæn",
+            "definition": "conj. A particle expressing comparison, used after certain\n   adjectives and adverbs which express comparison or diversity, as more,\n   better, other, otherwise, and the like. It is usually followed by the\n   object compared in the nominative case. Sometimes, however, the object\n   compared is placed in the objective case, and than is then considered\n   by some grammarians as a preposition. Sometimes the object is expressed\n   in a sentence, usually introduced by that; as, I would rather suffer\n   than that you should want.\nadv. Then. See Then.",
+            "translation": "conj. 比, 除...外\nprep. 比",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 89,
+            "frq": 73,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "like",
+            "usphone": "laɪk",
+            "ukphone": "laik",
+            "definition": "n. a similar kind\nn. a kind of person\nv. find enjoyable or agreeable\nv. be fond of",
+            "translation": "a. 相似的, 同样的\nvt. 喜欢, 愿意, 想\nvi. 喜欢, 希望\nn. 爱好, 同样的人(或物)\nprep. 象, 如同\nadv. 可能",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 88,
+            "frq": 74,
+            "exchange": "p:liked/3:likes/d:liked/s:likes/i:liking",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "other",
+            "usphone": "'ʌðɚ",
+            "ukphone": "'ʌðә",
+            "definition": "a. not the same one or ones already mentioned or implied\ns. recently past\ns. very unusual; different in character or quality from the normal or expected",
+            "translation": "a. 其他的, 另外的, 从前的\npron. 其他的, 他人, 另外一个",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 69,
+            "frq": 75,
+            "exchange": "s:others",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "how",
+            "usphone": "haʊ",
+            "ukphone": "hau",
+            "definition": "adv. In what manner or way; by what means or process.\nadv. To what degree or extent, number or amount; in what\n   proportion; by what measure or quality.\nadv. For what reason; from what cause.\nadv. In what state, condition, or plight.\nadv. By what name, designation, or title.\nadv. At what price; how dear.",
+            "translation": "adv. 如何, 怎样, 多少, 多么\nn. 方式",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 90,
+            "frq": 76,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "then",
+            "usphone": "ðɛn",
+            "ukphone": "ðen",
+            "definition": "n. that time; that moment\ns. at a specific prior time\nr. subsequently or soon afterward (often used as sentence connectors)\nr. in that case or as a consequence",
+            "translation": "adv. 然后, 当时\nconj. 然后, 当时\nn. 那时",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 59,
+            "frq": 77,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "its",
+            "usphone": "ɪts",
+            "ukphone": "its",
+            "definition": "n the branch of engineering that deals with the use of computers and telecommunications to retrieve and store and transmit information",
+            "translation": "pron. 它的",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 58,
+            "frq": 78,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "our",
+            "usphone": "aʊr",
+            "ukphone": "'auә",
+            "definition": "pl.  of I\npossessive pron. Of or pertaining to us; belonging to us; as, our\n   country; our rights; our troops; our endeavors. See I.",
+            "translation": "pron. 我们的",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 93,
+            "frq": 79,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "two",
+            "usphone": "tu",
+            "ukphone": "tu:",
+            "definition": "n. the cardinal number that is the sum of one and one or a numeral representing this number\ns. being one more than one",
+            "translation": "num. 二, 二个",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 60,
+            "frq": 80,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "more",
+            "usphone": "mɔr",
+            "ukphone": "mɒ:",
+            "definition": "n. English statesman who opposed Henry VIII's divorce from Catherine of Aragon and was imprisoned and beheaded; recalled for his concept of Utopia, the ideal state\na. (comparative of `much' used with mass nouns) a quantifier meaning greater in size or amount or extent or degree\na. (comparative of `many' used with count nouns) quantifier meaning greater in number\nr. used to form the comparative of some adjectives and adverbs",
+            "translation": "n. 更多\na. 多的, 程度较大的, 更大的\nadv. 多, 更多, 进一步\n[计] DOS外部命令:显示满屏后自动暂停, 并显示:\"--More--\", 按任意键继续",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk",
+            "bnc": 74,
+            "frq": 81,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "these",
+            "usphone": "ðiz",
+            "ukphone": "ði:z",
+            "definition": "pron. The plural of this. See This.\npl.  of This",
+            "translation": "pron. 这些",
+            "pos": "",
+            "collins": 5,
+            "oxford": false,
+            "tag": "zk gk",
+            "bnc": 76,
+            "frq": 82,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "want",
+            "usphone": "wɔ:nt; wɔnt",
+            "ukphone": "wɒnt",
+            "definition": "v. have need of\nv. hunt or look for; want for a particular reason\nv. wish or demand the presence of\nv. be without, lack; be deficient in",
+            "translation": "n. 需要的东西, 缺乏, 贫困, 需要\nvt. 要, 希望, 应该, 缺少\nvi. 生活困苦, 需要, 缺少",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk gre",
+            "bnc": 94,
+            "frq": 83,
+            "exchange": "p:wanted/3:wants/d:wanted/i:wanting",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "way",
+            "usphone": "we",
+            "ukphone": "wei",
+            "definition": "n. the condition of things generally\nn. a course of conduct\nn. any artifact consisting of a road or path affording passage from one place to another\nn. a journey or passage",
+            "translation": "n. 路, 路线, 路途, 方法, 道路, 情形, 规模, 习惯, 行业, 方面\nadv. 远远地, 非常",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk toefl",
+            "bnc": 86,
+            "frq": 84,
+            "exchange": "s:ways",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "look",
+            "usphone": "lʊk",
+            "ukphone": "luk",
+            "definition": "n. the act of directing the eyes toward something and perceiving it visually\nn. physical appearance\nv. perceive with attention; direct one's gaze towards\nv. give a certain impression or have a certain outward aspect",
+            "translation": "n. 一看, 神色, 样子, 面容\nvi. 看, 注意, 朝着, 显得\nvt. 打量, 看上去与...一样, 以眼色(或脸色)显示, 期待",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 82,
+            "frq": 85,
+            "exchange": "p:looked/i:looking/3:looks/d:looked/s:looks",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "first",
+            "usphone": "fɝst",
+            "ukphone": "fә:st",
+            "definition": "n. the first or highest in an ordering or series\nn. the first element in a countable series\nn. an honours degree of the highest class\na. preceding all others in time or space or degree",
+            "translation": "adv. 首先, 第一, 优先\na. 第一的\nnum. 第一\nn. 开始, 第一",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 79,
+            "frq": 86,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "also",
+            "usphone": "'ɔlso",
+            "ukphone": "'ɒ:lsәu",
+            "definition": "r in addition",
+            "translation": "adv. 也, 并且, 同样地",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 77,
+            "frq": 87,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "new",
+            "usphone": "nu",
+            "ukphone": "nju:",
+            "definition": "a. not of long duration; having just (or relatively recently) come into being or been made or acquired or discovered\ns. having no previous example or precedent or parallel\ns. other than the former one(s); different\na. unaffected by use or exposure",
+            "translation": "a. 新的, 陌生的, 最近的, 不熟悉的\n[法] 新发现的, 新的, 重新开始的",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 81,
+            "frq": 88,
+            "exchange": "r:newer/t:newest",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "because",
+            "usphone": "bɪ'kɔz",
+            "ukphone": "bi'kɒ:z",
+            "definition": "conj. By or for the cause that; on this account that; for the\n   reason that.\nconj. In order that; that.",
+            "translation": "conj. 因为",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 101,
+            "frq": 89,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "day",
+            "usphone": "de",
+            "ukphone": "dei",
+            "definition": "n. time for Earth to make a complete rotation on its axis\nn. some point or period in time\nn. a day assigned to a particular purpose or observance\nn. the time after sunrise and before sunset while it is light outside",
+            "translation": "n. 天, 日子, 白天, 工作日\n[医] 日(一昼夜), 昼, 白天",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk ielts",
+            "bnc": 95,
+            "frq": 90,
+            "exchange": "s:days",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "use",
+            "usphone": "juz",
+            "ukphone": "ju:s",
+            "definition": "n. the act of using\nn. a particular service\nn. (law) the exercise of the legal right to enjoy the benefits of owning property\nv. put into service; make work or employ for a particular purpose or for its inherent or natural purpose",
+            "translation": "n. 使用, 习惯, 使用价值, 用法, 使用权\nvt. 使用, 利用, 运用, 耗费\nvi. 惯常",
+            "pos": "",
+            "collins": 4,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 87,
+            "frq": 92,
+            "exchange": "d:used/i:using/p:used/3:uses/s:uses/f:uses",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "no",
+            "usphone": "no",
+            "ukphone": "nәu",
+            "definition": "n. a negative\na. quantifier; used with either mass nouns or plural count nouns for indicating a complete or almost complete lack or zero quantity of\nr. referring to the degree to which a certain quality is present\nr. not in any degree or manner; not at all",
+            "translation": "n. 不, 拒绝, 否决票\na. 没有, 不是, 绝非\nadv. 不",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 68,
+            "frq": 93,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "man",
+            "usphone": "mæn",
+            "ukphone": "mæn",
+            "definition": "n. an adult person who is male (as opposed to a woman)\nn. the generic use of the word to refer to any human being\nn. a male subordinate\nn. an adult male person who has a manly character (virile and courageous competent)",
+            "translation": "n. 男人, 人类, 人\nvt. 为...配备人手, 操纵, 使振奋\n[计] 城域网, 手册",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 91,
+            "frq": 94,
+            "exchange": "s:men/d:manned/i:manning/p:manned/3:mans",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "find",
+            "usphone": "faɪnd",
+            "ukphone": "faind",
+            "definition": "v. come upon, as if by accident; meet with\nv. come upon after searching; find the location of something that was missed or lost\nv. come to believe on the basis of emotion, intuitions, or indefinite grounds\nv. obtain through effort or management",
+            "translation": "vt. 发现, 感到, 找到, 认为, 得到\nvi. 裁决\nn. 发现\n[计] 查找; DOS外部命令:在指定的文件或从键盘输入的文本行中\n寻找指定的字符串, 将符合条件的行或行数输出到标准输出设备上",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 92,
+            "frq": 95,
+            "exchange": "d:found/p:found/i:finding/3:finds/s:finds",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "here",
+            "usphone": "hɪr",
+            "ukphone": "hiә",
+            "definition": "n. the present location; this place\ns. being here now\nr. in or at this place; where the speaker or writer is\nr. in this circumstance or respect or on this point or detail",
+            "translation": "adv. 在这里, 此时, 这里\nn. 这里",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 117,
+            "frq": 96,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "thing",
+            "usphone": "θɪŋ",
+            "ukphone": "θiŋ",
+            "definition": "n. a special situation\nn. an action\nn. a special abstraction\nn. an artifact",
+            "translation": "n. 事物, 东西, 物, 用品, 事, 事件, 情况, 行为, 特征",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 106,
+            "frq": 97,
+            "exchange": "s:things",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "give",
+            "usphone": "ɡɪv",
+            "ukphone": "giv",
+            "definition": "n. the elasticity of something that can be stretched and returns to its original length\nv. cause to have, in the abstract sense or physical sense\nv. transfer possession of something concrete or abstract to somebody\nv. convey or reveal information",
+            "translation": "n. 弹性, 适应性\nvt. 给, 授予, 供给, 产生, 发表, 付出, 献出, 让出\nvi. 捐赠, 支持不住, 让步",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk ielts",
+            "bnc": 71,
+            "frq": 98,
+            "exchange": "d:given/p:gave/i:giving/3:gives",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "many",
+            "usphone": "'mɛni",
+            "ukphone": "'meni",
+            "definition": "a. a quantifier that can be used with count nouns and is often preceded by `as' or `too' or `so' or `that'; amounting to a large but indefinite number",
+            "translation": "n. 多数, 多数人\na. 许多的\npron. 许多",
+            "pos": "",
+            "collins": 5,
+            "oxford": true,
+            "tag": "zk gk",
+            "bnc": 98,
+            "frq": 99,
+            "exchange": "",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        },
+        {
+            "value": "well",
+            "usphone": "wɛl",
+            "ukphone": "wel",
+            "definition": "n. a deep hole or shaft dug or drilled to obtain water or oil or gas or brine\nn. a cavity or vessel used to contain liquid\nn. an abundant source\nn. an open shaft through the floors of a building (as for a stairway)",
+            "translation": "n. 井, 泉水, 源泉, 好\nv. 涌出\na. 健康的, 良好的, 适宜的, 恰当的\nadv. 很好地, 适当地, 好意地, 很, 完全\ninterj. 好啦",
+            "pos": "",
+            "collins": 2,
+            "oxford": true,
+            "tag": "zk gk toefl",
+            "bnc": 84,
+            "frq": 100,
+            "exchange": "s:wells/i:welling/p:welled/3:wells/d:welled",
+            "externalCaptions": [
+            ],
+            "captions": [
+            ]
+        }
+    ]
+}
