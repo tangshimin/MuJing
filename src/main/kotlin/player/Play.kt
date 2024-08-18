@@ -460,26 +460,37 @@ fun play(
 }
 
 /**
+ * @param time 时间格式为 00:00:00,000 或者 00:00:00.000
  * 转换时间为秒
  */
 fun convertTimeToSeconds(time:String):Double{
     val parts = time.split(":")
     val hours = parts[0].toLong()
     val minutes = parts[1].toLong()
-    val seconds = parts[2].toDouble()
-
+    // 如果是 00:00:00,000 需要把 , 替换为 .
+    val seconds = if(parts[2].contains(",")) {
+        parts[2].replace(",",".").toDouble()
+    }else{
+        parts[2].toDouble()
+    }
     val totalSeconds = hours * 3600 + minutes * 60 + seconds
     return totalSeconds
 }
 
 /**
+ * @param time 时间格式为 00:00:00,000 或者 00:00:00.000
  * 转换时间为毫秒
  */
 fun convertTimeToMilliseconds(time:String):Long{
     val parts = time.split(":")
     val hours = parts[0].toLong()
     val minutes = parts[1].toLong()
-    val seconds = parts[2].substringBefore(".").toLong()
+    // 如果是 00:00:00,000 需要把 , 替换为 .
+    val seconds = if(parts[2].contains(",")){
+        parts[2].replace(",",".").toLong()
+    }else{
+        parts[2].substringBefore(".").toLong()
+    }
     val milliseconds = parts[2].substringAfter(".").toLong()
 
     val totalMilliseconds = ((hours * 3600 + minutes * 60 + seconds) * 1000) + milliseconds

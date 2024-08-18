@@ -246,8 +246,8 @@ fun parseSubtitles(
                 content = removeNewLine(content)
 
                 val newCaption = Caption(
-                    start = caption.start.getTime("hh:mm:ss.ms"),
-                    end = caption.end.getTime("hh:mm:ss.ms"),
+                    start = caption.start.getTime("hh:mm:ss,ms"),
+                    end = caption.end.getTime("hh:mm:ss,ms"),
                     content = content
                 )
                 if (caption.content.length > maxLength) {
@@ -296,8 +296,8 @@ fun parseSubtitles(subtitlesPath: String):List<PlayerCaption>{
                 content = removeItalicSymbol(content)
                 content = replaceNewLine(content)
                 val newCaption = PlayerCaption(
-                    start = convertTimeToMilliseconds(caption.start.getTime("hh:mm:ss.ms")),
-                    end = convertTimeToMilliseconds(caption.end.getTime("hh:mm:ss.ms")),
+                    start = convertTimeToMilliseconds(caption.start.getTime("hh:mm:ss,ms")),
+                    end = convertTimeToMilliseconds(caption.end.getTime("hh:mm:ss,ms")),
                     content = content
                 )
                 if (caption.content.length > maxLength) {

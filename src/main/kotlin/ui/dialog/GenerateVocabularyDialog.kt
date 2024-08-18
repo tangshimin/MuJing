@@ -2616,8 +2616,8 @@ private fun readSRT(
                 content = removeLocationInfo(content)
                 val dataCaption = Caption(
                     // getTime(format) 返回的时间不能播放
-                    start = caption.start.getTime("hh:mm:ss.ms"),
-                    end = caption.end.getTime("hh:mm:ss.ms"),
+                    start = caption.start.getTime("hh:mm:ss,ms"),
+                    end = caption.end.getTime("hh:mm:ss,ms"),
                     content = content
                 )
                 val tokenize = tokenizer.tokenize(content)
