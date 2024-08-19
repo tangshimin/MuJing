@@ -192,7 +192,9 @@ class AppState {
                 }
                 else -> {
                     // 保存当前词库的索引到最近列表,
-                    saveToRecentList(wordScreenState.vocabulary.name, wordScreenState.vocabularyPath,wordScreenState.index)
+                    if(wordScreenState.vocabularyPath.isNotEmpty()){
+                        saveToRecentList(wordScreenState.vocabulary.name, wordScreenState.vocabularyPath,wordScreenState.index)
+                    }
                 }
             }
 
