@@ -19,7 +19,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.Word
@@ -61,7 +61,7 @@ fun ChapterFinishedDialog(
     val focusRequester = remember { FocusRequester() }
     val width = if (isVocabularyFinished) 650.dp else 500.dp
     val height = (280 + ((dictationWrongWords.size * 18) + 10)).dp
-    Dialog(
+    DialogWindow(
         title = "",
         onCloseRequest = { close() },
         state = rememberDialogState(

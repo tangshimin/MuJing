@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.*
@@ -39,7 +39,7 @@ fun MergeVocabularyDialog(
     saveToRecentList: (String, String) -> Unit,
     close: () -> Unit
 ) {
-    Dialog(
+    DialogWindow(
         title = "合并词库",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },
@@ -53,28 +53,36 @@ fun MergeVocabularyDialog(
         val scope = rememberCoroutineScope()
 
         /** 是否启用合并按钮 */
+        /** 是否启用合并按钮 */
         var mergeEnabled by remember { mutableStateOf(false) }
 
+        /** 选择的词库列表 */
         /** 选择的词库列表 */
         val selectedFileList = remember { mutableStateListOf<File>() }
 
         /** 合并后的新词库 */
+        /** 合并后的新词库 */
         var newVocabulary by remember { mutableStateOf<Vocabulary?>(null) }
 
+        /** 合并词库的数量限制 */
         /** 合并词库的数量限制 */
         var isOutOfRange by remember { mutableStateOf(false) }
 
         /** 单词的总数 */
+        /** 单词的总数 */
         var size by remember { mutableStateOf(0) }
 
         /** 正在读取的词库名称 */
+        /** 正在读取的词库名称 */
         var fileName by remember { mutableStateOf("") }
 
+        /** 更新单词的总数的回调函数 */
         /** 更新单词的总数的回调函数 */
         val updateSize: (Int) -> Unit = {
             size = it
         }
 
+        /** 更新正在读取的词库名称的回调函数 */
         /** 更新正在读取的词库名称的回调函数 */
         val updateFileName: (String) -> Unit = {
             fileName = it

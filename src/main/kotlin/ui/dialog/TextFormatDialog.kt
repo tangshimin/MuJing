@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +35,7 @@ fun TextFormatDialog(
     openLoadingDialog: () -> Unit,
     closeLoadingDialog: () -> Unit,
 ) {
-    Dialog(
+    DialogWindow(
         title = "文本格式化",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },
@@ -65,6 +65,7 @@ fun TextFormatDialog(
         }
 
         /**  处理拖放文件的函数 */
+        /**  处理拖放文件的函数 */
         val transferHandler = createTransferHandler(
             singleFile = true,
             showWrongMessage = { message ->
@@ -85,6 +86,7 @@ fun TextFormatDialog(
         window.transferHandler = transferHandler
 
 
+        /** 打开文件对话框 */
         /** 打开文件对话框 */
         val openFileChooser: () -> Unit = {
             // 打开 windows 的文件选择器很慢，有时候会等待超过2秒
@@ -113,6 +115,7 @@ fun TextFormatDialog(
 
         }
 
+        /** 保存文件对话框 */
         /** 保存文件对话框 */
         val saveFileChooser: () -> Unit = {
             scope.launch (Dispatchers.IO){
@@ -301,7 +304,7 @@ fun FormatDialog(
     formatPath: String,
     futureFileChooser: FutureTask<JFileChooser>,
 ) {
-    Dialog(
+    DialogWindow(
         title = "消息",
         onCloseRequest = { close() },
         resizable = false,

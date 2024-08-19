@@ -2,7 +2,6 @@ package ui.edit
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
@@ -24,14 +23,13 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.times
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import com.formdev.flatlaf.extras.FlatSVGUtils
 import data.*
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
-import player.isWindows
 import state.getResourcesFile
 import ui.dialog.ConfirmDialog
 import java.awt.BorderLayout
@@ -96,7 +94,7 @@ fun VocabularyInfo(
     )
 
     MaterialTheme(colors = colors) {
-        Dialog(
+        DialogWindow(
             title = "信息",
             onCloseRequest = close,
             state = windowState,

@@ -129,7 +129,7 @@ fun SimplePlayer(
         )
 
         // control layer
-        Dialog(
+        DialogWindow(
             onCloseRequest = {  },
             transparent = true,
             undecorated = true,
@@ -252,7 +252,7 @@ private fun VideoLayer(
     videoPlayerComponent: Component,
     setPlayerWindow:(ComposeDialog) -> Unit
 ) {
-    Dialog(
+    DialogWindow(
         icon = painterResource("logo/logo.png"),
         state = windowState,
         undecorated = true,

@@ -11,7 +11,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import ui.window.windowBackgroundFlashingOnCloseFixHack
@@ -23,7 +23,7 @@ fun MessageDialog(
     message:String
 ){
     if(show){
-        Dialog(
+        DialogWindow(
             title = "消息",
             icon = painterResource("logo/logo.png"),
             onCloseRequest = { close() },

@@ -17,7 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.Vocabulary
@@ -42,7 +42,7 @@ fun MatchVocabularyDialog(
     futureFileChooser: FutureTask<JFileChooser>,
     close: () -> Unit
 ) {
-    Dialog(
+    DialogWindow(
         title = "匹配词库",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },
@@ -58,6 +58,7 @@ fun MatchVocabularyDialog(
         ) {
             windowBackgroundFlashingOnCloseFixHack()
             Box {
+                /** 协程构建器 */
                 /** 协程构建器 */
                 val scope = rememberCoroutineScope()
                 Divider(Modifier.align(Alignment.TopCenter))

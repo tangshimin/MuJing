@@ -17,7 +17,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.Dictionary
@@ -39,7 +39,7 @@ fun WordFrequencyDialog(
     saveToRecentList: (String, String) -> Unit,
     close: () -> Unit
 ){
-    Dialog(
+    DialogWindow(
         title = "根据词频生成词库",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },
@@ -56,6 +56,7 @@ fun WordFrequencyDialog(
         ) {
             var selectState by remember { mutableStateOf("Idle") }
 
+            /** 新词库 */
             /** 新词库 */
             var newVocabulary by remember { mutableStateOf<Vocabulary?>(null) }
             var start by remember { mutableStateOf(1) }

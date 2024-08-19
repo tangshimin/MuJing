@@ -18,7 +18,7 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import player.isMacOS
@@ -26,7 +26,7 @@ import ui.window.windowBackgroundFlashingOnCloseFixHack
 
 @Composable
 fun ShortcutKeyDialog(close: () -> Unit) {
-    Dialog(
+    DialogWindow(
         title = "快捷键",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },

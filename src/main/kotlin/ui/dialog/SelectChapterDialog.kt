@@ -18,7 +18,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.Word
@@ -38,7 +38,7 @@ fun SelectChapterDialog(
     wordScreenState: WordScreenState,
     isMultiple:Boolean
 ) {
-    Dialog(
+    DialogWindow(
         title = if(isMultiple) "听写测试，可以选择多个章节" else "选择章节",
         onCloseRequest = { close() },
         resizable = true,

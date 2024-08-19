@@ -21,16 +21,15 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
-import ui.word.WordScreenState
 import theme.createColors
-import ui.flatlaf.updateFlatLaf
 import theme.toAwt
+import ui.flatlaf.updateFlatLaf
 import ui.window.windowBackgroundFlashingOnCloseFixHack
 import ui.word.*
 import util.rememberMonospace
@@ -43,7 +42,7 @@ fun SettingsDialog(
     state: AppState,
     wordScreenState: WordScreenState,
 ) {
-    Dialog(
+    DialogWindow(
         title = "设置",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },

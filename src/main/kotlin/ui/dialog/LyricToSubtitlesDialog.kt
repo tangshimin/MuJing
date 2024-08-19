@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import kotlinx.coroutines.Dispatchers
@@ -35,7 +35,7 @@ fun LyricToSubtitlesDialog(
     openLoadingDialog: () -> Unit,
     closeLoadingDialog: () -> Unit,
 ){
-    Dialog(
+    DialogWindow(
         title = "歌词转字幕",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },
@@ -88,6 +88,7 @@ fun LyricToSubtitlesDialog(
 
 
         /** 打开文件对话框 */
+        /** 打开文件对话框 */
         val openFileChooser: () -> Unit = {
             // 打开 windows 的文件选择器很慢，有时候会等待超过2秒
             openLoadingDialog()
@@ -125,6 +126,7 @@ fun LyricToSubtitlesDialog(
             }
         }
 
+        /** 保存文件对话框 */
         /** 保存文件对话框 */
         val saveFile: () -> Unit = {
             scope.launch (Dispatchers.IO){

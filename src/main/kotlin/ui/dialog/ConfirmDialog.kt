@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import ui.window.windowBackgroundFlashingOnCloseFixHack
@@ -33,7 +33,7 @@ import ui.window.windowBackgroundFlashingOnCloseFixHack
 @ExperimentalComposeUiApi
 @Composable
 fun ConfirmDialog(message: String, confirm: () -> Unit, close: () -> Unit) {
-    Dialog(
+    DialogWindow(
         title = "删除",
         onCloseRequest = { close() },
         undecorated = true,

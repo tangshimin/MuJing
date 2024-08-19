@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import kotlinx.coroutines.Dispatchers
@@ -41,7 +41,7 @@ fun BuiltInVocabularyDialog(
     futureFileChooser: FutureTask<JFileChooser>
 ) {
     if(show){
-        Dialog(
+        DialogWindow(
             title = "选择内置词库到本地文件系统",
             icon = painterResource("logo/logo.png"),
             onCloseRequest = { close() },
@@ -64,7 +64,8 @@ fun BuiltInVocabularyDialog(
                     var waiting by remember{ mutableStateOf(false)}
                     val scope = rememberCoroutineScope()
                     /** 保存词库 */
-                    val save:(File) -> Unit = {file ->
+                    /** 保存词库 */
+                    val save:(File) -> Unit = { file ->
                         waiting = true
                         scope.launch(Dispatchers.IO) {
                             var name = file.nameWithoutExtension

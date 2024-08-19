@@ -17,7 +17,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
@@ -35,7 +35,7 @@ fun NewVocabularyDialog(
     colors: Colors,
 ) {
 
-    Dialog(
+    DialogWindow(
         title = "新建词库",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },

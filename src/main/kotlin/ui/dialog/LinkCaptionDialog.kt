@@ -26,7 +26,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
@@ -58,7 +58,7 @@ fun LinkCaptionDialog(
     save:(MutableList<ExternalCaption>) -> Unit,
     close: () -> Unit
 ) {
-    Dialog(
+    DialogWindow(
         title = "链接字幕",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },
@@ -74,6 +74,7 @@ fun LinkCaptionDialog(
             shape = RectangleShape,
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
+                /** 添加或删除了字幕后触发重组，tempWord 的 externalCaptions 增加或删除了字幕不会触发重组 */
                 /** 添加或删除了字幕后触发重组，tempWord 的 externalCaptions 增加或删除了字幕不会触发重组 */
                 var externalCaptionSize by remember { mutableStateOf(word.externalCaptions.size) }
                 val tempWord by remember { mutableStateOf(word.deepCopy()) }

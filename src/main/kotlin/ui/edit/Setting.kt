@@ -3,14 +3,16 @@ package ui.edit
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import com.formdev.flatlaf.extras.FlatSVGUtils
@@ -86,7 +88,7 @@ fun Setting(
     )
 
     MaterialTheme(colors = appState.colors) {
-        Dialog(
+        DialogWindow(
             title = "显示和隐藏列",
             onCloseRequest = close,
             resizable = false,

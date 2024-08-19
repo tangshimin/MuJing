@@ -26,7 +26,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
@@ -38,9 +38,9 @@ import player.isMacOS
 import player.play
 import state.AppState
 import state.getResourcesFile
-import util.createTransferHandler
 import ui.edit.computeNameMap
 import ui.window.windowBackgroundFlashingOnCloseFixHack
+import util.createTransferHandler
 import java.awt.Point
 import java.awt.Rectangle
 import java.io.File
@@ -286,7 +286,7 @@ fun LinkVocabularyDialog(
 
 
 
-    Dialog(
+    DialogWindow(
         title = "链接字幕词库",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = {
@@ -323,6 +323,7 @@ fun LinkVocabularyDialog(
         }
 
 
+        /** 保存词库 */
         /** 保存词库 */
         val save:() -> Unit = {
             scope.launch (Dispatchers.IO){

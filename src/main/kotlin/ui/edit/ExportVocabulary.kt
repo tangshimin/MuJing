@@ -17,7 +17,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
@@ -33,18 +32,18 @@ import org.apache.poi.ss.usermodel.FillPatternType
 import org.apache.poi.ss.usermodel.IndexedColors
 import org.apache.poi.ss.usermodel.VerticalAlignment
 import org.apache.poi.ss.usermodel.Workbook
+import org.apache.poi.xssf.usermodel.XSSFWorkbook
 import state.getResourcesFile
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
-import javax.swing.JFrame
-import org.apache.poi.xssf.usermodel.*
 import java.io.File
 import java.io.FileOutputStream
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
+import javax.swing.JFrame
 import javax.swing.JOptionPane
 import javax.swing.filechooser.FileSystemView
 
@@ -107,7 +106,7 @@ fun ExportVocabulary(
 
 
     MaterialTheme(colors = colors) {
-        Dialog(
+        DialogWindow(
             title = "导出词库",
             onCloseRequest = close,
             state = windowState,

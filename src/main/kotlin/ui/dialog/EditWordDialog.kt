@@ -30,7 +30,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import com.formdev.flatlaf.extras.FlatSVGUtils
@@ -98,7 +98,7 @@ fun EditWordDialog(
         size = DpSize(840.dp, 810.dp)
     )
     MaterialTheme(colors = appState.colors) {
-        Dialog(
+        DialogWindow(
             title = title,
             onCloseRequest = { close() },
             resizable = true,
@@ -1142,7 +1142,7 @@ fun SettingTimeLine(
     playTriple: Triple<Caption, String, Int>,
     mediaPlayerComponent: Component,
 ) {
-    Dialog(
+    DialogWindow(
         title = "调整时间轴",
         onCloseRequest = { close() },
         resizable = false,

@@ -9,12 +9,12 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
-import util.createTransferHandler
 import data.*
 import ui.window.windowBackgroundFlashingOnCloseFixHack
+import util.createTransferHandler
 import java.io.File
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
@@ -30,7 +30,7 @@ fun FamiliarDialog(
     futureFileChooser: FutureTask<JFileChooser>,
     close: () -> Unit
 ){
-    Dialog(
+    DialogWindow(
         title = "导入词库到熟悉词库",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },
@@ -45,10 +45,12 @@ fun FamiliarDialog(
         var processingFile by remember { mutableStateOf("") }
 
         /** 熟悉词库 */
+        /** 熟悉词库 */
         val familiarVocabulary = loadMutableVocabularyByName("FamiliarVocabulary")
 
         /** 导入词库 */
-        val import:(List<File>) -> Unit = {files ->
+        /** 导入词库 */
+        val import:(List<File>) -> Unit = { files ->
             if(files.size>100){
                 JOptionPane.showMessageDialog(null,"一次最多导入 100 个词库")
             }else{
@@ -123,6 +125,7 @@ fun FamiliarDialog(
         }
 
         /** 打开文件对话框 */
+        /** 打开文件对话框 */
         val openFileChooser:()-> Unit = {
                 val fileChooser = futureFileChooser.get()
                 fileChooser.dialogTitle = "选择词库"
@@ -143,6 +146,7 @@ fun FamiliarDialog(
                 fileChooser.removeChoosableFileFilter(fileFilter)
         }
 
+        /**  处理拖放文件的函数 */
         /**  处理拖放文件的函数 */
         val transferHandler = createTransferHandler(
             singleFile = false,

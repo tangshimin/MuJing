@@ -13,7 +13,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import state.getResourcesFile
@@ -28,7 +28,7 @@ fun AboutDialog(
     version: String,
     close: () -> Unit
 ) {
-    Dialog(
+    DialogWindow(
         title = "关于",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },

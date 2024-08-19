@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.GitHubRelease
@@ -42,7 +42,7 @@ fun UpdateDialog(
     releaseNote:String,
     ignore:(String) -> Unit,
 ) {
-    Dialog(
+    DialogWindow(
         title = "检查更新",
         icon = painterResource("logo/logo.png"),
         onCloseRequest = { close() },
