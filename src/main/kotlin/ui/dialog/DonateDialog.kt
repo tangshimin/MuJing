@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 
 @Composable
 fun DonateDialog(close: () -> Unit) {
@@ -27,6 +28,7 @@ fun DonateDialog(close: () -> Unit) {
             size = DpSize(645.dp, 650.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         Surface(
             elevation = 5.dp,
             shape = RectangleShape,

@@ -29,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.rememberAudioPlayerComponent
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 
@@ -48,6 +49,7 @@ fun AzureTTSDialog(
             size = DpSize(645.dp, 750.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         Box{
             Column (Modifier.fillMaxSize().background(MaterialTheme.colors.background).padding(start = 10.dp)){
                 // 支持 Azure Speech 的区域

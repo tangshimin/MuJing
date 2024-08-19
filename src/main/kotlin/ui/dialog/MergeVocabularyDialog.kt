@@ -22,6 +22,7 @@ import androidx.compose.ui.window.rememberDialogState
 import data.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import util.createTransferHandler
 import java.io.File
 import java.util.*
@@ -48,6 +49,7 @@ fun MergeVocabularyDialog(
             size = DpSize(600.dp, 600.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         val scope = rememberCoroutineScope()
 
         /** 是否启用合并按钮 */

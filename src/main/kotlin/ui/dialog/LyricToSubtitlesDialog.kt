@@ -19,6 +19,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import lyric.FileManager
 import lyric.SongLyric
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import util.createTransferHandler
 import java.io.File
 import java.util.concurrent.FutureTask
@@ -44,7 +45,7 @@ fun LyricToSubtitlesDialog(
             size = DpSize(600.dp, 600.dp)
         ),
     ) {
-
+        windowBackgroundFlashingOnCloseFixHack()
         val scope = rememberCoroutineScope()
         var inputPath by remember { mutableStateOf("") }
         var fileName by remember { mutableStateOf("") }

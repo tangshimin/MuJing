@@ -14,6 +14,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import util.createTransferHandler
 import data.*
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import java.io.File
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
@@ -39,6 +40,7 @@ fun FamiliarDialog(
             size = DpSize(600.dp, 600.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         var importing by remember { mutableStateOf(false) }
         var processingFile by remember { mutableStateOf("") }
 

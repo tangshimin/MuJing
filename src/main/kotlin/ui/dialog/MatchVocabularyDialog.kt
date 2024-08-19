@@ -27,6 +27,7 @@ import data.saveVocabulary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import state.getResourcesFile
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import java.io.File
 import java.nio.file.Paths
 import java.util.concurrent.FutureTask
@@ -55,7 +56,7 @@ fun MatchVocabularyDialog(
             elevation = 5.dp,
             shape = RectangleShape,
         ) {
-
+            windowBackgroundFlashingOnCloseFixHack()
             Box {
                 /** 协程构建器 */
                 val scope = rememberCoroutineScope()

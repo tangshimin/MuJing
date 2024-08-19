@@ -33,6 +33,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberWindowState
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import util.rememberMonospace
 import javax.swing.JOptionPane
 
@@ -63,6 +64,7 @@ fun ColorPicker(
             size = DpSize(1080.dp, 795.dp)
         )
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         MaterialTheme(colors = appState.colors) {
             val fontFamily  = rememberMonospace()
 

@@ -22,6 +22,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import player.isMacOS
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 
 @Composable
 fun ShortcutKeyDialog(close: () -> Unit) {
@@ -35,6 +36,7 @@ fun ShortcutKeyDialog(close: () -> Unit) {
             size = DpSize(940.dp, 700.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         Surface(
             elevation = 5.dp,
             shape = RectangleShape,

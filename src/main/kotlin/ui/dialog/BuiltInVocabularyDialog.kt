@@ -26,6 +26,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import state.getResourcesFile
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import java.io.File
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
@@ -50,6 +51,7 @@ fun BuiltInVocabularyDialog(
                 size = DpSize(940.dp, 700.dp)
             ),
         ) {
+            windowBackgroundFlashingOnCloseFixHack()
             Surface(
                 elevation = 5.dp,
                 shape = RectangleShape,

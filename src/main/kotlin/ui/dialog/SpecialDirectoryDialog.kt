@@ -21,6 +21,7 @@ import player.isMacOS
 import state.getAudioDirectory
 import state.getResourcesFile
 import state.getSettingsDirectory
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import java.awt.Desktop
 import java.io.File
 
@@ -37,6 +38,7 @@ fun SpecialDirectoryDialog(close: () -> Unit) {
             size = DpSize(400.dp, 400.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         Surface(
             elevation = 5.dp,
             shape = RectangleShape,

@@ -79,6 +79,7 @@ import ui.components.SaveButton
 import util.createTransferHandler
 import ui.dialog.FilterState.*
 import ui.edit.SaveOtherVocabulary
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import java.awt.Desktop
 import java.io.File
 import java.io.FileInputStream
@@ -121,6 +122,7 @@ fun GenerateVocabularyDialog(
             size = DpSize(windowWidth, 850.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         val scope = rememberCoroutineScope()
 
         val fileFilter = when (title) {

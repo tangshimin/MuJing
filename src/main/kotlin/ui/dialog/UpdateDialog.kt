@@ -29,6 +29,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import org.apache.maven.artifact.versioning.ComparableVersion
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 
 @OptIn(ExperimentalSerializationApi::class)
 @Composable
@@ -51,6 +52,7 @@ fun UpdateDialog(
             size = DpSize(600.dp, 550.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         Surface(
             elevation = 5.dp,
             shape = RectangleShape,

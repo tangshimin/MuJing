@@ -29,6 +29,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberWindowState
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import java.util.*
 import kotlin.concurrent.schedule
 
@@ -48,6 +49,7 @@ fun DocumentWindow(
             size = DpSize(1170.dp, 720.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         Surface {
             Column (Modifier.fillMaxSize().background(MaterialTheme.colors.background)){
                 Divider()

@@ -24,6 +24,7 @@ import com.darkrockstudios.libraries.mpfilepicker.DirectoryPicker
 import data.Vocabulary
 import data.VocabularyType
 import data.saveVocabulary
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import java.io.File
 import javax.swing.JOptionPane
 
@@ -44,6 +45,7 @@ fun NewVocabularyDialog(
             size = DpSize(610.dp, 320.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         MaterialTheme(colors = colors) {
             Surface(
                 elevation = 5.dp,

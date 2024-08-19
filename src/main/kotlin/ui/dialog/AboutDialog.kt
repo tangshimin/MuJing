@@ -18,6 +18,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import state.getResourcesFile
 import ui.components.LinkText
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 
 /**
  * 关于 对话框
@@ -37,6 +38,7 @@ fun AboutDialog(
             size = DpSize(795.dp, 650.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         Surface(
             elevation = 5.dp,
             shape = RectangleShape,

@@ -23,6 +23,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.Word
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import ui.word.MemoryStrategy
 
 
@@ -68,6 +69,7 @@ fun ChapterFinishedDialog(
             size = DpSize(width, height)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         WindowDraggableArea {
             Column(
                 verticalArrangement = Arrangement.Center,

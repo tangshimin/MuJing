@@ -26,6 +26,7 @@ import data.VocabularyType
 import data.saveVocabulary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import java.io.File
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
@@ -48,6 +49,7 @@ fun WordFrequencyDialog(
             size = DpSize(600.dp, 600.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         Surface(
             elevation = 5.dp,
             shape = RectangleShape,

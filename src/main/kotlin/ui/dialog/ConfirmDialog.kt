@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 
 /**
  * 确认对话框
@@ -42,6 +43,7 @@ fun ConfirmDialog(message: String, confirm: () -> Unit, close: () -> Unit) {
             size = DpSize(400.dp, 300.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         Surface(
             elevation = 5.dp,
             shape = RectangleShape,

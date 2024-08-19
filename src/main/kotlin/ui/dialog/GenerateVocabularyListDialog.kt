@@ -15,6 +15,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 
 @OptIn(ExperimentalSerializationApi::class)
 @Composable
@@ -34,6 +35,7 @@ fun GenerateVocabularyListDialog(
                 size = DpSize(940.dp, 700.dp)
             ),
         ) {
+            windowBackgroundFlashingOnCloseFixHack()
             Surface(
                 elevation = 5.dp,
                 shape = RectangleShape,

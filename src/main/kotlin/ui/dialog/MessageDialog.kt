@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 
 @Composable
 fun MessageDialog(
@@ -32,6 +33,7 @@ fun MessageDialog(
                 size = DpSize(400.dp, 400.dp)
             ),
         ) {
+            windowBackgroundFlashingOnCloseFixHack()
             Surface(
                 elevation = 5.dp,
                 shape = RectangleShape,

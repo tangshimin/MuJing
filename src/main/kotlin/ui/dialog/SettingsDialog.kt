@@ -31,6 +31,7 @@ import ui.word.WordScreenState
 import theme.createColors
 import ui.flatlaf.updateFlatLaf
 import theme.toAwt
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import ui.word.*
 import util.rememberMonospace
 
@@ -52,6 +53,7 @@ fun SettingsDialog(
             size = DpSize(900.dp, 700.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         MaterialTheme(colors = state.colors) {
             Surface(
                 elevation = 5.dp,

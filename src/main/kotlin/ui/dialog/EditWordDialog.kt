@@ -49,6 +49,7 @@ import state.getResourcesFile
 import ui.edit.displayExchange
 import ui.edit.toAwtSize
 import ui.edit.toPoint
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import ui.word.getPlayTripleMap
 import ui.word.secondsToString
 import java.awt.BorderLayout
@@ -103,6 +104,7 @@ fun EditWordDialog(
             resizable = true,
             state = windowState,
         ) {
+            windowBackgroundFlashingOnCloseFixHack()
             EditWordComposeContent(
                 word = word,
                 title = title,

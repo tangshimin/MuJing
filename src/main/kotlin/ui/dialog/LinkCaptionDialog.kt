@@ -36,6 +36,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import player.isMacOS
 import player.play
 import state.AppState
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import ui.word.getPlayTripleMap
 import java.awt.Point
 import java.awt.Rectangle
@@ -67,6 +68,7 @@ fun LinkCaptionDialog(
             size = DpSize(610.dp, 700.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         Surface(
             elevation = 5.dp,
             shape = RectangleShape,

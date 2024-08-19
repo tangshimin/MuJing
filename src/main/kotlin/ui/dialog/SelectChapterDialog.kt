@@ -22,6 +22,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.Word
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import ui.word.MemoryStrategy
 import ui.word.WordScreenState
 import ui.word.rememberDictationState
@@ -46,6 +47,7 @@ fun SelectChapterDialog(
             size = DpSize(930.dp, 785.dp)
         ),
     ) {
+        windowBackgroundFlashingOnCloseFixHack()
         Surface(
             elevation = 5.dp,
             shape = RectangleShape,

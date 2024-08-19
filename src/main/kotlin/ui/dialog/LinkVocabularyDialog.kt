@@ -40,6 +40,7 @@ import state.AppState
 import state.getResourcesFile
 import util.createTransferHandler
 import ui.edit.computeNameMap
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import java.awt.Point
 import java.awt.Rectangle
 import java.io.File
@@ -298,7 +299,7 @@ fun LinkVocabularyDialog(
             size = DpSize(600.dp, 650.dp)
         ),
     ) {
-
+        windowBackgroundFlashingOnCloseFixHack()
         //设置窗口的拖放处理函数
         LaunchedEffect(Unit){
             val transferHandler = createTransferHandler(
