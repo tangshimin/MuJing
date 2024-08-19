@@ -356,10 +356,11 @@ fun composeAppResource(path: String): File {
         // macOS 操作系统专用资源
         if (!file.exists() && isMacOS()) {
             val arch = System.getProperty("os.arch").lowercase()
-            if (arch == "arm" || arch == "aarch64") {
-                file = File("resources/macos-arm64/$path")
+            file = if (arch == "arm" || arch == "aarch64") {
+                File("resources/macos-arm64/$path")
+            }else {
+                File("resources/macos-x64/$path")
             }
-            file = File("resources/macos-x64/$path")
         }
         file
     }
