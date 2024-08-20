@@ -1479,7 +1479,6 @@ fun MainContent(
                 fontSize = appState.global.detailFontSize
             )
 
-            val videoSize = videoBounds.size
             val startPadding = if ( isPlaying && !wordScreenState.isChangeVideoBounds) 0.dp else 50.dp
             val captionsModifier = Modifier
                 .fillMaxWidth()
@@ -1535,9 +1534,6 @@ fun MainContent(
                 setIsChangeBounds = onVideoBoundsChanged,
                 isWriteSubtitles = wordScreenState.isWriteSubtitles,
                 vocabularyDir = wordScreenState.getVocabularyDir()
-            )
-            if (isPlaying && !wordScreenState.isChangeVideoBounds) Spacer(
-                Modifier.height((videoSize.height).dp).width(videoSize.width.dp)
             )
 
             if (showDeleteDialog) {

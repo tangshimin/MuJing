@@ -62,6 +62,7 @@ import ui.word.WordScreen
 import ui.word.WordScreenState
 import ui.word.rememberPronunciation
 import ui.word.rememberWordState
+import util.computeVideoBounds
 import java.awt.Rectangle
 import java.io.File
 import javax.swing.JOptionPane

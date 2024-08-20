@@ -1,6 +1,5 @@
 package player
 
-import androidx.compose.ui.window.WindowState
 import com.matthewn4444.ebml.EBMLReader
 import com.matthewn4444.ebml.UnSupportSubtitlesException
 import com.matthewn4444.ebml.subtitles.SRTSubtitles
@@ -22,7 +21,10 @@ import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent
 import uk.co.caprica.vlcj.player.component.EmbeddedMediaPlayerComponent
-import java.awt.*
+import java.awt.Component
+import java.awt.Desktop
+import java.awt.Dimension
+import java.awt.Point
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -391,57 +393,4 @@ fun writeToFile(
     return subtitlesFile
 }
 
-/** 计算文件的媒体类型，
- * 如果文件不存在返回默认的媒体类型 video
- */
-fun computeMediaType(mediaPath:String):String{
-    val file = File(mediaPath)
-    if(file.exists()){
-        val extension = file.extension
-        //  mp3、aac、wav、mp4、mkv，
-        return if(extension =="mp3"||extension =="aac"||extension =="wav"){
-            "audio"
-        }else{
-            "video"
-        }
-    }
-    return "video"
-}
 
-/**
- * 计算视频播放窗口的位置和大小
- */
-fun computeVideoBounds(
-    windowState: WindowState,
-    openSettings: Boolean,
-    density:Float,
-): Rectangle {
-    var mainX = windowState.position.x.value.toInt()
-    var mainY = windowState.position.y.value.toInt()
-    mainX = (mainX).div(density).toInt()
-    mainY = (mainY).div(density).toInt()
-
-    val mainWidth = windowState.size.width.value.toInt()
-    val mainHeight = windowState.size.height.value.toInt()
-
-    val size = if (mainWidth in 801..1079) {
-        Dimension(642, 390)
-    } else if (mainWidth > 1080) {
-        Dimension(1005, 610)
-    } else {
-        Dimension(540, 304)
-    }
-    if(density!=1f){
-        size.width = size.width.div(density).toInt()
-        size.height = size.height.div(density).toInt()
-    }
-    var x = (mainWidth - size.width).div(2)
-    // 232 是单词 + 字幕的高度 ，再加一个文本输入框48 == 280
-    // 48 是内容的 bottom padding
-    var y = ((mainHeight - 280 - size.height).div(2)) + 280 + 15-48
-    x += mainX
-    y += mainY
-    if (openSettings) x += 109
-    val point = Point(x, y)
-    return Rectangle(point, size)
-}
