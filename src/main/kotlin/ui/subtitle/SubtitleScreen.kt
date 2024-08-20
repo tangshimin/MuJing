@@ -93,7 +93,7 @@ fun SubtitleScreen(
     /** 如果移动了播放器的位置，用这个变量保存计算的位置，点击恢复按钮的时候用这个临时的变量恢复 */
     val playerPoint1 by remember{mutableStateOf(Point(0,0))}
     /** 如果移动了播放器的位置，用这个变量保存计算的位置，点击恢复按钮的时候用这个临时的变量恢复,多行模式的位置 */
-    var playerPoint2 by remember{mutableStateOf(Point(0,0))}
+    val playerPoint2 by remember{mutableStateOf(Point(0,0))}
     var charWidth by remember{ mutableStateOf(computeCharWidth(subtitlesState.trackDescription)) }
     /** 一次播放多条字幕 */
     val multipleLines = rememberMultipleLines()
