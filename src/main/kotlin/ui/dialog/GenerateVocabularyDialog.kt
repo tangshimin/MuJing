@@ -2586,7 +2586,7 @@ fun readDocument(
 // 提取 srt 字幕 ffmpeg -i input.mkv -map "0:2" output.eng.srt
 @OptIn(ExperimentalComposeUiApi::class)
 @Throws(IOException::class)
-private fun readSRT(
+fun readSRT(
     pathName: String,
     setProgressText: (String) -> Unit
 ): List<Word> {
