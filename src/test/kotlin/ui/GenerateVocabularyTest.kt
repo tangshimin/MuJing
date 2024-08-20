@@ -1,7 +1,7 @@
 package ui
 
 import org.junit.Test
-import ui.dialog.readSRT
+import util.readSRT
 import java.io.File
 
 class GenerateVocabularyTest {

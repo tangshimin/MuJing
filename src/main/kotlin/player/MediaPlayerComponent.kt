@@ -12,7 +12,6 @@ import state.getSettingsDirectory
 import subtitleFile.FormatSRT
 import subtitleFile.TimedTextObject
 import ui.dialog.removeItalicSymbol
-import ui.dialog.removeLocationInfo
 import ui.dialog.removeNewLine
 import ui.dialog.replaceNewLine
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory
@@ -21,6 +20,7 @@ import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent
 import uk.co.caprica.vlcj.player.component.EmbeddedMediaPlayerComponent
+import util.removeLocationInfo
 import java.awt.Component
 import java.awt.Desktop
 import java.awt.Dimension
