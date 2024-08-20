@@ -11,4 +11,11 @@ class GenerateVocabularyTest {
         val result = readSRT(pathName = path, setProgressText = {})
         assert(result.isEmpty()) { "The result should be empty" }
     }
+
+    @Test
+    fun testNumberNotStartFromOne() {
+        val path = File("src/test/resources/number_not_start_from_one.srt").absolutePath
+        val result = readSRT(pathName = path, setProgressText = {})
+        assert(result.isNotEmpty()) { "The result should not be empty" }
+    }
 }
