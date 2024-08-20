@@ -1,0 +1,28 @@
+[Script Info]
+; This is an Advanced Sub Station Alpha v4+ script.
+; For Sub Station Alpha info and downloads,
+; go to http://www.eswat.demon.co.uk/
+; or email kotus@eswat.demon.co.uk
+;
+; Advanced Sub Station Alpha script format developed by #Anime-Fansubs@EfNET
+; http://www.anime-fansubs.org
+;
+; For additional info and downloads go to http://vobsub.edensrising.com/
+; or email gabest@freemail.hu
+;
+; Note: This file was saved by Subresync.
+;
+ScriptType: v4.00+
+Collisions: Normal
+PlayResX: 384
+PlayResY: 288
+Timer: 100.0000
+
+[V4+ Styles]
+Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
+Style: Default,Tahoma,16,&H00000000,&H00ffffff,&H00ffffff,&H00c0c0c0,-1,0,0,0,100,100,0,0.00,1,2,3,2,20,20,20,1
+
+[Events]
+Format: Layer, Start, End, Style, Actor, MarginL, MarginR, MarginV, Effect, Text
+Dialogue: 0,0:01:41.70,0:01:46.84,Default,,0000,0000,0000,,Le rugissement des larmes !\NTu es mon ami.
+Dialogue: 0,0:02:00.99,0:02:02.87,Default,,0000,0000,0000,,Est-ce vraiment Naruto ?
