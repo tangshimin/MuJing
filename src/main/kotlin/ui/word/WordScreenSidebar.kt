@@ -859,11 +859,17 @@ fun WordScreenSidebar(
 
             }
 
+            val topPadding = if (isMacOS()) 30.dp else 0.dp
+            Divider(Modifier
+                .align(Alignment.CenterEnd)
+                .fillMaxHeight().width(1.dp).padding(top = topPadding))
+
             VerticalScrollbar(
                 modifier = Modifier.align(Alignment.CenterEnd)
                     .fillMaxHeight(),
                 adapter = rememberScrollbarAdapter(stateVertical)
             )
+
         }
     }
 }

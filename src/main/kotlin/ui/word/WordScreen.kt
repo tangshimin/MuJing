@@ -147,14 +147,7 @@ fun WordScreen(
                 resetVideoBounds = resetVideoBounds,
                 azureTTS = azureTTS
                 )
-            AnimatedVisibility (
-                visible = appState.openSettings,
-                enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
-                exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
-            ) {
-                val topPadding = if (isMacOS()) 30.dp else 0.dp
-                Divider(Modifier.fillMaxHeight().width(1.dp).padding(top = topPadding))
-            }
+
             Box(Modifier.fillMaxSize()) {
                 if (currentWord != null) {
                     MainContent(
