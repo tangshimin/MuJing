@@ -5,31 +5,20 @@ import com.matthewn4444.ebml.UnSupportSubtitlesException
 import com.matthewn4444.ebml.subtitles.SRTSubtitles
 import com.matthewn4444.ebml.subtitles.SSASubtitles
 import com.sun.jna.NativeLibrary
-import data.Caption
-import org.mozilla.universalchardet.UniversalDetector
 import state.getResourcesFile
 import state.getSettingsDirectory
-import subtitleFile.FormatSRT
-import subtitleFile.TimedTextObject
-import ui.dialog.removeItalicSymbol
-import ui.dialog.removeNewLine
-import ui.dialog.replaceNewLine
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory
 import uk.co.caprica.vlcj.factory.discovery.NativeDiscovery
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent
 import uk.co.caprica.vlcj.player.component.EmbeddedMediaPlayerComponent
-import util.removeLocationInfo
 import java.awt.Component
 import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.Point
 import java.io.File
-import java.io.FileInputStream
 import java.io.IOException
-import java.io.InputStream
-import java.nio.charset.Charset
 import java.util.*
 import javax.swing.JEditorPane
 import javax.swing.JFrame
@@ -212,111 +201,6 @@ fun checkSubtitles(
         }
     }
     return true
-}
-
-/**
- * 解析字幕，返回最大字符数和字幕列表，用于显示。
- * @param subtitlesPath 字幕的路径
- * @param setMaxLength 用于设置字幕的最大字符数的回调函数
- * @param setCaptionList 用于设置字幕列表的回调函数
- * @param resetSubtitlesState 字幕文件删除，或者被修改，导致不能解析，就重置
- */
-fun parseSubtitles(
-    subtitlesPath: String,
-    setMaxLength: (Int) -> Unit,
-    setCaptionList: (List<Caption>) -> Unit,
-    resetSubtitlesState:() -> Unit,
-) {
-    val formatSRT = FormatSRT()
-    val file = File(subtitlesPath)
-    if(file.exists()){
-        try {
-            val encoding = UniversalDetector.detectCharset(file)
-            val charset =  if(encoding != null){
-                Charset.forName(encoding)
-            }else{
-                Charset.defaultCharset()
-            }
-            val inputStream: InputStream = FileInputStream(file)
-            val timedTextObject: TimedTextObject = formatSRT.parseFile(file.name, inputStream,charset)
-            val captions: TreeMap<Int, subtitleFile.Caption> = timedTextObject.captions
-            val captionList = mutableListOf<Caption>()
-            var maxLength = 0
-            for (caption in captions.values) {
-                var content = removeLocationInfo(caption.content)
-                content = removeItalicSymbol(content)
-                content = removeNewLine(content)
-
-                val newCaption = Caption(
-                    start = caption.start.getTime("hh:mm:ss,ms"),
-                    end = caption.end.getTime("hh:mm:ss,ms"),
-                    content = content
-                )
-                if (caption.content.length > maxLength) {
-                    maxLength = caption.content.length
-                }
-                captionList.add(newCaption)
-            }
-
-            setMaxLength(maxLength)
-            setCaptionList(captionList)
-        } catch (exception: Exception) {
-            exception.printStackTrace()
-            resetSubtitlesState()
-            JOptionPane.showMessageDialog(
-                null, "字幕文件解析失败:\n${exception.message}"
-            )
-
-        }
-    } else {
-        JOptionPane.showMessageDialog(null, "找不到字幕")
-        resetSubtitlesState()
-    }
-
-}
-
-
-fun parseSubtitles(subtitlesPath: String):List<PlayerCaption>{
-    val formatSRT = FormatSRT()
-    val file = File(subtitlesPath)
-    val captionList = mutableListOf<PlayerCaption>()
-    if(file.exists()){
-        try {
-            val encoding = UniversalDetector.detectCharset(file)
-            val charset =  if(encoding != null){
-                Charset.forName(encoding)
-            }else{
-                Charset.defaultCharset()
-            }
-            val inputStream: InputStream = FileInputStream(file)
-            val timedTextObject: TimedTextObject = formatSRT.parseFile(file.name, inputStream,charset)
-            val captions: TreeMap<Int, subtitleFile.Caption> = timedTextObject.captions
-
-            var maxLength = 0
-            for (caption in captions.values) {
-                var content = removeLocationInfo(caption.content)
-                content = removeItalicSymbol(content)
-                content = replaceNewLine(content)
-                val newCaption = PlayerCaption(
-                    start = convertTimeToMilliseconds(caption.start.getTime("hh:mm:ss,ms")),
-                    end = convertTimeToMilliseconds(caption.end.getTime("hh:mm:ss,ms")),
-                    content = content
-                )
-                if (caption.content.length > maxLength) {
-                    maxLength = caption.content.length
-                }
-                captionList.add(newCaption)
-            }
-
-        }catch (exception: Exception){
-            exception.printStackTrace()
-            JOptionPane.showMessageDialog(null, "字幕文件解析失败:\n${exception.message}")
-        }
-
-    }else{
-        JOptionPane.showMessageDialog(null, "找不到字幕")
-    }
-    return captionList
 }
 
 /**

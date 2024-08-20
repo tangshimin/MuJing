@@ -39,6 +39,7 @@ import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import util.computeMediaType
 import util.createTransferHandler
+import util.parseSubtitles
 import java.awt.Component
 import java.awt.GraphicsEnvironment
 import java.awt.Point
