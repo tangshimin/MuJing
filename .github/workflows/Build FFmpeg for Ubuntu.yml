@@ -1,0 +1,69 @@
+name: Build FFmpeg for Ubuntu
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            autoconf \
+            automake \
+            build-essential \
+            libass-dev \
+            libtool \
+            pkg-config \
+            texinfo \
+            wget \
+            yasm \
+            zlib1g-dev \
+            nasm
+
+      - name: Download FFmpeg source code
+        run: |
+          git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+          cd ffmpeg
+
+      - name: Configure FFmpeg
+        run: |
+          cd ffmpeg
+          ./configure --disable-everything \
+            --disable-ffprobe \
+            --enable-ffmpeg \
+            --enable-avformat \
+            --enable-avcodec \
+            --enable-avutil \
+            --enable-decoder=srt \
+            --enable-decoder=movtext \
+            --enable-decoder=webvtt \
+            --enable-decoder=ass \
+            --enable-decoder=ssa \
+            --enable-decoder=subrip \
+            --enable-encoder=srt \
+            --enable-encoder=subrip \
+            --enable-encoder=movtext \
+            --enable-demuxer=mov \
+            --enable-demuxer=matroska \
+            --enable-demuxer=ass \
+            --enable-demuxer=srt \
+            --enable-demuxer=webvtt \
+            --enable-muxer=srt \
+            --enable-protocol=file
+
+      - name: Build and install FFmpeg
+        run: |
+          cd ffmpeg
+          make
+          sudo make install
+
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-ubuntu
+          path: /usr/local/bin/ffmpeg

@@ -1,0 +1,73 @@
+name: Build FFmpeg for Windows
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Install MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            base-devel
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-yasm
+            mingw-w64-x86_64-pkg-config
+            mingw-w64-x86_64-zlib
+            zip
+
+      - name: Download FFmpeg source code
+        run: |
+          git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+          cd ffmpeg
+
+      - name: Configure FFmpeg
+        shell: msys2 {0}
+        run: |
+          cd ffmpeg
+          ./configure --disable-everything \
+            --disable-ffprobe \
+            --enable-ffmpeg \
+            --enable-avformat \
+            --enable-avcodec \
+            --enable-avutil \
+            --enable-decoder=srt \
+            --enable-decoder=movtext \
+            --enable-decoder=webvtt \
+            --enable-decoder=ass \
+            --enable-decoder=ssa \
+            --enable-decoder=subrip \
+            --enable-encoder=srt \
+            --enable-encoder=subrip \
+            --enable-encoder=movtext \
+            --enable-demuxer=mov \
+            --enable-demuxer=matroska \
+            --enable-demuxer=ass \
+            --enable-demuxer=srt \
+            --enable-demuxer=webvtt \
+            --enable-muxer=srt \
+            --enable-protocol=file \
+
+      - name: Build and install FFmpeg
+        shell: msys2 {0}
+        run: |
+          cd ffmpeg
+          make
+          make install
+
+      - name: Package FFmpeg
+        shell: msys2 {0}
+        run: |
+          mkdir -p /usr/local/bin/ffmpeg
+          mv /usr/local/bin/ffmpeg.exe  /usr/local/bin/ffmpeg/
+
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ffmpeg-windows
+          path: D:\a\_temp\msys64\usr\local\bin\ffmpeg
