@@ -44,4 +44,18 @@ class TestGenerateVocabulary {
         assert(result.isNotEmpty()) { "The result should not be empty" }
     }
 
+    @Test
+    fun `Test Parse MP4 Subtitles To Vocabulary`(){
+        val result = parseMP4(
+            pathName = "src/test/resources/Sintel.2010.480.mp4",
+            trackId = 1,
+            setProgressText = { println(it) },
+        )
+        assert(result.isNotEmpty())
+        assert(result.size == 30)
+        assertEquals(result[0].value, "you're")
+        assertEquals(result[28].value, "spirit")
+        assertEquals(result[29].value, "dragon")
+    }
+
 }

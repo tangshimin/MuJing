@@ -9,6 +9,7 @@ import data.Caption
 import data.Dictionary
 import data.ExternalCaption
 import data.Word
+import ffmpeg.extractSubtitles
 import opennlp.tools.langdetect.LanguageDetector
 import opennlp.tools.langdetect.LanguageDetectorME
 import opennlp.tools.langdetect.LanguageDetectorModel
@@ -19,6 +20,7 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException
 import org.apache.pdfbox.text.PDFTextStripper
 import org.mozilla.universalchardet.UniversalDetector
+import state.getSettingsDirectory
 import subtitleFile.FormatSRT
 import subtitleFile.TimedTextObject
 import java.io.File
@@ -179,6 +181,23 @@ fun parseSRT(
     return listOf()
 }
 
+
+fun parseMP4(
+    pathName: String,
+    trackId: Int,
+    setProgressText: (String) -> Unit,
+): List<Word> {
+    val applicationDir = getSettingsDirectory()
+    setProgressText("正在提取字幕")
+    val result =  extractSubtitles(pathName, trackId, "$applicationDir/temp.srt")
+    setProgressText("提取字幕完成")
+    if(result == "finished"){
+        val list = parseSRT("$applicationDir/temp.srt",setProgressText)
+        File("$applicationDir/temp.srt").delete()
+        return list
+    }
+    return emptyList()
+}
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun parseMKV(
