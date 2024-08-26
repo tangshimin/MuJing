@@ -544,7 +544,7 @@ fun GenerateVocabularyDialog(
                             selectedTrackId = vocabulary.subtitlesTrackId
                             vocabulary.wordList
                         } else {
-                            readDocument(
+                            parseDocument(
                                 pathName = pathName,
                                 setProgressText = { progressText = it })
                         }
@@ -552,11 +552,11 @@ fun GenerateVocabularyDialog(
                     }
 
                     SUBTITLES -> {
-                        readSRT(pathName = pathName, setProgressText = { progressText = it })
+                        parseSRT(pathName = pathName, setProgressText = { progressText = it })
                     }
 
                     MKV -> {
-                        readMKV(
+                        parseMKV(
                             pathName = pathName,
                             trackId = trackId,
                             setProgressText = { progressText = it },

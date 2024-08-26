@@ -32,7 +32,7 @@ import javax.swing.JOptionPane
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Throws(IOException::class)
-fun readDocument(
+fun parseDocument(
     pathName: String,
     setProgressText: (String) -> Unit
 ): List<Word> {
@@ -112,7 +112,7 @@ fun readDocument(
 // 提取 srt 字幕 ffmpeg -i input.mkv -map "0:2" output.eng.srt
 @OptIn(ExperimentalComposeUiApi::class)
 @Throws(IOException::class)
-fun readSRT(
+fun parseSRT(
     pathName: String,
     setProgressText: (String) -> Unit
 ): List<Word> {
@@ -181,7 +181,7 @@ fun readSRT(
 
 
 @OptIn(ExperimentalComposeUiApi::class)
-fun readMKV(
+fun parseMKV(
     pathName: String,
     trackId: Int,
     setProgressText: (String) -> Unit,
