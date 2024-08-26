@@ -1,4 +1,4 @@
-name: Build Release Binaries
+name: Build MacOS Package
 
 on:
   workflow_dispatch:
