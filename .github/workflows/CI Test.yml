@@ -36,7 +36,11 @@ jobs:
           java-version: '21'
 
       - name: Set up Gradle
-        uses: gradle/gradle-build-action@v2
+        uses: gradle/gradle-build-action@v3
+
+      - name: Set execute permissions on gradlew
+        if: runner.os != 'Windows'
+        run: chmod +x ./gradlew
 
       - name: Run tests
         run: ./gradlew test
