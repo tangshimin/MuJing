@@ -15,6 +15,10 @@ fun findFFmpegPath(): String {
     val path: String = if(isWindows()){
         getResourcesFile("ffmpeg/ffmpeg.exe").absolutePath
     }else{
+        val ffmpegFile = getResourcesFile("ffmpeg/ffmpeg")
+        if(ffmpegFile.exists() && !ffmpegFile.canExecute()){
+            ffmpegFile.setExecutable(true)
+        }
         getResourcesFile("ffmpeg/ffmpeg").absolutePath
     }
     return path
