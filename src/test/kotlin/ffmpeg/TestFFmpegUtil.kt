@@ -10,12 +10,12 @@ import java.io.FileInputStream
 
 class TestFFmpegUtil {
 
-    private val testFolder = File("build/test-results")
+    private val subtitlesFolder = File("build/test-results/subtitles")
 
     @Before
     fun setup() {
-        if (!testFolder.exists()) {
-            testFolder.mkdirs()
+        if (!subtitlesFolder.exists()) {
+            subtitlesFolder.mkdirs()
         }
     }
 
@@ -23,9 +23,9 @@ class TestFFmpegUtil {
     fun `Test Extract Subtitles From MP4`() {
         val input = "src/test/resources/Sintel.2010.480.mp4"
         val subtitleId = 1
-        val result = extractSubtitles(input, subtitleId,"$testFolder/Sintel.2010.480.srt")
+        val result = extractSubtitles(input, subtitleId,"$subtitlesFolder/Sintel.2010.480.srt")
         assert(result == "finished")
-        val actualFile = File("$testFolder/Sintel.2010.480.srt")
+        val actualFile = File("$subtitlesFolder/Sintel.2010.480.srt")
         assert(actualFile.exists())
         val inputStream = FileInputStream(actualFile)
         val formatSRT = FormatSRT()
@@ -41,10 +41,10 @@ class TestFFmpegUtil {
     fun `Test Extract Subtitles From MKV`() {
         val input = "src/test/resources/Sintel.2010.480.mkv"
         val subtitleId = 1
-        val result = extractSubtitles(input, subtitleId,"$testFolder/Sintel.2010.480.srt")
+        val result = extractSubtitles(input, subtitleId,"$subtitlesFolder/Sintel.2010.480.srt")
         assert(result == "finished")
 
-        val actualFile = File("$testFolder/Sintel.2010.480.srt")
+        val actualFile = File("$subtitlesFolder/Sintel.2010.480.srt")
         assert(actualFile.exists())
 
         val inputStream = FileInputStream(actualFile)
@@ -63,7 +63,7 @@ class TestFFmpegUtil {
         // 这个 ASS 文件的 Style 有点特殊，有两个简写的 &H0,TED 的ASS 字幕会这样写
         // Style: Default,Arial,16,&Hffffff,&Hffffff,&H0,&H0,0,0,0,0,100,100,0,0,1,1,0,2,10,10,10,0
         val assFile = File("src/test/resources/ted-2022-bill-gates-en.ass")
-        val srtFile = File("$testFolder/ted-2022-bill-gates-en.srt")
+        val srtFile = File("$subtitlesFolder/ted-2022-bill-gates-en.srt")
         val result = convertToSrt(assFile.absolutePath, srtFile.absolutePath)
         assert(result == "finished")
 
@@ -83,7 +83,7 @@ class TestFFmpegUtil {
     @Test
     fun `Test ASS to SRT`(){
         val assFile = File("src/test/resources/ASS Example V4+.ass")
-        val srtFile = File("$testFolder/ASS Example V4+.srt")
+        val srtFile = File("$subtitlesFolder/ASS Example V4+.srt")
 
         val result = convertToSrt(assFile.absolutePath, srtFile.absolutePath)
         assert(result == "finished")
@@ -102,7 +102,7 @@ class TestFFmpegUtil {
     @Test
     fun `Test SSA to SRT`(){
         val assFile = File("src/test/resources/SSA Example V4.ssa")
-        val srtFile = File("$testFolder/SSA Example V4.srt")
+        val srtFile = File("$subtitlesFolder/SSA Example V4.srt")
 
         val result = convertToSrt(assFile.absolutePath, srtFile.absolutePath)
         assert(result == "finished")
@@ -121,7 +121,7 @@ class TestFFmpegUtil {
     @Test
     fun `Test ASS bilingual subtitles to SRT`() {
         val assFile = File("src/test/resources/Inception.ass")
-        val srtFile = File("$testFolder/Inception to SRT.srt")
+        val srtFile = File("$subtitlesFolder/Inception to SRT.srt")
 
         val result = convertToSrt(assFile.absolutePath, srtFile.absolutePath)
         assert(result == "finished")
@@ -141,6 +141,6 @@ class TestFFmpegUtil {
 
     @After
     fun clean() {
-        testFolder.deleteRecursively()
+        subtitlesFolder.deleteRecursively()
     }
 }
