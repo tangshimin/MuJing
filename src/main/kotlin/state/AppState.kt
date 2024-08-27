@@ -348,21 +348,26 @@ fun composeAppResource(path: String): File {
         File(dir).resolve(path)
     } else {// 开发环境
         // 通用资源
-        var file = File("resources/common/$path")
+        var commonPath = File("resources/common/$path")
         // window 操作系统专用资源
-        if (!file.exists()) {
-            file = File("resources/windows/$path")
+        if (!commonPath.exists() && isWindows()) {
+            commonPath = File("resources/windows/$path")
         }
         // macOS 操作系统专用资源
-        if (!file.exists() && isMacOS()) {
+        if (!commonPath.exists() && isMacOS()) {
             val arch = System.getProperty("os.arch").lowercase()
-            file = if (arch == "arm" || arch == "aarch64") {
+            commonPath = if (arch == "arm" || arch == "aarch64") {
                 File("resources/macos-arm64/$path")
             }else {
                 File("resources/macos-x64/$path")
             }
+        }else{
+            // linux 操作系统专用资源
+            if (!commonPath.exists()) {
+                commonPath = File("resources/linux/$path")
+            }
         }
-        file
+        commonPath
     }
 }
 
