@@ -42,5 +42,9 @@ jobs:
         if: runner.os != 'Windows'
         run: chmod +x ./gradlew
 
+      - name: Set DISPLAY
+        if: runner.os == 'ubuntu-latest'
+        run: export DISPLAY=:0
+
       - name: Run tests
         run: ./gradlew test
