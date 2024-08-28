@@ -43,7 +43,7 @@ jobs:
         run: chmod +x ./gradlew
 
       - name: Set DISPLAY
-        if: runner.os == 'ubuntu-latest'
+        if: runner.os == 'Linux'
         run: export DISPLAY=:0
 
       - name: Run tests
