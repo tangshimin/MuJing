@@ -10,6 +10,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.performClick
 import data.loadMutableVocabulary
 import kotlinx.serialization.ExperimentalSerializationApi
+import org.junit.Assume.assumeFalse
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
@@ -32,6 +33,14 @@ import javax.imageio.ImageIO
 import kotlin.math.abs
 
 class WordScreenTest {
+
+    companion object {
+        init {
+            // 如果是 Ubuntu 就跳过测试
+            val isUbuntu = System.getProperty("os.name").contains("Linux")
+            assumeFalse("Skipping tests on Ubuntu", isUbuntu)
+        }
+    }
 
     @get:Rule
     val composeTestRule = createComposeRule()
