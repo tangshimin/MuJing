@@ -93,6 +93,11 @@ fun isWindows(): Boolean {
     return os.indexOf("windows") >= 0
 }
 
+fun isLinux(): Boolean {
+    val os = System.getProperty("os.name", "generic").lowercase(Locale.ENGLISH)
+    return os.indexOf("nux") >= 0
+}
+
 fun Component.mediaPlayer(): MediaPlayer {
     return when (this) {
         is CallbackMediaPlayerComponent -> mediaPlayer()

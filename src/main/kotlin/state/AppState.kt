@@ -17,6 +17,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import player.createMediaPlayerComponent
+import player.isLinux
 import player.isMacOS
 import player.isWindows
 import theme.createColors
@@ -361,11 +362,10 @@ fun composeAppResource(path: String): File {
             }else {
                 File("resources/macos-x64/$path")
             }
-        }else{
-            // linux 操作系统专用资源
-            if (!commonPath.exists()) {
-                commonPath = File("resources/linux/$path")
-            }
+        }
+        // Linux 操作系统专用资源
+        if (!commonPath.exists() && isLinux()) {
+            commonPath = File("resources/linux/$path")
         }
         commonPath
     }
