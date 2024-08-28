@@ -42,9 +42,15 @@ jobs:
         if: runner.os != 'Windows'
         run: chmod +x ./gradlew
 
-      - name: Set DISPLAY
+      - name: Install xvfb
         if: runner.os == 'Linux'
-        run: export DISPLAY=:0
+        run: sudo apt-get install -y xvfb
+
+      - name: Start xvfb
+        if: runner.os == 'Linux'
+        run: |
+          export DISPLAY=:0
+          Xvfb :0 -screen 0 1024x768x24 &
 
       - name: Run tests
         run: ./gradlew test
