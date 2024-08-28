@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest，macos-13, macos-latest]
+        os: [windows-latest, macos-13, macos-latest]
         include:
           - os: windows-latest
             arch: x64
