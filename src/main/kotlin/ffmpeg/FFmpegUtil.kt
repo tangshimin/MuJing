@@ -85,7 +85,10 @@ fun readCaptionList(videoPath: String, subtitleId: Int): List<PlayerCaption> {
 }
 
 
-
+/**
+ * 匹配富文本标签的正则表达式
+ */
+const val RICH_TEXT_REGEX = "<(b|i|u|font|s|ruby|rt|rb|sub|sup).*?>|</(b|i|u|font|s|ruby|rt|rb|sub|sup)>"
 
 
 /**
@@ -112,8 +115,15 @@ fun removeRichText(srtFile: File){
 }
 
 fun removeRichText(content: String): String {
-    val richTextRegex = Regex("<(b|i|u|font|s|ruby|rt|rb|sub|sup).*?>|</(b|i|u|font|s|ruby|rt|rb|sub|sup)>")
+    val richTextRegex = Regex(RICH_TEXT_REGEX)
     return richTextRegex.replace(content, "")
+}
+
+
+fun hasRichText(srtFile: File): Boolean {
+    val content = srtFile.readText()
+    val richTextRegex = Regex(RICH_TEXT_REGEX)
+        return richTextRegex.containsMatchIn(content)
 }
 
 

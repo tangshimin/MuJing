@@ -9,7 +9,10 @@ import data.Caption
 import data.Dictionary
 import data.ExternalCaption
 import data.Word
+import ffmpeg.convertToSrt
 import ffmpeg.extractSubtitles
+import ffmpeg.hasRichText
+import ffmpeg.removeRichText
 import opennlp.tools.langdetect.LanguageDetector
 import opennlp.tools.langdetect.LanguageDetectorME
 import opennlp.tools.langdetect.LanguageDetectorModel
@@ -118,6 +121,13 @@ fun parseSRT(
     pathName: String,
     setProgressText: (String) -> Unit
 ): List<Word> {
+    val srtFile = File(pathName)
+    val hasRichText = hasRichText(srtFile)
+    if(hasRichText){
+        setProgressText("字幕有富文本标签，先移除富文本标签")
+        removeRichText(srtFile)
+    }
+
     val map: MutableMap<String, MutableList<Caption>> = HashMap()
     // 保存顺序
     val orderList = mutableListOf<String>()
@@ -179,6 +189,29 @@ fun parseSRT(
         JOptionPane.showMessageDialog(null,exception.message)
     }
     return listOf()
+}
+
+
+@Throws(IOException::class)
+fun parseASS(
+    pathName: String,
+    setProgressText: (String) -> Unit
+): List<Word> {
+    val applicationDir = getSettingsDirectory()
+    val assFile = File(pathName)
+    val srtFile = File("$applicationDir/temp.srt")
+    setProgressText("开始转换字幕")
+    val result = convertToSrt(assFile.absolutePath, srtFile.absolutePath)
+    if(result == "finished"){
+        setProgressText("字幕转换完成")
+        val list =  parseSRT(srtFile.absolutePath,setProgressText)
+        srtFile.delete()
+        return list
+    }else{
+        setProgressText("字幕转换失败")
+        srtFile.delete()
+        return emptyList()
+    }
 }
 
 

@@ -29,6 +29,18 @@ class TestGenerateVocabulary {
         assertEquals(result[28].value, "spirit")
     }
 
+    @Test
+    fun `Test Parse ASS To Vocabulary`(){
+        val result = parseASS(
+            pathName = "src/test/resources/ted-2022-bill-gates-en.ass",
+            setProgressText = { println(it) },
+        )
+        assert(result.isNotEmpty())
+        assertEquals("list size should be 630",630,result.size)
+        assertEquals("in",result[0].value)
+        assertEquals("who",result[28].value)
+        assertEquals("being",result[629].value)
+    }
 
     @Test
     fun `Test Parse Empty SRT`() {
