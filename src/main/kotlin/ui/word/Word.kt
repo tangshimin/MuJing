@@ -29,6 +29,7 @@ import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalLocalization
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Dp
@@ -138,6 +139,7 @@ fun Word(
                 }
                 Text(
                     modifier = Modifier
+                        .testTag("Word")
                         .padding(bottom = bottom)
                         .align(Alignment.Center)
                         .onGloballyPositioned { layoutCoordinates ->

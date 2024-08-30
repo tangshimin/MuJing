@@ -65,10 +65,21 @@ class WordScreenTest {
     /**
      * 测试记忆单词界面
      */
-    @OptIn(ExperimentalTestApi::class)
     @Test
-    fun `Test WordScreen`() = runComposeUiTest{
-        Thread.sleep(3000)
+    fun `Test WordScreen`(){
+        Thread.sleep(2000)
+
+        // 测试第一个单词
+        composeTestRule.onNode(hasTestTag("Word"))
+            .assertExists()
+            .assertIsDisplayed()
+            .assertTextEquals("the")
+        // 测试第一个单词的索引
+        composeTestRule.onNode(hasText("1/96"))
+            .assertExists()
+            .assertIsDisplayed()
+
+
         // 测试侧边栏
         composeTestRule.onNode(hasTestTag("SettingsButton"))
             .assertExists()
