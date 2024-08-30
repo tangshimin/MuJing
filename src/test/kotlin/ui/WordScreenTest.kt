@@ -3,11 +3,8 @@ package ui
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.runtime.remember
-import androidx.compose.ui.test.assertIsDisplayed
-import androidx.compose.ui.test.hasTestTag
-import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.performClick
 import data.loadMutableVocabulary
 import kotlinx.serialization.ExperimentalSerializationApi
 import org.junit.Before
@@ -61,33 +58,49 @@ class WordScreenTest {
                 wordState = wordState,
                 playerState = rememberPlayerState()
             )
-
-
-
         }
-        Thread.sleep(5000)
     }
 
     /**
-     * 测试记忆单词界面的侧边栏
+     * 测试记忆单词界面
      */
+    @OptIn(ExperimentalTestApi::class)
     @Test
-    fun testSettingsButton(){
-        Thread.sleep(2000)
-        // 点击设置按钮，打开侧边栏
-        composeTestRule.onNode(hasTestTag("SettingsButton"))
-            .assertExists()
-            .performClick()
-        Thread.sleep(1000)
+    fun `Test WordScreen`() = runComposeUiTest{
+        runOnIdle {
 
-        composeTestRule.onNode(hasTestTag("WordScreenSidebar"))
-            .assertExists()
-        composeTestRule.onNode(hasText("听写测试")).assertExists()
-        composeTestRule.onNode(hasText("选择章节")).assertExists()
-        composeTestRule.onNode(hasText("显示单词")).assertExists().assertIsDisplayed()
-        // 关闭侧边栏
-        composeTestRule.onNode(hasTestTag("SettingsButton"))
-            .performClick()
+            // 测试侧边栏
+            composeTestRule.onNode(hasTestTag("SettingsButton"))
+                .assertExists()
+                .performClick()
+            Thread.sleep(1000)
+            composeTestRule.onNode(hasTestTag("WordScreenSidebar"))
+                .assertExists()
+            composeTestRule.onNode(hasText("听写测试")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("选择章节")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("显示单词")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("显示单词")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("显示音标")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("显示词形")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("英文释义")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("中文释义")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("显示字幕")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("击键音效")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("提示音效")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("自动切换")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("外部字幕")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("抄写字幕")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("音量控制")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("发音设置")).assertIsDisplayed()
+            composeTestRule.onNode(hasText("播放设置")).assertIsDisplayed()
+            // 关闭侧边栏
+            composeTestRule.onNode(hasTestTag("SettingsButton"))
+                .performClick()
+
+            Thread.sleep(1000)
+            composeTestRule.onNode(hasTestTag("WordScreenSidebar"))
+                .assertDoesNotExist()
+        }
     }
 
     @Ignore
