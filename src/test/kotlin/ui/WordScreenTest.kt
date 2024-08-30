@@ -65,27 +65,23 @@ class WordScreenTest {
     /**
      * 测试记忆单词界面
      */
+    @OptIn(ExperimentalTestApi::class)
     @Test
     fun `Test WordScreen`(){
         Thread.sleep(3000)
 
-        // 测试第一个单词
-        composeTestRule.onNode(hasTestTag("Word"))
-            .assertExists()
-            .assertIsDisplayed()
-            .assertTextEquals("the")
         // 测试第一个单词的索引
         composeTestRule.onNode(hasTestTag("Header"))
             .assertExists()
             .assertIsDisplayed()
             .assertTextEquals("1/96")
-
-        // 鼠标移动到屏幕中央，激活单词切换按钮
-        val robot = Robot()
-        val screenSize = Toolkit.getDefaultToolkit().screenSize
-        val centerX = screenSize.width / 2
-        val centerY = screenSize.height / 2
-        robot.mouseMove(centerX, centerY)
+        // 测试第一个单词
+        composeTestRule.onNode(hasTestTag("Word"))
+            .assertExists()
+            .assertIsDisplayed()
+            .assertTextEquals("the")
+            // 模拟鼠标移动，激活单词切换按钮
+            .performMouseInput { click() }
         Thread.sleep(3000)
 
 
