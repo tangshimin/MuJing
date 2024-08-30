@@ -59,6 +59,7 @@ class WordScreenTest {
                 playerState = rememberPlayerState()
             )
         }
+        Thread.sleep(5000)
     }
 
     /**
