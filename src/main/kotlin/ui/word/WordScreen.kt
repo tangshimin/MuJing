@@ -26,6 +26,7 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -322,7 +323,9 @@ fun Header(
                 text = text,
                 style = MaterialTheme.typography.h6,
                 color = MaterialTheme.colors.onBackground,
-                modifier = Modifier.padding(top = top )
+                modifier = Modifier
+                    .testTag("Header")
+                    .padding(top = top )
             )
             if(wordScreenState.memoryStrategy != Normal){
                 Spacer(Modifier.width(20.dp))
@@ -1657,6 +1660,7 @@ fun MainContent(
             ) {
                 IconButton(
                     onClick = { previous() },
+                    modifier = Modifier.testTag("PreviousButton")
                 ) {
                     Icon(
                         Icons.Filled.ArrowBackIosNew,
@@ -1690,6 +1694,7 @@ fun MainContent(
             ) {
                 IconButton(
                     onClick = { toNext()},
+                    modifier = Modifier.testTag("NextButton")
                 ) {
                     Icon(
                         Icons.Filled.ArrowForwardIos,

@@ -67,7 +67,7 @@ class WordScreenTest {
      */
     @Test
     fun `Test WordScreen`(){
-        Thread.sleep(2000)
+        Thread.sleep(3000)
 
         // 测试第一个单词
         composeTestRule.onNode(hasTestTag("Word"))
@@ -75,9 +75,47 @@ class WordScreenTest {
             .assertIsDisplayed()
             .assertTextEquals("the")
         // 测试第一个单词的索引
-        composeTestRule.onNode(hasText("1/96"))
+        composeTestRule.onNode(hasTestTag("Header"))
             .assertExists()
             .assertIsDisplayed()
+            .assertTextEquals("1/96")
+
+        // 鼠标移动到屏幕中央，激活单词切换按钮
+        val robot = Robot()
+        val screenSize = Toolkit.getDefaultToolkit().screenSize
+        val centerX = screenSize.width / 2
+        val centerY = screenSize.height / 2
+        robot.mouseMove(centerX, centerY)
+        Thread.sleep(3000)
+
+
+        // 切换到第二个单词
+        composeTestRule.onNode(hasTestTag("NextButton"))
+            .assertExists()
+            .performClick()
+        Thread.sleep(3000)
+        composeTestRule.onNode(hasTestTag("Word"))
+            .assertExists()
+            .assertIsDisplayed()
+            .assertTextEquals("be")
+        composeTestRule.onNode(hasTestTag("Header"))
+            .assertExists()
+            .assertIsDisplayed()
+            .assertTextEquals("2/96")
+
+        // 切换回第一个单词
+        composeTestRule.onNode(hasTestTag("PreviousButton"))
+            .assertExists()
+            .performClick()
+        Thread.sleep(3000)
+        composeTestRule.onNode(hasTestTag("Word"))
+            .assertExists()
+            .assertIsDisplayed()
+            .assertTextEquals("the")
+        composeTestRule.onNode(hasTestTag("Header"))
+            .assertExists()
+            .assertIsDisplayed()
+            .assertTextEquals("1/96")
 
 
         // 测试侧边栏
@@ -107,7 +145,7 @@ class WordScreenTest {
         composeTestRule.onNode(hasTestTag("SettingsButton"))
             .performClick()
 
-        Thread.sleep(2000)
+        Thread.sleep(3000)
         composeTestRule.onNode(hasTestTag("WordScreenSidebar"))
             .assertDoesNotExist()
     }
