@@ -68,17 +68,16 @@ class WordScreenTest {
     @OptIn(ExperimentalTestApi::class)
     @Test
     fun `Test WordScreen`() = runComposeUiTest{
-        Thread.sleep(1000)
+        Thread.sleep(3000)
         // 测试侧边栏
         composeTestRule.onNode(hasTestTag("SettingsButton"))
             .assertExists()
             .performClick()
-        Thread.sleep(1000)
+        Thread.sleep(3000)
         composeTestRule.onNode(hasTestTag("WordScreenSidebar"))
             .assertExists()
         composeTestRule.onNode(hasText("听写测试")).assertIsDisplayed()
         composeTestRule.onNode(hasText("选择章节")).assertIsDisplayed()
-        composeTestRule.onNode(hasText("显示单词")).assertIsDisplayed()
         composeTestRule.onNode(hasText("显示单词")).assertIsDisplayed()
         composeTestRule.onNode(hasText("显示音标")).assertIsDisplayed()
         composeTestRule.onNode(hasText("显示词形")).assertIsDisplayed()
@@ -97,7 +96,7 @@ class WordScreenTest {
         composeTestRule.onNode(hasTestTag("SettingsButton"))
             .performClick()
 
-        Thread.sleep(1000)
+        Thread.sleep(2000)
         composeTestRule.onNode(hasTestTag("WordScreenSidebar"))
             .assertDoesNotExist()
     }
