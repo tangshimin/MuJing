@@ -68,40 +68,38 @@ class WordScreenTest {
     @OptIn(ExperimentalTestApi::class)
     @Test
     fun `Test WordScreen`() = runComposeUiTest{
-        runOnIdle {
+        Thread.sleep(1000)
+        // 测试侧边栏
+        composeTestRule.onNode(hasTestTag("SettingsButton"))
+            .assertExists()
+            .performClick()
+        Thread.sleep(1000)
+        composeTestRule.onNode(hasTestTag("WordScreenSidebar"))
+            .assertExists()
+        composeTestRule.onNode(hasText("听写测试")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("选择章节")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("显示单词")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("显示单词")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("显示音标")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("显示词形")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("英文释义")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("中文释义")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("显示字幕")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("击键音效")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("提示音效")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("自动切换")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("外部字幕")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("抄写字幕")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("音量控制")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("发音设置")).assertIsDisplayed()
+        composeTestRule.onNode(hasText("播放设置")).assertIsDisplayed()
+        // 关闭侧边栏
+        composeTestRule.onNode(hasTestTag("SettingsButton"))
+            .performClick()
 
-            // 测试侧边栏
-            composeTestRule.onNode(hasTestTag("SettingsButton"))
-                .assertExists()
-                .performClick()
-            Thread.sleep(1000)
-            composeTestRule.onNode(hasTestTag("WordScreenSidebar"))
-                .assertExists()
-            composeTestRule.onNode(hasText("听写测试")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("选择章节")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("显示单词")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("显示单词")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("显示音标")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("显示词形")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("英文释义")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("中文释义")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("显示字幕")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("击键音效")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("提示音效")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("自动切换")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("外部字幕")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("抄写字幕")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("音量控制")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("发音设置")).assertIsDisplayed()
-            composeTestRule.onNode(hasText("播放设置")).assertIsDisplayed()
-            // 关闭侧边栏
-            composeTestRule.onNode(hasTestTag("SettingsButton"))
-                .performClick()
-
-            Thread.sleep(1000)
-            composeTestRule.onNode(hasTestTag("WordScreenSidebar"))
-                .assertDoesNotExist()
-        }
+        Thread.sleep(1000)
+        composeTestRule.onNode(hasTestTag("WordScreenSidebar"))
+            .assertDoesNotExist()
     }
 
     @Ignore
