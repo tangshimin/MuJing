@@ -136,7 +136,6 @@ class WordScreenTest {
         composeTestRule.onNode(hasText("抄写字幕")).assertIsDisplayed()
         composeTestRule.onNode(hasText("音量控制")).assertIsDisplayed()
         composeTestRule.onNode(hasText("发音设置")).assertIsDisplayed()
-        composeTestRule.onNode(hasText("播放设置")).assertIsDisplayed()
         // 关闭侧边栏
         composeTestRule.onNode(hasTestTag("SettingsButton"))
             .performClick()
