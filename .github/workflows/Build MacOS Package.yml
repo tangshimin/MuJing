@@ -1,7 +1,10 @@
 name: Build MacOS Package
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Manual trigger
+  push: # Tag-based trigger
+    tags:
+      - '*'
 
 jobs:
   create-mac-package:
@@ -49,8 +52,25 @@ jobs:
           TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "1.0.0")
           echo "TAG=$TAG" >> $GITHUB_ENV
 
+      # Determine trigger type
+      - name: Set trigger type
+        run: |
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            echo "TRIGGER_TYPE=manual" >> $GITHUB_ENV
+          else
+            echo "TRIGGER_TYPE=tag" >> $GITHUB_ENV
+
+      # Conditional step for manual trigger
+      - name: Upload Artifact
+        if: env.TRIGGER_TYPE == 'manual'
+        uses: actions/upload-artifact@v4
+        with:
+          name: macos-package
+          path: build/compose/binaries/main/dmg/*.dmg
+
       # Create a Draft Release
       - name: Draft Release
+        if: env.TRIGGER_TYPE == 'tag'
         uses: ncipollo/release-action@v1
         with:
           draft: true
