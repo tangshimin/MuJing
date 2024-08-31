@@ -2299,8 +2299,13 @@ fun PreviewWords(
                                         Divider()
                                         word.captions.forEachIndexed { index, caption ->
                                             val top = if (index == 0) 5.dp else 0.dp
+                                            val text = if (caption.content.endsWith("\n")) {
+                                                caption.content.dropLast(1)
+                                            } else {
+                                                caption.content
+                                            }
                                             Text(
-                                                text = caption.content,
+                                                text = text,
                                                 fontSize = 12.sp,
                                                 modifier = Modifier.padding(top = top)
                                             )
