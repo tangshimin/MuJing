@@ -131,10 +131,10 @@ fun DocumentWindow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
-                                .background( if(currentPage == "matroska")selectedColor else MaterialTheme.colors.background )
-                                .clickable {  setCurrentPage("matroska")}) {
-                            Text("用 MKV 视频生成词库", modifier = Modifier.padding(start = 16.dp))
-                            if( currentPage == "matroska"){
+                                .background( if(currentPage == "video")selectedColor else MaterialTheme.colors.background )
+                                .clickable {  setCurrentPage("video")}) {
+                            Text("用视频生成词库", modifier = Modifier.padding(start = 16.dp))
+                            if( currentPage == "video"){
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
                             }
                         }
@@ -211,8 +211,8 @@ fun DocumentWindow(
                         "subtitles" -> {
                             SubtitlesPage()
                         }
-                        "matroska" -> {
-                            MatroskaPage()
+                        "video" -> {
+                            VideoPage()
                         }
                         "download" -> {
                             DownloadPage()
@@ -293,7 +293,7 @@ fun FeaturesPage(){
                 Spacer(Modifier.width(200.dp))
             }
 
-            Text("记忆单词的时候，会自动播放单词的读音，然后用键盘打字练习拼写，每个单词都可以输入多次，直到记住为止。从 MKV 生成的词库(单词本)，可以抄写单词对应的字幕，播放单词对应的视频片段。默认使用 Enter 键切换下一个单词。\n\n")
+            Text("记忆单词的时候，会自动播放单词的读音，然后用键盘打字练习拼写，每个单词都可以输入多次，直到记住为止。从视频生成的词库(单词本)，可以抄写单词对应的字幕，播放单词对应的视频片段。默认使用 Enter 键切换下一个单词。\n\n")
 
             Row(
                 horizontalArrangement = Arrangement.Center,
@@ -360,7 +360,7 @@ fun VocabularyPage(){
         Text("词库可以分为两类：\n" +
                 "     • 文档词库，软件内置的词库就是文档词库，另外使用文档生成的词库也是文档词库。\n" +
                 "     • 字幕词库，字幕词库也分为两类：\n" +
-                "         • MKV 词库，使用mkv视频内置字幕生成的词库。\n" +
+                "         • MKV 词库，使用MKV或MP4视频内置字幕生成的词库。\n" +
                 "         • SUBTITLES 词库，使用外部字幕生成的词库。\n\n" +
                 "字幕词库和 MKV 词库里的字幕可以链接到文档词库里的单词。\n" +
                 "建议把字幕词库和相关视频文件放到一个文件夹，这样就可以把字幕词库和视频一起分享给朋友了。生成字幕词库后不要修改关联视频的名称。\n"
@@ -648,7 +648,7 @@ fun SubtitlesPage(){
 }
 
 @Composable
-fun MatroskaPage(){
+fun VideoPage(){
     Box(Modifier.fillMaxSize()){
         val stateVertical = rememberScrollState(0)
         Column (Modifier.padding(start = 16.dp, top = 16.dp,end = 16.dp).verticalScroll(stateVertical)){
@@ -661,7 +661,7 @@ fun MatroskaPage(){
                         Text(text = "•",
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold)
-                        Text(text = " 使用 MKV 视频生成的词库，每个单词最多匹配三条字幕。",
+                        Text(text = " 使用视频生成的词库，每个单词最多匹配三条字幕。",
                             fontWeight = FontWeight.Bold)
                     }
 
@@ -677,7 +677,7 @@ fun MatroskaPage(){
                             fontSize = 17.sp,
                             fontWeight = FontWeight.Bold
                         )
-                        Text(text = " 建议把生成的词库保存到 MKV 视频所在的文件夹，这样就可以把词库和视频一起分享给朋友了。放在一起后，如果移动了整个文件夹，播放视频时不会出现视频地址错误。",
+                        Text(text = " 建议把生成的词库保存到视频所在的文件夹，这样就可以把词库和视频一起分享给朋友了。放在一起后，如果移动了整个文件夹，播放视频时不会出现视频地址错误。",
                             fontWeight = FontWeight.Bold)
                     }
 
@@ -686,7 +686,7 @@ fun MatroskaPage(){
 
 
 
-            Text("\n1. 把鼠标移动到屏幕顶部的菜单栏 > 点击词库 > 再点击 用 MKV 视频生成词库，然后选择 MKV 视频，\n    也可以拖放文件到窗口快速打开，然后点击开始按钮。[1]\n")
+            Text("\n1. 把鼠标移动到屏幕顶部的菜单栏 > 点击词库 > 再点击 用视频生成词库，然后选择 MKV 或 MP4 视频，\n    也可以拖放文件到窗口快速打开，然后点击开始按钮。[1]\n")
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().height(IntrinsicSize.Max).padding(start = 20.dp)){
@@ -943,7 +943,7 @@ fun DanmakuPage(){
     Column (Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp)){
         Text(
            """
-              单词弹幕里的单词就是字幕词库里的单词，如果要打开单词弹幕要先使用字幕或mkv视频里的内置字幕生成词库。
+              单词弹幕里的单词就是字幕词库里的单词，如果要打开单词弹幕要先使用字幕或视频里的内置字幕生成词库。
               如果已经生成了字幕词库，打开视频播放器 > 打开视频 > 添加词库，就可以打开单词弹幕了。
               
               还有一种快捷打开单词弹幕的方法，如果正在记忆某个由视频生成的词库，把视频拖放到记忆单词界面，就可以快速的打开视频和弹幕。
@@ -958,7 +958,7 @@ fun LinkVocabularyPage(){
         val stateVertical = rememberScrollState(0)
         Column (Modifier.padding(start = 16.dp, top = 16.dp,end = 16.dp).verticalScroll(stateVertical)){
             val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
-            Text("如果你正在记忆四级单词，又使用字幕或mkv视频生成了一个字幕词库，这个词库里有一些单词是四级单词，\n" +
+            Text("如果你正在记忆四级单词，又使用字幕或视频生成了一个字幕词库，这个词库里有一些单词是四级单词，\n" +
                     "就可以使用链接字幕词库功能，把这些字幕链接到四级文档词库。链接后修改或删除字幕词库不会影响文档词库。\n")
             Text("提示：不要把链接后的词库保存到应用程序的安装目录\n")
             Text("1. 字幕 > 链接字幕词库(L) 打开链接字幕对话框，然后选择一个词库，也可以拖放一个词库到窗口。")
@@ -1002,7 +1002,7 @@ fun LinkCaptionsPage(){
         Column (Modifier.padding(start = 16.dp, top = 16.dp,end = 16.dp).verticalScroll(stateVertical)){
             val theme = if(MaterialTheme.colors.isLight) "light" else "dark"
             Text(
-                "如果你正在记忆四级单词，又使用字幕或mkv视频生成了一个字幕词库，四级词库里有一个单词比如 Dragon, 字幕词库里也有一个 Dragon," +
+                "如果你正在记忆四级单词，又使用字幕或视频生成了一个字幕词库，四级词库里有一个单词比如 Dragon, 字幕词库里也有一个 Dragon," +
                         "如果你只想链接字幕词库里的一个单词而不是整个词库，就可以使用链接字幕功能。\n\n"
             )
 
