@@ -31,9 +31,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import player.*
 import state.GlobalState
+import ui.Toolbar
 import ui.components.MacOSTitle
 import ui.components.RemoveButton
-import ui.Toolbar
 import ui.word.playSound
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
@@ -1011,21 +1011,40 @@ fun OpenFileComponent(
     Box(Modifier.fillMaxSize().background(MaterialTheme.colors.background)) {
         var loading by remember { mutableStateOf(false) }
         Column( modifier = Modifier.width(IntrinsicSize.Max).align(Alignment.Center)){
-            Text(
-                text = "可以拖放一个有字幕的 MKV 视频到这里或\n"+
-                        "一个字幕(SRT) + 一个媒体(MKV、MP4、MP3、WAV、AAC、)一起放到这里。\n",
-                style = MaterialTheme.typography.h6,
-                color = MaterialTheme.colors.onBackground,
-            )
+
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                modifier = Modifier.fillMaxWidth()){
+                val text = if(trackList.isEmpty()){
+                    "拖放一个有字幕的 MKV 视频到这里或\n"+
+                            "一个字幕(SRT) + 一个媒体(MKV、MP4、MP3、WAV、AAC、)一起放到这里。\n"
+                }else{
+                    ""
+                }
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.h6,
+                    color = MaterialTheme.colors.onBackground,
+                )
+            }
             Row(
                 verticalAlignment = Alignment.CenterVertically,
 
             ) {
-                OutlinedButton(
-                    modifier = Modifier.padding(end = 20.dp),
-                    onClick = { openFileChooser() }) {
-                    Text("打开")
+                if(trackList.isEmpty()){
+                    OutlinedButton(
+                        modifier = Modifier.padding(end = 20.dp),
+                        onClick = { openFileChooser() }) {
+                        Text("打开")
+                    }
+                }else{
+                    Text(
+                        text = "选择字幕",
+                        modifier = Modifier.padding(end = 20.dp),
+                        color = MaterialTheme.colors.onBackground,
+                    )
                 }
+
 
                 SelectTrack(
                     close = { cancel() },
@@ -1041,7 +1060,7 @@ fun OpenFileComponent(
                     setTrackSize = { setTrackSize(it) },
                     setIsLoading = { loading = it }
                 )
-                if (showCancel) {
+                if (showCancel || trackList.isNotEmpty()) {
                     OutlinedButton(onClick = {
                         setTrackList(listOf())
                         setSelectedPath("")
@@ -1077,7 +1096,6 @@ fun SelectTrack(
 ) {
     if (trackList.isNotEmpty()) {
         var expanded by remember { mutableStateOf(false) }
-        val selectedSubtitle by remember { mutableStateOf("    ") }
         val scope = rememberCoroutineScope()
         Box(Modifier.width(IntrinsicSize.Max).padding(end = 20.dp)) {
             OutlinedButton(
@@ -1087,9 +1105,6 @@ fun SelectTrack(
                     .background(Color.Transparent)
                     .border(1.dp, Color.Transparent)
             ) {
-                Text(
-                    text = selectedSubtitle, fontSize = 12.sp,
-                )
                 Icon(
                     Icons.Default.ExpandMore, contentDescription = "Localized description",
                     modifier = Modifier.size(20.dp, 20.dp)
