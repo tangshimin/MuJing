@@ -79,14 +79,14 @@ class AppState {
     /** 是否显示【导入词库到熟悉词库】窗口 */
     var importFamiliarVocabulary by mutableStateOf(false)
 
-    /** 是否显示【从文档生成词库】窗口 */
+    /** 是否显示【用文档生成词库】窗口 */
     var generateVocabularyFromDocument by mutableStateOf(false)
 
-    /** 是否显示【从字幕文件生成词库】窗口 */
+    /** 是否显示【用字幕文件生成词库】窗口 */
     var generateVocabularyFromSubtitles by mutableStateOf(false)
 
-    /** 是否显示【从 MKV 生成词库】 窗口 */
-    var generateVocabularyFromMKV by mutableStateOf(false)
+    /** 是否显示【用视频生成词库】 窗口 */
+    var generateVocabularyFromVideo by mutableStateOf(false)
 
     /** 显示软件更新对话框 */
     var showUpdateDialog by mutableStateOf(false)

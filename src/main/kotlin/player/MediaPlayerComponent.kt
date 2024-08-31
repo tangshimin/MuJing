@@ -158,6 +158,11 @@ fun checkSubtitles(
     videoPath: String,
     parentComponent: Component
 ):Boolean{
+
+    // MP4 文件不检查字幕
+    val extension = File(videoPath).extension
+    if(extension == "mp4") return true
+
     var reader: EBMLReader? = null
 
     try {

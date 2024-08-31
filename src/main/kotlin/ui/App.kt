@@ -553,8 +553,8 @@ private fun FrameWindowScope.WindowMenuBar(
         Item("用字幕生成词库(Z)", mnemonic = 'Z', onClick = {
             appState.generateVocabularyFromSubtitles = true
         })
-        Item("用 MKV 视频生成词库(V)", mnemonic = 'V', onClick = {
-            appState.generateVocabularyFromMKV = true
+        Item("用视频生成词库(V)", mnemonic = 'V', onClick = {
+            appState.generateVocabularyFromVideo = true
         })
         Separator()
         var showSettingsDialog by remember { mutableStateOf(false) }
@@ -957,10 +957,10 @@ fun MenuDialogs(state: AppState) {
         )
     }
 
-    if (state.generateVocabularyFromMKV) {
+    if (state.generateVocabularyFromVideo) {
         GenerateVocabularyDialog(
             state = state,
-            title = "用 MKV 视频生成词库",
+            title = "用视频生成词库",
             type = VocabularyType.MKV
         )
     }

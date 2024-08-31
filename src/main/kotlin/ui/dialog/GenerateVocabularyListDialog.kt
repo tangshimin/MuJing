@@ -7,6 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -55,7 +56,7 @@ fun GenerateVocabularyListDialog(
                             close()
                         })
                             .width(165.dp)
-                            .padding(5.dp)
+                            .padding(top = 5.dp, bottom = 5.dp, start = 20.dp,)
                     )
                     Spacer(Modifier.height(10.dp))
                     Text(
@@ -66,18 +67,21 @@ fun GenerateVocabularyListDialog(
                             close()
                         })
                             .width(165.dp)
-                            .padding(5.dp)
+                            .padding(top = 5.dp, bottom = 5.dp, start = 20.dp)
                     )
                     Spacer(Modifier.height(10.dp))
                     Text(
-                        text = "用MKV视频生成词库",
+                        text = "用视频生成词库",
                         color = MaterialTheme.colors.primary,
                         modifier = Modifier.clickable(onClick = {
-                            appState.generateVocabularyFromMKV = true
+                            appState.generateVocabularyFromVideo = true
                             close()
                         })
                             .width(165.dp)
-                            .padding(5.dp)
+                            .padding(top = 5.dp, bottom = 5.dp, start = 20.dp)
+                            .onGloballyPositioned { coordinates ->
+                                println("onGloballyPositioned Size: ${coordinates.size}")
+                            }
                     )
                 }
             }

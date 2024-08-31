@@ -117,9 +117,9 @@ fun GenerateVocabularyDialog(
                 "srt","ass"
             )
 
-            "用 MKV 视频生成词库" -> FileNameExtensionFilter(
-                "mkv 格式的视频文件",
-                "mkv",
+            "用视频生成词库" -> FileNameExtensionFilter(
+                "mkv或mp4格式的视频文件",
+                "mkv","mp4",
             )
             else -> null
         }
@@ -296,21 +296,12 @@ fun GenerateVocabularyDialog(
                                 }
                             }
 
-                            "mp4" -> {
-                                if (type == SUBTITLES) {
-                                    relateVideoPath = file.absolutePath
-                                } else {
-                                    JOptionPane.showMessageDialog(window, "格式错误")
-                                }
-                            }
-
-                            "mkv" -> {
+                            "mkv","mp4" -> {
                                 when (type) {
                                     MKV -> {
                                         // 第一次拖放
                                         if (selectedFilePath.isEmpty() && selectedFileList.isEmpty()) {
                                             loading = true
-
                                             parseTrackList(
                                                 state.videoPlayerComponent,
                                                 window,
@@ -326,16 +317,35 @@ fun GenerateVocabularyDialog(
                                                     }
                                                 }
                                             )
+
                                             loading = false
                                         } else { // 窗口已经有文件了
                                             // 已经有一个相同的 MKV 视频，不再添加
                                             if(file.absolutePath == selectedFilePath){
                                                 return@launch
                                             }
+                                            // 批量生成词库暂时不支持 MP4 格式
+                                            if(file.extension == "mp4"){
+                                                JOptionPane.showMessageDialog(
+                                                    window,
+                                                    "批量生成词库暂时不支持 MP4 格式"
+                                                )
+                                                return@launch
+                                            }
                                             // 如果之前有一个 MKV 视频,把之前的视频加入到 selectedFileList
                                             if (selectedFilePath.isNotEmpty() && selectedFileList.isEmpty()) {
                                                 val f = File(selectedFilePath)
-                                                selectedFileList.add(f)
+                                                if(f.extension == "mp4"){
+                                                    JOptionPane.showMessageDialog(
+                                                        window,
+                                                        "即将进入批量生成词库模式\n" +
+                                                                "批量生成词库暂时不支持 MP4 格式\n" +
+                                                                "${f.nameWithoutExtension} 不会被添加到列表"
+                                                    )
+
+                                                }else{
+                                                    selectedFileList.add(f)
+                                                }
                                                 trackList.clear()
                                                 selectedSubtitlesName = "    "
                                                 selectedFilePath = ""
@@ -561,11 +571,20 @@ fun GenerateVocabularyDialog(
                     }
 
                     MKV -> {
-                        parseMKV(
-                            pathName = pathName,
-                            trackId = trackId,
-                            setProgressText = { progressText = it },
-                        )
+                        val extension = File(pathName).extension
+                        if(extension == "mkv"){
+                            parseMKV(
+                                pathName = pathName,
+                                trackId = trackId,
+                                setProgressText = { progressText = it },
+                            )
+                        }else{
+                            parseMP4(
+                                pathName = pathName,
+                                trackId = trackId,
+                                setProgressText = { progressText = it }
+                            )
+                        }
                     }
                 }
                 previewList.addAll(words)
@@ -838,9 +857,14 @@ fun GenerateVocabularyDialog(
                                 )
                             }
                             Idle -> {
+                                val text = when(type){
+                                    DOCUMENT -> "可以拖放文档到这里"
+                                    SUBTITLES -> "可以拖放 SRT 或 ASS 字幕到这里"
+                                    MKV -> "可以拖放 MKV 或 MP4 视频到这里"
+                                }
                                 if(!loading){
                                     Text(
-                                        text = "可以拖放文件到这里",
+                                        text = text,
                                         color = MaterialTheme.colors.onBackground,
                                         style = MaterialTheme.typography.h6,
                                         modifier = Modifier.align(Alignment.Center)
@@ -1038,7 +1062,7 @@ private fun onCloseRequest(state: AppState, title: String) {
         "过滤词库" -> state.filterVocabulary = false
         "用文档生成词库" -> state.generateVocabularyFromDocument = false
         "用字幕生成词库" -> state.generateVocabularyFromSubtitles = false
-        "用 MKV 视频生成词库" -> state.generateVocabularyFromMKV = false
+        "用视频生成词库" -> state.generateVocabularyFromVideo = false
     }
 
 }
