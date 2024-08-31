@@ -113,8 +113,8 @@ fun GenerateVocabularyDialog(
                 "pdf", "txt","md", "java", "cs", "cpp", "c", "kt", "js", "py", "ts"
             )
             "用字幕生成词库" -> FileNameExtensionFilter(
-                "SRT 格式的字幕文件",
-                "srt",
+                "SRT或ASS格式的字幕文件",
+                "srt","ass"
             )
 
             "用 MKV 视频生成词库" -> FileNameExtensionFilter(
@@ -284,7 +284,7 @@ fun GenerateVocabularyDialog(
                                 }
                             }
 
-                            "srt" -> {
+                            "srt","ass" -> {
                                 if (type == SUBTITLES) {
                                     selectedFilePath = file.absolutePath
                                     selectedSubtitlesName = "    "
@@ -552,7 +552,12 @@ fun GenerateVocabularyDialog(
                     }
 
                     SUBTITLES -> {
-                        parseSRT(pathName = pathName, setProgressText = { progressText = it })
+                        val extension = File(pathName).extension
+                        if (extension == "srt") {
+                            parseSRT(pathName = pathName, setProgressText = { progressText = it })
+                        } else {
+                            parseASS(pathName = pathName, setProgressText = { progressText = it })
+                        }
                     }
 
                     MKV -> {
