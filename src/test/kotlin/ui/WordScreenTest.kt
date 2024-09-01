@@ -59,7 +59,6 @@ class WordScreenTest {
                 playerState = rememberPlayerState()
             )
         }
-        Thread.sleep(5000)
     }
 
     /**
@@ -68,7 +67,7 @@ class WordScreenTest {
     @OptIn(ExperimentalTestApi::class)
     @Test
     fun `Test WordScreen`(){
-        Thread.sleep(3000)
+        Thread.sleep(5000)
 
         // 测试第一个单词的索引
         composeTestRule.onNode(hasTestTag("Header"))
@@ -82,14 +81,14 @@ class WordScreenTest {
             .assertTextEquals("the")
             // 模拟鼠标移动，激活单词切换按钮
             .performMouseInput { click() }
-        Thread.sleep(3000)
+        Thread.sleep(5000)
 
 
         // 切换到第二个单词
         composeTestRule.onNode(hasTestTag("NextButton"))
             .assertExists()
             .performClick()
-        Thread.sleep(3000)
+        Thread.sleep(5000)
         composeTestRule.onNode(hasTestTag("Word"))
             .assertExists()
             .assertIsDisplayed()
@@ -103,7 +102,7 @@ class WordScreenTest {
         composeTestRule.onNode(hasTestTag("PreviousButton"))
             .assertExists()
             .performClick()
-        Thread.sleep(3000)
+        Thread.sleep(5000)
         composeTestRule.onNode(hasTestTag("Word"))
             .assertExists()
             .assertIsDisplayed()
@@ -118,7 +117,7 @@ class WordScreenTest {
         composeTestRule.onNode(hasTestTag("SettingsButton"))
             .assertExists()
             .performClick()
-        Thread.sleep(3000)
+        Thread.sleep(5000)
         composeTestRule.onNode(hasTestTag("WordScreenSidebar"))
             .assertExists()
         composeTestRule.onNode(hasText("听写测试")).assertIsDisplayed()
@@ -140,7 +139,7 @@ class WordScreenTest {
         composeTestRule.onNode(hasTestTag("SettingsButton"))
             .performClick()
 
-        Thread.sleep(3000)
+        Thread.sleep(5000)
         composeTestRule.onNode(hasTestTag("WordScreenSidebar"))
             .assertDoesNotExist()
     }
