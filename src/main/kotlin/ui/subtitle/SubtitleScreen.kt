@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import data.Caption
+import ffmpeg.writeSubtitleToFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import player.*
@@ -168,7 +169,7 @@ fun SubtitleScreen(
             val file = files.first()
             loading = true
             scope.launch (Dispatchers.Default){
-                    if (file.extension == "mkv") {
+                    if (file.extension == "mkv" || file.extension == "mp4") {
                         if (subtitlesState.mediaPath != file.absolutePath) {
                             selectedPath = file.absolutePath
                             parseTrackList(
@@ -259,7 +260,7 @@ fun SubtitleScreen(
                 fileChooser.isAcceptAllFileFilterUsed = false
                 fileChooser.isMultiSelectionEnabled = true
                 val fileFilter = FileNameExtensionFilter(
-                    "1个 mkv 视频，或 1个媒体(mp3、wav、aac、mp4、mkv) + 1个字幕(srt)",
+                    "1个 mkv 或 mp4 视频，或 1个媒体(mp3、wav、aac、mp4、mkv) + 1个字幕(srt)",
                     "mp3",
                     "wav",
                     "aac",
@@ -1118,8 +1119,8 @@ fun SelectTrack(
                             setIsLoading(true)
                             scope.launch(Dispatchers.IO) {
                                 expanded = false
-                                val subtitles = writeToFile(selectedPath, trackId)
-                                if (subtitles != null && subtitles.exists()) {
+                                val subtitles = writeSubtitleToFile(selectedPath, trackId)
+                                if (subtitles.exists()) {
                                     setSubtitlesPath(subtitles.absolutePath)
                                     setTrackId(trackId)
                                     setTrackDescription(description)

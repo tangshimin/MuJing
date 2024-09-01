@@ -2,10 +2,10 @@ package player
 
 import com.matthewn4444.ebml.EBMLReader
 import com.matthewn4444.ebml.UnSupportSubtitlesException
-import com.matthewn4444.ebml.subtitles.SRTSubtitles
-import com.matthewn4444.ebml.subtitles.SSASubtitles
 import com.sun.jna.NativeLibrary
 import ffmpeg.extractSubtitles
+import ffmpeg.hasRichText
+import ffmpeg.removeRichText
 import state.getResourcesFile
 import state.getSettingsDirectory
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory
@@ -214,77 +214,6 @@ fun checkSubtitles(
     return true
 }
 
-/**
- * 提取选择的字幕到用户目录
- * */
-fun writeToFile(
-    videoPath: String,
-    trackId: Int,
-): File? {
-    var reader: EBMLReader? = null
-    val settingsDir = getSettingsDirectory()
-    var subtitlesFile: File? = null
 
-    try {
-        reader = EBMLReader(videoPath)
-        /**
-         * Check to see if this is a valid MKV file
-         * The header contains information for where all the segments are located
-         */
-        if (!reader.readHeader()) {
-            println("This is not an mkv file!")
-            return subtitlesFile
-        }
-
-        /**
-         * Read the tracks. This contains the details of video, audio and subtitles
-         * in this file
-         */
-        reader.readTracks()
-
-        /**
-         * Check if there are any subtitles in this file
-         */
-        val numSubtitles: Int = reader.subtitles.size
-        if (numSubtitles == 0) {
-            return subtitlesFile
-        }
-
-        /**
-         * You need this to find the clusters scattered across the file to find
-         * video, audio and subtitle data
-         */
-        reader.readCues()
-
-        /**
-         *  Read all the subtitles from the file each from cue index.
-         *  Once a cue is parsed, it is cached, so if you read the same cue again,
-         *  it will not waste time.
-         *  Performance-wise, this will take some time because it needs to read
-         *  most of the file.
-         */
-        for (i in 0 until reader.cuesCount) {
-            reader.readSubtitlesInCueFrame(i)
-        }
-
-        val subtitles = reader.subtitles[trackId]
-        subtitlesFile = File(settingsDir, "subtitles.srt")
-        if(subtitles is SSASubtitles){
-            extractSubtitles(videoPath,trackId,subtitlesFile.absolutePath)
-        }else if(subtitles is SRTSubtitles){
-            subtitles.writeFile(subtitlesFile.absolutePath)
-        }
-
-    } catch (exception: Exception) {
-        exception.printStackTrace()
-    } finally {
-        try {
-            reader?.close()
-        } catch (exception: Exception) {
-            exception.printStackTrace()
-        }
-    }
-    return subtitlesFile
-}
 
 

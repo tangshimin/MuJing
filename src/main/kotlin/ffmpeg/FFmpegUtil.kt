@@ -130,3 +130,21 @@ fun hasRichText(srtFile: File): Boolean {
 }
 
 
+/**
+ * 提取选择的字幕到用户目录,字幕浏览器界面使用
+ * */
+fun writeSubtitleToFile(
+    videoPath: String,
+    trackId: Int,
+): File {
+    val settingsDir = getSettingsDirectory()
+    val subtitleFile = File(settingsDir, "subtitles.srt")
+    extractSubtitles(videoPath,trackId,subtitleFile.absolutePath)
+    // 检查字幕文件是否包含富文本标签
+    val hasRichText = hasRichText(subtitleFile)
+    if(hasRichText){
+        removeRichText(subtitleFile)
+    }
+
+    return subtitleFile
+}
