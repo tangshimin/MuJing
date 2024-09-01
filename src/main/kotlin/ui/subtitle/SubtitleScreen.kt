@@ -260,7 +260,7 @@ fun SubtitleScreen(
                 fileChooser.isAcceptAllFileFilterUsed = false
                 fileChooser.isMultiSelectionEnabled = true
                 val fileFilter = FileNameExtensionFilter(
-                    "1个 mkv 或 mp4 视频，或 1个媒体(mp3、wav、aac、mp4、mkv) + 1个字幕(srt)",
+                    "1个 mkv 或 mp4 视频，或 1个字幕(srt) + 1个媒体(mp4、mkv、mp3、wav、aac)",
                     "mp3",
                     "wav",
                     "aac",
@@ -1014,8 +1014,8 @@ fun OpenFileComponent(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()){
                 val text = if(trackList.isEmpty()){
-                    "拖放一个有字幕的 MKV 视频到这里或\n"+
-                            "一个字幕(SRT) + 一个媒体(MKV、MP4、MP3、WAV、AAC、)一起放到这里。\n"
+                    "可以拖放一个有字幕的 MKV 或 MP4 视频到这里\n"+
+                    "也可以拖放一个 SRT 字幕加一个视频一起到这里"
                 }else{
                     ""
                 }
@@ -1026,19 +1026,20 @@ fun OpenFileComponent(
                 )
             }
             Row(
+                horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
-
+                modifier = Modifier.fillMaxWidth()
             ) {
                 if(trackList.isEmpty()){
                     OutlinedButton(
-                        modifier = Modifier.padding(end = 20.dp),
+                        modifier = Modifier.padding(top = 10.dp,end = 20.dp),
                         onClick = { openFileChooser() }) {
                         Text("打开")
                     }
                 }else{
                     Text(
                         text = "选择字幕",
-                        modifier = Modifier.padding(end = 20.dp),
+                        modifier = Modifier.padding(top = 10.dp,end = 20.dp),
                         color = MaterialTheme.colors.onBackground,
                     )
                 }
