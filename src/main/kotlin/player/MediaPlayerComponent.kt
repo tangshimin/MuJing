@@ -5,6 +5,7 @@ import com.matthewn4444.ebml.UnSupportSubtitlesException
 import com.matthewn4444.ebml.subtitles.SRTSubtitles
 import com.matthewn4444.ebml.subtitles.SSASubtitles
 import com.sun.jna.NativeLibrary
+import ffmpeg.extractSubtitles
 import state.getResourcesFile
 import state.getSettingsDirectory
 import uk.co.caprica.vlcj.factory.MediaPlayerFactory
@@ -268,10 +269,10 @@ fun writeToFile(
         }
 
         val subtitles = reader.subtitles[trackId]
+        subtitlesFile = File(settingsDir, "subtitles.srt")
         if(subtitles is SSASubtitles){
-            JOptionPane.showMessageDialog(parentComponent, "暂时不支持 ASS 格式的字幕")
+            extractSubtitles(videoPath,trackId,subtitlesFile.absolutePath)
         }else if(subtitles is SRTSubtitles){
-            subtitlesFile = File(settingsDir, "subtitles.srt")
             subtitles.writeFile(subtitlesFile.absolutePath)
         }
 

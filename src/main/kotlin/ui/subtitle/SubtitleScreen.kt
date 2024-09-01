@@ -1124,7 +1124,7 @@ fun SelectTrack(
                             scope.launch(Dispatchers.IO) {
                                 expanded = false
                                 val subtitles = writeToFile(selectedPath, trackId, parentComponent)
-                                if (subtitles != null) {
+                                if (subtitles != null && subtitles.exists()) {
                                     setSubtitlesPath(subtitles.absolutePath)
                                     setTrackId(trackId)
                                     setTrackDescription(description)

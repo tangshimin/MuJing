@@ -10,6 +10,7 @@ import state.getResourcesFile
 import state.getSettingsDirectory
 import util.parseSubtitles
 import java.io.File
+import javax.swing.JOptionPane
 
 fun findFFmpegPath(): String {
     val path: String = if(isWindows()){
@@ -39,6 +40,8 @@ fun extractSubtitles(input: String,subtitleId: Int,output: String): String {
     job.run()
     if (job.state == FFmpegJob.State.FINISHED) {
         return "finished"
+    }else{
+        JOptionPane.showMessageDialog(null, "提取字幕失败", "错误", JOptionPane.ERROR_MESSAGE)
     }
     return "failed"
 }
