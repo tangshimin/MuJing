@@ -220,7 +220,6 @@ fun checkSubtitles(
 fun writeToFile(
     videoPath: String,
     trackId: Int,
-    parentComponent: Component,
 ): File? {
     var reader: EBMLReader? = null
     val settingsDir = getSettingsDirectory()

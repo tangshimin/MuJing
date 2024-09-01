@@ -847,7 +847,6 @@ fun SubtitleScreen(
 
                 if (showOpenFile || selectedPath.isNotEmpty() || timedCaption.isEmpty()) {
                     OpenFileComponent(
-                        parentComponent = window,
                         cancel = { showOpenFile = false },
                         openFileChooser = { openFileChooser() },
                         showCancel = timedCaption.isNotEmpty(),
@@ -871,7 +870,6 @@ fun SubtitleScreen(
                         Row(Modifier.align(Alignment.Center)) {
                             SelectTrack(
                                 close = { showSelectTrack = false },
-                                parentComponent = window,
                                 setTrackId = { saveTrackID(it) },
                                 setTrackDescription = { saveTrackDescription(it) },
                                 trackList = trackList,
@@ -993,7 +991,6 @@ enum class OpenMode {
 }
 @Composable
 fun OpenFileComponent(
-    parentComponent: Component,
     cancel: () -> Unit,
     openFileChooser: () -> Unit,
     showCancel: Boolean,
@@ -1048,7 +1045,6 @@ fun OpenFileComponent(
 
                 SelectTrack(
                     close = { cancel() },
-                    parentComponent = parentComponent,
                     setTrackId = { setTrackId(it) },
                     setTrackDescription = { setTrackDescription(it) },
                     trackList = trackList,
@@ -1082,7 +1078,6 @@ fun OpenFileComponent(
 @Composable
 fun SelectTrack(
     close: () -> Unit,
-    parentComponent: Component,
     setTrackId: (Int) -> Unit,
     setTrackDescription: (String) -> Unit,
     trackList: List<Pair<Int, String>>,
@@ -1123,7 +1118,7 @@ fun SelectTrack(
                             setIsLoading(true)
                             scope.launch(Dispatchers.IO) {
                                 expanded = false
-                                val subtitles = writeToFile(selectedPath, trackId, parentComponent)
+                                val subtitles = writeToFile(selectedPath, trackId)
                                 if (subtitles != null && subtitles.exists()) {
                                     setSubtitlesPath(subtitles.absolutePath)
                                     setTrackId(trackId)
