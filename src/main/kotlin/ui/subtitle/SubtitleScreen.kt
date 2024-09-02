@@ -187,7 +187,18 @@ fun SubtitleScreen(
                     } else if (formatList.contains(file.extension)) {
                         JOptionPane.showMessageDialog(window, "需要同时选择 ${file.extension} 视频 + srt 字幕")
                     } else if (file.extension == "srt") {
-                        JOptionPane.showMessageDialog(window, "需要同时选择1个视频(mp4、mkv) + 1个srt 字幕")
+                        subtitlesState.trackID = -1
+                        subtitlesState.trackSize = 0
+                        subtitlesState.currentIndex = 0
+                        subtitlesState.firstVisibleItemIndex = 0
+                        subtitlesState.subtitlesPath = file.absolutePath
+                        subtitlesState.mediaPath = ""
+                        subtitlesState.trackDescription = file.nameWithoutExtension
+                        timedCaption.clear()
+                        mediaType = computeMediaType(subtitlesState.mediaPath)
+                        if(openMode == OpenMode.Open) showOpenFile = false
+                        if(showOpenFile) showOpenFile = false
+                        JOptionPane.showMessageDialog(window, "只打开了一个字幕，部分功能将无法使用")
                     } else if (file.extension == "json") {
                         JOptionPane.showMessageDialog(window, "想要打开词库文件，需要先切换到记忆单词界面")
                     } else {
@@ -310,62 +321,63 @@ fun SubtitleScreen(
 
     /**  使用按钮播放视频时调用的回调函数   */
     val playCaption: (Caption) -> Unit = { caption ->
-        val file = File(subtitlesState.mediaPath)
-        if (file.exists() ) {
-            if (!isPlaying) {
-                scope.launch {
-                    isPlaying = true
+        if(subtitlesState.mediaPath.isNotEmpty()){
+            val file = File(subtitlesState.mediaPath)
+            if (file.exists() ) {
+                if (!isPlaying) {
+                    scope.launch {
+                        isPlaying = true
 
-                    // 音频
-                    if(file.extension == "wav" || file.extension == "mp3"|| file.extension == "aac"){
-                        play(
-                            setIsPlaying = {isPlaying = it},
-                            audioPlayerComponent = audioPlayerComponent,
-                            volume = videoVolume,
-                            caption = caption,
-                            videoPath = subtitlesState.mediaPath,
-                        )
-                    // 视频
-                    } else {
-                        // 使用内部字幕轨道
-                        if (subtitlesState.trackID != -1) {
-                            val playTriple = Triple(caption, subtitlesState.mediaPath, subtitlesState.trackID)
-                            corePlay(
-                                window = playerWindow,
-                                setIsPlaying = { isPlaying = it },
+                        // 音频
+                        if(file.extension == "wav" || file.extension == "mp3"|| file.extension == "aac"){
+                            play(
+                                setIsPlaying = {isPlaying = it},
+                                audioPlayerComponent = audioPlayerComponent,
                                 volume = videoVolume,
-                                playTriple = playTriple,
-                                videoPlayerComponent = mediaPlayerComponent,
-                                bounds = videoPlayerBounds,
-                                resetVideoBounds = resetVideoBounds,
-                                isVideoBoundsChanged = isVideoBoundsChanged,
-                                setIsVideoBoundsChanged = {isVideoBoundsChanged = it}
+                                caption = caption,
+                                videoPath = subtitlesState.mediaPath,
                             )
-                            // 使用外部字幕
+                            // 视频
                         } else {
-                            val externalPlayTriple = Triple(caption, subtitlesState.mediaPath, -1)
-                            corePlay(
-                                window = playerWindow,
-                                setIsPlaying = { isPlaying = it },
-                                volume = videoVolume,
-                                playTriple = externalPlayTriple,
-                                videoPlayerComponent = mediaPlayerComponent,
-                                bounds = videoPlayerBounds,
-                                externalSubtitlesVisible = subtitlesState.externalSubtitlesVisible,
-                                resetVideoBounds = resetVideoBounds,
-                                isVideoBoundsChanged = isVideoBoundsChanged,
-                                setIsVideoBoundsChanged = {isVideoBoundsChanged = it}
-                            )
+                            // 使用内部字幕轨道
+                            if (subtitlesState.trackID != -1) {
+                                val playTriple = Triple(caption, subtitlesState.mediaPath, subtitlesState.trackID)
+                                corePlay(
+                                    window = playerWindow,
+                                    setIsPlaying = { isPlaying = it },
+                                    volume = videoVolume,
+                                    playTriple = playTriple,
+                                    videoPlayerComponent = mediaPlayerComponent,
+                                    bounds = videoPlayerBounds,
+                                    resetVideoBounds = resetVideoBounds,
+                                    isVideoBoundsChanged = isVideoBoundsChanged,
+                                    setIsVideoBoundsChanged = {isVideoBoundsChanged = it}
+                                )
+                                // 使用外部字幕
+                            } else {
+                                val externalPlayTriple = Triple(caption, subtitlesState.mediaPath, -1)
+                                corePlay(
+                                    window = playerWindow,
+                                    setIsPlaying = { isPlaying = it },
+                                    volume = videoVolume,
+                                    playTriple = externalPlayTriple,
+                                    videoPlayerComponent = mediaPlayerComponent,
+                                    bounds = videoPlayerBounds,
+                                    externalSubtitlesVisible = subtitlesState.externalSubtitlesVisible,
+                                    resetVideoBounds = resetVideoBounds,
+                                    isVideoBoundsChanged = isVideoBoundsChanged,
+                                    setIsVideoBoundsChanged = {isVideoBoundsChanged = it}
+                                )
+                            }
                         }
                     }
                 }
+
+            } else {
+                JOptionPane.showMessageDialog(null,"视频地址错误:${file.absolutePath}\n" +
+                        "可能原视频被移动、删除或者重命名了。")
             }
-
-        } else {
-            JOptionPane.showMessageDialog(null,"视频地址错误:${file.absolutePath}\n" +
-                    "可能原视频被移动、删除或者重命名了。")
         }
-
     }
 
     /** 保存轨道 ID 时被调用的回调函数 */
