@@ -194,7 +194,7 @@ private fun editWixTask(
     val removeConfig = doc.createElement("CustomAction").apply {
         setAttributeNode(doc.createAttribute("Id").also { it.value = "RunRemoveConfigExe" })
         setAttributeNode(doc.createAttribute("FileKey").also { it.value = "RemoveConfig.exe" })
-        setAttributeNode(doc.createAttribute("ExeCommand").also { it.value = "" })
+        setAttributeNode(doc.createAttribute("ExeCommand").also { it.value = "--uninstall" })
         setAttributeNode(doc.createAttribute("Execute").also { it.value = "deferred" })
         setAttributeNode(doc.createAttribute("Impersonate").also { it.value = "yes" })
         setAttributeNode(doc.createAttribute("Return").also { it.value = "ignore" })

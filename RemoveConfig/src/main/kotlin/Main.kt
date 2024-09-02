@@ -4,25 +4,11 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
-import androidx.compose.material.Checkbox
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.OutlinedButton
-import androidx.compose.material.Surface
-import androidx.compose.material.Text
-import androidx.compose.material.darkColors
+import androidx.compose.foundation.layout.*
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.lightColors
 import androidx.compose.runtime.*
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
@@ -38,8 +24,9 @@ import java.io.File
 
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
-fun main() = application {
-    val title =  "删除幕境的配置文件"
+fun main(args: Array<String>) = application {
+    val uninstall = args.isNotEmpty() && args[0] == "--uninstall"
+    val title = if(uninstall) "删除幕境的配置文件" else "重置"
     Window(
         title = title,
         icon = painterResource("logo.png"),
@@ -57,7 +44,8 @@ fun main() = application {
         MaterialTheme(colors = if(isDarkTheme) darkColors() else lightColors()) {
             Surface{
                 Box(Modifier.fillMaxSize().background(MaterialTheme.colors.background)){
-                    var removeConfig by remember { mutableStateOf(false) }
+                    var removeConfigAndAudio by remember { mutableStateOf(false) }
+                    var removeWordScreenConfig by remember { mutableStateOf(false) }
                     val scope = rememberCoroutineScope()
                     Text(title,
                         fontSize = MaterialTheme.typography.h5.fontSize,
@@ -74,28 +62,47 @@ fun main() = application {
                             tint = MaterialTheme.colors.onBackground
                         )
                     }
-                    Row(Modifier.align(Alignment.Center).clickable(onClick = {removeConfig = !removeConfig}),
-                        verticalAlignment = Alignment.CenterVertically){
-                        Checkbox(
-                            checked = removeConfig,
-                            onCheckedChange = { removeConfig = it },
-                            modifier = Modifier.padding(start = 20.dp)
-                        )
-                        Text("删除配置文件和单词发音缓存")
+                    if(uninstall){
+                        Row(Modifier.align(Alignment.Center).clickable(onClick = {removeConfigAndAudio = !removeConfigAndAudio}),
+                            verticalAlignment = Alignment.CenterVertically){
+                            Checkbox(
+                                checked = removeConfigAndAudio,
+                                onCheckedChange = { removeConfigAndAudio = it },
+                                modifier = Modifier.padding(start = 20.dp)
+                            )
+                            Text("删除配置文件和单词发音缓存")
+                        }
+                    }else{
+
+                        Row(Modifier.align(Alignment.Center).clickable(onClick = {removeWordScreenConfig = !removeWordScreenConfig}),
+                            verticalAlignment = Alignment.CenterVertically){
+                            Checkbox(
+                                checked = removeWordScreenConfig,
+                                onCheckedChange = { removeWordScreenConfig = it },
+                                modifier = Modifier.padding(start = 20.dp)
+                            )
+                            Text("重置记忆单词界面的设置")
+                        }
                     }
+
                     Row(Modifier.align(Alignment.BottomCenter)){
                         OutlinedButton(
-                            enabled = removeConfig,
+                            enabled = (removeConfigAndAudio || removeWordScreenConfig),
                             onClick = {
                                 scope.launch(Dispatchers.Default) {
-                                    if(removeConfig){
-                                        val homeDir = File(System.getProperty("user.home"))
-                                        val applicationDir = File(homeDir, ".MuJing")
+                                    val homeDir = File(System.getProperty("user.home"))
+                                    val applicationDir = File(homeDir, ".MuJing")
+                                    if(removeConfigAndAudio){
                                         if(applicationDir.exists()){
                                             applicationDir.deleteRecursively()
                                         }
-                                        exitApplication()
+                                    }else if(removeWordScreenConfig){
+                                        val wordScreenConfig = File(applicationDir, "TypingWordSettings.json")
+                                        if(wordScreenConfig.exists()){
+                                            wordScreenConfig.delete()
+                                        }
                                     }
+                                    exitApplication()
                                 }
                             },
                         ) {
@@ -108,7 +115,8 @@ fun main() = application {
                                 exitApplication()
                             },
                         ) {
-                            Text("不删除缓存")
+                            val text = if(uninstall) "不删除缓存" else "不重置"
+                            Text(text)
                         }
                     }
                 }
@@ -116,4 +124,3 @@ fun main() = application {
         }
     }
 }
-
