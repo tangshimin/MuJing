@@ -16,6 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
+import player.isMacOS
+import player.isWindows
 import state.getResourcesFile
 import ui.components.LinkText
 import ui.window.windowBackgroundFlashingOnCloseFixHack
@@ -140,6 +142,7 @@ fun AboutDialog(
                                 val Apache2 = Pair( "Apache-2.0","https://www.apache.org/licenses/LICENSE-2.0")
                                 val MIT = Pair( "MIT","https://opensource.org/licenses/mit-license.php")
                                 val EPL2 = Pair( "EPL2","https://www.eclipse.org/legal/epl-v20.html")
+                                val BSD2 = Pair( "BSD-2-Clause","https://www.eclipse.org/legal/epl-v20.html")
 
                                 Row(
                                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -150,10 +153,23 @@ fun AboutDialog(
                                 }
 
                                 Divider()
+                                // 各个平台的版本不一致，windows 版本是 3.0.17 ,mac intel 版本是 3.0.20 mac m1 版本是 3.0.21
+                                val vlcVersion = if(isWindows()){
+                                    "3.0.17.4"
+                                }else if(isMacOS()){
+                                    val arch = System.getProperty("os.arch").lowercase()
+                                     if (arch == "arm" || arch == "aarch64") {
+                                        "3.0.21"
+                                    }else {
+                                        "3.0.20"
+                                    }
+                                } else {
+                                    ""
+                                }
                                 Dependency(
                                     name = "VLC Media Player",
                                     url = "https://www.videolan.org/",
-                                    version = "3.17.4",
+                                    version = vlcVersion,
                                     license = GPL2,
                                 )
                                 Dependency(
@@ -163,13 +179,30 @@ fun AboutDialog(
                                     license = GPL3,
                                 )
                                 Dependency(
+                                    name = "FFmpeg",
+                                    url = "https://ffmpeg.org/",
+                                    version = "7.0",
+                                    license = LGPL,
+                                )
+                                Dependency(
+                                    name = "FFmpeg CLI Wrapper",
+                                    url = "https://github.com/bramp/ffmpeg-cli-wrapper",
+                                    version = "0.8.0",
+                                    license = BSD2,
+                                )
+                                Dependency(
                                     name = "FlatLaf",
                                     url = "https://github.com/JFormDesigner/FlatLaf",
                                     version = "3.1",
                                     license = Apache2,
                                 )
 
-
+                                Dependency(
+                                    name = "Ktor",
+                                    url = "https://github.com/ktorio/ktor",
+                                    version = "2.3.11",
+                                    license = Apache2,
+                                )
                                 Dependency(
                                     name = "SQLite JDBC Driver",
                                     url = "https://github.com/xerial/sqlite-jdbc",
@@ -177,12 +210,6 @@ fun AboutDialog(
                                     license = Apache2,
                                 )
 
-                                Dependency(
-                                    name = "OkHttp",
-                                    url = "https://github.com/square/okhttp",
-                                    version = "4.10.0",
-                                    license = Apache2,
-                                )
                                 Dependency(
                                     name = "Apache OpenNLP",
                                     url = "https://opennlp.apache.org/",
@@ -279,6 +306,78 @@ fun AboutDialog(
                                         LinkText(
                                             text = "LGPL 3.0",
                                             url = "http://www.gnu.org/licenses/lgpl.txt"
+                                        )
+                                    }
+
+                                }
+                                Row(horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.clickable {  }.fillMaxWidth().padding(bottom = 5.dp)){
+                                    Row{
+                                        LinkText(
+                                            text = "logback",
+                                            url = "https://logback.qos.ch/"
+                                        )
+                                        Spacer(Modifier.width(5.dp))
+                                        Text("1.4.14")
+                                    }
+                                    Row{
+                                        LinkText(
+                                            text = "EPL 1",
+                                            url = "http://www.eclipse.org/legal/epl-v10.html"
+                                        )
+                                        Text("/")
+                                        LinkText(
+                                            text = "LGPL 2.1",
+                                            url = "http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"
+                                        )
+                                    }
+
+                                }
+                                Row(horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.clickable {  }.fillMaxWidth().padding(bottom = 5.dp)){
+                                    Row{
+                                        LinkText(
+                                            text = "Java Native Access",
+                                            url = "https://github.com/java-native-access/jna "
+                                        )
+                                        Spacer(Modifier.width(5.dp))
+                                        Text("5.14.0")
+                                    }
+                                    Row{
+                                        LinkText(
+                                            text = "Apache 2",
+                                            url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                                        )
+                                        Text("/")
+                                        LinkText(
+                                            text = "LGPL 2.1",
+                                            url = "http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"
+                                        )
+                                    }
+
+                                }
+                                Row(horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.clickable {  }.fillMaxWidth().padding(bottom = 5.dp)){
+                                    Row{
+                                        LinkText(
+                                            text = "Java Native Access Platform",
+                                            url = "https://github.com/java-native-access/jna "
+                                        )
+                                        Spacer(Modifier.width(5.dp))
+                                        Text("5.14.0")
+                                    }
+                                    Row{
+                                        LinkText(
+                                            text = "Apache 2",
+                                            url = "https://www.apache.org/licenses/LICENSE-2.0.txt"
+                                        )
+                                        Text("/")
+                                        LinkText(
+                                            text = "LGPL 2.1",
+                                            url = "http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html"
                                         )
                                     }
 
