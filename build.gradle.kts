@@ -57,7 +57,7 @@ dependencies {
     implementation ("net.java.dev.jna:jna:5.14.0")
     implementation ("net.java.dev.jna:jna-platform:5.14.0")
     implementation ("ch.qos.logback:logback-classic:1.4.14")
-    implementation("net.bramp.ffmpeg:ffmpeg:0.7.0")
+    implementation("net.bramp.ffmpeg:ffmpeg:0.8.0")
 
     testImplementation(compose.desktop.uiTestJUnit4)
 }
