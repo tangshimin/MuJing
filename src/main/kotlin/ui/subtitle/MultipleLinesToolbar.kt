@@ -9,10 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.VolumeDown
-import androidx.compose.material.icons.filled.VolumeUp
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
@@ -40,6 +37,7 @@ fun MultipleLinesToolbar(
     multipleLines: MultipleLines,
     mediaType: String,
     cancel:() -> Unit,
+    selectAll:() -> Unit,
     playCaption:(Caption) ->Unit,
     playerPoint2: Point,
     window: ComposeWindow,
@@ -47,7 +45,7 @@ fun MultipleLinesToolbar(
     videoPlayerBounds: Rectangle,
     adjustPosition: (Float, Rectangle) -> Unit,
 ) {
-    Row(Modifier.width(96.dp)){
+    Row(Modifier.width(144.dp)){
         if (multipleLines.enabled && playIconIndex == index) {
             TooltipArea(
                 tooltip = {
@@ -75,15 +73,42 @@ fun MultipleLinesToolbar(
                     offset = DpOffset.Zero
                 )
             ) {
-                IconButton(onClick = {
-                    cancel()
-//                    multipleLines.enabled = false
-//                    playIconIndex = 0
-                }) {
+                IconButton(onClick = cancel) {
                     Icon(
                         Icons.Filled.Close,
                         contentDescription = "Localized description",
-                        tint = MaterialTheme.colors.primary
+                        tint = MaterialTheme.colors.onBackground
+                    )
+                }
+            }
+            TooltipArea(
+                tooltip = {
+                    Surface(
+                        elevation = 4.dp,
+                        border = BorderStroke(
+                            1.dp,
+                            MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+                        ),
+                        shape = RectangleShape
+                    ) {
+
+                        Text(text = "全选",modifier = Modifier.padding(10.dp))
+                    }
+                },
+                delayMillis = 300,
+                tooltipPlacement = TooltipPlacement.ComponentRect(
+                    anchor = Alignment.TopCenter,
+                    alignment = Alignment.TopCenter,
+                    offset = DpOffset.Zero
+                )
+            ) {
+                IconButton(onClick = {
+                    selectAll()
+                }) {
+                    Icon(
+                        Icons.Filled.Checklist,
+                        contentDescription = "Localized description",
+                        tint = MaterialTheme.colors.onBackground
                     )
                 }
             }
@@ -153,7 +178,7 @@ fun MultipleLinesToolbar(
                     Icon(
                         icon,
                         contentDescription = "Localized description",
-                        tint = MaterialTheme.colors.primary
+                        tint = MaterialTheme.colors.onBackground
                     )
                 }
             }

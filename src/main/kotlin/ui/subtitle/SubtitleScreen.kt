@@ -581,10 +581,20 @@ fun SubtitleScreen(
                             listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
                         }
                     }
+                    // 移动到顶部
+                    val scrollToTop: () -> Unit = {
+                        scope.launch {
+                            listState.scrollToItem(0)
+                            subtitlesState.currentIndex = 0
+                            subtitlesState.firstVisibleItemIndex = 0
+                            focusManager.clearFocus()
+                            saveSubtitlesState()
+                        }
+                    }
 
                     val startPadding = 20.dp
                     val endPadding = 10.dp
-                    val indexWidth = (captionList.size.toString().length * 14).dp + 96.dp
+                    val indexWidth = (captionList.size.toString().length * 14).dp + 144.dp
                     val buttonWidth = 48.dp
                     var rowWidth = indexWidth + startPadding + (subtitlesState.sentenceMaxLength * charWidth).dp +  endPadding + buttonWidth
 
@@ -654,6 +664,15 @@ fun SubtitleScreen(
                                     // 播放器的位置向下偏移
                                     multipleLines.isUp = false
                                 }
+                            }
+
+                            val selectAll:() -> Unit = {
+                                playIconIndex = 0
+                                multipleLines.startIndex = 0
+                                multipleLines.endIndex = captionList.lastIndex
+                                multipleLines.startTime = captionList.first().start
+                                multipleLines.endTime = captionList.last().end
+                                scrollToTop()
                             }
 
                             val textFieldKeyEvent: (KeyEvent) -> Boolean = { it: KeyEvent ->
@@ -758,6 +777,7 @@ fun SubtitleScreen(
                                             multipleLines.enabled = false
                                             playIconIndex = 0
                                         },
+                                        selectAll = selectAll,
                                         playCaption = playCaption,
                                         playerPoint2 = playerPoint2,
                                         window = window,
@@ -837,15 +857,7 @@ fun SubtitleScreen(
                     )
                     if (!isAtTop) {
                         FloatingActionButton(
-                            onClick = {
-                                scope.launch {
-                                    listState.scrollToItem(0)
-                                    subtitlesState.currentIndex = 0
-                                    subtitlesState.firstVisibleItemIndex = 0
-                                    focusManager.clearFocus()
-                                    saveSubtitlesState()
-                                }
-                            },
+                            onClick = scrollToTop,
                             backgroundColor = if (MaterialTheme.colors.isLight) Color.LightGray else Color.DarkGray,
                             modifier = Modifier.align(Alignment.BottomEnd).padding(end = 100.dp, bottom = 100.dp)
                         ) {
