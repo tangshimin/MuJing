@@ -96,7 +96,7 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "幕境"
             packageVersion = version.toString()
-            modules("java.compiler","java.instrument","java.prefs", "java.sql", "jdk.unsupported","jdk.accessibility")
+            modules("java.compiler","java.instrument","java.management","java.prefs", "java.security.jgss","java.sql", "jdk.unsupported","java.xml.crypto","jdk.accessibility", "java.naming" )
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
             copyright = "Copyright 2023 Shimin Tang. All rights reserved."
             vendor = "深圳市龙华区幕境网络工作室"
