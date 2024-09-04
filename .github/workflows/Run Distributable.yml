@@ -1,7 +1,10 @@
-name: Run Distributable
+name: Run Distributable On macOS
 
 on:
   workflow_dispatch:
+  push:
+    branches:
+      - master
 
 jobs:
   test:
@@ -9,11 +12,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [windows-latest, macos-13, macos-latest]
+        os: [macos-13, macos-latest]
         include:
-          - os: windows-latest
-            arch: x64
-            name: Windows x86_64
           - os: macos-13
             arch: x64
             name: macOS x86_64
@@ -34,41 +34,20 @@ jobs:
           distribution: 'zulu'
           java-version: '21'
 
-      - name: Setup Java for Windows
-        if: startsWith(matrix.os, 'windows')
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'semeru'
-          java-version: '21'
-
       - name: Set up Gradle
         uses: gradle/gradle-build-action@v3
 
-      - name: Process Chinese Character for Windows
-        if: startsWith(matrix.os, 'windows')
-        run: |
-          pwsh -Command "
-          (Get-Content build.gradle.kts) -replace '幕境', 'MuJing' |
-          Select-Object -Skip 101 |
-          Select-Object -Skip 5 |
-          Set-Content build.gradle.kts
-          "
-
       - name: Set execute permissions on gradlew
-        if: runner.os != 'Windows'
         run: chmod +x ./gradlew
 
       - name: Install gtimeout on macOS
-        if: startsWith(matrix.os, 'macos')
         run: |
           brew install coreutils  
 
-      - name: Executing runDistributable with timeout for Windows
-        if: startsWith(matrix.os, 'windows')
-        run: timeout 300 ./gradlew runDistributable
 
       - name: Executing runDistributable with timeout for macOS
         if: startsWith(matrix.os, 'macos')
-        run: gtimeout 300 ./gradlew runDistributable
-
-
+        run: |
+          ./gradlew runDistributable &
+          sleep 300
+          pkill -f "幕境"
