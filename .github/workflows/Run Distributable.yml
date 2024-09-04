@@ -1,0 +1,41 @@
+name: Run Distributable
+
+on:
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Run Tests on ${{ matrix.name }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, macos-13, macos-latest]
+        include:
+          - os: windows-latest
+            arch: x64
+            name: Windows x86_64
+          - os: macos-13
+            arch: x64
+            name: macOS x86_64
+          - os: macos-latest
+            arch: aarch64
+            name: macOS aarch64
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/gradle-build-action@v3
+
+      - name: Set execute permissions on gradlew
+        if: runner.os != 'Windows'
+        run: chmod +x ./gradlew
+
+      - name: Executing runDistributable
+        run: ./gradlew runDistributable --debug
