@@ -18,7 +18,7 @@ import ui.word.WordScreenData
 import ui.word.WordScreenState
 import java.io.File
 
-class NewWordScreenTest {
+class WordScreenTest {
 
     @get:Rule
     val composeTestRule = createComposeRule()
