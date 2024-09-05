@@ -48,5 +48,5 @@ jobs:
         run: |
           ./gradlew runDistributable &
           while ! pgrep -f "幕境"; do sleep 1; done
-          sleep 15
+          sleep 30
           pkill -f "幕境"
