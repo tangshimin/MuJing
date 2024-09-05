@@ -50,3 +50,7 @@ jobs:
           while ! pgrep -f "幕境"; do sleep 1; done
           sleep 30
           pkill -f "幕境"
+
+      - name: Package DMG on macOS
+        if: startsWith(matrix.os, 'macos')
+        run: ./gradlew packageDmg
