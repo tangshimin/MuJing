@@ -45,9 +45,10 @@ jobs:
           brew install coreutils  
 
 
-      - name: Executing runDistributable with timeout for macOS
+      - name: Executing runDistributable on macOS
         if: startsWith(matrix.os, 'macos')
         run: |
           ./gradlew runDistributable &
-          sleep 300
+          while ! pgrep -f "幕境"; do sleep 1; done
+          sleep 30
           pkill -f "幕境"
