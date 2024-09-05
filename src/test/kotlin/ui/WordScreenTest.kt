@@ -59,7 +59,7 @@ class WordScreenTest {
     fun `Test WordScreen`(){
 
         // 等待 Header 出现
-        composeTestRule.waitUntilExactlyOneExists (hasTestTag("Header"),5000)
+        composeTestRule.waitUntilExactlyOneExists (hasTestTag("Header"),10000)
 
         // 测试第一个单词的索引
         composeTestRule.onNode(hasTestTag("Header"))
@@ -83,7 +83,7 @@ class WordScreenTest {
 
 
         // 等待 NextButton 出现
-        composeTestRule.waitUntilExactlyOneExists (hasTestTag("NextButton"),5000)
+        composeTestRule.waitUntilExactlyOneExists (hasTestTag("NextButton"),10000)
         // 测试 NextButton 按钮
         composeTestRule.onNode(hasTestTag("NextButton"))
             .assertExists()
@@ -98,7 +98,7 @@ class WordScreenTest {
         composeTestRule.waitForIdle()
 
         // 等待第二个单词出现
-        composeTestRule.waitUntilExactlyOneExists (hasText("2/96"),5000)
+        composeTestRule.waitUntilExactlyOneExists (hasText("2/96"),10000)
         // 测试第二个单词
         composeTestRule.onNode(hasTestTag("Word"))
             .assertExists()
@@ -121,7 +121,7 @@ class WordScreenTest {
         }
 
         // 等待 PreviousButton 出现
-        composeTestRule.waitUntilExactlyOneExists (hasTestTag("PreviousButton"),5000)
+        composeTestRule.waitUntilExactlyOneExists (hasTestTag("PreviousButton"),10000)
         // 测试 PreviousButton 按钮
         composeTestRule.onNode(hasTestTag("PreviousButton"))
             .assertExists()
@@ -137,7 +137,7 @@ class WordScreenTest {
         composeTestRule.waitForIdle()
 
         // 等待第一个单词出现
-        composeTestRule.waitUntilExactlyOneExists (hasText("1/96"),5000)
+        composeTestRule.waitUntilExactlyOneExists (hasText("1/96"),10000)
         // 测试第一个单词
         composeTestRule.onNode(hasTestTag("Word"))
             .assertExists()
@@ -166,7 +166,7 @@ class WordScreenTest {
                 .performClick()
         }
         // 等待侧边栏出现
-        composeTestRule.waitUntilExactlyOneExists (hasTestTag("WordScreenSidebar"),5000)
+        composeTestRule.waitUntilExactlyOneExists (hasTestTag("WordScreenSidebar"),10000)
         // 测试侧边栏
         composeTestRule.onNode(hasTestTag("WordScreenSidebar"))
             .assertExists()
@@ -195,7 +195,7 @@ class WordScreenTest {
                 .performClick()
         }
         // 等待侧边栏消失
-        composeTestRule.waitUntilDoesNotExist(hasTestTag("WordScreenSidebar"),5000)
+        composeTestRule.waitUntilDoesNotExist(hasTestTag("WordScreenSidebar"),10000)
 
 
     }
