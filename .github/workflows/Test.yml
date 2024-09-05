@@ -42,3 +42,11 @@ jobs:
 
       - name: Run tests
         run: ./gradlew test
+
+      - name: Executing runDistributable on macOS
+        if: startsWith(matrix.os, 'macos')
+        run: |
+          ./gradlew runDistributable &
+          while ! pgrep -f "幕境"; do sleep 1; done
+          sleep 15
+          pkill -f "幕境"
