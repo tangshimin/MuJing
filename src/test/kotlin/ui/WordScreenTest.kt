@@ -80,7 +80,7 @@ class WordScreenTest {
             composeTestRule.onNode(hasTestTag("Word"))
                 .performMouseInput { click() }
         }
-
+        composeTestRule.waitForIdle()
 
         // 等待 NextButton 出现
         composeTestRule.waitUntilExactlyOneExists (hasTestTag("NextButton"),10000)
@@ -93,7 +93,7 @@ class WordScreenTest {
         composeTestRule.runOnIdle {
             composeTestRule.onNode(hasTestTag("NextButton"))
                 .assertExists()
-                .performClick()
+                .performMouseInput { click() }
         }
         composeTestRule.waitForIdle()
 
@@ -114,14 +114,6 @@ class WordScreenTest {
             .isDisplayed()
 
 
-        // 再一次模拟鼠标移动，激活单词切换按钮
-        composeTestRule.runOnIdle {
-            composeTestRule.onNode(hasTestTag("Word"))
-                .performMouseInput { click() }
-        }
-
-        // 等待 PreviousButton 出现
-        composeTestRule.waitUntilExactlyOneExists (hasTestTag("PreviousButton"),10000)
         // 测试 PreviousButton 按钮
         composeTestRule.onNode(hasTestTag("PreviousButton"))
             .assertExists()
@@ -132,7 +124,7 @@ class WordScreenTest {
         composeTestRule.runOnIdle {
             composeTestRule.onNode(hasTestTag("PreviousButton"))
                 .assertExists()
-                .performClick()
+                .performMouseInput { click() }
         }
         composeTestRule.waitForIdle()
 
@@ -165,6 +157,8 @@ class WordScreenTest {
                 .assertExists()
                 .performClick()
         }
+        composeTestRule.waitForIdle()
+
         // 等待侧边栏出现
         composeTestRule.waitUntilExactlyOneExists (hasTestTag("WordScreenSidebar"),10000)
         // 测试侧边栏
@@ -194,6 +188,8 @@ class WordScreenTest {
             composeTestRule.onNode(hasTestTag("SettingsButton"))
                 .performClick()
         }
+        composeTestRule.waitForIdle()
+
         // 等待侧边栏消失
         composeTestRule.waitUntilDoesNotExist(hasTestTag("WordScreenSidebar"),10000)
 
