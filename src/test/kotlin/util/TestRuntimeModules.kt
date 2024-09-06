@@ -28,7 +28,7 @@ class TestRuntimeModules {
             command.add("/c")
         }
         if(isMacOS()){
-            command.add("bash")
+            command.add("/bin/bash")
             command.add("-c")
         }
         command.add(task)
