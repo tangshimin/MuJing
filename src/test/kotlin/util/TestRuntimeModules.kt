@@ -14,6 +14,13 @@ class TestRuntimeModules {
     @Test
     fun `Test Native Distribution Modules`() {
         val workDir = File("").absolutePath
+        val gradlewFile = File(workDir, "gradlew")
+
+        // 如果没有执行权限，设置执行权限
+        if (!gradlewFile.canExecute()) {
+            gradlewFile.setExecutable(true)
+        }
+
         val task = "gradlew suggestRuntimeModules"
         val command = mutableListOf<String>()
         if(isWindows()){
