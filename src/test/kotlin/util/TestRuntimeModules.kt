@@ -39,10 +39,11 @@ class TestRuntimeModules {
         val output = process.inputStream.bufferedReader().readText()
         process.waitFor()
 
+        println("Output:\n$output")
         assert(output.contains("Suggested runtime modules to include:"))
         val expectModules = "modules(\"java.compiler\", \"java.instrument\", \"java.management\", \"java.prefs\", \"java.security.jgss\", \"java.sql\", \"java.xml.crypto\", \"jdk.unsupported\")"
         assert(output.contains(expectModules)) { "Expect $expectModules in output" }
-        println("Output:\n$output")
+
     }
 }
 
