@@ -1,6 +1,7 @@
 package util
 
 import org.junit.Test
+import player.isMacOS
 import player.isWindows
 import java.io.File
 
@@ -18,6 +19,10 @@ class TestRuntimeModules {
         if(isWindows()){
             command.add("cmd")
             command.add("/c")
+        }
+        if(isMacOS()){
+            command.add("bash")
+            command.add("-c")
         }
         command.add(task)
 
