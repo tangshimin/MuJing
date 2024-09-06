@@ -21,7 +21,7 @@ class TestRuntimeModules {
             gradlewFile.setExecutable(true)
         }
 
-        val task = "gradlew suggestRuntimeModules"
+        val task = "${if(isMacOS()) "./" else ""}gradlew suggestRuntimeModules"
         val command = mutableListOf<String>()
         if(isWindows()){
             command.add("cmd")
