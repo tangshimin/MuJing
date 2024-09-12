@@ -24,9 +24,10 @@ class TestGenerateVocabulary {
             setProgressText = { println(it) },
         )
         assert(result.isNotEmpty())
-        assert(result.size == 29)
+        assert(result.size == 30)
         assertEquals(result[0].value, "you're")
         assertEquals(result[28].value, "spirit")
+        assertEquals(result[29].value, "dragon")
     }
 
     @Test
