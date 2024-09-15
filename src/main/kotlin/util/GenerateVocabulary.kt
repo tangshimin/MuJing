@@ -7,15 +7,20 @@ import com.matthewn4444.ebml.UnSupportSubtitlesException
 import com.matthewn4444.ebml.subtitles.SSASubtitles
 import data.Caption
 import data.Dictionary
-import data.ExternalCaption
 import data.Word
 import ffmpeg.convertToSrt
 import ffmpeg.extractSubtitles
 import ffmpeg.hasRichText
 import ffmpeg.removeRichText
+import opennlp.tools.chunker.ChunkerME
+import opennlp.tools.chunker.ChunkerModel
 import opennlp.tools.langdetect.LanguageDetector
 import opennlp.tools.langdetect.LanguageDetectorME
 import opennlp.tools.langdetect.LanguageDetectorModel
+import opennlp.tools.postag.POSModel
+import opennlp.tools.postag.POSTaggerME
+import opennlp.tools.sentdetect.SentenceDetectorME
+import opennlp.tools.sentdetect.SentenceModel
 import opennlp.tools.tokenize.Tokenizer
 import opennlp.tools.tokenize.TokenizerME
 import opennlp.tools.tokenize.TokenizerModel
@@ -23,6 +28,7 @@ import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException
 import org.apache.pdfbox.text.PDFTextStripper
 import org.mozilla.universalchardet.UniversalDetector
+import org.slf4j.LoggerFactory
 import state.getSettingsDirectory
 import subtitleFile.FormatSRT
 import subtitleFile.TimedTextObject
@@ -35,10 +41,20 @@ import java.util.*
 import java.util.regex.Pattern
 import javax.swing.JOptionPane
 
+
+
+
+/**
+ * 解析文档
+ * @param pathName 文件路径
+ * @param sentenceLength 单词所在句子的最大单词数
+ * @param setProgressText 设置进度文本
+ */
 @OptIn(ExperimentalComposeUiApi::class)
 @Throws(IOException::class)
 fun parseDocument(
     pathName: String,
+    sentenceLength:Int = 25,
     setProgressText: (String) -> Unit
 ): List<Word> {
     val file = File(pathName)
@@ -56,6 +72,10 @@ fun parseDocument(
             document.close()
         } else if (otherExtensions.contains(extension)) {
             text = file.readText()
+            // 移除 windows text 文件的 BOM
+            if (extension =="txt" && text.isNotEmpty() && text[0].code == 65279) {
+                text = text.substring(1)
+            }
         }
     }catch (exception: InvalidPasswordException){
         JOptionPane.showMessageDialog(null,exception.message)
@@ -63,58 +83,232 @@ fun parseDocument(
         JOptionPane.showMessageDialog(null,exception.message)
     }
 
+    // 单词 -> 句子映射，用于保存单词在文档中的位置
+    val map = mutableMapOf<String, MutableList<String>>()
 
-    val set: MutableSet<String> = HashSet()
-    val list = mutableListOf<String>()
-    ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin").use { inputStream ->
-        val model = TokenizerModel(inputStream)
-        setProgressText("正在分词")
-        val tokenizer: Tokenizer = TokenizerME(model)
-        val tokenize = tokenizer.tokenize(text)
-        setProgressText("正在处理特殊分隔符")
-        tokenize.forEach { word ->
+    // 加载分词模型
+    val tokenModel = ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin").use { inputStream ->
+        TokenizerModel(inputStream)
+    }
+    val tokenizer = TokenizerME(tokenModel)
+    // 加载词性标注模型
+    val posModel = ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-pos-1.0-1.9.3.bin").use { inputStream ->
+        POSModel(inputStream)
+    }
+    val posTagger = POSTaggerME(posModel)
+    // 加载分块模型
+    val chunkerModel = ResourceLoader.Default.load("opennlp/en-chunker.bin").use { inputStream ->
+        ChunkerModel(inputStream)
+    }
+    val chunker = ChunkerME(chunkerModel)
+
+    setProgressText("正在断句")
+    val sentences = sentenceDetect(text)
+    setProgressText("正在分词")
+    sentences.forEach { sentence ->
+        val wordList = tokenizeAndChunkText(sentence, tokenizer, posTagger, chunker)
+        wordList.forEach { word ->
+            val clippedSentence = clipSentence(word, tokenizer, sentence, sentenceLength)
             val lowercase = word.lowercase(Locale.getDefault())
-            // 在代码片段里的关键字之间用.符号分隔
-            if (lowercase.contains(".")) {
-                val split = lowercase.split("\\.").toTypedArray()
-                for (str in split) {
-                    if (!set.contains(str)) {
-                        list.add(str)
-                        set.add(str)
+            // 在代码片段里的关键字之间用 . 或 _ 符号分隔
+            val delimiters = listOf(".", "_")
+            delimiters.forEach { delimiter ->
+                if (lowercase.contains(delimiter)) {
+                    val split = lowercase.split(delimiter).toTypedArray()
+                    for (str in split) {
+                        if (!map.contains(str)) {
+                            val list = mutableListOf(clippedSentence)
+                            map[str] = list
+                        } else {
+                            // 如果单词的位置列表小于 3，就添加
+                            if (map[str]!!.size < 3) {
+                                map[str]?.add(clippedSentence)
+                            }
+                        }
                     }
                 }
-                set.addAll(split.toList())
             }
-            // 还有一些关键字之间用 _ 符号分隔
-            if (lowercase.matches(Regex("_"))) {
-                val split = lowercase.split("_").toTypedArray()
-                for (str in split) {
-                    if (!set.contains(str)) {
-                        list.add(str)
-                        set.add(str)
-                    }
+
+            if (!map.contains(lowercase)) {
+                val list = mutableListOf(clippedSentence)
+                map[lowercase] = list
+            } else {
+                // 如果单词的位置列表小于 3，就添加
+                if (map[lowercase]!!.size < 3) {
+                    map[lowercase]?.add(clippedSentence)
                 }
-                set.addAll(split.toList())
             }
-            if (!set.contains(lowercase)) {
-                list.add(lowercase)
-                set.add(lowercase)
-            }
-            set.add(lowercase)
+
         }
 
     }
 
-    setProgressText("从文档提取出 ${set.size} 个单词，正在批量查询单词，如果词典里没有的就丢弃")
-    val validList = Dictionary.queryList(list)
+    setProgressText("从文档提取出 ${map.size} 个单词，正在批量查询单词，如果词典里没有的就丢弃")
+    val validList = Dictionary.queryList(map.keys.toList())
+
+    val filterList = listOf(
+        ".", "!", "?", ";", ":",  ")",  "}",  "]", "-", "—",
+        "'", "`", "~", "@", "#", "$", "%", "^", "&", "*", "+", "=", "|",
+        "/", ">", ",", "，", "。", "、", "；", "：", "？", "！",
+        "）","【", "】", "｛", "…",  "》", "”", "’"
+    )
+    validList.forEach { word ->
+        if (map[word.value] != null) {
+            var pos = ""
+            map[word.value]!!.forEach { sentence ->
+                // 丢弃句子开始的标点符号
+                pos = if(filterList.contains(sentence[0].toString())){
+                    sentence.substring(1) + "\n"
+                }else{
+                    sentence + "\n"
+                }
+            }
+            word.pos =pos.trim()
+        }
+    }
     setProgressText("${validList.size} 个有效单词")
     setProgressText("")
     return validList
 }
 
+/**
+ * 剪裁句子
+ */
+fun clipSentence(
+    word: String,
+    tokenizer: Tokenizer,
+    sentences: String, sentenceLength: Int
+): String {
+    val tokenList = tokenizer.tokenize(sentences).toList()
+    if(tokenList.size > sentenceLength){
+        val index = tokenList.indexOf(word)
+        if(index != -1){
+            val start = if(index - sentenceLength/2 < 0) 0 else index - sentenceLength/2
+            val end = if(index + sentenceLength/2 > tokenList.size) tokenList.size else index + sentenceLength/2
+            var clipSentence = ""
+            for(i in start until end){
+                clipSentence += "${tokenList[i]} "
+            }
+            return clipSentence
+        }else{
+            // 单词是短语
+            val formatSentence = sentences.replace("\r\n", " ").replace("\n", " ")
+           val strIndex = formatSentence.indexOf(word)
+            if(strIndex == -1){
+                return formatSentence
+            }
+            // 以 strIndex 为中心，向前找到 sentenceLength/2 空格确定开始，如果开始位置小于 0，就从 0 开始
+            // 向后找到 sentenceLength/2 空格确定结束，如果结束位置大于 sentences 的长度，就以 sentences 的长度为结束
+            var start = strIndex
+            var end = strIndex
+            var spaceCount = 0
+            while (spaceCount < sentenceLength/2){
+                if(start == 0){
+                    break
+                }
+                start--
+                if(formatSentence[start] == ' '){
+                    spaceCount++
+                }
 
+            }
+            spaceCount = 0
+            while (spaceCount < sentenceLength/2){
+                if(end == formatSentence.length){
+                    break
+                }
+                if(formatSentence[end] == ' '){
+                    spaceCount++
+                }
+                end++
+            }
+            return formatSentence.substring(start,end)
 
-// 提取 srt 字幕 ffmpeg -i input.mkv -map "0:2" output.eng.srt
+        }
+
+    }else{
+        return sentences
+    }
+
+}
+
+/**
+ * 使用 OpenNLP 的 SentenceDetectorME 模型来检测句子
+ */
+@OptIn(ExperimentalComposeUiApi::class)
+fun sentenceDetect(text: String): List<String> {
+    val sentences = mutableListOf<String>()
+    ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-sentence-1.0-1.9.3.bin").use { modelIn ->
+        val model = SentenceModel(modelIn)
+        val sentenceDetector = SentenceDetectorME(model)
+        sentenceDetector.sentDetect(text).forEach { sentence ->
+            sentences.add(sentence)
+        }
+    }
+    return sentences
+}
+
+/**
+ * 使用词性标注和分块分词，分割单词和短语
+ */
+fun tokenizeAndChunkText(
+    text: String,
+    tokenizer: Tokenizer,
+    posTagger: POSTaggerME,
+    chunker: ChunkerME
+): MutableSet<String> {
+    val logger = LoggerFactory.getLogger("tokenizeAndChunkText")
+    // 进行分词
+    val tokens = tokenizer.tokenize(text)
+    // 进行词性标注
+    val posTags = posTagger.tag(tokens)
+    // 进行分块
+    val chunks = chunker.chunkAsSpans(tokens, posTags)
+
+    // 过滤掉常用的标点符号
+    // .!?;:(){}[]\-—'"`~@#$%^&*+=|\/<>,，。、；：？！（）【】｛｝—…《》“”‘’,
+    val filterList = listOf(
+        ".", "!", "?", ";", ":", "(", ")", "{", "}", "[", "]", "-", "—",
+        "'", "`", "~", "@", "#", "$", "%", "^", "&", "*", "+", "=", "|",
+        "/","<", ">", ",", "，", "。", "、", "；", "：", "？", "！", "（",
+        "）","【", "】", "｛", "｝", "…", "《", "》", "“", "”", "‘", "’"
+    )
+
+    val wordList =tokens.toMutableList()
+    for (chunk in chunks) {
+        var word = ""
+        for(i in chunk.start until chunk.end){
+           word += "${tokens[i]} "
+        }
+        // 丢弃单词首尾的空格
+        word = word.trim()
+        // 如果单词的第一个字符是标点符号，就丢弃标点
+        if (word.length>1 && filterList.contains(word[0].toString())) {
+            logger.info("$word 丢弃开始标点")
+            word = word.substring(1)
+        }
+        // 如果单词的最后一个字符是标点符号，就丢弃标点
+        if (word.length>1 && filterList.contains(word[word.length - 1].toString())) {
+            logger.info("$word 丢弃结束标点")
+            word = word.substring(0, word.length - 1)
+        }
+        // 再一次丢弃单词首尾的空格
+        word = word.trim()
+        wordList.add(word)
+    }
+    val result = mutableSetOf<String>()
+    // 过滤掉常用的标点符号
+    wordList.forEach { word ->
+        if (!filterList.contains(word)) {
+            result.add(word)
+        }
+    }
+    return result
+}
+
+/**
+ * 解析 SRT 字幕文件
+ */
 @OptIn(ExperimentalComposeUiApi::class)
 @Throws(IOException::class)
 fun parseSRT(
@@ -131,46 +325,58 @@ fun parseSRT(
     val map: MutableMap<String, MutableList<Caption>> = HashMap()
     // 保存顺序
     val orderList = mutableListOf<String>()
-    try{
-        ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin").use { input ->
-            val model = TokenizerModel(input)
-            val tokenizer: Tokenizer = TokenizerME(model)
-            val formatSRT = FormatSRT()
-            val file = File(pathName)
-            val encoding = UniversalDetector.detectCharset(file)
-            val charset =  if(encoding != null){
-                Charset.forName(encoding)
-            }else{
-                Charset.defaultCharset()
-            }
-            val inputStream: InputStream = FileInputStream(file)
+    try {
+        // 加载分词模型
+        val tokenModel = ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin").use { inputStream ->
+            TokenizerModel(inputStream)
+        }
+        val tokenizer = TokenizerME(tokenModel)
+        // 加载词性标注模型
+        val posModel = ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-pos-1.0-1.9.3.bin").use { inputStream ->
+            POSModel(inputStream)
+        }
+        val posTagger = POSTaggerME(posModel)
+        // 加载分块模型
+        val chunkerModel = ResourceLoader.Default.load("opennlp/en-chunker.bin").use { inputStream ->
+            ChunkerModel(inputStream)
+        }
+        val chunker = ChunkerME(chunkerModel)
 
-            setProgressText("正在解析字幕文件")
-            val timedTextObject: TimedTextObject = formatSRT.parseFile(file.name, inputStream,charset)
+        val formatSRT = FormatSRT()
+        val file = File(pathName)
+        val encoding = UniversalDetector.detectCharset(file)
+        val charset = if (encoding != null) {
+            Charset.forName(encoding)
+        } else {
+            Charset.defaultCharset()
+        }
+        val inputStream: InputStream = FileInputStream(file)
 
-            val captions: TreeMap<Int, subtitleFile.Caption> = timedTextObject.captions
-            val captionList: Collection<subtitleFile.Caption> = captions.values
-            setProgressText("正在分词")
-            for (caption in captionList) {
-                var content = replaceSpecialCharacter(caption.content)
-                content = removeLocationInfo(content)
-                val dataCaption = Caption(
-                    // getTime(format) 返回的时间不能播放
-                    start = caption.start.getTime("hh:mm:ss,ms"),
-                    end = caption.end.getTime("hh:mm:ss,ms"),
-                    content = content
-                )
-                val tokenize = tokenizer.tokenize(content)
-                for (word in tokenize) {
-                    val lowercase = word.lowercase(Locale.getDefault())
-                    if (!map.containsKey(lowercase)) {
-                        val list = mutableListOf(dataCaption)
-                        map[lowercase] = list
-                        orderList.add(lowercase)
-                    } else {
-                        if (map[lowercase]!!.size < 3 && !map[lowercase]!!.contains(dataCaption)) {
-                            map[lowercase]?.add(dataCaption)
-                        }
+        setProgressText("正在解析字幕文件")
+        val timedTextObject: TimedTextObject = formatSRT.parseFile(file.name, inputStream, charset)
+
+        val captions: TreeMap<Int, subtitleFile.Caption> = timedTextObject.captions
+        val captionList: Collection<subtitleFile.Caption> = captions.values
+        setProgressText("正在分词")
+        for (caption in captionList) {
+            var content = replaceSpecialCharacter(caption.content)
+            content = removeLocationInfo(content)
+            val dataCaption = Caption(
+                // getTime(format) 返回的时间不能播放
+                start = caption.start.getTime("hh:mm:ss,ms"),
+                end = caption.end.getTime("hh:mm:ss,ms"),
+                content = content
+            )
+            val tokenize = tokenizeAndChunkText(content, tokenizer, posTagger, chunker)
+            for (word in tokenize) {
+                val lowercase = word.lowercase(Locale.getDefault())
+                if (!map.containsKey(lowercase)) {
+                    val list = mutableListOf(dataCaption)
+                    map[lowercase] = list
+                    orderList.add(lowercase)
+                } else {
+                    if (map[lowercase]!!.size < 3 && !map[lowercase]!!.contains(dataCaption)) {
+                        map[lowercase]?.add(dataCaption)
                     }
                 }
             }
@@ -185,13 +391,15 @@ fun parseSRT(
         }
         setProgressText("")
         return validList
-    }catch (exception: IOException){
-        JOptionPane.showMessageDialog(null,exception.message)
+    } catch (exception: IOException) {
+        JOptionPane.showMessageDialog(null, exception.message)
     }
     return listOf()
 }
 
-
+/**
+ * 解析 ASS 字幕文件
+ */
 @Throws(IOException::class)
 fun parseASS(
     pathName: String,
@@ -214,8 +422,10 @@ fun parseASS(
     }
 }
 
-
-fun parseMP4(
+/**
+ * 使用 FFmpeg 解析视频文件
+ */
+fun parseVideo(
     pathName: String,
     trackId: Int,
     setProgressText: (String) -> Unit,
@@ -372,169 +582,145 @@ fun batchReadMKV(
     setErrorMessages:(Map<File,String>) -> Unit,
     updateTaskState:(Pair<File,Boolean>) -> Unit
 ):List<Word>{
-    val errorMessage = mutableMapOf<File,String>()
-    val map: MutableMap<String, ArrayList<ExternalCaption>> = HashMap()
-    val orderList = mutableListOf<String>()
+    val errorMessage = mutableMapOf<File, String>()
+    val orderList = mutableListOf<Word>()
+    val logger = LoggerFactory.getLogger("batchReadMKV")
+    // 加载语言检测模型
+    val langModel = ResourceLoader.Default.load("opennlp/langdetect-183.bin").use { inputStream ->
+        LanguageDetectorModel(inputStream)
+    }
+    val languageDetector: LanguageDetector = LanguageDetectorME(langModel)
 
+    val englishIetfList = listOf("en", "en-US", "en-GB")
+    val english = listOf("en", "eng")
+    for (file in selectedFileList) {
+        setCurrentTask(file)
+        var reader: EBMLReader? = null
+        try {
+            reader = EBMLReader(file.absolutePath)
+            if (!reader.readHeader()) {
+                logger.error("这个视频不是 MKV 标准的文件")
+                errorMessage[file] = "不是 MKV 文件"
+                updateTaskState(Pair(file, false))
+                setCurrentTask(null)
+                continue
+            }
 
-    ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin").use { tokensInputStream ->
-        ResourceLoader.Default.load("opennlp/langdetect-183.bin").use { langdetectInputStream ->
-            // 训练分词器
-            val tokensModel = TokenizerModel(tokensInputStream)
-            val tokenizer: Tokenizer = TokenizerME(tokensModel)
+            reader.readTracks()
+            val numSubtitles: Int = reader.subtitles.size
+            if (numSubtitles == 0) {
+                errorMessage[file] = "没有字幕"
+                logger.error("${file.nameWithoutExtension} 没有字幕")
+                updateTaskState(Pair(file, false))
+                setCurrentTask(null)
+                continue
+            }
+            reader.readCues()
+            for (i in 0 until reader.cuesCount) {
+                reader.readSubtitlesInCueFrame(i)
+            }
 
-            // 训练语言检测器
-            val langModel = LanguageDetectorModel(langdetectInputStream)
-            val languageDetector: LanguageDetector = LanguageDetectorME(langModel)
-
-            val englishIetfList = listOf("en","en-US","en-GB")
-            val english = listOf("en","eng")
-            for(file in selectedFileList){
-                setCurrentTask(file)
-                var reader: EBMLReader? = null
-                try {
-                    reader = EBMLReader(file.absolutePath)
-                    if (!reader.readHeader()) {
-                        println("This is not an mkv file!")
-                        errorMessage[file] = "不是 MKV 文件"
-                        updateTaskState(Pair(file, false))
-                        setCurrentTask(null)
-                        continue
+            var trackID = -1
+            // 轨道名称和轨道 ID 的映射,可能有多个英语字幕
+            val trackMap = mutableMapOf<String,Int>()
+            for (i in 0 until reader.subtitles.size) {
+                val subtitles = reader.subtitles[i]
+                if (englishIetfList.contains(subtitles.languageIetf) || english.contains(subtitles.language)) {
+                    val name = if(subtitles.name.isNullOrEmpty()) "English" else subtitles.name
+                    trackMap[name] = i
+                } else {
+                    // 提取一小部分字幕，使用 OpenNLP 的语言检测工具检测字幕的语言
+                    val captionSize = subtitles.allReadCaptions.size
+                    val subList = if(captionSize>10){
+                        subtitles.readUnreadSubtitles().subList(0, 10)
+                    }else if(captionSize> 5){
+                        subtitles.readUnreadSubtitles().subList(0, 5)
+                    }else{
+                        subtitles.readUnreadSubtitles()
                     }
 
-                    reader.readTracks()
-                    val numSubtitles: Int = reader.subtitles.size
-                    if (numSubtitles == 0) {
-                        errorMessage[file] = "没有字幕"
-                        updateTaskState(Pair(file, false))
-                        setCurrentTask(null)
-                        continue
+                    var content = ""
+                    subList.forEach { caption ->
+                        content += caption.stringData
                     }
-                    reader.readCues()
-                    for (i in 0 until reader.cuesCount) {
-                        reader.readSubtitlesInCueFrame(i)
+                    val lang = languageDetector.predictLanguage(content)
+                    if (lang.lang == "eng") {
+                        val name = if(subtitles.name.isNullOrEmpty()) "English" else subtitles.name
+                        trackMap[name] = i
                     }
-
-                    var trackID = -1
-
-                    for(i in 0 until reader.subtitles.size){
-                        val subtitles = reader.subtitles[i]
-                        if (englishIetfList.contains(subtitles.languageIetf) || english.contains(subtitles.language)) {
-                            trackID = i
-                            break
-                        } else {
-                            // 使用 OpenNLP 的语言检测工具检测字幕的语言
-                            var content = ""
-                            val subList = subtitles.readUnreadSubtitles().subList(0,10)
-                            subList.forEach { caption ->
-                                content += caption.stringData
-                            }
-                            val lang  = languageDetector.predictLanguage(content)
-                            if(lang.lang == "eng"){
-                                trackID = i
-                                break
-                            }
-                        }
-                    }
-
-                    if (trackID != -1) {
-                        val subtitle = reader.subtitles[trackID]
-                        var isASS = false
-                        if (subtitle is SSASubtitles) {
-                            isASS = true
-                        }
-                        val captionList = subtitle.allReadCaptions
-                        if(captionList.isEmpty()){
-                            captionList.addAll(subtitle.readUnreadSubtitles())
-                        }
-                        for (caption in captionList) {
-                            val captionContent =  if(isASS){
-                                caption.formattedVTT.replace("\\N","\n")
-                            }else{
-                                caption.stringData
-                            }
-                            var content = replaceSpecialCharacter(captionContent)
-                            content = removeLocationInfo(content)
-                            val externalCaption = ExternalCaption(
-                                relateVideoPath = file.absolutePath,
-                                subtitlesTrackId = trackID,
-                                subtitlesName = file.nameWithoutExtension,
-                                start = caption.startTime.format().toString(),
-                                end = caption.endTime.format(),
-                                content = content
-                            )
-
-                            content = content.lowercase(Locale.getDefault())
-                            val tokenize = tokenizer.tokenize(content)
-                            for (word in tokenize) {
-                                if (!map.containsKey(word)) {
-                                    val list = ArrayList<ExternalCaption>()
-                                    list.add(externalCaption)
-                                    map[word] = list
-                                    orderList.add(word)
-                                } else {
-                                    if (map[word]!!.size < 3 && !map[word]!!.contains(externalCaption)) {
-                                        map[word]!!.add(externalCaption)
-                                    }
-                                }
-                            }
-                        }
-                        updateTaskState(Pair(file, true))
-                    } else {
-                        errorMessage[file] = "没有找到英语字幕"
-                        updateTaskState(Pair(file, false))
-                        setCurrentTask(null)
-                        continue
-                    }
-
-                } catch (exception: IOException) {
-                    updateTaskState(Pair(file, false))
-                    setCurrentTask(null)
-                    if(exception.message != null){
-                        errorMessage[file] = exception.message.orEmpty()
-                    } else{
-                        errorMessage[file] =  "IO 异常"
-                    }
-                    exception.printStackTrace()
-                    continue
-                }catch (exception: UnSupportSubtitlesException){
-                    updateTaskState(Pair(file, false))
-                    if(exception.message != null){
-                        errorMessage[file] = exception.message.orEmpty()
-                    } else {
-                        errorMessage[file] = "字幕格式不支持"
-                    }
-                    exception.printStackTrace()
-                    setCurrentTask(null)
-                    continue
-                } catch (exception:NullPointerException){
-                    updateTaskState(Pair(file, false))
-                    errorMessage[file] = "空指针异常"
-                    exception.printStackTrace()
-                    setCurrentTask(null)
-                    continue
-                }finally {
-                    try {
-                        reader?.close()
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                    }
-
                 }
             }
+
+            // 优先选择 SDH 字幕
+            for ((name, id) in trackMap) {
+                if (name.contains("SDH", ignoreCase = true)) {
+                    trackID = id
+                    logger.info("$name 字幕，TrackID: $id")
+                    break
+                }
+            }
+            if(trackID == -1){
+                trackID = trackMap.values.first()
+                logger.info("English 字幕，TrackID: $trackID")
+            }
+
+            if (trackID != -1) {
+                val words = parseVideo(
+                    pathName = file.absolutePath,
+                    trackId = trackID,
+                    setProgressText = { }
+                )
+                orderList.addAll(words)
+                updateTaskState(Pair(file, true))
+            } else {
+                errorMessage[file] = "没有找到英语字幕"
+                logger.error("${file.nameWithoutExtension} 没有找到英语字幕")
+                updateTaskState(Pair(file, false))
+                setCurrentTask(null)
+                continue
+            }
+
+        } catch (exception: IOException) {
+            updateTaskState(Pair(file, false))
+            setCurrentTask(null)
+            if (exception.message != null) {
+                errorMessage[file] = exception.message.orEmpty()
+                logger.error("${file.nameWithoutExtension} ${exception.message.orEmpty()}")
+            } else {
+                errorMessage[file] = "IO 异常"
+                logger.error("${file.nameWithoutExtension} IO 异常\n ${exception.printStackTrace()}")
+            }
+            continue
+        } catch (exception: UnSupportSubtitlesException) {
+            updateTaskState(Pair(file, false))
+            if (exception.message != null) {
+                errorMessage[file] = exception.message.orEmpty()
+                logger.error("${file.nameWithoutExtension} ${exception.message.orEmpty()}")
+            } else {
+                errorMessage[file] = "字幕格式不支持"
+                logger.error("${file.nameWithoutExtension} 字幕格式不支持")
+            }
+
+            logger.error("${file.nameWithoutExtension} 字幕格式不支持\n ${exception.printStackTrace()}")
+            setCurrentTask(null)
+            continue
+        } catch (exception: NullPointerException) {
+            updateTaskState(Pair(file, false))
+            errorMessage[file] = "空指针异常"
+            logger.error("${file.nameWithoutExtension} 空指针异常\n ${ exception.printStackTrace()}")
+            setCurrentTask(null)
+            continue
+        } finally {
+            try {
+                reader?.close()
+            } catch (e: Exception) {
+                logger.error("${file.nameWithoutExtension}:\n ${ e.printStackTrace()}")
+            }
+
         }
     }
-
-
-    val validList = Dictionary.queryList(orderList)
-    validList.forEach { word ->
-        if (map[word.value] != null) {
-            word.externalCaptions = map[word.value]!!
-        }
-    }
-
     setErrorMessages(errorMessage)
-    return validList
+    return orderList.toList()
 }
 
 

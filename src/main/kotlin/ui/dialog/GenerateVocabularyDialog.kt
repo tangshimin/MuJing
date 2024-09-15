@@ -571,20 +571,11 @@ fun GenerateVocabularyDialog(
                     }
 
                     MKV -> {
-                        val extension = File(pathName).extension
-                        if(extension == "mkv"){
-                            parseMKV(
-                                pathName = pathName,
-                                trackId = trackId,
-                                setProgressText = { progressText = it },
-                            )
-                        }else{
-                            parseMP4(
-                                pathName = pathName,
-                                trackId = trackId,
-                                setProgressText = { progressText = it }
-                            )
-                        }
+                        parseVideo(
+                            pathName = pathName,
+                            trackId = trackId,
+                            setProgressText = { progressText = it }
+                        )
                     }
                 }
                 previewList.addAll(words)
