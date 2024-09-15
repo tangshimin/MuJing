@@ -2,7 +2,7 @@
     <!-- 控制台输出 -->
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
-            <pattern>[%thread] %highlight(%-5level) %cyan(%logger{15}) -%kvp -%msg %n</pattern>
+            <pattern>[%thread] %highlight(%-5level) %cyan(%logger{15})  -%msg %n</pattern>
         </encoder>
     </appender>
 
