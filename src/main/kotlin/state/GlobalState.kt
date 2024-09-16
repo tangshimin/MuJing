@@ -36,7 +36,8 @@ data class GlobalData(
     val autoUpdate:Boolean = true,
     val ignoreVersion:String = "",
     val bnc:Int = 1000,
-    val frq:Int = 1000
+    val frq:Int = 1000,
+    val maxSentenceLength:Int = 25,
 )
 
 /** 全局状态的需要持久化的部分 */
@@ -146,6 +147,11 @@ class GlobalState(globalData: GlobalData) {
      * 过滤 COCA 词频最常见的单词数量，默认为 1000
      */
     var frqNum by mutableStateOf(globalData.frq)
+
+    /**
+     * 单词所在句子的最大单词数, 默认为 25
+     */
+    var maxSentenceLength by mutableStateOf(globalData.maxSentenceLength)
 
 }
 @Composable

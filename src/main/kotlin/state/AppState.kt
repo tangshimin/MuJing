@@ -160,7 +160,8 @@ class AppState {
                     global.autoUpdate,
                     global.ignoreVersion,
                     global.bncNum,
-                    global.frqNum
+                    global.frqNum,
+                    global.maxSentenceLength
                 )
                 val json = encodeBuilder.encodeToString(globalData)
                 val settings = getGlobalSettingsFile()

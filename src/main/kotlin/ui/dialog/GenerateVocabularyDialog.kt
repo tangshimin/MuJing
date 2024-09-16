@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
@@ -34,6 +35,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
@@ -556,6 +558,7 @@ fun GenerateVocabularyDialog(
                         } else {
                             parseDocument(
                                 pathName = pathName,
+                                sentenceLength = state.global.maxSentenceLength ,
                                 setProgressText = { progressText = it })
                         }
 
@@ -694,6 +697,7 @@ fun GenerateVocabularyDialog(
                 val width = if(vocabularyFilterList.isEmpty()) 380.dp else 450.dp
                 Column(Modifier.width(width).fillMaxHeight()) {
                     BasicFilter(
+                        isDocument = type == DOCUMENT,
                         numberFilter = numberFilter,
                         changeNumberFilter = {
                             numberFilter = it
@@ -701,6 +705,8 @@ fun GenerateVocabularyDialog(
                         },
                         bncNum = state.global.bncNum,
                         setBncNum = {state.global.bncNum = it},
+                        maxSentenceLength = state.global.maxSentenceLength,
+                        setMaxSentenceLength = {state.global.maxSentenceLength = it},
                         bncNumFilter = bncNumberFilter,
                         changeBncNumFilter = {
                             bncNumberFilter = it
@@ -1245,13 +1251,16 @@ private fun loadSummaryVocabulary(): Map<String, List<String>> {
     return map
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BasicFilter(
+    isDocument: Boolean,
     numberFilter: Boolean,
     changeNumberFilter: (Boolean) -> Unit,
     bncNum:Int,
     setBncNum:(Int) -> Unit,
+    maxSentenceLength:Int,
+    setMaxSentenceLength:(Int) -> Unit,
     bncNumFilter:Boolean,
     changeBncNumFilter:(Boolean) -> Unit,
     frqNum:Int,
@@ -1271,6 +1280,49 @@ fun BasicFilter(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth().height(48.dp)
+        ) {
+            if(isDocument){
+                var maxLengthFieldValue by remember { mutableStateOf(TextFieldValue("$maxSentenceLength")) }
+                Text("单词所在句子的最大单词数 ", color = MaterialTheme.colors.onBackground, fontFamily = FontFamily.Default)
+                BasicTextField(
+                    value = maxLengthFieldValue,
+                    onValueChange = { maxLengthFieldValue = it },
+                    singleLine = true,
+                    cursorBrush = SolidColor(MaterialTheme.colors.primary),
+                    textStyle = TextStyle(
+                        lineHeight = LocalTextStyle.current.lineHeight,
+                        fontSize = LocalTextStyle.current.fontSize,
+                        color = MaterialTheme.colors.onBackground
+                    ),
+                    decorationBox = { innerTextField ->
+                        Row(Modifier.padding(start = 2.dp, top = 2.dp, end = 4.dp, bottom = 2.dp)) {
+                            innerTextField()
+                        }
+                    },
+                    modifier = Modifier
+                        .focusable()
+                        .onFocusChanged {
+                            if(!it.isFocused){
+                                val input = maxLengthFieldValue.text.toIntOrNull()
+                                if (input != null && input >= 10) {
+                                    setMaxSentenceLength(input)
+                                }else{
+                                    setMaxSentenceLength(10)
+                                    maxLengthFieldValue = TextFieldValue("10")
+                                    JOptionPane.showMessageDialog(null, "单词所在句子的最大单词数不能小于 10")
+                                }
+                            }
+                        }
+                        .width(40.dp)
+                        .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.6f)))
+                )
+            }
+        }
+        Divider()
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth().height(61.dp)
         ) {
             Text("过滤词库", color = MaterialTheme.colors.onBackground, fontFamily = FontFamily.Default)
         }
@@ -1303,17 +1355,10 @@ fun BasicFilter(
                 Text("BNC", color = MaterialTheme.colors.onBackground,
                 modifier = Modifier.padding(end = 1.dp))
                 Text("   词频前 ", color = MaterialTheme.colors.onBackground)
+                var bncNumFieldValue by remember { mutableStateOf(TextFieldValue("$bncNum")) }
                 BasicTextField(
-                    value = "$bncNum",
-                    onValueChange = {
-                        val input = it.toIntOrNull()
-                        if (input != null && input >= 0) {
-                            setBncNum(input)
-                        }else{
-                            setBncNum(0)
-                        }
-
-                    },
+                    value = bncNumFieldValue,
+                    onValueChange = { bncNumFieldValue = it },
                     singleLine = true,
                     cursorBrush = SolidColor(MaterialTheme.colors.primary),
                     textStyle = TextStyle(
@@ -1328,7 +1373,18 @@ fun BasicFilter(
                     },
                     modifier = Modifier
                         .focusable()
-                        .width(IntrinsicSize.Max)
+                        .onFocusChanged {
+                            if(!it.isFocused){
+                                val input = bncNumFieldValue.text.toIntOrNull()
+                                if (input != null && input >= 0) {
+                                    setBncNum(input)
+                                }else{
+                                    bncNumFieldValue = TextFieldValue("$bncNum")
+                                    JOptionPane.showMessageDialog(null, "数字解析错误，将设置为默认值")
+                                }
+                            }
+                        }
+                        .width(50.dp)
                         .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.6f)))
                 )
                 Text(" 的单词", color = MaterialTheme.colors.onBackground)
@@ -1347,17 +1403,10 @@ fun BasicFilter(
         ) {
             Row(Modifier.width(textWidth)) {
                 Text("过滤 COCA 词频前 ", color = MaterialTheme.colors.onBackground)
-                Box{
-                    BasicTextField(
-                        value = "$frqNum",
-                        onValueChange = {
-                            val input = it.toIntOrNull()
-                           if (input != null && input >= 0) {
-                               setFrqNum(input)
-                            }else{
-                               setFrqNum(0)
-                            }
-                        },
+                var frqNumFieldValue by remember { mutableStateOf(TextFieldValue("$frqNum")) }
+                BasicTextField(
+                        value = frqNumFieldValue,
+                        onValueChange = { frqNumFieldValue = it },
                         singleLine = true,
                         cursorBrush = SolidColor(MaterialTheme.colors.primary),
                         textStyle = TextStyle(
@@ -1371,10 +1420,21 @@ fun BasicFilter(
                             }
                         },
                         modifier = Modifier
-                            .width(IntrinsicSize.Max)
+                            .focusable()
+                            .onFocusChanged {
+                                if(!it.isFocused){
+                                    val input = frqNumFieldValue.text.toIntOrNull()
+                                    if (input != null && input >= 0) {
+                                        setFrqNum(input)
+                                    }else{
+                                        frqNumFieldValue = TextFieldValue("$frqNum")
+                                        JOptionPane.showMessageDialog(null, "数字解析错误，将设置为默认值")
+                                    }
+                                }
+                            }
+                            .width(50.dp)
                             .border(border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.6f)))
                     )
-                }
                 Text(" 的单词", color = MaterialTheme.colors.onBackground)
             }
             Checkbox(
