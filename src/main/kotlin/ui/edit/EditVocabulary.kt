@@ -130,6 +130,7 @@ fun Table(
         "美国音标",
         "英国音标",
         "词形变化",
+        "例句",
         "字幕",
     )
 
@@ -150,6 +151,7 @@ fun Table(
                 word.usphone,
                 word.ukphone,
                 exchange,
+                word.pos,
                 captions,
             )
         )
@@ -173,6 +175,7 @@ fun Table(
     sorter.setSortable(5, false)
     sorter.setSortable(6, false)
     sorter.setSortable(7, false)
+    sorter.setSortable(8, false)
     table.rowSorter = sorter
 
     // 搜索结果的高亮
@@ -228,7 +231,8 @@ fun Table(
                             model.setValueAt(it.usphone, editRow, 4)
                             model.setValueAt(it.ukphone, editRow, 5)
                             model.setValueAt(exchange, editRow, 6)
-                            model.setValueAt(captions, editRow, 7)
+                            model.setValueAt(it.pos, editRow, 7)
+                            model.setValueAt(captions, editRow, 8)
                             // 保存词库
                             wordList[table.selectedRow] = it
                             saveVocabulary("保存成功")
@@ -260,7 +264,8 @@ fun Table(
     val usPhoneColumn = table.columnModel.getColumn(4)
     val ukPhoneColumn = table.columnModel.getColumn(5)
     val exchangeColumn = table.columnModel.getColumn(6)
-    val captionsColumn = table.columnModel.getColumn(7)
+    val sentencesColumn = table.columnModel.getColumn(7)
+    val captionsColumn = table.columnModel.getColumn(8)
 
 
     val textFieldCellEditor = DefaultCellEditor(textField)
@@ -286,6 +291,7 @@ fun Table(
     translationColumn.cellRenderer = rowHeightCellRenderer
     definitionColumn.cellRenderer = rowHeightCellRenderer
     exchangeColumn.cellRenderer = rowHeightCellRenderer
+    sentencesColumn.cellRenderer = rowHeightCellRenderer
     captionsColumn.cellRenderer = rowHeightCellRenderer
 
     indexColumn.minWidth = 33
@@ -297,6 +303,7 @@ fun Table(
     usPhoneColumn.preferredWidth = 95
     ukPhoneColumn.preferredWidth = 95
     exchangeColumn.preferredWidth = 420
+    sentencesColumn.preferredWidth = 350
     captionsColumn.preferredWidth = 350
     table.autoResizeMode = JTable.AUTO_RESIZE_OFF
 
@@ -324,9 +331,7 @@ fun Table(
                 close = { isSettingOpen = false },
                 displayColumn = {
                     for (pair in removedColumnSet) {
-                        println(" ${pair.first}")
                         if(pair.first ==it){
-                            println(" ${pair.first} == $it")
                             val column = pair.second
                             table.addColumn(column)
                             break
@@ -785,6 +790,7 @@ fun Table(
                         it.usphone,
                         it.ukphone,
                         captions,
+                        it.pos,
                         exchange
                     )
                     model.addRow(row)
@@ -986,17 +992,20 @@ fun displayOrHideColumn(cellVisibleState: CellVisibleSwingState, table: JTable):
     if (!cellVisibleState.definitionVisible) {
         hideColumnList.add("英文释义" to 3)
     }
-    if (!cellVisibleState.usPhoneVisible) {
-        hideColumnList.add("英国英标" to 4)
-    }
     if (!cellVisibleState.uKPhoneVisible) {
-        hideColumnList.add("美国音标" to 5)
+        hideColumnList.add("美国音标" to 4)
+    }
+    if (!cellVisibleState.usPhoneVisible) {
+        hideColumnList.add("英国英标" to 5)
     }
     if (!cellVisibleState.exchangeVisible) {
         hideColumnList.add("词形变化" to 6)
     }
+    if (!cellVisibleState.sentencesVisible) {
+        hideColumnList.add("例句" to 7)
+    }
     if (!cellVisibleState.captionsVisible) {
-        hideColumnList.add("字幕" to 7)
+        hideColumnList.add("字幕" to 8)
     }
     hideColumnList.reverse()
     hideColumnList.forEach { (columnName,columnIndex) ->

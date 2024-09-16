@@ -213,6 +213,24 @@ fun Setting(
                                     }
                                 )
                                 ListItem(
+                                    text = { Text("例句", color = MaterialTheme.colors.onBackground) },
+                                    trailing = {
+                                        Switch(
+                                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                                            checked = cellVisible.sentencesVisible,
+                                            onCheckedChange = {
+                                                cellVisible.sentencesVisible = it
+                                                if (it) {
+                                                    displayColumn("例句")
+                                                } else {
+                                                    hideColumn("例句")
+                                                }
+                                                cellVisible.saveCellVisibleState()
+                                            },
+                                        )
+                                    }
+                                )
+                                ListItem(
                                     text = { Text("字幕", color = MaterialTheme.colors.onBackground) },
                                     trailing = {
                                         Switch(

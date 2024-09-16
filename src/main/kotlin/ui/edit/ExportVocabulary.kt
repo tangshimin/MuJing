@@ -357,6 +357,17 @@ fun ExportVocabulary(
                                     }
                                 )
                                 ListItem(
+                                    text = { Text("例句", color = MaterialTheme.colors.onBackground) },
+                                    modifier = Modifier.clickable { cellVisible.sentencesVisible = !cellVisible.sentencesVisible },
+                                    trailing = {
+                                        Switch(
+                                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                                            checked = cellVisible.sentencesVisible,
+                                            onCheckedChange = {cellVisible.sentencesVisible = !cellVisible.sentencesVisible},
+                                        )
+                                    }
+                                )
+                                ListItem(
                                     text = { Text("字幕", color = MaterialTheme.colors.onBackground) },
                                     modifier = Modifier.clickable { cellVisible.captionsVisible = !cellVisible.captionsVisible },
                                     trailing = {
@@ -734,7 +745,6 @@ fun createWorkbook(
         val cell = headerRow.createCell(cellIndex++)
         cell.cellStyle = headerStyle
         cell.setCellValue("中文释义")
-
     }
     if(cellVisible.definitionVisible){
         // 50 个字符宽度
@@ -742,7 +752,6 @@ fun createWorkbook(
         val cell = headerRow.createCell(cellIndex++)
         cell.cellStyle = headerStyle
         cell.setCellValue("英文释义")
-
     }
     if(cellVisible.uKPhoneVisible){
 
@@ -761,7 +770,13 @@ fun createWorkbook(
         val cell = headerRow.createCell(cellIndex++)
         cell.cellStyle = headerStyle
         cell.setCellValue("词形变化")
-
+    }
+    if(cellVisible.sentencesVisible){
+        // 50 个字符宽度
+        sheet.setColumnWidth(cellIndex, 256 * 50)
+        val cell = headerRow.createCell(cellIndex++)
+        cell.cellStyle = headerStyle
+        cell.setCellValue("例句")
     }
     if(cellVisible.captionsVisible){
         captionsIndex = cellIndex
@@ -808,6 +823,11 @@ fun createWorkbook(
             cell.setCellValue(exchange)
             cell.cellStyle = bodyStyle
         }
+        if(cellVisible.sentencesVisible){
+            val cell = row.createCell(cellIndex++)
+            cell.setCellValue(word.pos)
+            cell.cellStyle = bodyStyle
+        }
         if(cellVisible.captionsVisible){
             val captions = displayCaptions(word, vocabularyType)
             val cell = row.createCell(cellIndex++)
@@ -818,8 +838,8 @@ fun createWorkbook(
 
     // 自动调整列宽
     for (columnIndex in 0 until cellIndex) {
-        // 中文释义、英文释义和词形变化的列宽度不自动调整
-        if (columnIndex != 1 && columnIndex != 2 && columnIndex != 5) {
+        // 中文释义、英文释义和词形变化和例句的列宽度不自动调整
+        if (columnIndex != 1 && columnIndex != 2 && columnIndex != 5 && columnIndex != 6) {
             sheet.autoSizeColumn(columnIndex)
         }
         // 字幕列宽度最小为 10 个字符宽度

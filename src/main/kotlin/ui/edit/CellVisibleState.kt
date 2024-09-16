@@ -23,6 +23,7 @@ data class CellVisible(
     var usPhoneVisible: Boolean = true,
     var exchangeVisible: Boolean = true,
     var captionsVisible: Boolean = true,
+    var sentencesVisible: Boolean = true,
 )
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -33,6 +34,7 @@ class CellVisibleState(cellVisible: CellVisible){
     var usPhoneVisible by mutableStateOf(cellVisible.usPhoneVisible)
     var exchangeVisible by mutableStateOf(cellVisible.exchangeVisible)
     var captionsVisible by mutableStateOf(cellVisible.captionsVisible)
+    var sentencesVisible by mutableStateOf(cellVisible.sentencesVisible)
 
 
     /** 保持列可见性的配置信息 */
@@ -46,6 +48,7 @@ class CellVisibleState(cellVisible: CellVisible){
                     usPhoneVisible,
                     exchangeVisible,
                     captionsVisible,
+                    sentencesVisible
                 )
                 val encodeBuilder = Json {
                     prettyPrint = true
@@ -67,6 +70,7 @@ class CellVisibleSwingState(cellVisible: CellVisible){
     var usPhoneVisible = cellVisible.usPhoneVisible
     var exchangeVisible = cellVisible.exchangeVisible
     var captionsVisible = cellVisible.captionsVisible
+    var sentencesVisible = cellVisible.sentencesVisible
 }
 
 
