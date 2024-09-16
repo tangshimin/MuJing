@@ -77,16 +77,18 @@ fun Player(
     val vocabularyPath = playerState.vocabularyPath
     val vocabularyPathChanged = playerState.vocabularyPathChanged
 
+    val height = if (Toolkit.getDefaultToolkit().screenSize.height > 720) 854.dp else 662.dp
+    val width = if (Toolkit.getDefaultToolkit().screenSize.width > 1280) 1289.dp else 1000.dp
     /** 窗口的大小和位置 */
     val windowState = rememberWindowState(
-        size = DpSize(1289.dp, 854.dp),
+        size = DpSize(width, height),
         position = WindowPosition(Alignment.Center)
     )
 
     /** 播放器的大小和位置 */
     val playerWindowState = rememberDialogState(
-        width = 1289.dp,
-        height = 854.dp,
+        width = width,
+        height = height,
         position = WindowPosition(Alignment.Center)
     )
 
@@ -114,7 +116,7 @@ fun Player(
     var fullscreenBeforePosition by remember { mutableStateOf(WindowPosition(0.dp,0.dp)) }
 
     /** 全屏之前的尺寸 */
-    var fullscreenBeforeSize by remember{ mutableStateOf(DpSize(1289.dp, 854.dp)) }
+    var fullscreenBeforeSize by remember{ mutableStateOf(DpSize(width, height)) }
 
     /** VLC 视频播放组件 */
     val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent()) }
@@ -1065,7 +1067,7 @@ fun Player(
                 if(playerState.danmakuVisible && videoPath.isNotEmpty() && danmakuMap.isNotEmpty()){
                     danmakuTimer.start()
                 }
-                window.minimumSize = Dimension(900,854)
+                window.minimumSize = Dimension(900,662)
                 val eventListener = object:MediaPlayerEventAdapter() {
                     override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
                         val videoDuration = videoPlayerComponent.mediaPlayer().media().info().duration()

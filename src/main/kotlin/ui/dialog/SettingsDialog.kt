@@ -33,6 +33,7 @@ import ui.flatlaf.updateFlatLaf
 import ui.window.windowBackgroundFlashingOnCloseFixHack
 import ui.word.*
 import util.rememberMonospace
+import java.awt.Toolkit
 
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -42,6 +43,7 @@ fun SettingsDialog(
     state: AppState,
     wordScreenState: WordScreenState,
 ) {
+    val height = if (Toolkit.getDefaultToolkit().screenSize.height > 720) 700.dp else 662.dp
     DialogWindow(
         title = "设置",
         icon = painterResource("logo/logo.png"),
@@ -49,7 +51,7 @@ fun SettingsDialog(
         resizable = true,
         state = rememberDialogState(
             position = WindowPosition(Alignment.Center),
-            size = DpSize(900.dp, 700.dp)
+            size = DpSize(900.dp, height)
         ),
     ) {
         windowBackgroundFlashingOnCloseFixHack()
