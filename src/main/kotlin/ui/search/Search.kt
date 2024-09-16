@@ -106,7 +106,7 @@ fun Search(
                     searchResult!!.value = ""
                 }
 
-                val inputWord = Word(value = input.lowercase())
+                val inputWord = Word(value = input.lowercase().trim())
                 // 先搜索当前词库
                 val index = vocabulary.wordList.indexOf(inputWord)
                 if(index != -1){
@@ -124,7 +124,7 @@ fun Search(
 
                 // 如果词库里面没有，就搜索内置词典
                 if((searchResult == null) || searchResult!!.value.isEmpty()){
-                    val dictWord = Dictionary.query(input.lowercase())
+                    val dictWord = Dictionary.query(input.lowercase().trim())
                     if(dictWord != null){
                         searchResult = dictWord.deepCopy()
                     }

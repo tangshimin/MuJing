@@ -632,7 +632,8 @@ fun TextScreen(
                 modifier = Modifier,
                 globalState = globalState,
                 saveGlobalState = saveGlobalState,
-                showPlayer = showVideoPlayer
+                showPlayer = showVideoPlayer,
+                openSearch = openSearch,
             )
 
             val ctrl = LocalCtrl.current

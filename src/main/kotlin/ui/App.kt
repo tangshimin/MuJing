@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -677,7 +678,8 @@ fun Toolbar(
     modifier: Modifier,
     globalState: GlobalState,
     saveGlobalState:() -> Unit,
-    showPlayer :(Boolean) -> Unit
+    showPlayer :(Boolean) -> Unit,
+    openSearch :() -> Unit
 ) {
 
     Row (modifier = modifier.padding(top = if (isMacOS()) 30.dp else 0.dp),
@@ -829,6 +831,36 @@ fun Toolbar(
             ) {
                 Icon(
                     Icons.Outlined.PlayCircle,
+                    contentDescription = "Localized description",
+                    tint = tint,
+                    modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
+                )
+            }
+
+        }
+        TooltipArea(
+            tooltip = {
+                Surface(
+                    elevation = 4.dp,
+                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                    shape = RectangleShape
+                ) {
+                    Text(text = "搜索", modifier = Modifier.padding(10.dp))
+                }
+            },
+            delayMillis = 50,
+            tooltipPlacement = TooltipPlacement.ComponentRect(
+                anchor = Alignment.BottomCenter,
+                alignment = Alignment.BottomCenter,
+                offset = DpOffset.Zero
+            )
+        ) {
+            IconButton(
+                onClick = openSearch,
+                modifier = Modifier.testTag("PlayerButton")
+            ) {
+                Icon(
+                    Icons.Outlined.Search,
                     contentDescription = "Localized description",
                     tint = tint,
                     modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)

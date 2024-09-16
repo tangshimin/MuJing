@@ -939,7 +939,8 @@ fun SubtitleScreen(
                 modifier = Modifier,
                 globalState = globalState,
                 saveGlobalState = saveGlobalState,
-                showPlayer = showPlayer
+                showPlayer = showPlayer,
+                openSearch = openSearch
             )
 
             val ctrl = LocalCtrl.current

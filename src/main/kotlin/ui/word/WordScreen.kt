@@ -196,7 +196,8 @@ fun WordScreen(
                 modifier = Modifier,
                 globalState = appState.global,
                 saveGlobalState = {appState.saveGlobalState()},
-                showPlayer = showPlayer
+                showPlayer = showPlayer,
+                openSearch = appState.openSearch,
             )
             val ctrl = LocalCtrl.current
 
