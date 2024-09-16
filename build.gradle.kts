@@ -46,8 +46,6 @@ dependencies {
     implementation("org.apache.maven:maven-artifact:3.8.6")
     implementation("org.burnoutcrew.composereorderable:reorderable:0.9.2")
     implementation("com.github.albfernandez:juniversalchardet:2.4.0")
-    implementation("junit:junit:4.13.2")
-    implementation("org.junit.vintage:junit-vintage-engine:5.9.0")
     implementation("com.darkrockstudios:mpfilepicker:2.0.2")
     implementation("org.apache.poi:poi:5.3.0")
     implementation("org.apache.poi:poi-ooxml:5.3.0")
@@ -60,6 +58,9 @@ dependencies {
     implementation("net.bramp.ffmpeg:ffmpeg:0.8.0")
 
     testImplementation(compose.desktop.uiTestJUnit4)
+    testImplementation("org.junit.vintage:junit-vintage-engine:5.9.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
 }
 
 buildscript {
@@ -141,7 +142,7 @@ project.afterEvaluate {
             doFirst {
                 val pluginsCache =  layout.projectDirectory.dir("resources/windows/VLC/plugins/plugins.dat").asFile
                 if(pluginsCache.exists()){
-                    println("删除 从 Main.kt 启动程序后生产的 VLC 插件缓存")
+                    println("Delete the VLC plugin cache produced after launching the program from Main.kt")
                     pluginsCache.delete()
                 }
             }
@@ -149,7 +150,7 @@ project.afterEvaluate {
 
         tasks.named("runDistributable") {
             doFirst {
-                println("更新 VLC 的插件缓存")
+                println("update VLC plugins cache")
                 val plugins = project.layout.projectDirectory.dir("build/compose/binaries/main/app/幕境/app/resources/VLC/plugins").asFile.absolutePath
                 val cacheGen = project.layout.projectDirectory.dir("build/compose/binaries/main/app/幕境/app/resources/VLC/vlc-cache-gen.exe").asFile.absolutePath
                 val command = listOf(cacheGen, plugins)
