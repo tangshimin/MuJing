@@ -2,6 +2,7 @@ package ui.dialog
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
@@ -93,9 +94,11 @@ fun EditWordDialog(
     }else{
         WindowPosition(Alignment.Center)
         }
+
+    val height = if (java.awt.Toolkit.getDefaultToolkit().screenSize.height > 720) 984.dp else 600.dp
     val windowState =  rememberDialogState(
         position = position,
-        size = DpSize(840.dp, 810.dp)
+        size = DpSize(840.dp, height)
     )
     MaterialTheme(colors = appState.colors) {
         DialogWindow(
@@ -170,7 +173,8 @@ fun editWordSwing(
     close: () -> Unit
 ) {
     val window = JFrame(title)
-    window.setSize(840, 810)
+    val height = if (java.awt.Toolkit.getDefaultToolkit().screenSize.height > 720) 984 else 600
+    window.setSize(840, height)
     val iconFile = getResourcesFile("logo/logo.svg")
     val iconImages = FlatSVGUtils.createWindowIconImages(iconFile.toURI().toURL())
     window.iconImages = iconImages
@@ -227,12 +231,13 @@ fun EditWordComposeContent(
     var ukphone by remember{ mutableStateOf(TextFieldValue(tempWord.ukphone)) }
     var definitionFieldValue by remember { mutableStateOf(TextFieldValue(tempWord.definition)) }
     var translationFieldValue by remember { mutableStateOf(TextFieldValue(tempWord.translation)) }
+    var sentencesFieldValue by remember { mutableStateOf(TextFieldValue(tempWord.pos)) }
     var exchange by remember { mutableStateOf(tempWord.exchange) }
     var saveEnable by remember { mutableStateOf(false) }
     var captionsChanged by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
 
-    LaunchedEffect(inputWordStr, usphone, ukphone, translationFieldValue, definitionFieldValue, exchange,captionsChanged,tempWord.captions.size,tempWord.externalCaptions.size) {
+    LaunchedEffect(inputWordStr, usphone, ukphone, translationFieldValue, sentencesFieldValue, definitionFieldValue, exchange,captionsChanged,tempWord.captions.size,tempWord.externalCaptions.size) {
         // 单词不为空，并且任何一个字段发生变化，就激活保存按钮
         saveEnable = (
                 inputWordStr.text.isNotEmpty() &&
@@ -242,6 +247,7 @@ fun EditWordComposeContent(
                                         || (ukphone.text != word.ukphone)
                                         || (definitionFieldValue.text != word.definition)
                                         || (translationFieldValue.text != word.translation)
+                                        || (sentencesFieldValue.text != word.pos)
                                         || (exchange != word.exchange)
                                         || (tempWord.captions.size != word.captions.size)
                                         || (tempWord.externalCaptions.size != word.externalCaptions.size)
@@ -255,6 +261,7 @@ fun EditWordComposeContent(
             tempWord.usphone = usphone.text
             tempWord.ukphone = ukphone.text
             tempWord.translation = translationFieldValue.text
+            tempWord.pos = sentencesFieldValue.text
             tempWord.definition = definitionFieldValue.text
             tempWord.exchange = exchange
             save(tempWord)
@@ -264,13 +271,16 @@ fun EditWordComposeContent(
                 usphone = TextFieldValue("")
                 ukphone = TextFieldValue("")
                 translationFieldValue = TextFieldValue("")
+                sentencesFieldValue = TextFieldValue("")
                 definitionFieldValue = TextFieldValue("")
                 exchange = ""
             }
         }
     }
 
-    Box (Modifier.onKeyEvent {
+    Box (Modifier
+        .fillMaxSize()
+        .onKeyEvent {
         if(it.key == Key.Escape && it.type == KeyEventType.KeyUp){
             close()
             true
@@ -280,11 +290,14 @@ fun EditWordComposeContent(
 
         }else false
     }){
+        val stateVertical = rememberScrollState(0)
+        val scrollbarStyle =  LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp))
         Column(Modifier
             .fillMaxSize()
             .align(Alignment.Center)
             .background(MaterialTheme.colors.background)
-
+            .verticalScroll(stateVertical)
+            .padding(bottom = 75.dp)
         ) {
             val textStyle = TextStyle(
                 fontSize = 16.sp,
@@ -307,6 +320,7 @@ fun EditWordComposeContent(
                                 usphone = TextFieldValue(resultWord.usphone)
                                 ukphone = TextFieldValue(resultWord.ukphone)
                                 translationFieldValue = TextFieldValue(resultWord.translation)
+                                sentencesFieldValue = TextFieldValue(resultWord.pos)
                                 definitionFieldValue = TextFieldValue(resultWord.definition)
                                 exchange = resultWord.exchange
                                 queryFailed = false
@@ -699,14 +713,13 @@ fun EditWordComposeContent(
             }
 
 
-            val isWindows = isWindows()
             val modifier = Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, bottom = 10.dp)
             Column(modifier = modifier) {
                 Text("中文释义：",color = MaterialTheme.colors.onBackground)
                 Box(modifier = Modifier.fillMaxWidth()
                     .height(160.dp)
                     .border(border = border)) {
-                    val stateVertical = rememberScrollState(0)
+                    val scrollState = rememberScrollState(0)
                     BasicTextField(
                         value = translationFieldValue,
                         onValueChange = {
@@ -714,11 +727,14 @@ fun EditWordComposeContent(
                         },
                         textStyle = textStyle,
                         cursorBrush = SolidColor(MaterialTheme.colors.primary),
-                        modifier = Modifier.verticalScroll(stateVertical)
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(scrollState)
                     )
                     VerticalScrollbar(
                         modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                        adapter = rememberScrollbarAdapter(stateVertical),
+                        adapter = rememberScrollbarAdapter(scrollState),
+                        style = scrollbarStyle
                     )
                 }
 
@@ -729,7 +745,7 @@ fun EditWordComposeContent(
                 Box(modifier = Modifier.fillMaxWidth()
                     .height(160.dp)
                     .border(border = border)) {
-                    val stateVertical = rememberScrollState(0)
+                    val scrollState = rememberScrollState(0)
                     BasicTextField(
                         value = definitionFieldValue,
                         onValueChange = {
@@ -738,11 +754,37 @@ fun EditWordComposeContent(
                         cursorBrush = SolidColor(MaterialTheme.colors.primary),
                         textStyle = textStyle,
                         modifier = Modifier
-                            .verticalScroll(stateVertical)
+                            .fillMaxSize()
+                            .verticalScroll(scrollState)
                     )
                     VerticalScrollbar(
                         modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                        adapter = rememberScrollbarAdapter(stateVertical),
+                        adapter = rememberScrollbarAdapter(scrollState),
+                        style = scrollbarStyle
+                    )
+                }
+            }
+            Column(modifier = modifier) {
+                Text("例句：",color = MaterialTheme.colors.onBackground)
+                Box(modifier = Modifier.fillMaxWidth()
+                    .height(140.dp)
+                    .border(border = border)) {
+                    val scrollState = rememberScrollState(0)
+                    BasicTextField(
+                        value = sentencesFieldValue,
+                        onValueChange = {
+                            sentencesFieldValue = it
+                        },
+                        cursorBrush = SolidColor(MaterialTheme.colors.primary),
+                        textStyle = textStyle,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .verticalScroll(scrollState)
+                    )
+                    VerticalScrollbar(
+                        modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                        adapter = rememberScrollbarAdapter(scrollState),
+                        style = scrollbarStyle
                     )
                 }
             }
@@ -854,7 +896,11 @@ fun EditWordComposeContent(
             }
         }
 
-
+        VerticalScrollbar(
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(stateVertical),
+            style = scrollbarStyle,
+            )
     }
 }
 

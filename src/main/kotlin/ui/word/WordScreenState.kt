@@ -9,7 +9,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import state.getResourcesFile
@@ -28,6 +27,7 @@ data class WordScreenData(
     val definitionVisible: Boolean = true,
     val translationVisible: Boolean = true,
     val subtitlesVisible: Boolean = true,
+    val sentencesVisible: Boolean = true,
     val isPlaySoundTips: Boolean = true,
     val soundTipsVolume: Float = 0.6F,
     val pronunciation: String = "us",
@@ -82,6 +82,11 @@ class WordScreenState(wordScreenData: WordScreenData) {
      * 字幕组件的可见性
      */
     var subtitlesVisible by mutableStateOf(wordScreenData.subtitlesVisible)
+
+    /**
+     * 例句组件的可见性
+     */
+    var sentencesVisible by mutableStateOf(wordScreenData.sentencesVisible)
 
     /**
      * 是否播放提示音
@@ -356,6 +361,7 @@ class WordScreenState(wordScreenData: WordScreenData) {
                         definitionVisible,
                         translationVisible,
                         subtitlesVisible,
+                        sentencesVisible,
                         isPlaySoundTips,
                         soundTipsVolume,
                         pronunciation,

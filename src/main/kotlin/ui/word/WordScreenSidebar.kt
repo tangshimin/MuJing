@@ -296,6 +296,39 @@ fun WordScreenSidebar(
                         },
                     )
                 }
+
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
+                ) {
+                    Row {
+                        Text("显示例句", color = MaterialTheme.colors.onBackground)
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            text = "$ctrl+H",
+                            color = MaterialTheme.colors.onBackground
+                        )
+                    }
+
+                    Spacer(Modifier.width(15.dp))
+                    Switch(
+                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                        checked = wordScreenState.sentencesVisible,
+                        onCheckedChange = {
+                            scope.launch {
+                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
+                                    dictationState.sentencesVisible = it
+                                    dictationState.saveDictationState()
+                                }
+                                wordScreenState.sentencesVisible = it
+                                wordScreenState.saveWordScreenState()
+                            }
+
+                        },
+                    )
+                }
+
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically,

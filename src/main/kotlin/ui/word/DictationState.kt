@@ -7,7 +7,6 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import state.getSettingsDirectory
@@ -26,6 +25,7 @@ data class DataDictationState(
     val definitionVisible: Boolean = false,
     val translationVisible: Boolean = false,
     val subtitlesVisible: Boolean = false,
+    val sentencesVisible: Boolean = false,
 )
 
 /**
@@ -58,6 +58,11 @@ class DictationState(dataDictationState: DataDictationState){
      */
     var subtitlesVisible by mutableStateOf(dataDictationState.subtitlesVisible)
 
+    /**
+     * 例句组件的可见性
+     */
+    var sentencesVisible by mutableStateOf(dataDictationState.subtitlesVisible)
+
     /** 保存听写时的配置信息 */
     fun saveDictationState() {
         runBlocking {
@@ -68,6 +73,7 @@ class DictationState(dataDictationState: DataDictationState){
                     definitionVisible,
                     translationVisible,
                     subtitlesVisible,
+                    sentencesVisible,
                 )
                 val encodeBuilder = Json {
                     prettyPrint = true

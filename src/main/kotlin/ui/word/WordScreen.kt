@@ -1481,6 +1481,13 @@ fun MainContent(
                 isChangeVideoBounds = wordScreenState.isChangeVideoBounds,
                 fontSize = appState.global.detailFontSize
             )
+            Sentences(
+                word = currentWord,
+                sentencesVisible = wordScreenState.sentencesVisible,
+                isPlaying = isPlaying,
+                isChangeVideoBounds = wordScreenState.isChangeVideoBounds,
+                fontSize = appState.global.detailFontSize
+            )
 
             val startPadding = if ( isPlaying && !wordScreenState.isChangeVideoBounds) 0.dp else 50.dp
             val captionsModifier = Modifier
@@ -2072,6 +2079,8 @@ fun Definition(
     fontSize: TextUnit
 ) {
     if (definitionVisible && (isChangeVideoBounds || !isPlaying )) {
+        // 计算行数,用于判断是否显示滚动条
+        // 通过原始字符串长度减去去掉换行符后的长度，得到换行符的个数
         val rows = word.definition.length - word.definition.replace("\n", "").length
         val width = when (fontSize) {
             MaterialTheme.typography.h5.fontSize -> {
@@ -2131,31 +2140,109 @@ fun Translation(
     fontSize: TextUnit
 ) {
     if (translationVisible && (isChangeVideoBounds || !isPlaying )) {
-        Column {
-            val width = when (fontSize) {
-                MaterialTheme.typography.h5.fontSize -> {
-                    600.dp
-                }
-                MaterialTheme.typography.h6.fontSize -> {
-                    575.dp
-                }
-                else -> 555.dp
+        // 计算行数,用于判断是否显示滚动条
+        // 通过原始字符串长度减去去掉换行符后的长度，得到换行符的个数
+        val rows = word.translation.length - word.translation.replace("\n", "").length
+        val width = when (fontSize) {
+            MaterialTheme.typography.h5.fontSize -> {
+                600.dp
             }
-            Row(
-                horizontalArrangement = Arrangement.Start,
-                modifier = Modifier
-                    .width(width)
-                    .padding(start = 50.dp, top = 5.dp, bottom = 5.dp)
-            ) {
-                SelectionContainer {
-                    Text(
-                        text = word.translation,
-                        textAlign = TextAlign.Start,
-                        fontSize = fontSize,
-                        color = MaterialTheme.colors.onBackground
+            MaterialTheme.typography.h6.fontSize -> {
+                575.dp
+            }
+            else -> 555.dp
+        }
+        val normalModifier = Modifier
+            .width(width)
+            .padding(start = 50.dp, top = 5.dp, bottom = 5.dp)
+        val greaterThen10Modifier = Modifier
+            .width(width)
+            .height(260.dp)
+            .padding(start = 50.dp, top = 5.dp, bottom = 5.dp)
+        Column {
+            Box(modifier = if (rows > 8) greaterThen10Modifier else normalModifier) {
+                val stateVertical = rememberScrollState(0)
+                Box(Modifier.verticalScroll(stateVertical)) {
+                    SelectionContainer {
+                        Text(
+                            textAlign = TextAlign.Start,
+                            overflow = TextOverflow.Ellipsis,
+                            fontSize = fontSize,
+                            color = MaterialTheme.colors.onBackground,
+                            modifier = Modifier.align(Alignment.CenterStart),
+                            text = word.translation,
+                        )
+                    }
+                }
+                if (rows > 8) {
+                    VerticalScrollbar(
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                            .fillMaxHeight(),
+                        adapter = rememberScrollbarAdapter(stateVertical)
                     )
                 }
+            }
 
+            Divider(Modifier.padding(start = 50.dp))
+        }
+
+    }
+}
+
+/**
+ * 例句组件
+ */
+@Composable
+fun Sentences(
+    sentencesVisible: Boolean,
+    isPlaying: Boolean,
+    isChangeVideoBounds:Boolean = false,
+    word: Word,
+    fontSize: TextUnit
+) {
+    if (sentencesVisible && word.pos.isNotEmpty() && (isChangeVideoBounds || !isPlaying )) {
+        // 计算行数,用于判断是否显示滚动条
+        // 通过原始字符串长度减去去掉换行符后的长度，得到换行符的个数
+        val rows = word.pos.length - word.pos.replace("\n", "").length
+
+        val width = when (fontSize) {
+            MaterialTheme.typography.h5.fontSize -> {
+                600.dp
+            }
+            MaterialTheme.typography.h6.fontSize -> {
+                575.dp
+            }
+            else -> 555.dp
+        }
+        val normalModifier = Modifier
+            .width(width)
+            .padding(start = 50.dp, top = 5.dp, bottom = 5.dp)
+        val greaterThen10Modifier = Modifier
+            .width(width)
+            .height(180.dp)
+            .padding(start = 50.dp, top = 5.dp, bottom = 5.dp)
+        Column {
+            Box(modifier = if (rows > 5) greaterThen10Modifier else normalModifier) {
+                val stateVertical = rememberScrollState(0)
+                Box(Modifier.verticalScroll(stateVertical)) {
+                    SelectionContainer {
+                        Text(
+                            textAlign = TextAlign.Start,
+                            overflow = TextOverflow.Ellipsis,
+                            fontSize = fontSize,
+                            color = MaterialTheme.colors.onBackground,
+                            modifier = Modifier.align(Alignment.CenterStart),
+                            text = word.pos,
+                        )
+                    }
+                }
+                if (rows > 5) {
+                    VerticalScrollbar(
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                            .fillMaxHeight(),
+                        adapter = rememberScrollbarAdapter(stateVertical)
+                    )
+                }
             }
             Divider(Modifier.padding(start = 50.dp))
         }
