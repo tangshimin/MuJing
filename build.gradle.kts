@@ -135,6 +135,22 @@ tasks.named("compileKotlin") {
     }
 }
 
+tasks.named<Test>("test") {
+    description = "Runs unit tests."
+    group = "verification"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    exclude("**/ui/**")
+}
+
+tasks.register<Test>("uiTest") {
+    description = "Runs UI tests."
+    group = "verification"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    include("**/ui/**")
+}
+
 project.afterEvaluate {
     val os = System.getProperty("os.name", "generic").lowercase()
     if(os.indexOf("windows") >= 0){

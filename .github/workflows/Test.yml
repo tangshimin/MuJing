@@ -11,6 +11,7 @@ jobs:
     name: Run Tests on ${{ matrix.name }}
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-latest, macos-13, macos-latest]
         include:
@@ -40,8 +41,11 @@ jobs:
         if: runner.os != 'Windows'
         run: chmod +x ./gradlew
 
-      - name: Run tests
+      - name: Run unit tests
         run: ./gradlew test
+
+      - name: Run UI tests
+        run: ./gradlew uiTest
 
       - name: Package DMG on macOS
         if: startsWith(matrix.os, 'macos')
