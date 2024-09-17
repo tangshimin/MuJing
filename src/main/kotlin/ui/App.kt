@@ -128,7 +128,6 @@ fun App(
                                 appState = appState,
                                 wordScreenState = wordState,
                                 vocabulary = wordState.vocabulary,
-                                vocabularyDir = wordState.getVocabularyDir(),
                             )
                         }
                         when (appState.global.type) {

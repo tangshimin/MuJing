@@ -31,20 +31,18 @@ import player.getAudioPath
 import player.play
 import player.playAudio
 import state.AppState
-import ui.word.WordScreenState
 import tts.rememberAzureTTS
+import ui.word.WordScreenState
 import util.rememberMonospace
 import java.awt.Point
 import java.awt.Rectangle
-import java.io.File
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalSerializationApi::class)
 @Composable
 fun Search(
     appState: AppState,
     wordScreenState: WordScreenState,
-    vocabularyDir : File,
-    vocabulary:  MutableVocabulary
+    vocabulary:  MutableVocabulary,
 ){
     val scope = rememberCoroutineScope()
     val azureTTS = rememberAzureTTS()
@@ -234,7 +232,7 @@ fun Search(
                                                             playTriple = playTriple,
                                                             videoPlayerComponent = appState.videoPlayerComponent,
                                                             bounds = playerBounds,
-                                                            vocabularyDir = vocabularyDir,
+                                                            vocabularyDir = wordScreenState.getVocabularyDir(),
                                                             resetVideoBounds = resetVideoBounds,
                                                             isVideoBoundsChanged = isVideoBoundsChanged,
                                                             setIsVideoBoundsChanged = { isVideoBoundsChanged = it }
@@ -314,7 +312,7 @@ fun Search(
                                                             videoPlayerComponent = appState.videoPlayerComponent,
                                                             bounds = playerBounds,
                                                             resetVideoBounds = resetVideoBounds,
-                                                            vocabularyDir = vocabularyDir,
+                                                            vocabularyDir = wordScreenState.getVocabularyDir(),
                                                             isVideoBoundsChanged = isVideoBoundsChanged,
                                                             setIsVideoBoundsChanged = { isVideoBoundsChanged = it }
                                                         )
