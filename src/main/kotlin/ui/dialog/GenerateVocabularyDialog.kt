@@ -1872,6 +1872,14 @@ fun SelectFile(
                     fontSize = 16.sp,
                     color = MaterialTheme.colors.onBackground
                 ),
+                decorationBox = { innerTextField ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(start = 2.dp, top = 2.dp, end = 4.dp, bottom = 2.dp)
+                    ) {
+                        innerTextField()
+                    }
+                },
                 modifier = Modifier
                     .width(300.dp)
                     .padding(start = 8.dp, end = 10.dp)
