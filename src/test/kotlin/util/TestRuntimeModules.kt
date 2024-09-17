@@ -139,7 +139,11 @@ fun findProcessByName(processName: String): ProcessHandle? {
         .findFirst().getOrNull()
 }
 
-
+/**
+ * 如果不是 GitHub Actions Windows 环境，返回 true
+ * 用于在 GitHub Actions Windows 环境下跳过某些测试用例
+ */
+@Suppress("unused")
 fun isNotGitHubActionsWindows(): Boolean {
     val isWindows = System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")
     val isGitHubActions = System.getenv("GITHUB_ACTIONS")?.toBoolean() ?: false
