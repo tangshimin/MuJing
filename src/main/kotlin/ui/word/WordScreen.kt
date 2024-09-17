@@ -629,6 +629,17 @@ fun MainContent(
                     }
                     true
                 }
+                (it.isCtrlPressed && it.key == Key.H && it.type == KeyEventType.KeyUp) -> {
+                    scope.launch {
+                        wordScreenState.sentencesVisible = !wordScreenState.sentencesVisible
+                        wordScreenState.saveWordScreenState()
+                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
+                            dictationState.sentencesVisible = wordScreenState.sentencesVisible
+                            dictationState.saveDictationState()
+                        }
+                    }
+                    true
+                }
                 (it.isCtrlPressed && it.key == Key.K && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         wordScreenState.translationVisible = !wordScreenState.translationVisible
