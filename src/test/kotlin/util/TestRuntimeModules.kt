@@ -1,13 +1,11 @@
 package util
 
 import org.junit.Test
-import org.junit.jupiter.api.Order
+import org.junit.jupiter.api.condition.EnabledIf
 import player.isMacOS
 import player.isWindows
 import java.io.File
 import java.util.*
-import java.util.concurrent.TimeoutException
-import org.junit.jupiter.api.condition.EnabledIf
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.jvm.optionals.getOrNull
@@ -101,20 +99,27 @@ class TestRuntimeModules {
         errorThread.start()
         // 启动一个线程来定期检测“幕境”进程是否启动
         val executor = Executors.newSingleThreadScheduledExecutor()
+        var destroyFailed = false
         executor.scheduleAtFixedRate({
             val newProcess = findProcessByName("幕境")
             if (newProcess != null) {
-                println("'幕境' 进程已启动，等待 20 秒后关闭...")
-                Thread.sleep(20 * 1000)
+
+                // 如果幕境进程已经启动，等待 20 秒后关闭
+                // 如第一次关闭失败，不再等待
+                if(!destroyFailed){
+                    println("'幕境' 进程已启动，等待 20 秒后关闭...")
+                    Thread.sleep(20 * 1000)
+                }
                 val destroyed = newProcess.destroy()
                 if(destroyed) {
                     println("'幕境' 进程已关闭")
-                }else{
-                    println("'幕境' 进程关闭失败")
-                    println("再次尝试关闭...")
-                    newProcess.destroyForcibly()
+                } else {
+                    destroyFailed = true
+                    println("无法关闭 '幕境' 进程，等待 1 分钟后再次尝试关闭...")
                 }
-                executor.shutdown()
+                if(destroyed){
+                    executor.shutdown()
+                }
             }
         }, 0, 1, TimeUnit.SECONDS)
 
