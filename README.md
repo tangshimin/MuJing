@@ -1,5 +1,5 @@
 ## 幕境
-通过电影、美剧、文档等生成词库，为单词提供具体语境。记忆单词时，可以通过键盘打字练习拼写、观看相关的视频片段。
+通过电影、美剧或文档生成词库（单词本）为单词提供具体语境。然后通过语境记忆单词。
 ### [下载地址](https://github.com/tangshimin/MuJing/releases)
 [![downloads](https://img.shields.io/github/downloads/tangshimin/MuJing/total?style=for-the-badge&logo=download&logoColor=white)](https://github.com/tangshimin/MuJing/releases)
 
