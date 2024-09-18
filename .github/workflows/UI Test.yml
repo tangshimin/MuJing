@@ -41,9 +41,5 @@ jobs:
         if: runner.os != 'Windows'
         run: chmod +x ./gradlew
 
-      - name: Run unit tests
-        run: ./gradlew test
-
-      - name: Package DMG on macOS
-        if: startsWith(matrix.os, 'macos')
-        run: ./gradlew packageDmg
+      - name: Run UI tests
+        run: ./gradlew uiTest
