@@ -174,6 +174,7 @@ class WordScreenTest {
         composeTestRule.onNode(hasText("显示词形")).isDisplayed()
         composeTestRule.onNode(hasText("英文释义")).isDisplayed()
         composeTestRule.onNode(hasText("中文释义")).isDisplayed()
+        composeTestRule.onNode(hasText("显示例句")).isDisplayed()
         composeTestRule.onNode(hasText("显示字幕")).isDisplayed()
         composeTestRule.onNode(hasText("击键音效")).isDisplayed()
         composeTestRule.onNode(hasText("提示音效")).isDisplayed()
