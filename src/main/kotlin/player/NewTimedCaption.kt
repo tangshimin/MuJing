@@ -1,8 +1,10 @@
 package player
 
 import kotlinx.serialization.Serializable
+import org.mozilla.universalchardet.UniversalDetector
 import subtitleFile.FormatSRT
 import java.io.File
+import java.nio.charset.Charset
 
 @Serializable
 data class NewCaption(var start: Int, var end: Int, var content: String) {
@@ -13,25 +15,30 @@ data class NewCaption(var start: Int, var end: Int, var content: String) {
 
 
 class NewTimedCaption(subtitleFile: File) {
-    private var captionList: List<NewCaption>
-    private var captionMap: Map<Int,NewCaption> = emptyMap()
+    private var captionList: List<NewCaption> = emptyList()
     private var currentIndex = 0
 
     init {
         require(subtitleFile.exists()) { "Subtitle file does not exist" }
+
+        val encoding = UniversalDetector.detectCharset(subtitleFile)
+        val charset =  if(encoding != null){
+            Charset.forName(encoding)
+        }else{
+            Charset.defaultCharset()
+        }
         val formatSRT = subtitleFile.inputStream().use {
-            FormatSRT().parseFile(subtitleFile.name, it, Charsets.UTF_8)
+            FormatSRT().parseFile(subtitleFile.name, it, charset)
         }
 
-        captionMap = formatSRT.captions.map {
-            it.key to NewCaption(
-                start = it.value.start.mseconds,
-                end = it.value.end.mseconds,
-                content = it.value.content
-            )
-        }.toMap()
 
-        captionList= captionMap.values.toList()
+        captionList= formatSRT.captions.values.map {
+            NewCaption(
+                start = it.start.mseconds,
+                end = it.end.mseconds,
+                content = it.content
+            )
+        }
 
     }
 
@@ -57,6 +64,17 @@ class NewTimedCaption(subtitleFile: File) {
         return currentIndex
     }
 
+    fun isEmpty(): Boolean {
+        return captionList.isEmpty()
+    }
+
+    fun isNotEmpty(): Boolean {
+        return captionList.isNotEmpty()
+    }
+
+    fun clear(){
+        captionList = emptyList()
+        currentIndex = 0
+    }
+
 }
-
-
