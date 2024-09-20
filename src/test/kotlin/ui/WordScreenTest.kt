@@ -7,7 +7,6 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import data.loadMutableVocabulary
 import kotlinx.serialization.ExperimentalSerializationApi
-import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import player.rememberPlayerState
@@ -23,12 +22,17 @@ class WordScreenTest {
     @get:Rule
     val composeTestRule = createComposeRule()
 
+    /**
+     * 测试记忆单词界面
+     */
     @OptIn(ExperimentalFoundationApi::class,
         ExperimentalAnimationApi::class,
-        ExperimentalSerializationApi::class
+        ExperimentalSerializationApi::class,
+        ExperimentalTestApi::class
     )
-    @Before
-    fun setUp(){
+    @Test
+    fun `Test WordScreen`(){
+
         // 设置测试环境
         composeTestRule.setContent {
             val appState = rememberAppState()
@@ -49,14 +53,7 @@ class WordScreenTest {
                 playerState = rememberPlayerState()
             )
         }
-    }
 
-    /**
-     * 测试记忆单词界面
-     */
-    @OptIn(ExperimentalTestApi::class)
-    @Test
-    fun `Test WordScreen`(){
 
         // 等待 Header 出现
         composeTestRule.waitUntilExactlyOneExists (hasTestTag("Header"),10000)
@@ -193,9 +190,5 @@ class WordScreenTest {
 
         // 等待侧边栏消失
         composeTestRule.waitUntilDoesNotExist(hasTestTag("WordScreenSidebar"),10000)
-
-
     }
-
-
 }
