@@ -3,11 +3,12 @@ package ui.dialog
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.VolumeDown
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
 import theme.createColors
+import theme.isSystemDarkMode
 import theme.toAwt
 import ui.flatlaf.updateFlatLaf
 import ui.window.windowBackgroundFlashingOnCloseFixHack
@@ -499,32 +501,97 @@ fun SettingTheme(
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth().padding(top = 20.dp)
+            modifier = Modifier.fillMaxWidth().padding(top = 20.dp,bottom = 10.dp)
         ) {
 
-            Text("深色模式", color = MaterialTheme.colors.onBackground, modifier = Modifier.padding(start = 10.dp))
-            Spacer(Modifier.width(15.dp))
-            Switch(
-                colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                checked = appState.global.isDarkTheme,
-                onCheckedChange = {
-                    scope.launch {
-                        appState.global.isDarkTheme = it
-                        appState.colors = createColors(
-                            appState.global.isDarkTheme,
-                            appState.global.primaryColor,
-                            appState.global.backgroundColor,
-                            appState.global.onBackgroundColor
-                        )
-                        appState.saveGlobalState()
+            val width = 120.dp
+            Column (
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.width(width).padding(end = 10.dp)
+                    .clickable {
+                        scope.launch {
+                            if(appState.global.isFollowSystemTheme || !appState.global.isDarkTheme){
+                                appState.global.isDarkTheme = true
+                                appState.global.isFollowSystemTheme = false
+                                appState.colors = createColors(appState.global)
+                                appState.saveGlobalState()
+                            }
+                        }
                     }
+            ){
+                val tint = if(!appState.global.isFollowSystemTheme && appState.global.isDarkTheme) MaterialTheme.colors.primary else MaterialTheme.colors.onBackground
+                Icon(
+                   Icons.Outlined.DarkMode,
+                    contentDescription = "Localized description",
+                    modifier = Modifier.size(60.dp, 60.dp),
+                    tint = tint
+                )
+                Text(
+                    text = "深色模式", fontSize = 12.sp,
+                )
+            }
+            Column (
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.width(width).padding(end = 10.dp)
+                    .clickable {
+                       scope.launch {
+                           if(appState.global.isFollowSystemTheme || appState.global.isDarkTheme){
+                               appState.global.isDarkTheme = false
+                               appState.global.isFollowSystemTheme = false
+                               appState.colors = createColors(appState.global)
+                               appState.saveGlobalState()
+                           }
+                       }
 
-                },
-            )
-            Spacer(Modifier.width(80.dp))
+                    }
+            ){
+                val tint = if(!appState.global.isFollowSystemTheme && !appState.global.isDarkTheme) MaterialTheme.colors.primary else MaterialTheme.colors.onBackground
+                Icon(
+                    Icons.Outlined.LightMode,
+                    contentDescription = "Localized description",
+                    modifier = Modifier.size(60.dp, 60.dp),
+                    tint = tint
+                )
+                Text(
+                    text = "浅色模式", fontSize = 12.sp,
+                )
+            }
+            Column (
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.width(width).padding(end = 10.dp)
+                    .clickable {
+                        scope.launch {
+                            if(!appState.global.isFollowSystemTheme){
+                                appState.global.isFollowSystemTheme = true
+                                appState.colors = createColors(appState.global)
+                                appState.saveGlobalState()
+                            }
+                        }
+                    }
+            ){
+                val imageVector = if(appState.global.isFollowSystemTheme){
+                   val isDark =  isSystemInDarkTheme()
+                    if(isDark) Icons.Outlined.Brightness4 else Icons.Outlined.Brightness7
+                } else {
+                    Icons.Outlined.BrightnessAuto
+                }
+                Icon(
+                    imageVector,
+                    contentDescription = "Localized description",
+                    modifier = Modifier.size(60.dp, 60.dp),
+                    tint = if(appState.global.isFollowSystemTheme) MaterialTheme.colors.primary else MaterialTheme.colors.onBackground
+                )
+                Text(
+                    text = "跟随系统", fontSize = 12.sp,
+                )
+            }
+            Spacer(Modifier.width(90.dp))
         }
         var selectPrimaryColor by remember { mutableStateOf(false) }
-        OutlinedButton(onClick = { selectPrimaryColor = true }, Modifier.padding(end = 80.dp)) {
+        OutlinedButton(onClick = { selectPrimaryColor = true }, Modifier.padding(end = 100.dp)) {
             Text("主色调")
         }
         if(selectPrimaryColor){
@@ -534,24 +601,14 @@ fun SettingTheme(
                 initColor = appState.global.primaryColor,
                 confirm = { selectedColor ->
                     appState.global.primaryColor = selectedColor
-                    appState.colors = createColors(
-                        appState.global.isDarkTheme,
-                        appState.global.primaryColor,
-                        appState.global.backgroundColor,
-                        appState.global.onBackgroundColor
-                    )
+                    appState.colors = createColors(appState.global)
                     appState.saveGlobalState()
                     selectPrimaryColor = false
                 },
                 reset = {
                     // 恢复默认颜色,绿色
                     appState.global.primaryColor = Color(9, 175, 0)
-                    appState.colors = createColors(
-                        appState.global.isDarkTheme,
-                        appState.global.primaryColor,
-                        appState.global.backgroundColor,
-                        appState.global.onBackgroundColor
-                    )
+                    appState.colors = createColors(appState.global)
                     appState.saveGlobalState()
                     selectPrimaryColor = false
                 },
@@ -559,11 +616,14 @@ fun SettingTheme(
             )
         }
 
-        if (!appState.global.isDarkTheme) {
+        val isDark = if (appState.global.isFollowSystemTheme) {
+            isSystemDarkMode()
+        } else appState.global.isDarkTheme
 
+        if (!isDark) {
             var selectBackgroundColor by remember { mutableStateOf(false) }
             var selectOnBackgroundColor by remember { mutableStateOf(false) }
-            OutlinedButton(onClick = { selectBackgroundColor = true }, Modifier.padding(end = 80.dp)) {
+            OutlinedButton(onClick = { selectBackgroundColor = true }, Modifier.padding(end = 100.dp)) {
                 Text("设置背景颜色")
             }
             if(selectBackgroundColor){
@@ -573,32 +633,24 @@ fun SettingTheme(
                     initColor = appState.global.backgroundColor,
                     confirm = { selectedColor ->
                         appState.global.backgroundColor = selectedColor
-                        appState.colors = createColors(
-                            appState.global.isDarkTheme,
-                            appState.global.primaryColor,
-                            appState.global.backgroundColor,
-                            appState.global.onBackgroundColor
-                        )
+                        appState.colors = createColors(appState.global)
                         updateFlatLaf(
-                            appState.global.isDarkTheme,
-                            appState.global.backgroundColor.toAwt(),
-                            appState.global.onBackgroundColor.toAwt()
+                            darkTheme = appState.global.isDarkTheme,
+                            isFollowSystemTheme = appState.global.isFollowSystemTheme,
+                            background = appState.global.backgroundColor.toAwt(),
+                            onBackground = appState.global.onBackgroundColor.toAwt()
                         )
                         appState.saveGlobalState()
                         selectBackgroundColor = false
                       },
                     reset = {
                         appState.global.backgroundColor = Color.White
-                        appState.colors = createColors(
-                            appState.global.isDarkTheme,
-                            appState.global.primaryColor,
-                            appState.global.backgroundColor,
-                            appState.global.onBackgroundColor
-                        )
+                        appState.colors = createColors(appState.global)
                         updateFlatLaf(
-                            appState.global.isDarkTheme,
-                            appState.global.backgroundColor.toAwt(),
-                            appState.global.onBackgroundColor.toAwt()
+                            darkTheme = appState.global.isDarkTheme,
+                            isFollowSystemTheme = appState.global.isFollowSystemTheme,
+                            background = appState.global.backgroundColor.toAwt(),
+                            onBackground = appState.global.onBackgroundColor.toAwt()
                         )
                         appState.saveGlobalState()
                         selectBackgroundColor = false
@@ -606,7 +658,7 @@ fun SettingTheme(
                     appState = appState
                 )
             }
-            OutlinedButton(onClick = { selectOnBackgroundColor = true }, Modifier.padding(end = 80.dp)) {
+            OutlinedButton(onClick = { selectOnBackgroundColor = true }, Modifier.padding(end = 90.dp)) {
                 Text("设置前景颜色")
             }
 
@@ -617,16 +669,12 @@ fun SettingTheme(
                     initColor = appState.global.onBackgroundColor,
                     confirm = { selectedColor ->
                         appState.global.onBackgroundColor = selectedColor
-                        appState.colors = createColors(
-                            appState.global.isDarkTheme,
-                            appState.global.primaryColor,
-                            appState.global.backgroundColor,
-                            appState.global.onBackgroundColor
-                        )
+                        appState.colors = createColors(appState.global)
                         updateFlatLaf(
-                            appState.global.isDarkTheme,
-                            appState.global.backgroundColor.toAwt(),
-                            appState.global.onBackgroundColor.toAwt()
+                            darkTheme = appState.global.isDarkTheme,
+                            isFollowSystemTheme = appState.global.isFollowSystemTheme,
+                            background = appState.global.backgroundColor.toAwt(),
+                            onBackground = appState.global.onBackgroundColor.toAwt()
                         )
                         appState.saveGlobalState()
                         selectOnBackgroundColor = false
@@ -634,16 +682,12 @@ fun SettingTheme(
                     },
                     reset = {
                         appState.global.onBackgroundColor = Color.Black
-                        appState.colors = createColors(
-                            appState.global.isDarkTheme,
-                            appState.global.primaryColor,
-                            appState.global.backgroundColor,
-                            appState.global.onBackgroundColor
-                        )
+                        appState.colors = createColors(appState.global)
                         updateFlatLaf(
-                            appState.global.isDarkTheme,
-                            appState.global.backgroundColor.toAwt(),
-                            appState.global.onBackgroundColor.toAwt()
+                            darkTheme = appState.global.isDarkTheme,
+                            isFollowSystemTheme = appState.global.isFollowSystemTheme,
+                            background = appState.global.backgroundColor.toAwt(),
+                            onBackground = appState.global.onBackgroundColor.toAwt()
                         )
                         appState.saveGlobalState()
                         selectOnBackgroundColor = false

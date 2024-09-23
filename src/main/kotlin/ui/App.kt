@@ -308,7 +308,12 @@ fun App(
                 vocabularyPath = chosenPath,
                 isDarkTheme = appState.global.isDarkTheme,
                 updateFlatLaf = {
-                    updateFlatLaf(appState.global.isDarkTheme,appState.global.backgroundColor.toAwt(),appState.global.onBackgroundColor.toAwt())
+                    updateFlatLaf(
+                        darkTheme = appState.global.isDarkTheme,
+                        isFollowSystemTheme = appState.global.isFollowSystemTheme,
+                        background = appState.global.backgroundColor.toAwt(),
+                        onBackground = appState.global.onBackgroundColor.toAwt()
+                    )
                 }
             )
         }else{
@@ -318,8 +323,13 @@ fun App(
     }
 
     // 改变主题后，更新菜单栏、标题栏的样式
-    LaunchedEffect(appState.global.isDarkTheme){
-        updateFlatLaf(appState.global.isDarkTheme,appState.global.backgroundColor.toAwt(),appState.global.onBackgroundColor.toAwt())
+    LaunchedEffect(appState.global.isDarkTheme,appState.global.isFollowSystemTheme){
+        updateFlatLaf(
+            darkTheme = appState.global.isDarkTheme,
+            isFollowSystemTheme = appState.global.isFollowSystemTheme,
+            background = appState.global.backgroundColor.toAwt(),
+            onBackground = appState.global.onBackgroundColor.toAwt()
+        )
         appState.futureFileChooser = setupFileChooser()
     }
 }

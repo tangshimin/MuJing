@@ -18,6 +18,7 @@ import kotlinx.serialization.Serializable
 data class GlobalData(
     val type: ScreenType = ScreenType.WORD,
     val isDarkTheme: Boolean = true,
+    val isFollowSystemTheme: Boolean = false,
     val audioVolume: Float = 0.8F,
     val videoVolume: Float = 80F,
     val keystrokeVolume: Float = 0.75F,
@@ -52,6 +53,11 @@ class GlobalState(globalData: GlobalData) {
      * 是否是深色模式
      */
     var isDarkTheme by mutableStateOf(globalData.isDarkTheme)
+
+    /**
+     * 是否跟随系统主题
+     */
+    var isFollowSystemTheme by mutableStateOf(globalData.isFollowSystemTheme)
 
     /**
      * 单词发音的音量

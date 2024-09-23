@@ -40,7 +40,7 @@ class AppState {
     var global: GlobalState = loadGlobalState()
 
     /** Material 颜色 */
-    var colors by mutableStateOf(createColors(global.isDarkTheme, global.primaryColor,global.backgroundColor,global.onBackgroundColor))
+    var colors by mutableStateOf(createColors(global))
 
     /** 视频播放窗口,使用 JFrame 的一个原因是 swingPanel 重组的时候会产生闪光,
      * 相关 Issue: https://github.com/JetBrains/compose-jb/issues/1800,
@@ -51,7 +51,7 @@ class AppState {
     var videoPlayerComponent = createMediaPlayerComponent()
 
     /** 文件选择器，如果不提前加载反应会很慢 */
-    var futureFileChooser: FutureTask<JFileChooser> = initializeFileChooser(global.isDarkTheme)
+    var futureFileChooser: FutureTask<JFileChooser> = initializeFileChooser(global.isDarkTheme,global.isFollowSystemTheme)
 
     /** 困难词库 */
     var hardVocabulary = loadMutableVocabularyByName("HardVocabulary")
@@ -142,6 +142,7 @@ class AppState {
                 val globalData = GlobalData(
                     global.type,
                     global.isDarkTheme,
+                    global.isFollowSystemTheme,
                     global.audioVolume,
                     global.videoVolume,
                     global.keystrokeVolume,

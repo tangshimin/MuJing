@@ -3,6 +3,7 @@ package ui.flatlaf
 import com.formdev.flatlaf.FlatDarkLaf
 import com.formdev.flatlaf.FlatLaf
 import com.formdev.flatlaf.FlatLightLaf
+import theme.isSystemDarkMode
 import java.awt.Color
 import java.awt.Font
 import java.awt.Insets
@@ -16,8 +17,16 @@ import javax.swing.border.LineBorder
 /**
  * 初始化 FlatLaf 和文件选择器
  */
-fun initializeFileChooser(darkTheme: Boolean): FutureTask<JFileChooser> {
-    initializeFlatLaf(darkTheme)
+fun initializeFileChooser(
+    darkTheme: Boolean,
+    isFollowSystemTheme: Boolean,
+): FutureTask<JFileChooser> {
+    if (isFollowSystemTheme) {
+        val isDark = isSystemDarkMode()
+        initializeFlatLaf(isDark)
+    } else{
+        initializeFlatLaf(darkTheme)
+    }
     return setupFileChooser()
 }
 
@@ -56,8 +65,13 @@ fun updateFlatLaf(
     darkTheme: Boolean,
     background: Color,
     onBackground: Color,
+    isFollowSystemTheme: Boolean=true,
 ) {
-    if (darkTheme) {
+    val isDark =  if(isFollowSystemTheme){
+        isSystemDarkMode()
+    }else darkTheme
+
+    if (isDark) {
         FlatDarkLaf.setup()
 
         // Panel
