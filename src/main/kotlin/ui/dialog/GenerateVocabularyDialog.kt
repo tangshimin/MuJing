@@ -697,7 +697,7 @@ fun GenerateVocabularyDialog(
                 val width = if(vocabularyFilterList.isEmpty()) 380.dp else 450.dp
                 Column(Modifier.width(width).fillMaxHeight()) {
                     BasicFilter(
-                        isDocument = type == DOCUMENT,
+                        showMaxSentenceLength = (type == DOCUMENT && title != "过滤词库"),
                         numberFilter = numberFilter,
                         changeNumberFilter = {
                             numberFilter = it
@@ -855,7 +855,13 @@ fun GenerateVocabularyDialog(
                             }
                             Idle -> {
                                 val text = when(type){
-                                    DOCUMENT -> "可以拖放文档到这里"
+                                    DOCUMENT -> {
+                                        if(title !== "过滤词库"){
+                                            "可以拖放文档到这里"
+                                        }else{
+                                            "可以拖放词库到这里"
+                                        }
+                                    }
                                     SUBTITLES -> "可以拖放 SRT 或 ASS 字幕到这里"
                                     MKV -> "可以拖放 MKV 或 MP4 视频到这里"
                                 }
@@ -1254,7 +1260,7 @@ private fun loadSummaryVocabulary(): Map<String, List<String>> {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BasicFilter(
-    isDocument: Boolean,
+    showMaxSentenceLength: Boolean,
     numberFilter: Boolean,
     changeNumberFilter: (Boolean) -> Unit,
     bncNum:Int,
@@ -1281,7 +1287,7 @@ fun BasicFilter(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth().height(48.dp)
         ) {
-            if(isDocument){
+            if(showMaxSentenceLength){
                 var maxLengthFieldValue by remember { mutableStateOf(TextFieldValue("$maxSentenceLength")) }
                 Text("单词所在句子的最大单词数 ", color = MaterialTheme.colors.onBackground, fontFamily = FontFamily.Default)
                 BasicTextField(
