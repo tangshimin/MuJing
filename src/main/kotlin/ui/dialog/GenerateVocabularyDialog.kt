@@ -2382,7 +2382,7 @@ fun PreviewWords(
                         },
                         delayMillis = 50,
                         tooltipPlacement = TooltipPlacement.ComponentRect(
-                            anchor = Alignment.BottomCenter,
+                            anchor = Alignment.BottomStart,
                             alignment = Alignment.BottomCenter,
                             offset = DpOffset.Zero
                         )
