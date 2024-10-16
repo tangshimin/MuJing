@@ -3,6 +3,7 @@ package ffmpeg
 import net.bramp.ffmpeg.FFmpeg
 import net.bramp.ffmpeg.FFmpegExecutor
 import net.bramp.ffmpeg.builder.FFmpegBuilder
+import net.bramp.ffmpeg.builder.FFmpegBuilder.Verbosity
 import net.bramp.ffmpeg.job.FFmpegJob
 import player.PlayerCaption
 import player.isWindows
@@ -28,9 +29,14 @@ fun findFFmpegPath(): String {
 /**
  * 使用 FFmpeg 提取视频里的字幕,并且把字幕转换成 SRT 格式
  */
-fun extractSubtitles(input: String,subtitleId: Int,output: String): String {
+fun extractSubtitles(
+    input: String, subtitleId: Int,
+    output: String,
+    verbosity: Verbosity = Verbosity.INFO
+): String {
     val ffmpeg = FFmpeg(findFFmpegPath())
     val builder = FFmpegBuilder()
+        .setVerbosity(verbosity)
         .setInput(input)
         .addOutput(output)
         .addExtraArgs("-map", "0:s:$subtitleId") //  -map 0:s:0 表示提取第一个字幕，-map 0:s:1 表示提取第二个字幕。
@@ -49,9 +55,14 @@ fun extractSubtitles(input: String,subtitleId: Int,output: String): String {
 /**
  * 使用 FFmpeg 把字幕格式转换成 SRT 格式
  */
-fun convertToSrt(input:String,output:String):String{
+fun convertToSrt(
+    input:String,
+    output:String,
+    verbosity: Verbosity = Verbosity.INFO
+    ):String{
     val ffmpeg = FFmpeg(findFFmpegPath())
     val builder = FFmpegBuilder()
+        .setVerbosity(verbosity)
         .setInput(input)
         .addOutput(output)
         .done()
@@ -67,11 +78,16 @@ fun convertToSrt(input:String,output:String):String{
 /**
  * 使用 FFmpeg 提取视频里的字幕，并且返回一个 Caption List
  */
-fun readCaptionList(videoPath: String, subtitleId: Int): List<PlayerCaption> {
+fun readCaptionList(
+    videoPath: String,
+    subtitleId: Int,
+    verbosity: Verbosity = Verbosity.INFO
+    ): List<PlayerCaption> {
     val captionList = mutableListOf<PlayerCaption>()
     val applicationDir = getSettingsDirectory()
     val ffmpeg = FFmpeg(findFFmpegPath())
     val builder = FFmpegBuilder()
+        .setVerbosity(verbosity)
         .setInput(videoPath)
         .addOutput("$applicationDir/temp.srt")
         .addExtraArgs("-map", "0:s:$subtitleId") //  -map 0:s:0 表示提取第一个字幕，-map 0:s:1 表示提取第二个字幕。
