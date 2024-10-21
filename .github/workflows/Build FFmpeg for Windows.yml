@@ -18,6 +18,7 @@ jobs:
             mingw-w64-x86_64-yasm
             mingw-w64-x86_64-pkg-config
             mingw-w64-x86_64-zlib
+            mingw-w64-x86_64-iconv
             zip
             nasm
 
@@ -54,6 +55,7 @@ jobs:
             --enable-demuxer=webvtt \
             --enable-muxer=srt \
             --enable-protocol=file \
+            --enable-iconv
 
       - name: Build and install FFmpeg
         shell: msys2 {0}
