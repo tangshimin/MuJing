@@ -30,6 +30,8 @@ jobs:
         run: |
           cd ffmpeg
           ./configure --disable-everything \
+            --enable-static \
+            --disable-shared \
             --disable-ffprobe \
             --enable-ffmpeg \
             --enable-avformat \
