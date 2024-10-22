@@ -55,7 +55,6 @@ jobs:
             --enable-demuxer=webvtt \
             --enable-muxer=srt \
             --enable-protocol=file \
-            --enable-iconv
 
       - name: Build and install FFmpeg
         shell: msys2 {0}
@@ -64,12 +63,18 @@ jobs:
           make
           make install
 
-      - name: Package FFmpeg
+      - name: Copy dependencies
         shell: msys2 {0}
         run: |
           mkdir -p /usr/local/bin/ffmpeg
-          mv /usr/local/bin/ffmpeg.exe  /usr/local/bin/ffmpeg/
-
+          cp /usr/local/bin/ffmpeg.exe /usr/local/bin/ffmpeg/
+          cp /mingw64/bin/libbz2-1.dll /usr/local/bin/ffmpeg/
+          cp /mingw64/bin/libiconv-2.dll /usr/local/bin/ffmpeg/
+          cp /mingw64/bin/liblzma-5.dll /usr/local/bin/ffmpeg/
+          cp /mingw64/bin/libwinpthread-1.dll /usr/local/bin/ffmpeg/
+          cp /mingw64/bin/zlib1.dll /usr/local/bin/ffmpeg/
+      
+      
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
