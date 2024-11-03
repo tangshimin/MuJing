@@ -34,22 +34,27 @@ fun extractSubtitles(
     output: String,
     verbosity: Verbosity = Verbosity.INFO
 ): String {
-    val ffmpeg = FFmpeg(findFFmpegPath())
-    val builder = FFmpegBuilder()
-        .setVerbosity(verbosity)
-        .setInput(input)
-        .addOutput(output)
-        .addExtraArgs("-map", "0:s:$subtitleId") //  -map 0:s:0 表示提取第一个字幕，-map 0:s:1 表示提取第二个字幕。
-        .done()
-    val executor = FFmpegExecutor(ffmpeg)
-    val job = executor.createJob(builder)
-    job.run()
-    if (job.state == FFmpegJob.State.FINISHED) {
-        return "finished"
-    }else{
-        JOptionPane.showMessageDialog(null, "提取字幕失败", "错误", JOptionPane.ERROR_MESSAGE)
+    return try {
+        val ffmpeg = FFmpeg(findFFmpegPath())
+        val builder = FFmpegBuilder()
+            .setVerbosity(verbosity)
+            .setInput(input)
+            .addOutput(output)
+            .addExtraArgs("-map", "0:s:$subtitleId") //  -map 0:s:0 表示提取第一个字幕，-map 0:s:1 表示提取第二个字幕。
+            .done()
+        val executor = FFmpegExecutor(ffmpeg)
+        val job = executor.createJob(builder)
+        job.run()
+        if (job.state == FFmpegJob.State.FINISHED) {
+            "finished"
+        } else {
+            JOptionPane.showMessageDialog(null, "提取字幕失败", "错误", JOptionPane.ERROR_MESSAGE)
+            "failed"
+        }
+    } catch (e: Exception) {
+        JOptionPane.showMessageDialog(null, "选择的字幕格式暂时不支持\n ${e.message}", "错误", JOptionPane.ERROR_MESSAGE)
+        "failed"
     }
-    return "failed"
 }
 
 /**
@@ -152,15 +157,19 @@ fun hasRichText(srtFile: File): Boolean {
 fun writeSubtitleToFile(
     videoPath: String,
     trackId: Int,
-): File {
+): File? {
     val settingsDir = getSettingsDirectory()
     val subtitleFile = File(settingsDir, "subtitles.srt")
-    extractSubtitles(videoPath,trackId,subtitleFile.absolutePath)
-    // 检查字幕文件是否包含富文本标签
-    val hasRichText = hasRichText(subtitleFile)
-    if(hasRichText){
-        removeRichText(subtitleFile)
-    }
+    val result = extractSubtitles(videoPath, trackId, subtitleFile.absolutePath)
+    if(result == "finished"){
+        // 检查字幕文件是否包含富文本标签
+        val hasRichText = hasRichText(subtitleFile)
+        if(hasRichText){
+            removeRichText(subtitleFile)
+        }
 
-    return subtitleFile
+        return subtitleFile
+    }else{
+        return null
+    }
 }
