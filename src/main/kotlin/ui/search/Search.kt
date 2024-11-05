@@ -32,7 +32,7 @@ import player.play
 import player.playAudio
 import state.AppState
 import tts.rememberAzureTTS
-import ui.word.WordScreenState
+import ui.wordscreen.WordScreenState
 import util.rememberMonospace
 import java.awt.Point
 import java.awt.Rectangle

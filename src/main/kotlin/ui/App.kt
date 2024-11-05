@@ -59,10 +59,10 @@ import ui.subtitle.rememberSubtitlesState
 import ui.text.TextScreen
 import ui.text.TextState
 import ui.text.rememberTextState
-import ui.word.WordScreen
-import ui.word.WordScreenState
-import ui.word.rememberPronunciation
-import ui.word.rememberWordState
+import ui.wordscreen.WordScreen
+import ui.wordscreen.WordScreenState
+import ui.wordscreen.rememberPronunciation
+import ui.wordscreen.rememberWordState
 import util.computeVideoBounds
 import java.awt.Rectangle
 import java.io.File

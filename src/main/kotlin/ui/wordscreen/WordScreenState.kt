@@ -1,4 +1,4 @@
-package ui.word
+package ui.wordscreen
 
 import androidx.compose.runtime.*
 import com.formdev.flatlaf.FlatLightLaf

@@ -24,7 +24,7 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.Word
 import ui.window.windowBackgroundFlashingOnCloseFixHack
-import ui.word.MemoryStrategy
+import ui.wordscreen.MemoryStrategy
 
 
 /**

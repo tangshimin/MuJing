@@ -1,4 +1,4 @@
-package ui.word
+package ui.wordscreen
 
 import LocalCtrl
 import androidx.compose.animation.*

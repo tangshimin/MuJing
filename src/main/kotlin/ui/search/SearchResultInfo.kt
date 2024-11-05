@@ -13,9 +13,9 @@ import data.Word
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.AudioButton
 import state.AppState
-import ui.word.WordScreenState
+import ui.wordscreen.WordScreenState
 import tts.AzureTTS
-import ui.word.Morphology
+import ui.wordscreen.Morphology
 
 @OptIn(ExperimentalSerializationApi::class)
 @Composable

@@ -35,7 +35,7 @@ import state.GlobalState
 import ui.Toolbar
 import ui.components.MacOSTitle
 import ui.components.RemoveButton
-import ui.word.playSound
+import ui.wordscreen.playSound
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import util.computeMediaType

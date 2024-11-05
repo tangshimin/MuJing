@@ -1,4 +1,4 @@
-package ui.word
+package ui.wordscreen
 
 import LocalCtrl
 import androidx.compose.animation.*
@@ -44,7 +44,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
 import state.*
-import ui.word.MemoryStrategy.*
+import ui.wordscreen.MemoryStrategy.*
 import tts.AzureTTS
 import tts.rememberAzureTTS
 import ui.Toolbar

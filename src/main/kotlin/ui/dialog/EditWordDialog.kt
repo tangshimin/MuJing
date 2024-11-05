@@ -51,8 +51,8 @@ import ui.edit.displayExchange
 import ui.edit.toAwtSize
 import ui.edit.toPoint
 import ui.window.windowBackgroundFlashingOnCloseFixHack
-import ui.word.getPlayTripleMap
-import ui.word.secondsToString
+import ui.wordscreen.getPlayTripleMap
+import ui.wordscreen.secondsToString
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.Point

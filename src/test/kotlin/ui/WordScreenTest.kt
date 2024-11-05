@@ -13,8 +13,8 @@ import player.rememberPlayerState
 import state.GlobalData
 import state.GlobalState
 import state.rememberAppState
-import ui.word.WordScreenData
-import ui.word.WordScreenState
+import ui.wordscreen.WordScreenData
+import ui.wordscreen.WordScreenState
 import java.io.File
 
 class WordScreenTest {

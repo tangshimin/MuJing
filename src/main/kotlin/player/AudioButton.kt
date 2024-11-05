@@ -26,7 +26,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
-import ui.word.WordScreenState
+import ui.wordscreen.WordScreenState
 import state.getAudioDirectory
 import tts.MSTTSpeech
 import tts.MacTTS

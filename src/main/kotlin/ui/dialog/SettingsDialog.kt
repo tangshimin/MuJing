@@ -33,7 +33,7 @@ import theme.isSystemDarkMode
 import theme.toAwt
 import ui.flatlaf.updateFlatLaf
 import ui.window.windowBackgroundFlashingOnCloseFixHack
-import ui.word.*
+import ui.wordscreen.*
 import util.rememberMonospace
 import java.awt.Toolkit
 

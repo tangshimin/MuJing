@@ -37,7 +37,7 @@ import player.isMacOS
 import player.play
 import state.AppState
 import ui.window.windowBackgroundFlashingOnCloseFixHack
-import ui.word.getPlayTripleMap
+import ui.wordscreen.getPlayTripleMap
 import java.awt.Point
 import java.awt.Rectangle
 import java.io.File

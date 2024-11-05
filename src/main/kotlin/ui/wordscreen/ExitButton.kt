@@ -1,4 +1,4 @@
-package ui.word
+package ui.wordscreen
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi

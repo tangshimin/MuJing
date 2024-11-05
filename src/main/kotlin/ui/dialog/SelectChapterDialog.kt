@@ -23,9 +23,9 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.Word
 import ui.window.windowBackgroundFlashingOnCloseFixHack
-import ui.word.MemoryStrategy
-import ui.word.WordScreenState
-import ui.word.rememberDictationState
+import ui.wordscreen.MemoryStrategy
+import ui.wordscreen.WordScreenState
+import ui.wordscreen.rememberDictationState
 
 /**
  * 选择章节

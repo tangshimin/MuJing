@@ -47,7 +47,7 @@ import ui.subtitle.OpenMode
 import util.createTransferHandler
 import ui.subtitle.videoFormatList
 import ui.components.RemoveButton
-import ui.word.playSound
+import ui.wordscreen.playSound
 import util.rememberMonospace
 import java.io.File
 import java.nio.file.Files
