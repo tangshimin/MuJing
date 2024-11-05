@@ -1,4 +1,4 @@
-package ui.text
+package ui.textscreen
 
 import LocalCtrl
 import androidx.compose.foundation.*

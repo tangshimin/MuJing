@@ -56,9 +56,9 @@ import ui.search.Search
 import ui.subtitle.SubtitleScreen
 import ui.subtitle.SubtitlesState
 import ui.subtitle.rememberSubtitlesState
-import ui.text.TextScreen
-import ui.text.TextState
-import ui.text.rememberTextState
+import ui.textscreen.TextScreen
+import ui.textscreen.TextState
+import ui.textscreen.rememberTextState
 import ui.wordscreen.WordScreen
 import ui.wordscreen.WordScreenState
 import ui.wordscreen.rememberPronunciation
