@@ -1,4 +1,4 @@
-package ui.subtitle
+package ui.subtitlescreen
 
 import LocalCtrl
 import androidx.compose.foundation.*

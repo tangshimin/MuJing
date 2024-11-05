@@ -53,9 +53,9 @@ import ui.edit.checkVocabulary
 import ui.flatlaf.setupFileChooser
 import ui.flatlaf.updateFlatLaf
 import ui.search.Search
-import ui.subtitle.SubtitleScreen
-import ui.subtitle.SubtitlesState
-import ui.subtitle.rememberSubtitlesState
+import ui.subtitlescreen.SubtitleScreen
+import ui.subtitlescreen.SubtitlesState
+import ui.subtitlescreen.rememberSubtitlesState
 import ui.textscreen.TextScreen
 import ui.textscreen.TextState
 import ui.textscreen.rememberTextState

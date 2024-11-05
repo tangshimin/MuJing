@@ -1,4 +1,4 @@
-package ui.subtitle
+package ui.subtitlescreen
 
 import androidx.compose.runtime.*
 

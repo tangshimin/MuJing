@@ -43,9 +43,9 @@ import state.GlobalState
 import ui.Toolbar
 import ui.components.MacOSTitle
 import ui.dialog.FormatDialog
-import ui.subtitle.OpenMode
+import ui.subtitlescreen.OpenMode
 import util.createTransferHandler
-import ui.subtitle.videoFormatList
+import ui.subtitlescreen.videoFormatList
 import ui.components.RemoveButton
 import ui.wordscreen.playSound
 import util.rememberMonospace

@@ -1,4 +1,4 @@
-package ui.subtitle
+package ui.subtitlescreen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
