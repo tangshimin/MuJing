@@ -1,5 +1,6 @@
 package ui.dialog
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -9,6 +10,8 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
@@ -16,8 +19,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Help
-import androidx.compose.material.icons.outlined.Error
-import androidx.compose.material.icons.outlined.TaskAlt
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -27,6 +29,7 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.PointerIcon.Companion.Hand
 import androidx.compose.ui.input.pointer.onPointerEvent
@@ -74,6 +77,8 @@ import javax.swing.JFileChooser
 import javax.swing.JOptionPane
 import javax.swing.filechooser.FileNameExtensionFilter
 import javax.swing.filechooser.FileSystemView
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * 生成词库
@@ -125,6 +130,8 @@ fun GenerateVocabularyDialog(
             )
             else -> null
         }
+
+        var started by remember { mutableStateOf(false) }
 
         /**
          * 选择的文件列表,用于批量处理
@@ -182,6 +189,9 @@ fun GenerateVocabularyDialog(
          */
         val previewList = remember { mutableStateListOf<Word>() }
 
+
+        val parsedList = remember { mutableStateListOf<Word>() }
+
         /**
          * 用字幕生成单词 -> 相关视频的地址
          */
@@ -216,6 +226,20 @@ fun GenerateVocabularyDialog(
          * 用于过滤的词库列表
          */
         val vocabularyFilterList = remember { mutableStateListOf<File>() }
+
+        /**
+         * 是否过滤词组
+         */
+        var enablePhrases by remember { mutableStateOf(false) }
+        /**
+         * 过滤单词
+         */
+        var filter by remember { mutableStateOf(true) }
+
+        /**
+         * 包含单词
+         */
+        var include by remember { mutableStateOf(false) }
 
         /**
          * 是否过滤所有的数字
@@ -259,6 +283,7 @@ fun GenerateVocabularyDialog(
 
         var sort by remember { mutableStateOf("appearance") }
 
+        var showCard by remember { mutableStateOf(true) }
         /** 文件选择器的标题 */
         val chooseText = when (title) {
             "过滤词库" -> "选择词库"
@@ -459,7 +484,9 @@ fun GenerateVocabularyDialog(
         /** 打开文件时调用的函数 */
         val openFile:() -> Unit = {
             scope.launch (Dispatchers.Default) {
-                val fileChooser = state.futureFileChooser.get()
+                val fileChooser = withContext(Dispatchers.IO) {
+                    state.futureFileChooser.get()
+                }
                 fileChooser.dialogTitle = chooseText
                 fileChooser.fileSystemView = FileSystemView.getFileSystemView()
                 fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
@@ -539,14 +566,21 @@ fun GenerateVocabularyDialog(
             fileChooser.removeChoosableFileFilter(fileFilter)
         }
 
+        /** 改变了左边过滤区域的状态，如有有一个为真，或者选择了一个词库，就开始过滤 */
+        val shouldApplyFilters :() -> Boolean = {
+            numberFilter || bncNumberFilter || frqNumFilter ||
+                bncZeroFilter || frqZeroFilter || replaceToLemma ||
+                vocabularyFilterList.isNotEmpty()
+        }
+
         /** 分析文件里的单词 */
         val analysis : (String,Int) -> Unit = { pathName, trackId ->
+            started = true
             filterState = Parsing
             vocabularyFilterList.clear()
             previewList.clear()
-
+            parsedList.clear()
             scope.launch (Dispatchers.Default){
-                // 使用 Thread 才能显示等待动画。
                 val words = when (type) {
                     DOCUMENT -> {
                         if (title == "过滤词库") {
@@ -558,6 +592,7 @@ fun GenerateVocabularyDialog(
                         } else {
                             parseDocument(
                                 pathName = pathName,
+                                enablePhrases = enablePhrases,
                                 sentenceLength = state.global.maxSentenceLength ,
                                 setProgressText = { progressText = it })
                         }
@@ -567,41 +602,49 @@ fun GenerateVocabularyDialog(
                     SUBTITLES -> {
                         val extension = File(pathName).extension
                         if (extension == "srt") {
-                            parseSRT(pathName = pathName, setProgressText = { progressText = it })
+                            parseSRT(pathName = pathName,
+                                enablePhrases =  enablePhrases,
+                                setProgressText = { progressText = it }
+                            )
                         } else {
-                            parseASS(pathName = pathName, setProgressText = { progressText = it })
+                            parseASS(
+                                pathName = pathName,
+                                enablePhrases =  enablePhrases,
+                                setProgressText = { progressText = it }
+                            )
                         }
                     }
 
                     MKV -> {
                         parseVideo(
                             pathName = pathName,
+                            enablePhrases =  enablePhrases,
                             trackId = trackId,
                             setProgressText = { progressText = it }
                         )
                     }
                 }
-                previewList.addAll(words)
-                filterState =
-                    if (numberFilter || bncNumberFilter || frqNumFilter ||
-                        bncZeroFilter || frqZeroFilter || replaceToLemma ||
-                        vocabularyFilterList.isNotEmpty()
-                    ) {
-                        Filtering
-                    } else {
-                        End
-                    }
+                parsedList.addAll(words)
+                filterState =if(shouldApplyFilters()) {
+                    Filtering
+                } else {
+                    // 不用过滤
+                    previewList.addAll(words)
+                    End
+                }
         }
         }
 
         /** 批量分析文件 MKV 视频里的单词 */
         val batchAnalysis:(String) -> Unit = {language ->
-
+            started = true
             vocabularyFilterList.clear()
             previewList.clear()
+            parsedList.clear()
             scope.launch (Dispatchers.Default) {
                 val words = batchReadMKV(
                     language = language,
+                    enablePhrases =  enablePhrases,
                     selectedFileList = selectedFileList,
                     setCurrentTask = { currentTask = it },
                     setErrorMessages = {
@@ -616,16 +659,14 @@ fun GenerateVocabularyDialog(
                     showTaskList = false
                     selectable = false
                 }
-                previewList.addAll(words)
-                filterState =
-                    if (numberFilter || bncNumberFilter || frqNumFilter ||
-                        bncZeroFilter || frqZeroFilter || replaceToLemma ||
-                        vocabularyFilterList.isNotEmpty()
-                    ) {
-                        Filtering
-                    } else {
-                        End
-                    }
+                parsedList.addAll(words)
+                filterState = if(shouldApplyFilters()) {
+                    Filtering
+                }else{
+                    // 不用过滤
+                    previewList.addAll(words)
+                    End
+                }
 
                 if (errorMessages.isNotEmpty()) {
                     val string = "有 ${errorMessages.size} 个文件解析失败，请点击 [任务列表] 查看详细信息"
@@ -697,11 +738,35 @@ fun GenerateVocabularyDialog(
                 val width = if(vocabularyFilterList.isEmpty()) 380.dp else 450.dp
                 Column(Modifier.width(width).fillMaxHeight()) {
                     BasicFilter(
+                        filter = filter,
+                        changeFilter = {
+                            filter = it
+                            scope.launch (Dispatchers.Default){
+                                include = !include
+                                if(started){
+                                    filterState = Filtering
+                                }
+                            }
+
+                        },
+                        include = include,
+                        changeInclude = {
+                            include = it
+                            scope.launch (Dispatchers.Default){
+                                filter = !filter
+                                if(started){
+                                    filterState = Filtering
+                                }
+                            }
+
+                        },
                         showMaxSentenceLength = (type == DOCUMENT && title != "过滤词库"),
                         numberFilter = numberFilter,
                         changeNumberFilter = {
                             numberFilter = it
-                            filterState = Filtering
+                            if(started){
+                                filterState = Filtering
+                            }
                         },
                         bncNum = state.global.bncNum,
                         setBncNum = {state.global.bncNum = it},
@@ -710,29 +775,39 @@ fun GenerateVocabularyDialog(
                         bncNumFilter = bncNumberFilter,
                         changeBncNumFilter = {
                             bncNumberFilter = it
-                            filterState = Filtering
+                            if(started){
+                                filterState = Filtering
+                            }
                         },
                         frqNum = state.global.frqNum,
                         setFrqNum = {state.global.frqNum = it},
                         frqNumFilter = frqNumFilter,
                         changeFrqFilter = {
                             frqNumFilter = it
-                            filterState = Filtering
+                            if(started){
+                                filterState = Filtering
+                            }
                         },
                         bncZeroFilter = bncZeroFilter,
                         changeBncZeroFilter = {
                             bncZeroFilter = it
-                            filterState = Filtering
+                            if(started){
+                                filterState = Filtering
+                            }
                         },
                         frqZeroFilter = frqZeroFilter,
                         changeFrqZeroFilter = {
                             frqZeroFilter = it
-                            filterState = Filtering
+                            if(started){
+                                filterState = Filtering
+                            }
                         },
                         replaceToLemma = replaceToLemma,
                         setReplaceToLemma = {
                             replaceToLemma = it
-                            filterState = Filtering
+                            if(started){
+                                filterState = Filtering
+                            }
                         },
                     )
                     VocabularyFilter(
@@ -741,12 +816,16 @@ fun GenerateVocabularyDialog(
                         vocabularyFilterListAdd = {
                             if (!vocabularyFilterList.contains(it)) {
                                 vocabularyFilterList.add(it)
-                                filterState = Filtering
+                                if(started){
+                                    filterState = Filtering
+                                }
                             }
                         },
                         vocabularyFilterListRemove = {
                             vocabularyFilterList.remove(it)
-                            filterState = Filtering
+                            if(started){
+                                filterState = Filtering
+                            }
                         },
                         recentList = state.recentList,
                         removeInvalidRecentItem = {
@@ -794,86 +873,132 @@ fun GenerateVocabularyDialog(
                         delete = { delete() },
                         chooseText = chooseText,
                         openFile = { openFile() },
-                        openRelateVideo = { openRelateVideo() }
+                        openRelateVideo = { openRelateVideo() },
+                        started = started,
+                        showEnablePhrases = title != "过滤词库",
+                        enablePhrases = enablePhrases,
+                        changeEnablePhrases = {
+                            enablePhrases = it
+                            filterState = Filtering
+                        },
                     )
 
                     // 单词预览和任务列表
                     Box(Modifier.fillMaxSize()) {
-                        when (filterState) {
-                            Parsing -> {
-                                Column(
-                                    verticalArrangement = Arrangement.Center,
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier.align(Alignment.Center).fillMaxSize()
-                                ) {
-                                    CircularProgressIndicator(
-                                        Modifier.width(60.dp).padding(bottom = 60.dp)
-                                    )
-                                    Text(text = progressText, color = MaterialTheme.colors.onBackground)
-                                }
-                            }
-                            Filtering -> {
-                                CircularProgressIndicator(
-                                    Modifier.width(60.dp).align(Alignment.Center)
-                                )
-                                scope.launch (Dispatchers.Default) {
-                                    // 根据词频或原型过滤单词
-                                    val filteredDocumentList = filterDocumentWords(
-                                        previewList,
-                                        numberFilter,
-                                        state.global.bncNum,
-                                        bncNumberFilter,
-                                        state.global.frqNum,
-                                        frqNumFilter,
-                                        bncZeroFilter,
-                                        frqZeroFilter,
-                                        replaceToLemma,
-                                        selectedFileList.isNotEmpty()
-                                    )
-                                    previewList.clear()
-                                    // 根据选择的词库过滤单词
-                                    val filteredList = filterSelectVocabulary(
-                                        selectedFileList = vocabularyFilterList,
-                                        filteredDocumentList = filteredDocumentList
-                                    )
-                                    // 过滤手动删除的单词
-                                    filteredList.removeAll(removedWords)
-                                    previewList.addAll(filteredList)
-                                    filterState = End
-                                }
-
-
-                            }
-                            End -> {
-                                PreviewWords(
-                                    previewList = previewList,
-                                    summaryVocabulary = summaryVocabulary,
-                                    removeWord = { removeWord(it) },
-                                    sort = sort,
-                                    changeSort = {sort = it}
-                                )
-                            }
-                            Idle -> {
-                                val text = when(type){
-                                    DOCUMENT -> {
-                                        if(title !== "过滤词库"){
-                                            "可以拖放文档到这里"
-                                        }else{
-                                            "可以拖放词库到这里"
-                                        }
+                        if(started){
+                            when (filterState) {
+                                Parsing -> {
+                                    Column(
+                                        verticalArrangement = Arrangement.Center,
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        modifier = Modifier.align(Alignment.Center).fillMaxSize()
+                                    ) {
+                                        CircularProgressIndicator(
+                                            Modifier.width(60.dp).padding(bottom = 60.dp)
+                                        )
+                                        Text(text = progressText, color = MaterialTheme.colors.onBackground)
                                     }
-                                    SUBTITLES -> "可以拖放 SRT 或 ASS 字幕到这里"
-                                    MKV -> "可以拖放 MKV 或 MP4 视频到这里"
                                 }
-                                if(!loading){
-                                    Text(
-                                        text = text,
-                                        color = MaterialTheme.colors.onBackground,
-                                        style = MaterialTheme.typography.h6,
-                                        modifier = Modifier.align(Alignment.Center)
+                                Filtering -> {
+                                    CircularProgressIndicator(
+                                        Modifier.width(60.dp).align(Alignment.Center)
+                                    )
+                                    scope.launch (Dispatchers.Default) {
+                                        // 是否应该执行过滤或包含
+                                        if(shouldApplyFilters()){
+                                            // 过滤词库
+                                            if(filter){
+                                                // 根据词频或原型过滤单词
+                                                val basicFilteredList = filterWords(
+                                                    parsedList,
+                                                    numberFilter,
+                                                    state.global.bncNum,
+                                                    bncNumberFilter,
+                                                    state.global.frqNum,
+                                                    frqNumFilter,
+                                                    bncZeroFilter,
+                                                    frqZeroFilter,
+                                                    replaceToLemma,
+                                                    selectedFileList.isNotEmpty()
+                                                )
+                                                // 根据选择的词库过滤单词
+                                                val filteredList = filterSelectVocabulary(
+                                                    selectedFileList = vocabularyFilterList,
+                                                    basicFilteredList = basicFilteredList
+                                                )
+                                                // 过滤手动删除的单词
+                                                filteredList.removeAll(removedWords)
+                                                previewList.clear()
+                                                previewList.addAll(filteredList)
+                                                filterState = End
+                                            }else{// 包含词库
+                                                // 根据词频或原型包含单词
+                                                val basicIncludeList = includeWords(
+                                                    parsedList,
+                                                    numberFilter,
+                                                    state.global.bncNum,
+                                                    bncNumberFilter,
+                                                    state.global.frqNum,
+                                                    frqNumFilter,
+                                                    bncZeroFilter,
+                                                    frqZeroFilter,
+                                                    replaceToLemma,
+                                                    selectedFileList.isNotEmpty()
+                                                )
+                                                // 根据选择的词库包含单词
+                                                val includeList = includeSelectVocabulary(
+                                                    selectedFileList = vocabularyFilterList,
+                                                    parsedList = parsedList
+                                                )
+                                                includeList.addAll(basicIncludeList)
+
+                                                // 过滤手动删除的单词
+                                                includeList.removeAll(removedWords)
+                                                previewList.clear()
+                                                previewList.addAll(includeList)
+                                                filterState = End
+                                            }
+                                        }else{
+                                            // 不用过滤或包含
+                                            previewList.clear()
+                                            previewList.addAll(parsedList)
+                                            filterState = End
+                                        }
+
+                                    }
+                                }
+                                End -> {
+                                    PreviewWords(
+                                        previewList = previewList,
+                                        summaryVocabulary = summaryVocabulary,
+                                        removeWord = { removeWord(it) },
+                                        sort = sort,
+                                        changeSort = {sort = it},
+                                        showCard = showCard,
+                                        changeShowCard = {showCard = it}
                                     )
                                 }
-
+                                Idle -> {}
+                            }
+                        }else{
+                            val text = when(type){
+                                DOCUMENT -> {
+                                    if(title !== "过滤词库"){
+                                        "可以拖放文档到这里"
+                                    }else{
+                                        "可以拖放词库到这里"
+                                    }
+                                }
+                                SUBTITLES -> "可以拖放 SRT 或 ASS 字幕到这里"
+                                MKV -> "可以拖放 MKV 或 MP4 视频到这里"
+                            }
+                            if(!loading){
+                                Text(
+                                    text = text,
+                                    color = MaterialTheme.colors.onBackground,
+                                    style = MaterialTheme.typography.h6,
+                                    modifier = Modifier.align(Alignment.Center)
+                                )
                             }
                         }
 
@@ -984,6 +1109,7 @@ fun GenerateVocabularyDialog(
 
                                         // 清理状态
                                         selectedFileList.clear()
+                                        started = false
                                         showTaskList = false
                                         tasksState.clear()
                                         currentTask = null
@@ -991,6 +1117,7 @@ fun GenerateVocabularyDialog(
                                         selectedFilePath = ""
                                         selectedSubtitlesName = ""
                                         previewList.clear()
+                                        parsedList.clear()
                                         relateVideoPath = ""
                                         selectedTrackId = 0
                                         filteringType = DOCUMENT
@@ -1083,6 +1210,8 @@ fun Summary(
     list: List<Word>,
     summaryVocabulary: Map<String, List<String>>,
     sort:String,
+    showCard:Boolean,
+    changeShowCard:(Boolean) -> Unit,
     changeSort:(String) -> Unit,
 ) {
 
@@ -1193,9 +1322,18 @@ fun Summary(
                         Text("按出现的顺序排序")
                     }
 
-
                 }
 
+            }
+            IconButton(
+                onClick = { changeShowCard(!showCard) },
+                modifier = Modifier.padding(start = 10.dp)
+            ) {
+                Icon(
+                    if (showCard) Icons.Outlined.GridView else Icons.Outlined.ViewList,
+                    contentDescription = "Localized description",
+                    tint = MaterialTheme.colors.onBackground
+                )
             }
         }
         Divider()
@@ -1260,6 +1398,10 @@ private fun loadSummaryVocabulary(): Map<String, List<String>> {
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun BasicFilter(
+    filter:Boolean,
+    changeFilter:(Boolean) -> Unit,
+    include:Boolean,
+    changeInclude:(Boolean) -> Unit,
     showMaxSentenceLength: Boolean,
     numberFilter: Boolean,
     changeNumberFilter: (Boolean) -> Unit,
@@ -1325,39 +1467,47 @@ fun BasicFilter(
             }
         }
         Divider()
+        val textWidth = 320.dp
+
+        val textColor = MaterialTheme.colors.onBackground
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth().height(61.dp)
         ) {
-            Text("过滤词库", color = MaterialTheme.colors.onBackground, fontFamily = FontFamily.Default)
-        }
-        Divider()
-        val textWidth = 320.dp
-        val textColor = MaterialTheme.colors.onBackground
-        Row(
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(Modifier.width(textWidth)) {
-                Text("过滤所有数字 ", color = MaterialTheme.colors.onBackground)
-            }
+            Text("包含", color = MaterialTheme.colors.onBackground, fontFamily = FontFamily.Default)
             Checkbox(
-                checked = numberFilter,
-                onCheckedChange = { changeNumberFilter(it) },
+                checked = include,
+                onCheckedChange = {
+                    changeInclude(it)
+                },
+                modifier = Modifier.size(30.dp, 30.dp)
+            )
+
+            Spacer(Modifier.width(10.dp))
+            Text("过滤", color = MaterialTheme.colors.onBackground, fontFamily = FontFamily.Default)
+            Checkbox(
+                checked = filter,
+                onCheckedChange = {
+                  changeFilter(it)
+                },
                 modifier = Modifier.size(30.dp, 30.dp)
             )
         }
         Divider()
+        // 过滤词频
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.fillMaxWidth()
         ) {
-
             Row(Modifier.width(textWidth)) {
-                Text("过滤 ", color = MaterialTheme.colors.onBackground)
+                AnimatedVisibility(visible = filter){
+                    Text("过滤 ", color = MaterialTheme.colors.onBackground)
+                }
+                AnimatedVisibility(visible = include){
+                    Text("包含 ", color = MaterialTheme.colors.onBackground)
+                }
                 Text("BNC", color = MaterialTheme.colors.onBackground,
                 modifier = Modifier.padding(end = 1.dp))
                 Text("   词频前 ", color = MaterialTheme.colors.onBackground)
@@ -1408,7 +1558,13 @@ fun BasicFilter(
             modifier = Modifier.fillMaxWidth()
         ) {
             Row(Modifier.width(textWidth)) {
-                Text("过滤 COCA 词频前 ", color = MaterialTheme.colors.onBackground)
+                AnimatedVisibility(visible = filter){
+                    Text("过滤 ", color = MaterialTheme.colors.onBackground)
+                }
+                AnimatedVisibility(visible = include){
+                    Text("包含 ", color = MaterialTheme.colors.onBackground)
+                }
+                Text("COCA 词频前 ", color = MaterialTheme.colors.onBackground)
                 var frqNumFieldValue by remember { mutableStateOf(TextFieldValue("$frqNum")) }
                 BasicTextField(
                         value = frqNumFieldValue,
@@ -1458,7 +1614,13 @@ fun BasicFilter(
 
 
             Row(Modifier.width(textWidth)) {
-                Text("过滤所有 ", color = MaterialTheme.colors.onBackground)
+                AnimatedVisibility(visible = filter){
+                    Text("过滤 ", color = MaterialTheme.colors.onBackground)
+                }
+                AnimatedVisibility(visible = include){
+                    Text("包含 ", color = MaterialTheme.colors.onBackground)
+                }
+                Text("所有 ", color = MaterialTheme.colors.onBackground)
 
                 TooltipArea(
                     tooltip = {
@@ -1507,7 +1669,13 @@ fun BasicFilter(
         ) {
 
             Row(Modifier.width(textWidth)) {
-                Text("过滤所有 ", color = MaterialTheme.colors.onBackground)
+                AnimatedVisibility(visible = filter){
+                    Text("过滤 ", color = MaterialTheme.colors.onBackground)
+                }
+                AnimatedVisibility(visible = include){
+                    Text("包含 ", color = MaterialTheme.colors.onBackground)
+                }
+                Text("所有 ", color = MaterialTheme.colors.onBackground)
                 TooltipArea(
                     tooltip = {
                         Surface(
@@ -1545,7 +1713,27 @@ fun BasicFilter(
             )
         }
         Divider()
-
+        Row(
+            horizontalArrangement = Arrangement.Center,
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Row(Modifier.width(textWidth)) {
+                AnimatedVisibility(visible = filter){
+                    Text("过滤 ", color = MaterialTheme.colors.onBackground)
+                }
+                AnimatedVisibility(visible = include){
+                    Text("包含 ", color = MaterialTheme.colors.onBackground)
+                }
+                Text("所有数字 ", color = MaterialTheme.colors.onBackground)
+            }
+            Checkbox(
+                checked = numberFilter,
+                onCheckedChange = { changeNumberFilter(it) },
+                modifier = Modifier.size(30.dp, 30.dp)
+            )
+        }
+        Divider()
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
@@ -1559,6 +1747,7 @@ fun BasicFilter(
             )
             Checkbox(
                 checked = replaceToLemma,
+                enabled = filter,
                 onCheckedChange = { setReplaceToLemma(it) },
                 modifier = Modifier.size(30.dp, 30.dp)
             )
@@ -1584,28 +1773,122 @@ fun VocabularyFilter(
 
         Column(Modifier.width(180.dp).fillMaxHeight().background(MaterialTheme.colors.background)) {
 
-            if (recentList.isNotEmpty()) {
-                Box(Modifier.width(180.dp).height(IntrinsicSize.Max).padding(top = 10.dp)) {
-                    var expanded by remember { mutableStateOf(false) }
-                    OutlinedButton(
-                        onClick = { expanded = true },
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                    ) {
-                        Text(text = "最近使用的词库")
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().height(40.dp)
+                    .clickable {
+                        getResourcesFile("vocabulary/大学英语/四级.json").let {
+                            if (!vocabularyFilterList.contains(it)) {
+                                vocabularyFilterListAdd(it)
+                            }
+                        }
                     }
-                    val dropdownMenuHeight = if (recentList.size <= 10) (recentList.size * 40 + 20).dp else 420.dp
+            ) {
+                Text("四级", color = MaterialTheme.colors.onBackground)
+            }
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().height(40.dp)
+                    .clickable {
+                        getResourcesFile("vocabulary/大学英语/六级.json").let {
+                            if (!vocabularyFilterList.contains(it)) {
+                                vocabularyFilterListAdd(it)
+                            }
+                        }
+                    }
+            ) {
+                Text("六级", color = MaterialTheme.colors.onBackground)
+            }
+            var expanded by remember { mutableStateOf(false) }
+            Box(Modifier.fillMaxWidth().height(40.dp)
+                .background(MaterialTheme.colors.background)
+                .clickable {  expanded = true }
+            ) {
+                Text(text = "内置词库",
+                    color = MaterialTheme.colors.onBackground,
+                    modifier = Modifier.align(Alignment.Center))
+                BuiltInVocabularyMenu(
+                    expanded = expanded,
+                    onDismissRequest = { expanded = false },
+                    addVocabulary = { file ->
+                        if (!vocabularyFilterList.contains(file)) {
+                            vocabularyFilterListAdd(file)
+                        }
+                    }
+                )
+            }
 
+
+
+            var showDialog by remember { mutableStateOf(false) }
+            if (showDialog) {
+                FamiliarDialog(
+                    futureFileChooser = futureFileChooser,
+                    close = {
+                        showDialog = false
+                        updateFamiliarVocabulary()
+                    },
+
+                    )
+            }
+            Row(
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().height(40.dp)
+                    .clickable {
+                        if (familiarVocabulary.wordList.isEmpty()) {
+                            val result = JOptionPane.showConfirmDialog(
+                                null,
+                                "熟悉词库现在还没有单词，是否导入单词到熟悉词库",
+                                "",
+                                JOptionPane.YES_NO_OPTION
+                            )
+                            if (result == 0) {
+                                showDialog = true
+                            }
+                        } else {
+                            val familiarFile = getFamiliarVocabularyFile()
+                            vocabularyFilterListAdd(File(familiarFile.absolutePath))
+                        }
+                    }
+            ) {
+                if(familiarVocabulary.wordList.isNotEmpty()){
+                    BadgedBox(badge = {
+                        Badge {
+                            val badgeNumber = "${familiarVocabulary.wordList.size}"
+                            Text(
+                                badgeNumber,
+                                modifier = Modifier.semantics {
+                                    contentDescription = "$badgeNumber new notifications"
+                                }
+                            )
+                        }
+                    }) {
+                        Text(text = "熟悉词库", color = MaterialTheme.colors.onBackground)
+                    }
+                }else{
+                    Text(text = "熟悉词库", color = MaterialTheme.colors.onBackground)
+                }
+            }
+
+            if (recentList.isNotEmpty()) {
+                var expandRecent by remember { mutableStateOf(false) }
+                Box(Modifier.fillMaxWidth().height(40.dp).clickable { expandRecent = true }) {
+                    Text(text = "最近词库",
+                        color = MaterialTheme.colors.onBackground,
+                        modifier = Modifier.align(Alignment.Center))
+                    val dropdownMenuHeight = if (recentList.size <= 10) (recentList.size * 40 + 20).dp else 420.dp
                     DropdownMenu(
-                        expanded = expanded,
-                        onDismissRequest = { expanded = false },
+                        expanded = expandRecent,
+                        onDismissRequest = { expandRecent = false },
                         offset = DpOffset(20.dp, 0.dp),
                         modifier = Modifier
                             .widthIn(min = 300.dp, max = 700.dp)
                             .width(IntrinsicSize.Max)
                             .height(dropdownMenuHeight)
                     ) {
-
                         Box(Modifier.fillMaxWidth().height(dropdownMenuHeight)) {
                             val stateVertical = rememberScrollState(0)
                             Box(Modifier.fillMaxSize().verticalScroll(stateVertical)) {
@@ -1654,35 +1937,15 @@ fun VocabularyFilter(
                     }
                 }
             }
-
-            Box(Modifier.width(180.dp).height(IntrinsicSize.Max).background(MaterialTheme.colors.background)) {
-                var expanded by remember { mutableStateOf(false) }
-                OutlinedButton(
-                    onClick = { expanded = true },
-                    modifier = Modifier
-                        .width(139.dp)
-                        .align(Alignment.Center)
-                ) {
-                    Text(text = "内置词库")
-                }
-                BuiltInVocabularyMenu(
-                    expanded = expanded,
-                    onDismissRequest = { expanded = false },
-                    addVocabulary = { file ->
-                        if (!vocabularyFilterList.contains(file)) {
-                            vocabularyFilterListAdd(file)
-                        }
-                    }
-                )
-            }
             Row(
                 horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                OutlinedButton(
-                    onClick = {
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().height(40.dp)
+                    .clickable {
                         scope.launch (Dispatchers.Default) {
-                            val fileChooser = futureFileChooser.get()
+                            val fileChooser = withContext(Dispatchers.IO) {
+                                futureFileChooser.get()
+                            }
                             fileChooser.dialogTitle = "选择词库"
                             fileChooser.fileSystemView = FileSystemView.getFileSystemView()
                             fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
@@ -1697,70 +1960,9 @@ fun VocabularyFilter(
                             fileChooser.selectedFile = null
                             fileChooser.removeChoosableFileFilter(fileFilter)
                         }
-
-                    },
-                    modifier = Modifier
-                        .width(139.dp)
-                ) {
-                    Text(text = "选择词库")
-                }
-            }
-
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                var showDialog by remember { mutableStateOf(false) }
-                if (showDialog) {
-                    FamiliarDialog(
-                        futureFileChooser = futureFileChooser,
-                        close = {
-                            showDialog = false
-                            updateFamiliarVocabulary()
-                        },
-
-                        )
-                }
-                OutlinedButton(
-                    onClick = {
-                        if (familiarVocabulary.wordList.isEmpty()) {
-                            val result = JOptionPane.showConfirmDialog(
-                                null,
-                                "熟悉词库现在还没有单词，是否导入单词到熟悉词库",
-                                "",
-                                JOptionPane.YES_NO_OPTION
-                            )
-                            if (result == 0) {
-                                showDialog = true
-                            }
-                        } else {
-                            val familiarFile = getFamiliarVocabularyFile()
-                            vocabularyFilterListAdd(File(familiarFile.absolutePath))
-                        }
-
-                    },
-                    modifier = Modifier
-                        .width(139.dp)
-                ) {
-                    if(familiarVocabulary.wordList.isNotEmpty()){
-                        BadgedBox(badge = {
-                            Badge {
-                                val badgeNumber = "${familiarVocabulary.wordList.size}"
-                                Text(
-                                    badgeNumber,
-                                    modifier = Modifier.semantics {
-                                        contentDescription = "$badgeNumber new notifications"
-                                    }
-                                )
-                            }
-                        }) {
-                            Text(text = "熟悉词库")
-                        }
-                    }else{
-                        Text(text = "熟悉词库")
                     }
-
-                }
+            ) {
+                Text("选择词库", color = MaterialTheme.colors.onBackground)
             }
 
         }
@@ -1848,7 +2050,11 @@ fun SelectFile(
     delete:() -> Unit,
     chooseText:String,
     openFile:() -> Unit,
-    openRelateVideo:() -> Unit
+    openRelateVideo:() -> Unit,
+    started: Boolean,
+    showEnablePhrases: Boolean,
+    enablePhrases: Boolean,
+    changeEnablePhrases: (Boolean) -> Unit,
 ) {
 
     Column(Modifier.height(IntrinsicSize.Max)) {
@@ -1913,6 +2119,32 @@ fun SelectFile(
                 }) {
                 Text("开始", fontSize = 12.sp)
             }
+            Spacer(Modifier.width(20.dp))
+            if(showEnablePhrases){
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.height(48.dp)
+                ) {
+                    Text("处理词组 ", color = MaterialTheme.colors.onBackground, fontFamily = FontFamily.Default)
+                    Checkbox(
+                        checked = enablePhrases,
+                        onCheckedChange = {
+                            changeEnablePhrases(it)
+                            // 如果已经开始了，就重新开始
+                            if(started){
+                                if(selectedFileList.isEmpty()){
+                                    analysis(selectedFilePath, selectedTrackId)
+                                }else{
+                                    batchAnalysis("English")
+                                }
+                            }
+                        },
+                        modifier = Modifier.size(30.dp, 30.dp)
+                    )
+                }
+            }
+
             Spacer(Modifier.width(10.dp))
             if(chooseText != "选择词库"){
                 TooltipArea(
@@ -1922,7 +2154,7 @@ fun SelectFile(
                             border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                             shape = RectangleShape
                         ) {
-                            Text(text = "帮助", modifier = Modifier.padding(10.dp))
+                            Text(text = "帮助文档", modifier = Modifier.padding(10.dp))
                         }
                     },
                     delayMillis = 50,
@@ -1960,6 +2192,7 @@ fun SelectFile(
                     }
                 }
             }
+
         }
 
         if ((selectedFilePath.isNotEmpty() || selectedFileList.isNotEmpty()) && type == MKV) {
@@ -2113,7 +2346,7 @@ fun SelectFile(
 }
 
 
-fun filterDocumentWords(
+fun filterWords(
     inputWords: List<Word>,
     numberFilter: Boolean,
     bncNum:Int,
@@ -2253,20 +2486,186 @@ fun filterDocumentWords(
     return resultList
 }
 
+fun includeWords(
+    inputWords: List<Word>,
+    numberFilter: Boolean,
+    bncNum:Int,
+    bncNumFilter:Boolean,
+    frqNum:Int,
+    frqNumFilter: Boolean,
+    bncZeroFilter: Boolean,
+    frqZeroFilter: Boolean,
+    replaceToLemma: Boolean,
+    isBatchMKV:Boolean
+): List<Word> {
+    val resultList = ArrayList<Word>()
+    /**
+     * Key 为需要转换为原型的单词，
+     *  Value 是 Key 的原型词，还没有查词典，有可能词典里面没有。
+     */
+    val lemmaMap = HashMap<Word,String>()
+
+    /** 原型词 > 内部字幕列表 映射 */
+    val captionsMap = HashMap<String, MutableList<Caption>>()
+
+    /** 原型词 -> 外部字幕列表映射,批量生成 MKV 词库时，字幕保存在单词的外部字幕列表 */
+    val externalCaptionsMap = HashMap<String, MutableList<ExternalCaption>>()
+
+    inputWords.forEach { word ->
+
+        if (numberFilter && (word.value.toDoubleOrNull() != null)){
+            // 包含数字
+            resultList.add(word)
+        }else if(bncNumFilter && (word.bnc!! in 1 until bncNum)){
+            // 包含最常见的词
+            resultList.add(word)
+        }else if(frqNumFilter && (word.frq!! in 1 until frqNum)){
+            // 包含最常见的词
+            resultList.add(word)
+        }else if (bncZeroFilter && word.bnc == 0){
+            // 包含 BNC 词频为 0 的词
+            resultList.add(word)
+        }else if (frqZeroFilter && word.frq == 0){
+            // 包含 COCA 词频为 0 的词
+            resultList.add(word)
+        }
+
+
+
+    }
+
+    if (replaceToLemma) {
+        resultList.forEach { word ->
+
+            val lemma = getWordLemma(word)
+            if(lemma.isNotEmpty()){
+                lemmaMap[word] = lemma
+                // 处理内部字幕，批量的用 MKV 生成词库时，字幕保存在外部字幕列表
+                if(!isBatchMKV){
+                    if (captionsMap[lemma].isNullOrEmpty()) {
+                        captionsMap[lemma] = word.captions
+                    } else {
+                        // do 有四个派生词，四个派生词可能在文件的不同位置，可能有四个不同的字幕列表
+                        val list = mutableListOf<Caption>()
+                        list.addAll(captionsMap[lemma]!!)
+                        for (caption in word.captions) {
+                            if(list.size<3){
+                                list.add(caption)
+                            }
+                        }
+                        captionsMap[lemma] = list
+                    }
+                    // 处理外部字幕，批量的用 MKV 生成词库时，字幕保存在外部字幕列表
+                }else{
+                    if (externalCaptionsMap[lemma].isNullOrEmpty()) {
+                        externalCaptionsMap[lemma] = word.externalCaptions
+                    } else {
+                        // do 有四个派生词，四个派生词可能在文件的不同位置，可能有四个不同的字幕列表
+                        val list = mutableListOf<ExternalCaption>()
+                        list.addAll(externalCaptionsMap[lemma]!!)
+                        for (externalCaption in word.externalCaptions) {
+                            if(list.size<3){
+                                list.add(externalCaption)
+                            }
+                        }
+                        externalCaptionsMap[lemma] = list
+                    }
+                }
+            }
+
+        }
+
+
+
+        // 查询单词原型
+        val queryList = lemmaMap.values.toList()
+        val lemmaList = Dictionary.queryList(queryList)
+        val validLemmaMap = HashMap<String, Word>()
+        lemmaList.forEach { word ->
+            // 处理内部字幕
+            if (!isBatchMKV) {
+                val captions = captionsMap[word.value]!!
+                word.captions = captions
+                // 处理外部字幕
+            } else {
+                val externalCaptions = externalCaptionsMap[word.value]!!
+                word.externalCaptions = externalCaptions
+            }
+            validLemmaMap[word.value] = word
+        }
+
+        val toLemmaList = lemmaMap.keys
+        for (word in toLemmaList) {
+            val index = resultList.indexOf(word)
+            // 有一些词可能 属于 BNC 或 FRQ 为 0 的词，已经被过滤了，所以 index 为 -1
+            if (index != -1) {
+                val lemmaStr = lemmaMap[word]
+                val validLemma = validLemmaMap[lemmaStr]
+                if (validLemma != null) {
+                    resultList.remove(word)
+                    if (!resultList.contains(validLemma)) {
+                        // 默认 add 为真
+                        var add = true
+                        // 但是，如果单词的词频为 0 或者是最常见的单词就不添加
+                        if (bncNumFilter && (validLemma.bnc!! in 1 until bncNum)) {
+                            add = false
+                        } else if (frqNumFilter && (validLemma.frq!! in 1 until frqNum)) {
+                            add = false
+                        } else if (bncZeroFilter && validLemma.bnc == 0) {
+                            add = false
+                        } else if (frqZeroFilter && validLemma.frq == 0) {
+                            add = false
+                        }
+
+                        if (add) {
+                            resultList.add(index, validLemma)
+                        }
+                    }
+                }
+
+            }
+
+        }
+    }
+
+
+    return resultList
+}
+
 fun filterSelectVocabulary(
     selectedFileList: List<File>,
-    filteredDocumentList: List<Word>
+    basicFilteredList: List<Word>
 ): MutableList<Word> {
-    val list = ArrayList(filteredDocumentList)
+    val list = ArrayList(basicFilteredList)
     selectedFileList.forEach { file ->
         if (file.exists()) {
             val vocabulary = loadVocabulary(file.absolutePath)
-            list.removeAll(vocabulary.wordList)
+            list.removeAll(vocabulary.wordList.toSet())
         } else {
             JOptionPane.showMessageDialog(null, "找不到词库：\n${file.absolutePath}")
         }
 
     }
+    return list
+}
+
+fun includeSelectVocabulary(
+    selectedFileList: List<File>,
+    parsedList: List<Word>
+): MutableList<Word> {
+    val list = ArrayList(parsedList)
+    val includeSet = mutableSetOf<Word>()
+    selectedFileList.forEach { file ->
+        if (file.exists()) {
+            val vocabulary = loadVocabulary(file.absolutePath)
+
+            includeSet.addAll(vocabulary.wordList)
+        } else {
+            JOptionPane.showMessageDialog(null, "找不到词库：\n${file.absolutePath}")
+        }
+    }
+    // 交集 list 和 includeSet 的交集
+    list.retainAll(includeSet)
     return list
 }
 
@@ -2281,10 +2680,20 @@ fun PreviewWords(
     removeWord: (Word) -> Unit,
     sort:String,
     changeSort:(String) -> Unit,
+    showCard:Boolean,
+    changeShowCard:(Boolean) -> Unit,
 ) {
+    val scope = rememberCoroutineScope()
     Column(Modifier.fillMaxSize()) {
+        // 显示方式：卡片或列表
 
-        Summary(previewList, summaryVocabulary,sort, changeSort = {changeSort(it)})
+        Summary(
+            previewList,
+            summaryVocabulary,
+            sort= sort, changeSort = {changeSort(it)},
+            showCard = showCard, changeShowCard =changeShowCard
+        )
+
         val sortedList = when(sort){
             "alphabet" -> {
                 val sorted = previewList.sortedBy { it.value }
@@ -2320,123 +2729,216 @@ fun PreviewWords(
             }
             else  -> previewList
         }
-        val listState = rememberLazyGridState()
-        Box(Modifier.fillMaxWidth()) {
-            LazyVerticalGrid(
-                columns = GridCells.Adaptive(130.dp),
-                contentPadding = PaddingValues(15.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                ,
-                state = listState
-            ) {
-                itemsIndexed(sortedList) { _: Int, word ->
 
-                    TooltipArea(
-                        tooltip = {
-                            Surface(
-                                elevation = 4.dp,
-                                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
-                                shape = RectangleShape,
-                            ) {
-                                Column(Modifier.padding(5.dp).width(200.dp)) {
-                                    Text(
-                                        text = word.value,
-                                        textAlign = TextAlign.Center,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
-                                    val lemma = getWordLemma(word)
-                                    Text(text = "原型:$lemma", fontSize = 12.sp)
-                                    Row {
-                                        Text(text = "BNC  ", fontSize = 12.sp, modifier = Modifier.padding(end = 2.dp))
-                                        Text(text = ":${word.bnc}", fontSize = 12.sp)
-                                    }
 
-                                    Text(text = "COCA:${word.frq}", fontSize = 12.sp)
-                                    Divider()
-                                    Text(
-                                        text = word.translation,
-                                        fontSize = 12.sp,
-                                        modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)
-                                    )
+        if(showCard){
+            val listGridState = rememberLazyGridState()
+            Box(Modifier.fillMaxWidth()) {
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(130.dp),
+                    contentPadding = PaddingValues(15.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                    ,
+                    state = listGridState
+                ) {
+                    itemsIndexed(sortedList) { _: Int, word ->
 
-                                    if (word.captions.isNotEmpty()) {
-                                        Divider()
-                                        word.captions.forEachIndexed { index, caption ->
-                                            val top = if (index == 0) 5.dp else 0.dp
-                                            val text = if (caption.content.endsWith("\n")) {
-                                                caption.content.dropLast(1)
-                                            } else {
-                                                caption.content
-                                            }
-                                            Text(
-                                                text = text,
-                                                fontSize = 12.sp,
-                                                modifier = Modifier.padding(top = top)
-                                            )
+                        TooltipArea(
+                            tooltip = {
+                                Surface(
+                                    elevation = 4.dp,
+                                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                    shape = RectangleShape,
+                                ) {
+                                    Column(Modifier.padding(5.dp).width(200.dp)) {
+                                        Text(
+                                            text = word.value,
+                                            textAlign = TextAlign.Center,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                        val lemma = getWordLemma(word)
+                                        Text(text = "原型:$lemma", fontSize = 12.sp)
+                                        Row {
+                                            Text(text = "BNC  ", fontSize = 12.sp, modifier = Modifier.padding(end = 2.dp))
+                                            Text(text = ":${word.bnc}", fontSize = 12.sp)
                                         }
 
+                                        Text(text = "COCA:${word.frq}", fontSize = 12.sp)
+                                        Divider()
+                                        Text(
+                                            text = word.translation,
+                                            fontSize = 12.sp,
+                                            modifier = Modifier.padding(top = 5.dp, bottom = 5.dp)
+                                        )
                                     }
                                 }
-                            }
-                        },
-                        delayMillis = 50,
-                        tooltipPlacement = TooltipPlacement.ComponentRect(
-                            anchor = Alignment.BottomStart,
-                            alignment = Alignment.BottomCenter,
-                            offset = DpOffset.Zero
-                        )
-                    ) {
-                        Card(
-                            modifier = Modifier
-                                .padding(7.5.dp),
-                            elevation = 3.dp
+                            },
+                            delayMillis = 50,
+                            tooltipPlacement = TooltipPlacement.ComponentRect(
+                                anchor = Alignment.BottomStart,
+                                alignment = Alignment.BottomCenter,
+                                offset = DpOffset.Zero
+                            )
                         ) {
-                            var closeVisible by remember { mutableStateOf(false) }
-                            Box(Modifier.size(width = 130.dp, height = 65.dp)
-                                .onPointerEvent(PointerEventType.Enter) {
-                                    closeVisible = true
-                                }
-                                .onPointerEvent(PointerEventType.Exit) {
-                                    closeVisible = false
-                                }) {
-                                Text(
-                                    text = word.value,
-                                    fontSize = 16.sp,
-                                    color = MaterialTheme.colors.onBackground,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.align(Alignment.Center)
-                                )
-                                if (closeVisible) {
-                                    Icon(
-                                        Icons.Filled.Close, contentDescription = "",
-                                        tint = MaterialTheme.colors.primary,
-                                        modifier = Modifier.clickable { removeWord(word) }.align(Alignment.TopEnd)
+                            Card(
+                                modifier = Modifier
+                                    .padding(7.5.dp),
+                                elevation = 3.dp
+                            ) {
+                                var closeVisible by remember { mutableStateOf(false) }
+                                Box(Modifier.size(width = 130.dp, height = 65.dp)
+                                    .onPointerEvent(PointerEventType.Enter) {
+                                        closeVisible = true
+                                    }
+                                    .onPointerEvent(PointerEventType.Exit) {
+                                        closeVisible = false
+                                    }) {
+                                    Text(
+                                        text = word.value,
+                                        fontSize = 16.sp,
+                                        color = MaterialTheme.colors.onBackground,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.align(Alignment.Center)
                                     )
+                                    if (closeVisible) {
+                                        Icon(
+                                            Icons.Filled.Close, contentDescription = "",
+                                            tint = MaterialTheme.colors.primary,
+                                            modifier = Modifier
+                                                .align(Alignment.TopEnd)
+                                                .clickable {
+                                                    scope.launch(Dispatchers.Default) {
+                                                        removeWord(word)
+                                                    }
+                                                }
+                                        )
+                                    }
+
+
                                 }
-
-
                             }
                         }
                     }
                 }
+                VerticalScrollbar(
+                    style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                        .fillMaxHeight(),
+                    adapter = rememberScrollbarAdapter(
+                        scrollState = listGridState
+                    )
+                )
+
+
+            }
+        }else{
+            val listState = rememberLazyListState()
+            var shiftPressed by remember { mutableStateOf(false) }
+            Box(Modifier.fillMaxWidth()
+                .onKeyEvent { event ->
+                    if (event.type == KeyEventType.KeyDown) {
+                        if (event.key == Key.ShiftLeft || event.key == Key.ShiftRight) {
+                            shiftPressed = true
+                        }
+                    } else if (event.type == KeyEventType.KeyUp) {
+                        if (event.key == Key.ShiftLeft || event.key == Key.ShiftRight) {
+                            shiftPressed = false
+                        }
+                    }
+                    false
+                }
+            ) {
+                val selectedList = remember { mutableStateListOf<Word>() }
+                var latestSelectedIndex by remember { mutableStateOf(-1) }
+                val topPadding = if(selectedList.isNotEmpty()) 0.dp else 0.dp
+                LazyColumn (
+                    state = listState,
+                    modifier = Modifier.padding(top = topPadding).fillMaxSize()
+                ){
+                    itemsIndexed(sortedList) { index:Int,word:Word ->
+                        val selected = selectedList.contains(word)
+
+                        Row(
+                            horizontalArrangement = Arrangement.Start,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth().height(40.dp)
+                                .background(if(selected) MaterialTheme.colors.onBackground.copy(alpha = 0.12f) else Color.Transparent)
+                                .clickable {
+                                    if(shiftPressed){
+                                        // 如果最后一次选择不存在（第一次选择），
+                                        // 就选中当前的,并且把多选的开始设置为列表的第一个
+                                        if(latestSelectedIndex == -1){
+                                            latestSelectedIndex = index
+                                            val subList = sortedList.subList(0, index + 1)
+                                            selectedList.addAll(subList)
+                                        }else{
+                                            // 如果最后一次选择存在，就选中最后一次选择到当前的
+                                            val start = min(latestSelectedIndex,index)
+                                            val end = max(latestSelectedIndex,index)
+                                            val subList = sortedList.subList(start, end + 1)
+                                            selectedList.addAll(subList)
+                                        }
+                                    }else{
+                                        latestSelectedIndex = index
+                                        if (!selected) {
+                                            selectedList.add(word)
+                                        }else{
+                                            selectedList.remove(word)
+                                        }
+                                    }
+
+                                },
+
+                            ) {
+                            Text(
+                                text = word.value,
+                                modifier = Modifier.padding(start = 20.dp).width(130.dp),
+                                color = MaterialTheme.colors.onBackground,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1
+                            )
+                            Spacer(Modifier.width(20.dp))
+                            Text(
+                                text = word.translation.replace("\n", "  "),
+                                color = MaterialTheme.colors.onBackground,
+                                overflow = TextOverflow.Ellipsis,
+                                maxLines = 1
+                            )
+                        }
+                    }
+                }
+
+                if (selectedList.isNotEmpty()) {
+                    FloatingActionButton(
+                        onClick = {
+                            scope.launch (Dispatchers.Default){
+                                selectedList.forEach { removeWord(it) }
+                                selectedList.clear()
+                            }
+                        },
+                        modifier = Modifier.align(Alignment.BottomEnd).padding(20.dp)
+                    ) {
+                        Icon(Icons.Outlined.Delete, contentDescription = "Delete")
+                    }
+                }
+
+                VerticalScrollbar(
+                    style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
+                    modifier = Modifier.align(Alignment.CenterEnd)
+                        .fillMaxHeight(),
+                    adapter = rememberScrollbarAdapter(
+                        scrollState = listState
+                    )
+                )
             }
 
-            VerticalScrollbar(
-                style = LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp)),
-                modifier = Modifier.align(Alignment.CenterEnd)
-                    .fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(
-                    scrollState = listState
-                )
-            )
-
-
         }
+
     }
 
-
 }
+
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -2458,7 +2960,6 @@ fun TaskList(
             updateOrder(items.value)
         }
     })
-
 
     Box (modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background)){
         LazyColumn(
@@ -2515,7 +3016,6 @@ fun TaskList(
                                             alignment = Alignment.TopCenter,
                                             offset = DpOffset.Zero
                                         ),
-//                                        modifier = Modifier.align(Alignment.CenterEnd)
                                     ) {
                                         IconButton(onClick = {}) {
                                             Icon(
@@ -2529,7 +3029,6 @@ fun TaskList(
 
                                 }else if(item == currentTask){
                                     CircularProgressIndicator(Modifier
-//                                        .align(Alignment.CenterEnd)
                                         .padding(start = 8.dp,end = 16.dp).width(24.dp).height(24.dp))
                                 }else if(tasksState[item] == false){
 
@@ -2550,7 +3049,6 @@ fun TaskList(
                                             alignment = Alignment.CenterStart,
                                             offset = DpOffset.Zero
                                         ),
-//                                        modifier = Modifier.align(Alignment.CenterEnd)
                                     ) {
                                         IconButton(onClick = {}) {
                                             Icon(

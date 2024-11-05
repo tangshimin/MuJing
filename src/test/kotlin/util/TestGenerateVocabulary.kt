@@ -18,6 +18,7 @@ class TestGenerateVocabulary {
         val result =  parseDocument(
             pathName = "src/test/resources/Alice's Adventures in Wonderland by Lewis Carroll.txt",
             setProgressText = { println(it) },
+            enablePhrases = true
         )
         assert(result.isNotEmpty())
         assert(result.size == 436)
@@ -107,6 +108,7 @@ class TestGenerateVocabulary {
         val result = parseSRT(
             pathName = "src/test/resources/Sintel.2010.480.srt",
             setProgressText = { println(it) },
+            enablePhrases = true
         )
         assert(result.isNotEmpty())
         assert(result.size == 30)
@@ -120,6 +122,7 @@ class TestGenerateVocabulary {
         val result = parseASS(
             pathName = "src/test/resources/ted-2022-bill-gates-en.ass",
             setProgressText = { println(it) },
+            enablePhrases = true
         )
         assert(result.isNotEmpty())
         assertEquals("list size should be 664",664,result.size)
@@ -133,14 +136,14 @@ class TestGenerateVocabulary {
     @Test
     fun `Test Parse Empty SRT`() {
         val path = File("src/test/resources/empty.srt").absolutePath
-        val result = parseSRT(pathName = path, setProgressText = {})
+        val result = parseSRT(pathName = path, setProgressText = {}, enablePhrases = true)
         assert(result.isEmpty()) { "The result should be empty" }
     }
 
     @Test
     fun `Test Number Not Start From One`() {
         val path = File("src/test/resources/number_not_start_from_one.srt").absolutePath
-        val result = parseSRT(pathName = path, setProgressText = {})
+        val result = parseSRT(pathName = path, setProgressText = {}, enablePhrases = true)
         assert(result.isNotEmpty()) { "The result should not be empty" }
     }
 
@@ -150,6 +153,7 @@ class TestGenerateVocabulary {
             pathName = "src/test/resources/Sintel.2010.480.mp4",
             trackId = 1,
             setProgressText = { println(it) },
+            enablePhrases = true
         )
         assert(result.isNotEmpty())
         assert(result.size == 30)
@@ -164,6 +168,7 @@ class TestGenerateVocabulary {
             pathName = "src/test/resources/Sintel.2010.480.mkv",
             trackId = 1,
             setProgressText = { println(it) },
+            enablePhrases = true
         )
         assert(result.isNotEmpty())
         assert(result.size == 30)

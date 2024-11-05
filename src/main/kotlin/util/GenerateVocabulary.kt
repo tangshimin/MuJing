@@ -54,6 +54,7 @@ import javax.swing.JOptionPane
 @Throws(IOException::class)
 fun parseDocument(
     pathName: String,
+    enablePhrases: Boolean,
     sentenceLength:Int = 25,
     setProgressText: (String) -> Unit
 ): List<Word> {
@@ -106,7 +107,11 @@ fun parseDocument(
     val sentences = sentenceDetect(text)
     setProgressText("正在分词")
     sentences.forEach { sentence ->
-        val wordList = tokenizeAndChunkText(sentence, tokenizer, posTagger, chunker)
+        val wordList = if(enablePhrases){
+            tokenizeAndChunkText(sentence, tokenizer, posTagger, chunker)
+        }else{
+            tokenizeText(sentence, tokenizer)
+        }
         wordList.forEach { word ->
             val clippedSentence = clipSentence(word, tokenizer, sentence, sentenceLength)
             val lowercase = word.lowercase(Locale.getDefault())
@@ -307,12 +312,42 @@ fun tokenizeAndChunkText(
 }
 
 /**
+ * 分割单词
+ */
+fun tokenizeText(
+    text: String,
+    tokenizer: Tokenizer,
+): MutableSet<String> {
+    // 进行分词
+    val tokens = tokenizer.tokenize(text)
+    // 过滤掉常用的标点符号
+    // .!?;:(){}[]\-—'"`~@#$%^&*+=|\/<>,，。、；：？！（）【】｛｝—…《》“”‘’,
+    val filterList = listOf(
+        ".", "!", "?", ";", ":", "(", ")", "{", "}", "[", "]", "-", "—",
+        "'", "`", "~", "@", "#", "$", "%", "^", "&", "*", "+", "=", "|",
+        "/","<", ">", ",", "，", "。", "、", "；", "：", "？", "！", "（",
+        "）","【", "】", "｛", "｝", "…", "《", "》", "“", "”", "‘", "’"
+    )
+
+    val wordList =tokens.toMutableList()
+    val result = mutableSetOf<String>()
+    // 过滤掉常用的标点符号
+    wordList.forEach { word ->
+        if (!filterList.contains(word)) {
+            result.add(word)
+        }
+    }
+    return result
+}
+
+/**
  * 解析 SRT 字幕文件
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Throws(IOException::class)
 fun parseSRT(
     pathName: String,
+    enablePhrases: Boolean,
     setProgressText: (String) -> Unit
 ): List<Word> {
     val srtFile = File(pathName)
@@ -367,7 +402,11 @@ fun parseSRT(
                 end = caption.end.getTime("hh:mm:ss,ms"),
                 content = content
             )
-            val tokenize = tokenizeAndChunkText(content, tokenizer, posTagger, chunker)
+            val tokenize = if(enablePhrases){
+                tokenizeAndChunkText(content, tokenizer, posTagger, chunker)
+            }else{
+                tokenizeText(content, tokenizer)
+            }
             for (word in tokenize) {
                 val lowercase = word.lowercase(Locale.getDefault())
                 if (!map.containsKey(lowercase)) {
@@ -403,6 +442,7 @@ fun parseSRT(
 @Throws(IOException::class)
 fun parseASS(
     pathName: String,
+    enablePhrases: Boolean,
     setProgressText: (String) -> Unit
 ): List<Word> {
     val applicationDir = getSettingsDirectory()
@@ -412,7 +452,7 @@ fun parseASS(
     val result = convertToSrt(assFile.absolutePath, srtFile.absolutePath)
     if(result == "finished"){
         setProgressText("字幕转换完成")
-        val list =  parseSRT(srtFile.absolutePath,setProgressText)
+        val list =  parseSRT(srtFile.absolutePath,enablePhrases,setProgressText)
         srtFile.delete()
         return list
     }else{
@@ -428,6 +468,7 @@ fun parseASS(
 fun parseVideo(
     pathName: String,
     trackId: Int,
+    enablePhrases: Boolean,
     setProgressText: (String) -> Unit,
 ): List<Word> {
     val applicationDir = getSettingsDirectory()
@@ -435,7 +476,7 @@ fun parseVideo(
     val result =  extractSubtitles(pathName, trackId, "$applicationDir/temp.srt")
     setProgressText("提取字幕完成")
     if(result == "finished"){
-        val list = parseSRT("$applicationDir/temp.srt",setProgressText)
+        val list = parseSRT("$applicationDir/temp.srt",enablePhrases,setProgressText)
         File("$applicationDir/temp.srt").delete()
         return list
     }
@@ -577,6 +618,7 @@ fun parseMKV(
 @OptIn(ExperimentalComposeUiApi::class)
 fun batchReadMKV(
     language:String,
+    enablePhrases: Boolean,
     selectedFileList:(List<File>),
     setCurrentTask:(File?) -> Unit,
     setErrorMessages:(Map<File,String>) -> Unit,
@@ -667,6 +709,7 @@ fun batchReadMKV(
             if (trackID != -1) {
                 val words = parseVideo(
                     pathName = file.absolutePath,
+                    enablePhrases = enablePhrases,
                     trackId = trackID,
                     setProgressText = { }
                 )
