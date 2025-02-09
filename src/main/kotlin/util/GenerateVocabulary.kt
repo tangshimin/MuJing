@@ -114,6 +114,7 @@ fun parseDocument(
         }
         wordList.forEach { word ->
             val clippedSentence = clipSentence(word, tokenizer, sentence, sentenceLength)
+            val formatSentence = clippedSentence.replace("\r\n", " ").replace("\n", " ")
             val lowercase = word.lowercase(Locale.getDefault())
             // 在代码片段里的关键字之间用 . 或 _ 符号分隔
             val delimiters = listOf(".", "_")
@@ -122,12 +123,12 @@ fun parseDocument(
                     val split = lowercase.split(delimiter).toTypedArray()
                     for (str in split) {
                         if (!map.contains(str)) {
-                            val list = mutableListOf(clippedSentence)
+                            val list = mutableListOf(formatSentence)
                             map[str] = list
                         } else {
                             // 如果单词的位置列表小于 3，就添加
                             if (map[str]!!.size < 3) {
-                                map[str]?.add(clippedSentence)
+                                map[str]?.add(formatSentence)
                             }
                         }
                     }
@@ -135,12 +136,12 @@ fun parseDocument(
             }
 
             if (!map.contains(lowercase)) {
-                val list = mutableListOf(clippedSentence)
+                val list = mutableListOf(formatSentence)
                 map[lowercase] = list
             } else {
                 // 如果单词的位置列表小于 3，就添加
                 if (map[lowercase]!!.size < 3) {
-                    map[lowercase]?.add(clippedSentence)
+                    map[lowercase]?.add(formatSentence)
                 }
             }
 
@@ -182,7 +183,8 @@ fun parseDocument(
 fun clipSentence(
     word: String,
     tokenizer: Tokenizer,
-    sentences: String, sentenceLength: Int
+    sentences: String,
+    sentenceLength: Int
 ): String {
     val tokenList = tokenizer.tokenize(sentences).toList()
     if(tokenList.size > sentenceLength){

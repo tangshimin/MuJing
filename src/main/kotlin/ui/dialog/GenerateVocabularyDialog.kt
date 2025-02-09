@@ -2400,6 +2400,9 @@ fun filterWords(
     /** 原型词 -> 外部字幕列表映射,批量生成 MKV 词库时，字幕保存在单词的外部字幕列表 */
     val externalCaptionsMap = HashMap<String, MutableList<ExternalCaption>>()
 
+    /** 原型词 -> 例句列表映射 */
+    val sentencesMap = HashMap<String, MutableList<String>>()
+
     inputWords.forEach { word ->
 
         if (numberFilter && (word.value.toDoubleOrNull() != null)) {
@@ -2455,27 +2458,44 @@ fun filterWords(
                         externalCaptionsMap[lemma] = list
                     }
                 }
+
+                // 处理例句,sentencesMap 最多只保留 3 个例句
+                if (sentencesMap[lemma].isNullOrEmpty()) {
+                    sentencesMap[lemma] = word.pos.split("\n").toMutableList()
+                } else {
+                    word.pos.split("\n").forEach {
+                        if (sentencesMap[lemma]!!.size < 3) {
+                            sentencesMap[lemma]!!.add(it)
+                        }
+                    }
+                }
+
             }
         }
     }
 
+    //替换原型需要特殊处理
     if (replaceToLemma) {
         // 查询单词原型
         val queryList = lemmaMap.values.toList()
         val lemmaList = Dictionary.queryList(queryList)
         val validLemmaMap = HashMap<String, Word>()
-        lemmaList.forEach { word ->
-
+        lemmaList.forEach { lemmaWord ->
             // 处理内部字幕
             if (!isBatchMKV) {
-                val captions = captionsMap[word.value]!!
-                word.captions = captions
+                val captions = captionsMap[lemmaWord.value]!!
+                lemmaWord.captions = captions
                 // 处理外部字幕
             } else {
-                val externalCaptions = externalCaptionsMap[word.value]!!
-                word.externalCaptions = externalCaptions
+                val externalCaptions = externalCaptionsMap[lemmaWord.value]!!
+                lemmaWord.externalCaptions = externalCaptions
             }
-            validLemmaMap[word.value] = word
+            // 处理例句
+            val sentences = sentencesMap[lemmaWord.value]!!
+            if(sentences.isNotEmpty()) {
+                lemmaWord.pos = sentences.joinToString("\n")
+            }
+            validLemmaMap[lemmaWord.value] = lemmaWord
         }
 
         val toLemmaList = lemmaMap.keys
