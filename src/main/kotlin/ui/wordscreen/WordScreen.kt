@@ -10,6 +10,9 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -2819,9 +2822,9 @@ fun DeleteButton(onClick:()->Unit){
             }else false
         }) {
             Icon(
-                Icons.Filled.Delete,
+                Icons.Outlined.Delete,
                 contentDescription = "Localized description",
-                tint = MaterialTheme.colors.primary
+                tint = MaterialTheme.colors.onBackground
             )
         }
     }
@@ -2852,9 +2855,9 @@ fun EditButton(onClick: () -> Unit){
             onClick()
         }) {
             Icon(
-                Icons.Filled.Edit,
+                Icons.Outlined.Edit,
                 contentDescription = "Localized description",
-                tint = MaterialTheme.colors.primary
+                tint = MaterialTheme.colors.onBackground
             )
         }
     }
@@ -2880,7 +2883,8 @@ fun HardButton(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(10.dp)
                 ) {
-                    Text(text = "加入到困难词库")
+                    val text = if(contains) "从困难词库中移除" else "添加到困难词库"
+                    Text(text = text)
                     CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
                         Text(text = " $ctrl + ")
                         Text(text = "I", fontFamily = fontFamily)
@@ -2898,10 +2902,11 @@ fun HardButton(
 
         IconButton(onClick = { onClick() }) {
             val icon = if(contains) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder
+            val tint = if(contains) Color(255, 152, 0) else MaterialTheme.colors.onBackground
             Icon(
                 icon,
                 contentDescription = "Localized description",
-                tint = MaterialTheme.colors.primary
+                tint = tint
             )
         }
     }
@@ -2925,7 +2930,7 @@ fun FamiliarButton(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(10.dp)
                 ) {
-                    Text(text = "加入到熟悉词库")
+                    Text(text = "移动到熟悉词库")
                     CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
                         Text(text = " $ctrl + Y")
                     }
@@ -2946,9 +2951,9 @@ fun FamiliarButton(
             }else false
         }) {
             Icon(
-                Icons.Outlined.StarOutline,
+                Icons.Outlined.Check,
                 contentDescription = "Localized description",
-                tint = MaterialTheme.colors.primary
+                tint = MaterialTheme.colors.onBackground
             )
         }
     }
@@ -2963,10 +2968,11 @@ fun BookmarkButton(
 ){
         IconButton(onClick = {},modifier = modifier) {
             val icon = if(contains) Icons.Filled.Bookmark else Icons.Filled.BookmarkBorder
+            val tint = if(contains) Color(255, 152, 0) else MaterialTheme.colors.onBackground
             Icon(
                 icon,
                 contentDescription = "Localized description",
-                tint = MaterialTheme.colors.primary,
+                tint = tint,
             )
             SideEffect{
                 Timer("不显示 Bookmark 图标", false).schedule(300) {
@@ -3020,7 +3026,7 @@ fun CopyButton(wordValue:String){
             Icon(
                 Icons.Filled.ContentCopy,
                 contentDescription = "Localized description",
-                tint = MaterialTheme.colors.primary
+                tint = MaterialTheme.colors.onBackground
             )
         }
     }
