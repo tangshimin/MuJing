@@ -12,6 +12,7 @@
    - 视频片段：使用视频生成的词库可以播放单词对应的视频片段
    - 字幕抄写：可以抄写单词对应的字幕，加深记忆
    - 听写测试：每个单元20个单词，记完后有听写测试检查记忆效果
+
    https://github.com/user-attachments/assets/fe30b357-af95-48ba-ab6a-fd676ef87fb7.mp4
 
    demo 中的电影片段来源于 [Sintel](https://www.youtube.com/watch?v=eRsGyueVLvQ)。
