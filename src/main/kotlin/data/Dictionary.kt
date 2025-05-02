@@ -369,6 +369,7 @@ object Dictionary{
         try {
             val url = getSQLiteURL("ecdict.db")
             DriverManager.getConnection(url).use { conn ->
+                conn.autoCommit = false // 开始事务
                 val sql = "INSERT INTO ecdict(word,british_phonetic,american_phonetic,definition,translation,pos,collins,oxford,tag,bnc,frq,exchange) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)"
                 conn.prepareStatement(sql).use { statement ->
                     words.forEach { word ->
@@ -388,6 +389,7 @@ object Dictionary{
                     }
                     statement.executeBatch()
                 }
+                conn.commit()
             }
 
         } catch (e: Exception) {
