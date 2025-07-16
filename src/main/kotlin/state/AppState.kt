@@ -3,7 +3,6 @@ package state
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.res.ResourceLoader
 import com.formdev.flatlaf.FlatLightLaf
 import data.RecentItem
 import data.getHardVocabularyFile
@@ -126,7 +125,7 @@ class AppState {
     private fun createVideoPlayerWindow(): JFrame {
         val window = JFrame()
         window.title = "视频播放窗口"
-        ResourceLoader.Default.load("logo/logo.png").use { inputStream ->
+        javaClass.getResourceAsStream("/logo/logo.png")?.use { inputStream ->
             val image = ImageIO.read(inputStream)
             window.iconImage = image
         }

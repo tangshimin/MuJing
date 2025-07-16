@@ -1,7 +1,6 @@
 package util
 
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.res.ResourceLoader
 import com.matthewn4444.ebml.EBMLReader
 import com.matthewn4444.ebml.UnSupportSubtitlesException
 import com.matthewn4444.ebml.subtitles.SSASubtitles
@@ -88,17 +87,17 @@ fun parseDocument(
     val map = mutableMapOf<String, MutableList<String>>()
 
     // 加载分词模型
-    val tokenModel = ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin").use { inputStream ->
+    val tokenModel = loadModelResource("opennlp/opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin").use { inputStream ->
         TokenizerModel(inputStream)
     }
     val tokenizer = TokenizerME(tokenModel)
     // 加载词性标注模型
-    val posModel = ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-pos-1.0-1.9.3.bin").use { inputStream ->
+    val posModel = loadModelResource("opennlp/opennlp-en-ud-ewt-pos-1.0-1.9.3.bin").use { inputStream ->
         POSModel(inputStream)
     }
     val posTagger = POSTaggerME(posModel)
     // 加载分块模型
-    val chunkerModel = ResourceLoader.Default.load("opennlp/en-chunker.bin").use { inputStream ->
+    val chunkerModel = loadModelResource("opennlp/en-chunker.bin").use { inputStream ->
         ChunkerModel(inputStream)
     }
     val chunker = ChunkerME(chunkerModel)
@@ -245,7 +244,7 @@ fun clipSentence(
 @OptIn(ExperimentalComposeUiApi::class)
 fun sentenceDetect(text: String): List<String> {
     val sentences = mutableListOf<String>()
-    ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-sentence-1.0-1.9.3.bin").use { modelIn ->
+    loadModelResource("opennlp/opennlp-en-ud-ewt-sentence-1.0-1.9.3.bin").use { modelIn ->
         val model = SentenceModel(modelIn)
         val sentenceDetector = SentenceDetectorME(model)
         sentenceDetector.sentDetect(text).forEach { sentence ->
@@ -364,17 +363,18 @@ fun parseSRT(
     val orderList = mutableListOf<String>()
     try {
         // 加载分词模型
-        val tokenModel = ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin").use { inputStream ->
+
+        val tokenModel = loadModelResource("opennlp/opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin").use { inputStream ->
             TokenizerModel(inputStream)
         }
         val tokenizer = TokenizerME(tokenModel)
         // 加载词性标注模型
-        val posModel = ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-pos-1.0-1.9.3.bin").use { inputStream ->
+        val posModel = loadModelResource("opennlp/opennlp-en-ud-ewt-pos-1.0-1.9.3.bin").use { inputStream ->
             POSModel(inputStream)
         }
         val posTagger = POSTaggerME(posModel)
         // 加载分块模型
-        val chunkerModel = ResourceLoader.Default.load("opennlp/en-chunker.bin").use { inputStream ->
+        val chunkerModel = loadModelResource("opennlp/en-chunker.bin").use { inputStream ->
             ChunkerModel(inputStream)
         }
         val chunker = ChunkerME(chunkerModel)
@@ -549,7 +549,7 @@ fun parseMKV(
             reader.readSubtitlesInCueFrame(i)
         }
         setProgressText("正在分词")
-        ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin").use { inputStream ->
+        loadModelResource("opennlp/opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin").use { inputStream ->
             val model = TokenizerModel(inputStream)
             val tokenizer: Tokenizer = TokenizerME(model)
             val subtitle = reader.subtitles[trackId]
@@ -630,7 +630,7 @@ fun batchReadMKV(
     val orderList = mutableListOf<Word>()
     val logger = LoggerFactory.getLogger("batchReadMKV")
     // 加载语言检测模型
-    val langModel = ResourceLoader.Default.load("opennlp/langdetect-183.bin").use { inputStream ->
+    val langModel = loadModelResource("opennlp/langdetect-183.bin").use { inputStream ->
         LanguageDetectorModel(inputStream)
     }
     val languageDetector: LanguageDetector = LanguageDetectorME(langModel)
@@ -793,4 +793,20 @@ fun removeLocationInfo(content: String): String {
     val pattern = Pattern.compile("\\{.*\\}")
     val matcher = pattern.matcher(content)
     return matcher.replaceAll("")
+}
+
+// 加载模型资源文件，只能用于 JVM 上，因为 contextClassLoader 没有在非 JVM 创建的线程中定义。
+// Resource loader based on JVM current context class loader.
+private fun loadModelResource(path: String): InputStream {
+    return loadResource(path)
+}
+
+fun loadSvgResource(path: String): InputStream {
+    return loadResource(path)
+}
+
+private fun loadResource(path: String): InputStream {
+    val contextClassLoader = Thread.currentThread().contextClassLoader!!
+    return contextClassLoader.getResourceAsStream(path)
+        ?: throw IOException("无法加载资源文件: $path")
 }

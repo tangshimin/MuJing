@@ -10,7 +10,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.Title
 import androidx.compose.material.icons.filled.Tune
@@ -929,7 +929,7 @@ fun Settings(
                 ) {
                     val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
                     Icon(
-                        if (isOpen) Icons.AutoMirrored.Filled.ArrowBack else Icons.Filled.Tune,
+                        if (isOpen) Icons.Filled.ArrowBack else Icons.Filled.Tune,
                         contentDescription = "Localized description",
                         tint = tint,
                         modifier = Modifier.clickable { setIsOpen(!isOpen) }

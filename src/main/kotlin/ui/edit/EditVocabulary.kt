@@ -6,7 +6,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.SwingPanel
-import androidx.compose.ui.res.ResourceLoader
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -28,12 +27,14 @@ import kotlinx.serialization.json.Json
 import state.getResourcesFile
 import state.rememberAppState
 import ui.dialog.editWordSwing
+import util.loadSvgResource
 import java.awt.*
 import java.awt.event.KeyEvent
 import java.awt.event.KeyListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
+import java.io.InputStream
 import java.util.*
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
@@ -403,27 +404,27 @@ fun Table(
     removeButton.buttonType = FlatButton.ButtonType.borderless
 
 
-    val exportIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/export.svg"))
+    val exportIcon = FlatSVGIcon(loadSvgResource("svg/export.svg"))
     exportIcon.colorFilter = FlatSVGIcon.ColorFilter { onBackgroundColor }
     exportButton.icon = exportIcon
 
-    val settingsIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/tune.svg"))
+    val settingsIcon = FlatSVGIcon(loadSvgResource("svg/tune.svg"))
     settingsIcon.colorFilter = FlatSVGIcon.ColorFilter { onBackgroundColor }
     settings.icon = settingsIcon
 
-    val openFileIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/tune.svg"))
+    val openFileIcon = FlatSVGIcon(loadSvgResource("svg/tune.svg"))
     openFileIcon.colorFilter = FlatSVGIcon.ColorFilter { onBackgroundColor }
 
-    val infoButtonIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/info.svg"))
+    val infoButtonIcon = FlatSVGIcon(loadSvgResource("svg/info.svg"))
     infoButtonIcon.colorFilter = FlatSVGIcon.ColorFilter { onBackgroundColor }
     infoButton.icon = infoButtonIcon
 
 
-    val addIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/add.svg"))
+    val addIcon = FlatSVGIcon(loadSvgResource("svg/add.svg"))
     addIcon.colorFilter = FlatSVGIcon.ColorFilter { onBackgroundColor }
     addButton.icon = addIcon
 
-    val removeIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/remove.svg"))
+    val removeIcon = FlatSVGIcon(loadSvgResource("svg/remove.svg"))
     removeIcon.colorFilter = FlatSVGIcon.ColorFilter { onBackgroundColor }
     removeButton.icon = removeIcon
 
@@ -451,27 +452,27 @@ fun Table(
     compsTextField.putClientProperty(FlatClientProperties.TEXT_FIELD_LEADING_COMPONENT, searchHistoryButton)
 
     // match case button
-    val matchCaseButton = JToggleButton(FlatSVGIcon(ResourceLoader.Default.load("svg/matchCase.svg")))
-    matchCaseButton.rolloverIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/matchCaseHovered.svg"))
-    matchCaseButton.selectedIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/matchCaseSelected.svg"))
+    val matchCaseButton = JToggleButton(FlatSVGIcon(loadSvgResource("svg/matchCase.svg")))
+    matchCaseButton.rolloverIcon = FlatSVGIcon(loadSvgResource("svg/matchCaseHovered.svg"))
+    matchCaseButton.selectedIcon = FlatSVGIcon(loadSvgResource("svg/matchCaseSelected.svg"))
     matchCaseButton.toolTipText = "区分大小写"
     matchCaseButton.isSelected = searchState.matchCaseIsSelected
     // whole words button
-    val wordsButton = JToggleButton(FlatSVGIcon(ResourceLoader.Default.load("svg/words.svg")))
-    wordsButton.rolloverIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/wordsHovered.svg"))
-    wordsButton.selectedIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/wordsSelected.svg"))
+    val wordsButton = JToggleButton(FlatSVGIcon(loadSvgResource("svg/words.svg")))
+    wordsButton.rolloverIcon = FlatSVGIcon(loadSvgResource("svg/wordsHovered.svg"))
+    wordsButton.selectedIcon = FlatSVGIcon(loadSvgResource("svg/wordsSelected.svg"))
     wordsButton.toolTipText = "单词"
     wordsButton.isSelected = searchState.wordsIsSelected
     // regex button
-    val regexButton = JToggleButton(FlatSVGIcon(ResourceLoader.Default.load("svg/regex.svg")))
-    regexButton.rolloverIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/regexHovered.svg"))
-    regexButton.selectedIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/regexSelected.svg"))
+    val regexButton = JToggleButton(FlatSVGIcon(loadSvgResource("svg/regex.svg")))
+    regexButton.rolloverIcon = FlatSVGIcon(loadSvgResource("svg/regexHovered.svg"))
+    regexButton.selectedIcon = FlatSVGIcon(loadSvgResource("svg/regexSelected.svg"))
     regexButton.toolTipText = "正则表达式"
     regexButton.isSelected = searchState.regexIsSelected
     // index button
-    val numberButton = JToggleButton(FlatSVGIcon(ResourceLoader.Default.load("svg/number.svg")))
-    numberButton.rolloverIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/numberHovered.svg"))
-    numberButton.selectedIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/numberSelected.svg"))
+    val numberButton = JToggleButton(FlatSVGIcon(loadSvgResource("svg/number.svg")))
+    numberButton.rolloverIcon = FlatSVGIcon(loadSvgResource("svg/numberHovered.svg"))
+    numberButton.selectedIcon = FlatSVGIcon(loadSvgResource("svg/numberSelected.svg"))
     numberButton.toolTipText = "索引"
     numberButton.isSelected = searchState.numberSelected
 
@@ -485,11 +486,11 @@ fun Table(
     upButton.isVisible = false
     downButton.isVisible = false
 
-    val upButtonIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/north.svg"))
+    val upButtonIcon = FlatSVGIcon(loadSvgResource("svg/north.svg"))
     upButtonIcon.colorFilter = FlatSVGIcon.ColorFilter { onBackgroundColor }
     upButton.icon = upButtonIcon
 
-    val downButtonIcon = FlatSVGIcon(ResourceLoader.Default.load("svg/south.svg"))
+    val downButtonIcon = FlatSVGIcon(loadSvgResource("svg/south.svg"))
     downButtonIcon.colorFilter = FlatSVGIcon.ColorFilter { onBackgroundColor }
     downButton.icon = downButtonIcon
 

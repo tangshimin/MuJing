@@ -8,8 +8,11 @@ import java.nio.file.Files
 
 plugins {
     kotlin("jvm")
+    // jetbrainsCompose
     id("org.jetbrains.compose")
-    kotlin("plugin.serialization") version "1.8.0"
+    // compose-compiler
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
+    kotlin("plugin.serialization") version "2.0.0"
     id("com.github.gmazzo.buildconfig") version "5.3.5"
 }
 

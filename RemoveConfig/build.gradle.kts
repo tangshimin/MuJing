@@ -2,7 +2,10 @@ import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
 plugins {
     kotlin("jvm")
+    // jetbrainsCompose
     id("org.jetbrains.compose")
+    // compose-compiler
+    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
 }
 
 group = "com.movcontext"
