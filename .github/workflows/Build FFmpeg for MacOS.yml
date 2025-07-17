@@ -51,7 +51,10 @@ jobs:
             --enable-demuxer=srt \
             --enable-demuxer=webvtt \
             --enable-muxer=srt \
-            --enable-protocol=file
+            --enable-protocol=file \
+            --enable-static \
+            --disable-shared \
+            --pkg-config-flags="--static"
 
       - name: Build and install FFmpeg
         run: |
@@ -60,8 +63,13 @@ jobs:
           sudo make install
 
 
+      - name: Verify static linking
+        run: |
+          otool -L /usr/local/bin/ffmpeg
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: /usr/local/bin/ffmpeg
+          path: |
+            /usr/local/bin/ffmpeg
