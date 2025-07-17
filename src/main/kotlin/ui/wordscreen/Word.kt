@@ -26,9 +26,11 @@ import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.ClipboardManager
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.Clipboard
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalLocalization
+import androidx.compose.ui.platform.NativeClipboard
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.*
 import androidx.compose.ui.text.font.FontFamily
@@ -41,7 +43,9 @@ import player.AudioButton
 import state.GlobalState
 import state.getResourcesFile
 import java.awt.Toolkit
+import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.StringSelection
+import java.awt.datatransfer.Transferable
 import java.util.*
 import javax.sound.sampled.*
 import kotlin.concurrent.schedule
@@ -316,12 +320,18 @@ fun DisableTextMenuAndClipboardProvider(content: @Composable () -> Unit) {
                 ContextMenuArea(items, state, content = content)
             }
         },
-        LocalClipboardManager provides object :  ClipboardManager {
-            override fun getText(): AnnotatedString {
-                return AnnotatedString("")
-            }
 
-            override fun setText(text: AnnotatedString) {}
+        LocalClipboard provides object : Clipboard {
+            override val nativeClipboard: NativeClipboard
+                get() = NativeClipboard()
+            // 禁用粘贴
+            override suspend fun getClipEntry(): ClipEntry? {
+                return null
+            }
+            // 禁用复制
+            override suspend fun setClipEntry(clipEntry: ClipEntry?) {
+
+            }
         },
         content = content
     )
@@ -353,14 +363,23 @@ fun CustomTextMenuProvider(content: @Composable () -> Unit) {
                 ContextMenuArea(items, state, content = content)
             }
         },
-        LocalClipboardManager provides object :  ClipboardManager {
-            // paste
-            override fun getText(): AnnotatedString {
-                return AnnotatedString("")
+        LocalClipboard provides object : Clipboard {
+            override val nativeClipboard: NativeClipboard
+                get() = NativeClipboard()
+            // 禁用粘贴
+            override suspend fun getClipEntry(): ClipEntry? {
+                return null
             }
-            // copy
-            override fun setText(text: AnnotatedString) {
-                 Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(text.text), null)
+            // 复制
+            override suspend fun setClipEntry(clipEntry: ClipEntry?) {
+                val transferable = clipEntry?.nativeClipEntry as? Transferable
+                if(transferable !== null){
+                    val data = transferable.getTransferData(DataFlavor.stringFlavor) as? String
+                    if (data != null) {
+                        Toolkit.getDefaultToolkit().systemClipboard.setContents(StringSelection(data), null)
+                        return
+                    }
+                }
             }
         },
         content = content

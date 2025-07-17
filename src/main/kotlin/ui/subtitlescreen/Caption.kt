@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import data.Caption
 import kotlinx.coroutines.launch
+import player.isMacOS
 import util.rememberMonospace
 
 
@@ -309,7 +310,8 @@ fun SelectableText(
                 .height(32.dp)
                 .focusRequester(selectRequester)
                 .onKeyEvent {
-                    if (it.isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) {
+                    val isCtrlPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
+                    if (isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) {
                         onDismissRequest()
                         true
                     }else if (it.isCtrlPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) {

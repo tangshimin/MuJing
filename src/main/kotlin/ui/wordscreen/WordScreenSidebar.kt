@@ -303,10 +303,13 @@ fun WordScreenSidebar(
                     modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
                 ) {
                     Row {
+                        //这里两个平台使用不同的快捷键，Windows 使用 Ctrl+H，Mac 使用 Command+R，
+                        // 因为 Command+H 在 macOS 上是隐藏应用的快捷键
+                        val key = if (isMacOS()) "R" else "H"
                         Text("显示例句", color = MaterialTheme.colors.onBackground)
                         Spacer(Modifier.width(10.dp))
                         Text(
-                            text = "$ctrl+H",
+                            text = "$ctrl+$key",
                             color = MaterialTheme.colors.onBackground
                         )
                     }

@@ -919,7 +919,8 @@ fun Settings(
                             shape = RectangleShape
                         ) {
                             val ctrl = LocalCtrl.current
-                            Text(text = "设置 $ctrl+1", modifier = Modifier.padding(10.dp))
+                            val text = if (isMacOS()) "$ctrl + ⌃ + S" else "$ctrl + Alt + S"
+                            Text(text = "设置 $text", modifier = Modifier.padding(10.dp))
                         }
                     },
                     delayMillis = 100,

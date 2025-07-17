@@ -41,7 +41,7 @@ val LocalCtrl = staticCompositionLocalOf<String> {
 /** 本地的 Ctrl 键 */
 @Composable
 fun rememberCtrl(): String = remember {
-    if (isMacOS()) "⌃" else "Ctrl"
+    if (isMacOS()) "⌘" else "Ctrl"
 }
 
 

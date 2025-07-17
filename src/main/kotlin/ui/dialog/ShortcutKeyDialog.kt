@@ -107,18 +107,20 @@ fun ShortcutKeyDialog(close: () -> Unit) {
                                     background = background
                                 )
                             ) {
-                                append("  Enter 或 PgDn ")
+                                append("  Enter 或 ${if(isMacOS()) "→" else "PgDn"} ")
                             }
                             withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
                                 append("  切换到上一个单词用")
                             }
+                            //**左箭头：** ←
+                            //**右箭头：** →
                             withStyle(
                                 style = SpanStyle(
                                     color = MaterialTheme.colors.primary,
                                     background = background
                                 )
                             ) {
-                                append("  PgUp ")
+                                append("  ${if(isMacOS()) "←" else "PgUp"} ")
                             }
                             withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
                                 append("  在听写模式下，不能切换到上一个单词。")

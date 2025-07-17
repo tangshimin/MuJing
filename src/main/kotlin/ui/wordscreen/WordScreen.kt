@@ -13,7 +13,6 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.StarOutline
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -163,7 +162,8 @@ fun WordScreen(
                         videoBounds = videoBounds,
                         resetVideoBounds = resetVideoBounds,
                         wordFocusRequester = wordFocusRequester,
-                        window = window
+                        window = window,
+                        openVocabulary = { showFilePicker = true },
                     )
                 } else {
                     VocabularyEmpty(
@@ -382,6 +382,7 @@ fun MainContent(
     resetVideoBounds :() -> Rectangle,
     wordFocusRequester:FocusRequester,
     window: ComposeWindow,
+    openVocabulary: () -> Unit,
 ){
     var nextButtonVisible by remember{ mutableStateOf(false) }
         /** 协程构建器 */
@@ -585,20 +586,33 @@ fun MainContent(
 
         /** 处理全局快捷键的回调函数 */
         val globalKeyEvent: (KeyEvent) -> Boolean = {
+            // isCtrlPressed
+            // macOS 下是 Command 键, windows 下是 Ctrl 键
+            val isCtrlPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
+            // 删除功能的修饰键
+            val isDeleteModifierPressed = if(isMacOS()) it.isMetaPressed else  it.isShiftPressed
+            // 删除键在不同的平台上有不同的键值
+            val deleteKey = if(isMacOS()) Key.Backspace else Key.Delete
             when {
-                (it.isCtrlPressed && it.isShiftPressed && it.key == Key.A && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed && it.isShiftPressed && it.key == Key.A && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         wordFocusRequester.requestFocus()
                     }
                     true
                 }
-                (it.isCtrlPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         appState.openSearch()
                     }
                     true
                 }
-                (it.isCtrlPressed && it.key == Key.P && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed && it.key == Key.O && it.type == KeyEventType.KeyUp) -> {
+                    scope.launch {
+                        openVocabulary()
+                    }
+                    true
+                }
+                (isCtrlPressed && it.key == Key.P && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         wordScreenState.phoneticVisible = !wordScreenState.phoneticVisible
                         wordScreenState.saveWordScreenState()
@@ -610,7 +624,7 @@ fun MainContent(
                     }
                     true
                 }
-                (it.isCtrlPressed && it.key == Key.L && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed && it.key == Key.L && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         wordScreenState.morphologyVisible = !wordScreenState.morphologyVisible
                         wordScreenState.saveWordScreenState()
@@ -621,7 +635,7 @@ fun MainContent(
                     }
                     true
                 }
-                (it.isCtrlPressed && it.key == Key.E && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed && it.key == Key.E && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         wordScreenState.definitionVisible = !wordScreenState.definitionVisible
                         wordScreenState.saveWordScreenState()
@@ -632,7 +646,7 @@ fun MainContent(
                     }
                     true
                 }
-                (it.isCtrlPressed && it.key == Key.H && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed && (if(isMacOS()) it.key == Key.R else it.key == Key.H) && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         wordScreenState.sentencesVisible = !wordScreenState.sentencesVisible
                         wordScreenState.saveWordScreenState()
@@ -643,7 +657,7 @@ fun MainContent(
                     }
                     true
                 }
-                (it.isCtrlPressed && it.key == Key.K && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed && it.key == Key.K && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         wordScreenState.translationVisible = !wordScreenState.translationVisible
                         wordScreenState.saveWordScreenState()
@@ -654,7 +668,7 @@ fun MainContent(
                     }
                     true
                 }
-                (it.isCtrlPressed && it.key == Key.V && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed && it.key == Key.V && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         wordScreenState.wordVisible = !wordScreenState.wordVisible
                         wordScreenState.saveWordScreenState()
@@ -662,7 +676,7 @@ fun MainContent(
                     true
                 }
 
-                (it.isCtrlPressed && it.key == Key.J && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed && it.key == Key.J && it.type == KeyEventType.KeyUp) -> {
                     if (!isPlayingAudio) {
                         scope.launch (Dispatchers.IO){
                             val audioPath =  getAudioPath(
@@ -685,7 +699,13 @@ fun MainContent(
                     }
                     true
                 }
-                (it.isCtrlPressed && it.key == Key.S && it.type == KeyEventType.KeyUp) -> {
+                ((isCtrlPressed &&  (if(isMacOS()) it.isCtrlPressed else it.isAltPressed )) && it.key == Key.S && it.type == KeyEventType.KeyUp) -> {
+                    scope.launch {
+                        appState.openSettings = !appState.openSettings
+                    }
+                    true
+                }
+                (isCtrlPressed && it.key == Key.S && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         wordScreenState.subtitlesVisible = !wordScreenState.subtitlesVisible
                         wordScreenState.saveWordScreenState()
@@ -696,13 +716,8 @@ fun MainContent(
                     }
                     true
                 }
-                (it.isCtrlPressed && it.key == Key.One && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        appState.openSettings = !appState.openSettings
-                    }
-                    true
-                }
-                (it.isCtrlPressed && it.key == Key.I && it.type == KeyEventType.KeyUp) -> {
+
+                (isCtrlPressed && it.key == Key.I && it.type == KeyEventType.KeyUp) -> {
                     if(!it.isShiftPressed){
                         scope.launch {
                             bookmarkClick()
@@ -711,7 +726,7 @@ fun MainContent(
                         true
                     }else false
                 }
-                (it.isCtrlPressed && it.key == Key.Y && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed && it.key == Key.Y && it.type == KeyEventType.KeyUp) -> {
                     if(wordScreenState.vocabulary.name == "FamiliarVocabulary"){
                         JOptionPane.showMessageDialog(window, "不能把熟悉词库的单词添加到熟悉词库")
                     }else{
@@ -719,13 +734,13 @@ fun MainContent(
                     }
                     true
                 }
-                (it.isShiftPressed && it.key == Key.Delete && it.type == KeyEventType.KeyUp) -> {
+                (isDeleteModifierPressed && it.key == deleteKey && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
                         showDeleteDialog = true
                     }
                     true
                 }
-                (it.isCtrlPressed && it.isShiftPressed && it.key == Key.Z && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed && it.isShiftPressed && it.key == Key.Z && it.type == KeyEventType.KeyUp) -> {
                     if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest ){
                         val playTriple = if (wordScreenState.vocabulary.type == VocabularyType.DOCUMENT) {
                             getPayTriple(currentWord, 0)
@@ -739,7 +754,7 @@ fun MainContent(
                     }
                     true
                 }
-                (it.isCtrlPressed && it.isShiftPressed && it.key == Key.X && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed && it.isShiftPressed && it.key == Key.X && it.type == KeyEventType.KeyUp) -> {
                     if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest){
                         val playTriple = if (wordScreenState.getCurrentWord().externalCaptions.size >= 2) {
                             getPayTriple(currentWord, 1)
@@ -753,7 +768,7 @@ fun MainContent(
                     }
                     true
                 }
-                (it.isCtrlPressed && it.isShiftPressed && it.key == Key.C && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed && it.isShiftPressed && it.key == Key.C && it.type == KeyEventType.KeyUp) -> {
                     if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest){
                         val playTriple = if (wordScreenState.getCurrentWord().externalCaptions.size >= 3) {
                             getPayTriple(currentWord, 2)
@@ -1338,6 +1353,7 @@ fun MainContent(
                 isVocabularyFinished = false
             }
             val wordKeyEvent: (KeyEvent) -> Boolean = { it: KeyEvent ->
+                val isCtrlPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
                 when {
                     ((it.key == Key.Enter || it.key == Key.NumPadEnter || it.key == Key.PageDown || it.key == Key.DirectionRight)
                             && it.type == KeyEventType.KeyUp) -> {
@@ -1351,14 +1367,14 @@ fun MainContent(
                         previous()
                         true
                     }
-                    (it.isCtrlPressed && it.key == Key.C && it.type == KeyEventType.KeyUp) -> {
+                    (isCtrlPressed && it.key == Key.C && it.type == KeyEventType.KeyUp) -> {
                         if(!it.isShiftPressed){
                             clipboardManager.setText(AnnotatedString(currentWord.value))
                             true
                         }else false
 
                     }
-                    (it.isCtrlPressed && it.isShiftPressed && it.key == Key.K && it.type == KeyEventType.KeyUp) -> {
+                    (isCtrlPressed && it.isShiftPressed && it.key == Key.K && it.type == KeyEventType.KeyUp) -> {
                         jumpToCaptions()
                         true
                     }
@@ -2396,6 +2412,7 @@ fun Captions(
                         }
                     }
                     val captionKeyEvent:(KeyEvent) -> Boolean = {
+                        val isCtrlPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
                         when {
                             (it.type == KeyEventType.KeyDown
                                     && it.key != Key.ShiftRight
@@ -2406,7 +2423,7 @@ fun Captions(
                                 scope.launch { playKeySound() }
                                 true
                             }
-                            (it.isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) -> {
+                            (isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) -> {
                                 scope.launch { selectable = !selectable }
                                 true
                             }
@@ -2422,11 +2439,11 @@ fun Captions(
                                 focusMoveUp()
                                 true
                             }
-                            (it.isCtrlPressed && it.isShiftPressed && it.key == Key.I && it.type == KeyEventType.KeyUp) -> {
+                            (isCtrlPressed && it.isShiftPressed && it.key == Key.I && it.type == KeyEventType.KeyUp) -> {
                                 focusMoveUp()
                                 true
                             }
-                            (it.isCtrlPressed && it.isShiftPressed && it.key == Key.K && it.type == KeyEventType.KeyUp) -> {
+                            (isCtrlPressed && it.isShiftPressed && it.key == Key.K && it.type == KeyEventType.KeyUp) -> {
                                 focusMoveDown()
                                 true
                             }
@@ -2658,10 +2675,11 @@ fun Caption(
                         modifier = Modifier.focusable()
                             .focusRequester(dropMenuFocusRequester)
                             .onKeyEvent {
-                                if (it.isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) {
+                                val isCtrlPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
+                                if (isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) {
                                     scope.launch { setSelectable(!selectable) }
                                     true
-                                }else if (it.isCtrlPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) {
+                                }else if (isCtrlPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) {
                                     scope.launch { openSearch() }
                                     true
                                 } else false
@@ -2802,7 +2820,7 @@ fun DeleteButton(onClick:()->Unit){
                 ) {
                     Text(text = "删除单词")
                     CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
-                        val shift = if (isMacOS()) "⇧" else "Shift"
+                        val shift = if (isMacOS()) "⌘" else "Shift"
                         Text(text = " $shift + Delete ")
                     }
                 }

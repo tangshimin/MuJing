@@ -676,6 +676,7 @@ fun SubtitleScreen(
                             }
 
                             val textFieldKeyEvent: (KeyEvent) -> Boolean = { it: KeyEvent ->
+                                val isCtrlPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
                                 when {
                                     ((it.key != Key.ShiftLeft && it.key != Key.ShiftRight &&
                                             it.key != Key.AltLeft && it.key != Key.AltRight &&
@@ -707,7 +708,7 @@ fun SubtitleScreen(
                                         }
                                         true
                                     }
-                                    (it.isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) -> {
+                                    (isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) -> {
                                         scope.launch {
                                             if(subtitlesState.transcriptionCaption){
                                                 selectable = !selectable
@@ -715,7 +716,7 @@ fun SubtitleScreen(
                                         }
                                         true
                                     }
-                                    (it.isCtrlPressed && it.key == Key.N && it.type == KeyEventType.KeyUp) -> {
+                                    (isCtrlPressed && it.key == Key.N && it.type == KeyEventType.KeyUp) -> {
                                         scope.launch { enableMultipleLines() }
                                         true
                                     }
