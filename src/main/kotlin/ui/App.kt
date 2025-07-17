@@ -1,8 +1,8 @@
 package ui
 
-import CustomLocalProvider
-import LocalCtrl
-import PlayerLocalProvider
+import theme.CustomLocalProvider
+import theme.LocalCtrl
+import theme.PlayerLocalProvider
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.*
@@ -43,7 +43,7 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
-import scrollbarStyle
+import theme.scrollbarStyle
 import state.*
 import theme.toAwt
 import ui.dialog.*

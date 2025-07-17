@@ -1,6 +1,6 @@
 package player
 
-import LocalCtrl
+import theme.LocalCtrl
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke

@@ -1,6 +1,6 @@
 package ui.wordscreen
 
-import LocalCtrl
+import theme.LocalCtrl
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*

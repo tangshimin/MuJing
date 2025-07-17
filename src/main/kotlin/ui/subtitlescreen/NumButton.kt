@@ -1,6 +1,6 @@
 package ui.subtitlescreen
 
-import LocalCtrl
+import theme.LocalCtrl
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding

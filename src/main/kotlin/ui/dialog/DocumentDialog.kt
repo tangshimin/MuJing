@@ -1,6 +1,6 @@
 package ui.dialog
 
-import LocalCtrl
+import theme.LocalCtrl
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.ClickableText
