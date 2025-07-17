@@ -84,7 +84,8 @@ jobs:
             --enable-protocol=file \
             --enable-static \
             --disable-shared \
-            --pkg-config-flags="--static" \
+            --disable-autodetect \
+            --pkg-config-flags="--static"
 
       - name: Build and install FFmpeg
         run: |
