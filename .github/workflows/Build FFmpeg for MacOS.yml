@@ -27,36 +27,6 @@ jobs:
           git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
           cd ffmpeg
 
-      - name: Check configure result
-        run: |
-          cd ffmpeg
-          echo "=== Configure 输出检查 ==="
-          ./configure --disable-everything \
-            --disable-ffprobe \
-            --enable-ffmpeg \
-            --enable-avformat \
-            --enable-avcodec \
-            --enable-avutil \
-            --enable-decoder=srt \
-            --enable-decoder=movtext \
-            --enable-decoder=webvtt \
-            --enable-decoder=ass \
-            --enable-decoder=ssa \
-            --enable-decoder=subrip \
-            --enable-encoder=srt \
-            --enable-encoder=subrip \
-            --enable-encoder=movtext \
-            --enable-demuxer=mov \
-            --enable-demuxer=matroska \
-            --enable-demuxer=ass \
-            --enable-demuxer=srt \
-            --enable-demuxer=webvtt \
-            --enable-muxer=srt \
-            --enable-protocol=file \
-            --enable-static \
-            --disable-shared \
-            --pkg-config-flags="--static" | grep -i x11 || echo "没有发现 X11 相关配置"
-
       - name: Configure FFmpeg
         run: |
           cd ffmpeg
@@ -100,6 +70,18 @@ jobs:
           otool -L /usr/local/bin/ffmpeg
           echo "=== File info ==="
           file /usr/local/bin/ffmpeg
+
+      - name: Test FFmpeg functionality
+        run: |
+          echo "=== 测试 FFmpeg 基本功能 ==="
+          /usr/local/bin/ffmpeg -version
+          
+          echo "=== 测试支持的编解码器 ==="
+          /usr/local/bin/ffmpeg -encoders | grep -E "(srt|subrip|movtext)" || echo "没找到字幕编码器"
+          /usr/local/bin/ffmpeg -decoders | grep -E "(srt|movtext|webvtt|ass|ssa)" || echo "没找到字幕解码器"
+          
+          echo "=== 测试支持的格式 ==="
+          /usr/local/bin/ffmpeg -formats | grep -E "(mov|matroska|srt)" || echo "没找到支持的格式"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
