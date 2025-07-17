@@ -27,6 +27,36 @@ jobs:
           git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
           cd ffmpeg
 
+  - name: Check configure result
+      run: |
+        cd ffmpeg
+        echo "=== Configure 输出检查 ==="
+        ./configure --disable-everything \
+          --disable-ffprobe \
+          --enable-ffmpeg \
+          --enable-avformat \
+          --enable-avcodec \
+          --enable-avutil \
+          --enable-decoder=srt \
+          --enable-decoder=movtext \
+          --enable-decoder=webvtt \
+          --enable-decoder=ass \
+          --enable-decoder=ssa \
+          --enable-decoder=subrip \
+          --enable-encoder=srt \
+          --enable-encoder=subrip \
+          --enable-encoder=movtext \
+          --enable-demuxer=mov \
+          --enable-demuxer=matroska \
+          --enable-demuxer=ass \
+          --enable-demuxer=srt \
+          --enable-demuxer=webvtt \
+          --enable-muxer=srt \
+          --enable-protocol=file \
+          --enable-static \
+          --disable-shared \
+          --pkg-config-flags="--static" | grep -i x11 || echo "没有发现 X11 相关配置"
+
       - name: Configure FFmpeg
         run: |
           cd ffmpeg
@@ -54,17 +84,12 @@ jobs:
             --enable-protocol=file \
             --enable-static \
             --disable-shared \
-            --disable-x11grab \
-            --disable-xlib \
-            --disable-videotoolbox \
-            --disable-audiotoolbox \
             --pkg-config-flags="--static" \
-            --extra-ldflags="-static-libgcc"
 
       - name: Build and install FFmpeg
         run: |
           cd ffmpeg
-          make
+          make -j$(nproc)
           sudo make install
 
 
