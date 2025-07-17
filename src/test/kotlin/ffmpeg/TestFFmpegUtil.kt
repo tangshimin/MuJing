@@ -20,6 +20,63 @@ class TestFFmpegUtil {
     }
 
     @Test
+    fun `Test FFmpeg Executable Diagnosis`() {
+        val ffmpegPath = findFFmpegPath()
+        println("=== FFmpeg 诊断信息 ===")
+        println("FFmpeg path: $ffmpegPath")
+
+        val ffmpegFile = File(ffmpegPath)
+        println("文件存在: ${ffmpegFile.exists()}")
+        println("文件大小: ${ffmpegFile.length()} bytes")
+        println("可执行权限: ${ffmpegFile.canExecute()}")
+        println("可读权限: ${ffmpegFile.canRead()}")
+
+        // 检查文件类型和架构
+        try {
+            val fileProcess = ProcessBuilder("file", ffmpegPath).start()
+            val fileOutput = fileProcess.inputStream.bufferedReader().readText()
+            println("文件类型: $fileOutput")
+        } catch (e: Exception) {
+            println("无法检查文件类型: ${e.message}")
+        }
+
+        // 检查动态库依赖
+        try {
+            val otoolProcess = ProcessBuilder("otool", "-L", ffmpegPath).start()
+            val otoolOutput = otoolProcess.inputStream.bufferedReader().readText()
+            println("动态库依赖:")
+            println(otoolOutput)
+        } catch (e: Exception) {
+            println("无法检查动态库依赖: ${e.message}")
+        }
+
+        // 直接执行测试
+        try {
+            println("=== 直接执行测试 ===")
+            val processBuilder = ProcessBuilder(ffmpegPath, "-version")
+            processBuilder.redirectErrorStream(true)
+
+            val process = processBuilder.start()
+            val output = process.inputStream.bufferedReader().readText()
+            val exitCode = process.waitFor()
+
+            println("退出代码: $exitCode")
+            println("输出内容:")
+            println(output)
+
+            if (exitCode == 0) {
+                println("✅ FFmpeg 可以正常执行")
+            } else {
+                println("❌ FFmpeg 执行失败")
+            }
+
+        } catch (e: Exception) {
+            println("❌ 执行异常: ${e.message}")
+            e.printStackTrace()
+        }
+    }
+
+    @Test
     fun `Test Extract Subtitles From MP4`() {
         val input = "src/test/resources/Sintel.2010.480.mp4"
         val subtitleId = 1
