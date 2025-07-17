@@ -60,8 +60,24 @@ jobs:
         shell: msys2 {0}
         run: |
           cd ffmpeg
-          make
+          # 获取 CPU 核心数，fallback 到 4
+          CORES=$(nproc 2>/dev/null || echo 4)
+          echo "使用 $CORES 个核心进行编译"
+          make -j$CORES
           make install
+
+      - name: Test FFmpeg functionality
+        shell: msys2 {0}
+        run: |
+          echo "=== 测试 FFmpeg 基本功能 ==="
+          /usr/local/bin/ffmpeg.exe -version
+          
+          echo "=== 测试支持的编解码器 ==="
+          /usr/local/bin/ffmpeg.exe -encoders | grep -E "(srt|subrip|movtext)" || echo "没找到字幕编码器"
+          /usr/local/bin/ffmpeg.exe -decoders | grep -E "(srt|movtext|webvtt|ass|ssa)" || echo "没找到字幕解码器"
+          
+          echo "=== 测试支持的格式 ==="
+          /usr/local/bin/ffmpeg.exe -formats | grep -E "(mov|matroska|srt)" || echo "没找到支持的格式"
 
       - name: Copy dependencies
         shell: msys2 {0}
