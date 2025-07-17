@@ -413,9 +413,11 @@ private fun FrameWindowScope.WindowMenuBar(
     wordScreenState: WordScreenState,
     close: () -> Unit,
 ) = MenuBar {
-    Menu("词库(V)", mnemonic = 'V') {
+
+    val isWindows = isWindows()
+    Menu("词库${ if (isWindows) "(V)" else ""}", mnemonic = 'V') {
         var showFilePicker by remember {mutableStateOf(false)}
-        Item("打开词库(O)", mnemonic = 'O') { showFilePicker = true }
+        Item("打开词库 ${if(isWindows) "(O)" else ""}", mnemonic = 'O') { showFilePicker = true }
         val extensions = if(isMacOS()) listOf("public.json") else listOf("json")
         FilePicker(
             show = showFilePicker,
@@ -440,7 +442,7 @@ private fun FrameWindowScope.WindowMenuBar(
 
             showFilePicker = false
         }
-        Menu("打开最近词库(R)",enabled = appState.recentList.isNotEmpty(), mnemonic = 'R') {
+        Menu("打开最近词库${if(isWindows) "(R)" else ""}",enabled = appState.recentList.isNotEmpty(), mnemonic = 'R') {
             for (i in 0 until appState.recentList.size){
                 val recentItem = appState.recentList.getOrNull(i)
                 if(recentItem!= null){
@@ -467,21 +469,21 @@ private fun FrameWindowScope.WindowMenuBar(
                 }
             }
         }
-        Item("新建词库(N)", mnemonic = 'N', onClick = {
+        Item("新建词库${if(isWindows) "(N)" else ""}", mnemonic = 'N', onClick = {
             appState.newVocabulary = true
         })
-        Item("编辑词库(E)", mnemonic = 'E', onClick = {
+        Item("编辑词库${if(isWindows) "(E)" else ""}", mnemonic = 'E', onClick = {
             appState.editVocabulary = true
         })
         Separator()
         var showBuiltInVocabulary by remember{mutableStateOf(false)}
-        Item("选择内置词库(B)", mnemonic = 'B', onClick = {showBuiltInVocabulary = true})
+        Item("选择内置词库${if(isWindows) "(B)" else ""}", mnemonic = 'B', onClick = {showBuiltInVocabulary = true})
         BuiltInVocabularyDialog(
             show = showBuiltInVocabulary,
             close = {showBuiltInVocabulary = false},
             futureFileChooser = appState.futureFileChooser
         )
-        Item("熟悉词库(I)", mnemonic = 'I',onClick = {
+        Item("熟悉词库${if(isWindows) "(F)" else ""}", mnemonic = 'F',onClick = {
             val file = getFamiliarVocabularyFile()
             if(file.exists()){
                 val vocabulary =loadVocabulary(file.absolutePath)
@@ -499,7 +501,7 @@ private fun FrameWindowScope.WindowMenuBar(
                 JOptionPane.showMessageDialog(window,"熟悉词库现在还没有单词")
             }
         })
-        Item("困难词库(K)", enabled = appState.hardVocabulary.wordList.isNotEmpty(), mnemonic = 'K',onClick = {
+        Item("困难词库${if(isWindows) "(K)" else ""}", enabled = appState.hardVocabulary.wordList.isNotEmpty(), mnemonic = 'K',onClick = {
             val file = getHardVocabularyFile()
             val changed = appState.changeVocabulary(file, wordScreenState,wordScreenState.hardVocabularyIndex)
             if(changed){
@@ -510,14 +512,14 @@ private fun FrameWindowScope.WindowMenuBar(
         })
 
         Separator()
-        Item("合并词库(M)", mnemonic = 'M', onClick = {
+        Item("合并词库${if(isWindows) "(M)" else ""}", mnemonic = 'M', onClick = {
             appState.mergeVocabulary = true
         })
-        Item("过滤词库(F)", mnemonic = 'F', onClick = {
+        Item("过滤词库${if(isWindows) "(G)" else ""}", mnemonic = 'G', onClick = {
             appState.filterVocabulary = true
         })
         var matchVocabulary by remember{ mutableStateOf(false) }
-        Item("匹配词库(P)", mnemonic = 'P', onClick = {
+        Item("匹配词库${if(isWindows) "(P)" else ""}", mnemonic = 'P', onClick = {
             matchVocabulary = true
         })
         if(matchVocabulary){
@@ -538,16 +540,16 @@ private fun FrameWindowScope.WindowMenuBar(
         }
 
         Item(
-            "链接字幕词库(L)", mnemonic = 'L',
+            "链接字幕词库${if(isWindows) "(L)" else ""}", mnemonic = 'L',
             onClick = { showLinkVocabulary = true },
         )
-        Item("导入词库到熟悉词库(I)", mnemonic = 'F', onClick = {
+        Item("导入词库到熟悉词库${if(isWindows) "(I)" else ""}", mnemonic = 'I', onClick = {
             appState.importFamiliarVocabulary = true
         })
 
         Separator()
         var showWordFrequency by remember { mutableStateOf(false) }
-        Item("根据词频生成词库(C)", mnemonic = 'C', onClick = {showWordFrequency = true })
+        Item("根据词频生成词库${if(isWindows) "(C)" else ""}", mnemonic = 'C', onClick = {showWordFrequency = true })
         if(showWordFrequency){
             WordFrequencyDialog(
                 futureFileChooser = appState.futureFileChooser,
@@ -557,18 +559,18 @@ private fun FrameWindowScope.WindowMenuBar(
                 close = {showWordFrequency = false}
             )
         }
-        Item("用文档生成词库(D)", mnemonic = 'D', onClick = {
+        Item("用文档生成词库${if(isWindows) "(D)" else ""}", mnemonic = 'D', onClick = {
             appState.generateVocabularyFromDocument = true
         })
-        Item("用字幕生成词库(Z)", mnemonic = 'Z', onClick = {
+        Item("用字幕生成词库${if(isWindows) "(Z)" else ""}", mnemonic = 'Z', onClick = {
             appState.generateVocabularyFromSubtitles = true
         })
-        Item("用视频生成词库(V)", mnemonic = 'V', onClick = {
+        Item("用视频生成词库${if(isWindows) "(V)" else ""}", mnemonic = 'V', onClick = {
             appState.generateVocabularyFromVideo = true
         })
         Separator()
         var showSettingsDialog by remember { mutableStateOf(false) }
-        Item("设置(S)", mnemonic = 'S', onClick = { showSettingsDialog = true })
+        Item("设置${if(isWindows) "(S)" else ""}", mnemonic = 'S', onClick = { showSettingsDialog = true })
         if(showSettingsDialog){
             SettingsDialog(
                 close = {showSettingsDialog = false},
@@ -578,14 +580,14 @@ private fun FrameWindowScope.WindowMenuBar(
         }
         if(isWindows()){
             Separator()
-            Item("退出(X)", mnemonic = 'X', onClick = { close() })
+            Item("退出${if(isWindows) "(X)" else ""}", mnemonic = 'X', onClick = { close() })
         }
 
     }
-    Menu("字幕(S)", mnemonic = 'S') {
+    Menu("字幕${if(isWindows) "(S)" else ""}", mnemonic = 'S') {
         val enableTypingSubtitles = (appState.global.type != ScreenType.SUBTITLES)
         Item(
-            "字幕浏览器(T)", mnemonic = 'T',
+            "字幕浏览器${if(isWindows) "(T)" else ""}", mnemonic = 'T',
             enabled = enableTypingSubtitles,
             onClick = {
                 appState.global.type = ScreenType.SUBTITLES
@@ -603,15 +605,15 @@ private fun FrameWindowScope.WindowMenuBar(
             )
         }
         Item(
-            "歌词转字幕(C)",mnemonic = 'C',
+            "歌词转字幕${if(isWindows) "(C)" else ""}",mnemonic = 'C',
             enabled = true,
             onClick = {showLyricDialog = true}
         )
     }
-    Menu("文本(T)", mnemonic = 'T') {
+    Menu("文本${if(isWindows) "(T)" else ""}", mnemonic = 'T') {
         val enable = appState.global.type != ScreenType.TEXT
         Item(
-            "抄写文本(T)", mnemonic = 'T',
+            "抄写文本${if(isWindows) "(T)" else ""}", mnemonic = 'T',
             enabled = enable,
             onClick = {
                 appState.global.type = ScreenType.TEXT
@@ -628,14 +630,14 @@ private fun FrameWindowScope.WindowMenuBar(
             )
         }
         Item(
-            "文本格式化(F)", mnemonic = 'F',
+            "文本格式化${if(isWindows) "(F)" else ""}", mnemonic = 'F',
             onClick = { showTextFormatDialog = true },
         )
     }
-    Menu("帮助(H)", mnemonic = 'H') {
+    Menu("帮助${if(isWindows) "(H)" else ""}", mnemonic = 'H') {
         var documentWindowVisible by remember { mutableStateOf(false) }
         var currentPage by remember { mutableStateOf("features") }
-        Item("使用手册(D)", mnemonic = 'D', onClick = { documentWindowVisible = true})
+        Item("使用手册${if(isWindows) "(D)" else ""}", mnemonic = 'D', onClick = { documentWindowVisible = true})
         if(documentWindowVisible){
             DocumentWindow(
                 close = {documentWindowVisible = false},
@@ -644,12 +646,12 @@ private fun FrameWindowScope.WindowMenuBar(
             )
         }
         var shortcutKeyDialogVisible by remember { mutableStateOf(false) }
-        Item("快捷键(K)", mnemonic = 'K', onClick = {shortcutKeyDialogVisible = true})
+        Item("快捷键${if(isWindows) "(K)" else ""}", mnemonic = 'K', onClick = {shortcutKeyDialogVisible = true})
         if(shortcutKeyDialogVisible){
             ShortcutKeyDialog(close ={shortcutKeyDialogVisible = false} )
         }
         var directoryDialogVisible by remember { mutableStateOf(false) }
-        Item("特殊文件夹(F)",mnemonic = 'F', onClick = {directoryDialogVisible = true})
+        Item("特殊文件夹${if(isWindows) "(F)" else ""}",mnemonic = 'F', onClick = {directoryDialogVisible = true})
         if(directoryDialogVisible){
             SpecialDirectoryDialog(close ={directoryDialogVisible = false})
         }
@@ -660,12 +662,12 @@ private fun FrameWindowScope.WindowMenuBar(
                 close = {donateDialogVisible = false}
             )
         }
-        Item("检查更新(U)", mnemonic = 'U', onClick = {
+        Item("检查更新${if(isWindows) "(U)" else ""}", mnemonic = 'U', onClick = {
             appState.showUpdateDialog = true
             appState.latestVersion = ""
         })
         var aboutDialogVisible by remember { mutableStateOf(false) }
-        Item("关于(A)", mnemonic = 'A', onClick = { aboutDialogVisible = true })
+        Item("关于${if(isWindows) "(A)" else ""}", mnemonic = 'A', onClick = { aboutDialogVisible = true })
         if (aboutDialogVisible) {
             AboutDialog(
                 version = BuildConfig.APP_VERSION,
