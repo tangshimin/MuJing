@@ -54,7 +54,12 @@ jobs:
             --enable-protocol=file \
             --enable-static \
             --disable-shared \
-            --pkg-config-flags="--static"
+            --disable-x11grab \
+            --disable-xlib \
+            --disable-videotoolbox \
+            --disable-audiotoolbox \
+            --pkg-config-flags="--static" \
+            --extra-ldflags="-static-libgcc"
 
       - name: Build and install FFmpeg
         run: |
@@ -65,7 +70,10 @@ jobs:
 
       - name: Verify static linking
         run: |
+          echo "=== Dynamic dependencies ==="
           otool -L /usr/local/bin/ffmpeg
+          echo "=== File info ==="
+          file /usr/local/bin/ffmpeg
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
