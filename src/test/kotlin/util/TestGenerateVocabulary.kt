@@ -1,7 +1,6 @@
 package util
 
 import androidx.compose.ui.ExperimentalComposeUiApi
-import androidx.compose.ui.res.ResourceLoader
 import opennlp.tools.chunker.ChunkerME
 import opennlp.tools.chunker.ChunkerModel
 import opennlp.tools.postag.POSModel
@@ -70,17 +69,17 @@ class TestGenerateVocabulary {
     @Test
     fun `Test Segmenting Words and Phrases`(){
         // 加载分词模型
-        val tokenModel = ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin").use { inputStream ->
+        val tokenModel = loadModelResource("opennlp/opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin").use { inputStream ->
             TokenizerModel(inputStream)
         }
         val tokenizer = TokenizerME(tokenModel)
         // 加载词性标注模型
-        val posModel = ResourceLoader.Default.load("opennlp/opennlp-en-ud-ewt-pos-1.0-1.9.3.bin").use { inputStream ->
+        val posModel = loadModelResource("opennlp/opennlp-en-ud-ewt-pos-1.0-1.9.3.bin").use { inputStream ->
             POSModel(inputStream)
         }
         val posTagger = POSTaggerME(posModel)
         // 加载分块模型
-        val chunkerModel = ResourceLoader.Default.load("opennlp/en-chunker.bin").use { inputStream ->
+        val chunkerModel = loadModelResource("opennlp/en-chunker.bin").use { inputStream ->
             ChunkerModel(inputStream)
         }
         val chunker = ChunkerME(chunkerModel)
