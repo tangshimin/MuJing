@@ -12,6 +12,8 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      # 限制同时运行的作业数量，避免资源竞争
+      max-parallel: 1
       matrix:
         os: [windows-latest, macos-13, macos-latest]
         include:
@@ -41,5 +43,12 @@ jobs:
         if: runner.os != 'Windows'
         run: chmod +x ./gradlew
 
-      - name: Run UI tests
+      # macOS 平台使用单线程运行测试
+      - name: Run UI tests (macOS)
+        if: runner.os == 'macOS'
+        run: ./gradlew uiTest --max-workers=1 --no-daemon
+
+      # 其他平台使用默认配置
+      - name: Run UI tests (other platforms)
+        if: runner.os != 'macOS'
         run: ./gradlew uiTest
