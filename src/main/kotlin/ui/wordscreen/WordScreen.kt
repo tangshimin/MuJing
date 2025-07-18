@@ -745,7 +745,7 @@ fun MainContent(
                     }
                     true
                 }
-                (isCtrlPressed && it.isShiftPressed && it.key == Key.Z && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed &&  it.key == Key.One && it.type == KeyEventType.KeyUp) -> {
                     if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest ){
                         val playTriple = if (wordScreenState.vocabulary.type == VocabularyType.DOCUMENT) {
                             getPayTriple(currentWord, 0)
@@ -759,7 +759,7 @@ fun MainContent(
                     }
                     true
                 }
-                (isCtrlPressed && it.isShiftPressed && it.key == Key.X && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed && it.key == Key.Two && it.type == KeyEventType.KeyUp) -> {
                     if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest){
                         val playTriple = if (wordScreenState.getCurrentWord().externalCaptions.size >= 2) {
                             getPayTriple(currentWord, 1)
@@ -773,7 +773,7 @@ fun MainContent(
                     }
                     true
                 }
-                (isCtrlPressed && it.isShiftPressed && it.key == Key.C && it.type == KeyEventType.KeyUp) -> {
+                (isCtrlPressed &&  it.key == Key.Three && it.type == KeyEventType.KeyUp) -> {
                     if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest){
                         val playTriple = if (wordScreenState.getCurrentWord().externalCaptions.size >= 3) {
                             getPayTriple(currentWord, 2)
@@ -2705,14 +2705,19 @@ fun Caption(
                         shape = RectangleShape
                     ) {
                         val ctrl = LocalCtrl.current
-                        val shift = if (isMacOS()) "⇧" else "Shift"
-                        val text: Any = when (index) {
-                            0 -> "播放 $ctrl+$shift+Z"
-                            1 -> "播放 $ctrl+$shift+X"
-                            2 -> "播放 $ctrl+$shift+C"
+                        val plus = if (isMacOS()) "" else "+"
+                        val shortcutText: Any = when (index) {
+                            0 -> "$ctrl+$plus 1"
+                            1 -> "$ctrl+$plus 2"
+                            2 -> "$ctrl+$plus 3"
                             else -> println("字幕数量超出范围")
                         }
-                        Text(text = text.toString(), modifier = Modifier.padding(10.dp))
+                        Row(modifier = Modifier.padding(10.dp)){
+                            Text(text = "播放  " )
+                            CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                Text(text = shortcutText.toString())
+                            }
+                        }
                     }
                 },
                 delayMillis = 300,
