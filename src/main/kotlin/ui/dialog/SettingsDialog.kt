@@ -94,6 +94,18 @@ fun SettingsDialog(
                                 }
                             }
 
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .clickable { currentPage = "Other" }
+                                    .fillMaxWidth()
+                                    .height(48.dp)) {
+                                Text("其它", modifier = Modifier.padding(start = 16.dp))
+                                if (currentPage == "Other") {
+                                    Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                                }
+                            }
                         }
                         Divider(Modifier.fillMaxHeight().width(1.dp))
                         when (currentPage) {
@@ -103,7 +115,9 @@ fun SettingsDialog(
                             "TextStyle" -> {
                                 SettingTextStyle(state,wordScreenState)
                             }
-
+                            "Other" -> {
+                                OtherSettings(state)
+                            }
                         }
                     }
                     Divider(Modifier.align(Alignment.TopCenter))
@@ -693,4 +707,26 @@ fun SettingTheme(
 
     }
 
+}
+
+
+@OptIn(ExperimentalSerializationApi::class)
+@Composable
+fun OtherSettings(appState: AppState) {
+    Box(Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter){
+        Row(modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center){
+            Text("显示输入次数")
+            Spacer(Modifier.width(20.dp))
+            Switch(
+                checked = appState.global.showInputCount,
+                onCheckedChange = {
+                    appState.global.showInputCount = it
+                    appState.saveGlobalState()
+                }
+            )
+        }
+    }
 }

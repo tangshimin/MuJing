@@ -39,6 +39,7 @@ data class GlobalData(
     val bnc:Int = 1000,
     val frq:Int = 1000,
     val maxSentenceLength:Int = 25,
+    val showInputCount:Boolean = true
 )
 
 /** 全局状态的需要持久化的部分 */
@@ -159,6 +160,10 @@ class GlobalState(globalData: GlobalData) {
      */
     var maxSentenceLength by mutableStateOf(globalData.maxSentenceLength)
 
+    /**
+     * 显示输入次数
+     */
+    var showInputCount by mutableStateOf(globalData.showInputCount)
 }
 @Composable
  fun computeFontSize(textStyle: String): TextUnit {

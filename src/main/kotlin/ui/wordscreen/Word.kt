@@ -229,22 +229,26 @@ fun Word(
                 )
             }
 
-
-            Column (Modifier.height(textHeight),
-                verticalArrangement = Arrangement.Center
+            if(global.showInputCount){
+                Column (Modifier.height(textHeight),
+                    verticalArrangement = Arrangement.Center
                 ){
-                var numberFontSize = LocalTextStyle.current.fontSize
-                if(smallStyleList.contains(global.wordTextStyle)) numberFontSize = MaterialTheme.typography.overline.fontSize
-                Text(text = "${if (correctTime > 0) correctTime else ""}",
-                    color = MaterialTheme.colors.primary,
-                    fontSize =  numberFontSize,)
+                    var numberFontSize = LocalTextStyle.current.fontSize
+                    if(smallStyleList.contains(global.wordTextStyle)) numberFontSize = MaterialTheme.typography.overline.fontSize
+                    Text(text = "${if (correctTime > 0) correctTime else ""}",
+                        color = MaterialTheme.colors.primary,
+                        fontSize =  numberFontSize,)
 
-                Spacer(modifier = Modifier.height(textHeight.div(4)))
-                Text(text = "${if (wrongTime > 0) wrongTime else ""}",
-                    color = Color.Red,
-                    fontSize =  numberFontSize,
-                )
+                    Spacer(modifier = Modifier.height(textHeight.div(4)))
+                    Text(text = "${if (wrongTime > 0) wrongTime else ""}",
+                        color = Color.Red,
+                        fontSize =  numberFontSize,
+                    )
+                }
+            }else{
+                Spacer(modifier = Modifier.width(2.dp))
             }
+
             AudioButton(
                 audioSet = audioSet,
                 addToAudioSet = addToAudioSet,
