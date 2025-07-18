@@ -13,7 +13,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Subtitles
 import androidx.compose.material.icons.filled.Title
-import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.runtime.*
@@ -24,6 +23,13 @@ import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.KeyShortcut
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -107,6 +113,16 @@ fun App(
                 icon = painterResource("logo/logo.png"),
                 state = windowState,
                 onCloseRequest = {close() },
+                onKeyEvent = { it ->
+                    val isCtrlPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
+                    if (isCtrlPressed && it.key == Key.Comma && it.type == KeyEventType.KeyUp) {
+                        appState.openSettings = true
+                        true
+                    }else{
+                        false // 返回 false 让 Compose 继续处理事件
+                    }
+
+                }
             ) {
 
                 MaterialTheme(colors = appState.colors) {
@@ -137,18 +153,18 @@ fun App(
                                 // 显示器缩放
                                 val density = LocalDensity.current.density
                                 // 视频播放器的位置，大小
-                                val videoBounds by remember (windowState,appState.openSettings,density){
+                                val videoBounds by remember (windowState,appState.openSidebar,density){
                                     derivedStateOf {
                                         if(wordState.isChangeVideoBounds){
                                             Rectangle(wordState.playerLocationX,wordState.playerLocationY,wordState.playerWidth,wordState.playerHeight)
                                         }else{
-                                            computeVideoBounds(windowState, appState.openSettings,density)
+                                            computeVideoBounds(windowState, appState.openSidebar,density)
                                         }
                                     }
                                 }
 
                                 val resetVideoBounds :() -> Rectangle ={
-                                    val bounds = computeVideoBounds(windowState, appState.openSettings,density)
+                                    val bounds = computeVideoBounds(windowState, appState.openSidebar,density)
                                     wordState.isChangeVideoBounds = false
                                     appState.videoPlayerWindow.size =bounds.size
                                     appState.videoPlayerWindow.location = bounds.location
@@ -177,8 +193,8 @@ fun App(
                                     globalState = appState.global,
                                     saveSubtitlesState = { subtitlesState.saveTypingSubtitlesState() },
                                     saveGlobalState = { appState.saveGlobalState() },
-                                    isOpenSettings = appState.openSettings,
-                                    setIsOpenSettings = { appState.openSettings = it },
+                                    isOpenSettings = appState.openSidebar,
+                                    setIsOpenSettings = { appState.openSidebar = it },
                                     window = window,
                                     title = title,
                                     playerWindow = appState.videoPlayerWindow,
@@ -201,8 +217,8 @@ fun App(
                                     saveGlobalState = { appState.saveGlobalState() },
                                     textState = textState,
                                     saveTextState = { textState.saveTypingTextState() },
-                                    isOpenSettings = appState.openSettings,
-                                    setIsOpenSettings = {appState.openSettings = it},
+                                    isOpenSettings = appState.openSidebar,
+                                    setIsOpenSettings = {appState.openSidebar = it},
                                     futureFileChooser = appState.futureFileChooser,
                                     openLoadingDialog = { appState.openLoadingDialog()},
                                     closeLoadingDialog = { appState.loadingFileChooserVisible = false },
@@ -569,11 +585,11 @@ private fun FrameWindowScope.WindowMenuBar(
             appState.generateVocabularyFromVideo = true
         })
         Separator()
-        var showSettingsDialog by remember { mutableStateOf(false) }
-        Item("设置${if(isWindows) "(S)" else ""}", mnemonic = 'S', onClick = { showSettingsDialog = true })
-        if(showSettingsDialog){
+        val shortcut = if(isMacOS()) KeyShortcut(Key.Comma, meta = true) else KeyShortcut(Key.Comma, ctrl = true)
+        Item("设置${if(isWindows) "(S)" else ""}", mnemonic = 'S', shortcut = shortcut, onClick = { appState.openSettings = true })
+        if(appState.openSettings){
             SettingsDialog(
-                close = {showSettingsDialog = false},
+                close = {appState.openSettings = false},
                 state = appState,
                 wordScreenState = wordScreenState
             )

@@ -58,7 +58,10 @@ class AppState {
     /** 最近生成的词库列表 */
     var recentList = readRecentList()
 
-    /** 打开设置 */
+    /** 打开侧边栏 */
+    var openSidebar by mutableStateOf(false)
+
+    /** 打开设置*/
     var openSettings by mutableStateOf(false)
 
     /** 是否显示等待窗口 */

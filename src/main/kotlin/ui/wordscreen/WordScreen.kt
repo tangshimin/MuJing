@@ -189,9 +189,9 @@ fun WordScreen(
 
         Row( modifier = Modifier.align(Alignment.TopStart)){
             Toolbar(
-                isOpen = appState.openSettings,
+                isOpen = appState.openSidebar,
                 setIsOpen = {
-                    appState.openSettings = it
+                    appState.openSidebar = it
                     if(!it && currentWord != null){
                         wordFocusRequester.requestFocus()
                     }
@@ -701,7 +701,7 @@ fun MainContent(
                 }
                 ((isCtrlPressed &&  (if(isMacOS()) it.isCtrlPressed else it.isAltPressed )) && it.key == Key.S && it.type == KeyEventType.KeyUp) -> {
                     scope.launch {
-                        appState.openSettings = !appState.openSettings
+                        appState.openSidebar = !appState.openSidebar
                     }
                     true
                 }

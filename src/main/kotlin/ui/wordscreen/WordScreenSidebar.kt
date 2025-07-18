@@ -48,7 +48,7 @@ fun WordScreenSidebar(
 ) {
 
     AnimatedVisibility (
-        visible = appState.openSettings,
+        visible = appState.openSidebar,
         enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
         exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut()
     ){
@@ -58,8 +58,8 @@ fun WordScreenSidebar(
             .width(216.dp).fillMaxHeight().onKeyEvent { it ->
             if (it.isCtrlPressed && it.key == Key.One && it.type == KeyEventType.KeyUp){
             scope.launch {
-                appState.openSettings = !appState.openSettings
-                if(!appState.openSettings){
+                appState.openSidebar = !appState.openSidebar
+                if(!appState.openSidebar){
                     wordRequestFocus()
                 }
             }
