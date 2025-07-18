@@ -1769,7 +1769,7 @@ fun VocabularyEmpty(
             Column(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.align(Alignment.Center)
-                    .width(288.dp)
+                    .width(300.dp)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
