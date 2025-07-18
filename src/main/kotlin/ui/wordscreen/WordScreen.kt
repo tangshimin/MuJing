@@ -202,8 +202,6 @@ fun WordScreen(
                 showPlayer = showPlayer,
                 openSearch = appState.openSearch,
             )
-            val ctrl = LocalCtrl.current
-
             TooltipArea(
                 tooltip = {
                     Surface(
@@ -211,7 +209,14 @@ fun WordScreen(
                         border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                         shape = RectangleShape
                     ) {
-                        Text(text = "打开词库文件 $ctrl + O", modifier = Modifier.padding(10.dp))
+                        val ctrl = LocalCtrl.current
+                        val shortcutText = if (isMacOS()) "$ctrl O" else "$ctrl+O"
+                        Row(modifier = Modifier.padding(10.dp)){
+                            Text(text = "打开词库文件  " )
+                            CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                Text(text = shortcutText)
+                            }
+                        }
                     }
                 },
                 delayMillis = 50,
@@ -2818,10 +2823,11 @@ fun DeleteButton(onClick:()->Unit){
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(10.dp)
                 ) {
-                    Text(text = "删除单词")
+                    Text(text = "删除单词  ")
+                    val ctrl = LocalCtrl.current
+                    val shortcutText = if (isMacOS()) "$ctrl Delete" else "$ctrl+Delete"
                     CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
-                        val shift = if (isMacOS()) "⌘" else "Shift"
-                        Text(text = " $shift + Delete ")
+                        Text(text = shortcutText)
                     }
                 }
             }
@@ -2896,15 +2902,18 @@ fun HardButton(
                 border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                 shape = RectangleShape
             ) {
-                val ctrl = LocalCtrl.current
+
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(10.dp)
                 ) {
-                    val text = if(contains) "从困难词库中移除" else "添加到困难词库"
+                    val text = if(contains) "从困难词库中移除  " else "添加到困难词库  "
                     Text(text = text)
+
+                    val ctrl = LocalCtrl.current
+                    val shortcut = if (isMacOS()) "$ctrl " else "$ctrl+"
                     CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
-                        Text(text = " $ctrl + ")
+                        Text(text = "  $shortcut ")
                         Text(text = "I", fontFamily = fontFamily)
                     }
                 }
@@ -2943,14 +2952,15 @@ fun FamiliarButton(
                 border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                 shape = RectangleShape
             ) {
-                val ctrl = LocalCtrl.current
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(10.dp)
                 ) {
-                    Text(text = "移动到熟悉词库")
+                    Text(text = "移动到熟悉词库  ")
+                    val ctrl = LocalCtrl.current
+                    val shortcutText = if (isMacOS()) "$ctrl Y" else "$ctrl+Y"
                     CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
-                        Text(text = " $ctrl + Y")
+                        Text(text = shortcutText)
                     }
                 }
             }
@@ -3017,9 +3027,11 @@ fun CopyButton(wordValue:String){
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(10.dp)
                 ) {
-                    Text(text = "复制")
+                    Text(text = "复制  ")
+                    val ctrl = LocalCtrl.current
+                    val shortcutText = if (isMacOS()) "$ctrl C" else "$ctrl+C"
                     CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
-                        Text(text = " $ctrl + C")
+                        Text(text = shortcutText)
                     }
                 }
 

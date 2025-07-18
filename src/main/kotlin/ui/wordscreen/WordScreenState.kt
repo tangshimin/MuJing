@@ -286,6 +286,7 @@ class WordScreenState(wordScreenData: WordScreenData) {
         visibleMap["definitionVisible"] = definitionVisible
         visibleMap["morphologyVisible"] = morphologyVisible
         visibleMap["translationVisible"] = translationVisible
+        visibleMap["sentencesVisible"] = sentencesVisible
         visibleMap["subtitlesVisible"] = subtitlesVisible
         // 再改变状态
         isAuto = true
@@ -294,6 +295,7 @@ class WordScreenState(wordScreenData: WordScreenData) {
         definitionVisible = dictationState.definitionVisible
         morphologyVisible = dictationState.morphologyVisible
         translationVisible = dictationState.translationVisible
+        sentencesVisible = dictationState.sentencesVisible
         subtitlesVisible = dictationState.subtitlesVisible
 
     }
@@ -307,8 +309,8 @@ class WordScreenState(wordScreenData: WordScreenData) {
         definitionVisible = visibleMap["definitionVisible"]!!
         morphologyVisible = visibleMap["morphologyVisible"]!!
         translationVisible = visibleMap["translationVisible"]!!
+        sentencesVisible = visibleMap["sentencesVisible"]!!
         subtitlesVisible = visibleMap["subtitlesVisible"]!!
-
         if(clear){
             dictationWords.clear()
         }

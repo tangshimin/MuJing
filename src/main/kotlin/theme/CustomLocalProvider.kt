@@ -34,12 +34,18 @@ fun PlayerLocalProvider(content: @Composable () -> Unit) {
         content = content
     )
 }
-
+/** 本地的 Ctrl 键,
+ *  在 Windows 使用 Ctrl 键，
+ *  在 macOS 使用 Command 键
+ **/
 val LocalCtrl = staticCompositionLocalOf<String> {
     error("LocalCtrl isn't provided")
 }
 
-/** 本地的 Ctrl 键 */
+/** 本地的 Ctrl 键,
+ *  在 Windows 使用 Ctrl 键，
+ *  在 macOS 使用 Command 键
+ *  */
 @Composable
 fun rememberCtrl(): String = remember {
     if (isMacOS()) "⌘" else "Ctrl"

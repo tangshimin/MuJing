@@ -713,7 +713,7 @@ fun Toolbar(
         verticalAlignment = Alignment.CenterVertically){
         val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
         val scope = rememberCoroutineScope()
-        Settings(
+        SidebarButton(
             isOpen = isOpen,
             setIsOpen = setIsOpen,
             modifier = Modifier
@@ -899,53 +899,61 @@ fun Toolbar(
     }
 }
 /**
- * 设置
+ * 侧边栏
  */
 @OptIn(
     ExperimentalFoundationApi::class
 )
 @Composable
-fun Settings(
+fun SidebarButton(
     isOpen: Boolean,
     setIsOpen: (Boolean) -> Unit,
     modifier: Modifier
 ) {
     Box(modifier = modifier) {
         Column(Modifier.width(IntrinsicSize.Max)) {
-            if (isOpen && isMacOS()) Divider(Modifier.fillMaxWidth())
-            val width by animateDpAsState(targetValue = if (isOpen) 217.dp else 48.dp)
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier
-                    .testTag("SettingsButton")
-                    .width(width)
-                    .shadow(
-                        elevation = 0.dp,
-                        shape = if (isOpen) RectangleShape else RoundedCornerShape(50)
-                    )
-                    .background(MaterialTheme.colors.background)
-                    .clickable { setIsOpen(!isOpen) }) {
 
-                TooltipArea(
-                    tooltip = {
-                        Surface(
-                            elevation = 4.dp,
-                            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
-                            shape = RectangleShape
-                        ) {
-                            val ctrl = LocalCtrl.current
-                            val text = if (isMacOS()) "$ctrl + ⌃ + S" else "$ctrl + Alt + S"
-                            Text(text = "侧边栏 $text", modifier = Modifier.padding(10.dp))
+            TooltipArea(
+                tooltip = {
+                    Surface(
+                        elevation = 4.dp,
+                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                        shape = RectangleShape
+                    ) {
+                        val ctrl = LocalCtrl.current
+                        val text = if (isMacOS()) "$ctrl ⌃ S" else "$ctrl + Alt + S"
+                        Row(modifier = Modifier.padding(10.dp)){
+                            Text(text = "侧边栏  " )
+                            CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                Text(text = text)
+                            }
                         }
-                    },
-                    delayMillis = 100,
-                    tooltipPlacement = TooltipPlacement.ComponentRect(
-                        anchor = Alignment.BottomCenter,
-                        alignment = Alignment.BottomCenter,
-                        offset = DpOffset(30.dp,0.dp)
-                    )
-                ) {
+                    }
+                },
+                delayMillis = 100,
+                tooltipPlacement = TooltipPlacement.ComponentRect(
+                    anchor = Alignment.BottomCenter,
+                    alignment = Alignment.BottomCenter,
+                    offset = DpOffset(5.dp,0.dp)
+                )
+            ) {
+                if (isOpen && isMacOS()) Divider(Modifier.fillMaxWidth())
+                val width by animateDpAsState(targetValue = if (isOpen) 217.dp else 48.dp)
+                Row(
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .testTag("SettingsButton")
+                        .width(width)
+                        .shadow(
+                            elevation = 0.dp,
+                            shape = if (isOpen) RectangleShape else RoundedCornerShape(50)
+                        )
+                        .background(MaterialTheme.colors.background)
+                        .clickable { setIsOpen(!isOpen) }) {
+
+
+
                     val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
                     Icon(
                         if (isOpen) Icons.Filled.ArrowBack else icons.DockToRight,
@@ -954,11 +962,9 @@ fun Settings(
                         modifier = Modifier.clickable { setIsOpen(!isOpen) }
                             .size(48.dp, 48.dp).padding(13.dp)
                     )
-
-                }
-
-                if (isOpen) {
-                    Divider(Modifier.height(48.dp).width(1.dp))
+                    if (isOpen) {
+                        Divider(Modifier.height(48.dp).width(1.dp))
+                    }
                 }
             }
             if (isOpen && isMacOS()) Divider(Modifier.fillMaxWidth())

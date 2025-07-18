@@ -102,7 +102,13 @@ fun AudioButton(
                         shape = RectangleShape
                     ) {
                         val ctrl = LocalCtrl.current
-                        Text(text = "朗读发音 $ctrl+J", modifier = Modifier.padding(10.dp))
+                        val shortcutText = if (isMacOS()) "$ctrl J" else "$ctrl+J"
+                        Row(modifier = Modifier.padding(10.dp)){
+                            Text(text = "朗读发音  " )
+                            CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                Text(text = shortcutText)
+                            }
+                        }
                     }
                 },
                 delayMillis = 300,
@@ -204,7 +210,13 @@ fun AudioButton(
                     shape = RectangleShape
                 ) {
                     val ctrl = LocalCtrl.current
-                    Text(text = "朗读发音 $ctrl+J", modifier = Modifier.padding(10.dp))
+                    val shortcutText = if (isMacOS()) "$ctrl J" else "$ctrl+J"
+                    Row(modifier = Modifier.padding(10.dp)){
+                        Text(text = "朗读发音  " )
+                        CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                            Text(text = shortcutText)
+                        }
+                    }
                 }
             },
             delayMillis = 300,

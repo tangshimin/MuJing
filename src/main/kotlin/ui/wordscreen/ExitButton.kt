@@ -43,7 +43,7 @@ fun ExitButton(
             onClick()
         }) {
             Icon(
-                Icons.Filled.Close,
+                icons.Logout,
                 contentDescription = "Localized description",
                 tint = MaterialTheme.colors.primary
             )

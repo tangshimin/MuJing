@@ -636,7 +636,7 @@ fun TextScreen(
                 openSearch = openSearch,
             )
 
-            val ctrl = LocalCtrl.current
+
             TooltipArea(
                 tooltip = {
                     Surface(
@@ -644,7 +644,14 @@ fun TextScreen(
                         border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                         shape = RectangleShape
                     ) {
-                        Text(text = "打开文本文件 $ctrl + O", modifier = Modifier.padding(10.dp))
+                        val ctrl = LocalCtrl.current
+                        val shortcutText = if (isMacOS()) "$ctrl O" else "$ctrl+O"
+                        Row(modifier = Modifier.padding(10.dp)){
+                            Text(text = "打开文本文件  " )
+                            CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                Text(text = shortcutText)
+                            }
+                        }
                     }
                 },
                 delayMillis = 50,

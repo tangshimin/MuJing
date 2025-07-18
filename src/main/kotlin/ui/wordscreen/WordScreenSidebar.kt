@@ -147,222 +147,410 @@ fun WordScreenSidebar(
                 }
                 Divider()
                 val ctrl = LocalCtrl.current
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
+
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                            shape = RectangleShape
+                        ) {
+                            val ctrl = LocalCtrl.current
+                            val shortcutText = if (isMacOS()) "$ctrl V" else "$ctrl+V"
+                            Row(modifier = Modifier.padding(10.dp)){
+                                Text(text = "显示单词  " )
+                                CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                    Text(text = shortcutText)
+                                }
+                            }
+                        }
+                    },
+                    delayMillis = 100,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.CenterEnd,
+                        alignment = Alignment.CenterEnd,
+                        offset = DpOffset(5.dp,0.dp)
+                    )
                 ) {
-                    Row {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            scope.launch {
+                                wordScreenState.wordVisible = !wordScreenState.wordVisible
+                                wordScreenState.saveWordScreenState()
+                            }
+                        }.padding(start = 16.dp, end = 8.dp)
+                    ) {
+
                         Text("显示单词", color = MaterialTheme.colors.onBackground)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = "$ctrl+V",
-                            color = MaterialTheme.colors.onBackground
+
+                        Spacer(Modifier.width(15.dp))
+                        Switch(
+                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                            checked = wordScreenState.wordVisible,
+                            onCheckedChange = {
+                                scope.launch {
+                                    wordScreenState.wordVisible = it
+                                    wordScreenState.saveWordScreenState()
+                                }
+                            },
                         )
                     }
+                }
 
-                    Spacer(Modifier.width(15.dp))
-                    Switch(
-                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = wordScreenState.wordVisible,
-                        onCheckedChange = {
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                            shape = RectangleShape
+                        ) {
+                            val ctrl = LocalCtrl.current
+                            val shortcutText = if (isMacOS()) "$ctrl P" else "$ctrl+P"
+                            Row(modifier = Modifier.padding(10.dp)){
+                                Text(text = "显示音标  " )
+                                CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                    Text(text = shortcutText)
+                                }
+                            }
+                        }
+                    },
+                    delayMillis = 100,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.CenterEnd,
+                        alignment = Alignment.CenterEnd,
+                        offset = DpOffset(5.dp,0.dp)
+                    )
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable {
                             scope.launch {
-                                wordScreenState.wordVisible = it
+                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
+                                    dictationState.phoneticVisible = !dictationState.phoneticVisible
+                                    dictationState.saveDictationState()
+                                }
+                                wordScreenState.phoneticVisible = !wordScreenState.phoneticVisible
                                 wordScreenState.saveWordScreenState()
                             }
-                        },
-                    )
-                }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
-                ) {
-                    Row {
+                        }.padding(start = 16.dp, end = 8.dp)
+                    ) {
                         Text(text = "显示音标", color = MaterialTheme.colors.onBackground)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = "$ctrl+P",
-                            color = MaterialTheme.colors.onBackground
-                        )
-                    }
+                        Spacer(Modifier.width(15.dp))
+                        Switch(
+                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                            checked = wordScreenState.phoneticVisible,
+                            onCheckedChange = {
+                                scope.launch {
+                                    if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
+                                        dictationState.phoneticVisible = it
+                                        dictationState.saveDictationState()
+                                    }
+                                    wordScreenState.phoneticVisible = it
+                                    wordScreenState.saveWordScreenState()
+                                }
+                            },
 
-                    Spacer(Modifier.width(15.dp))
-                    Switch(
-                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = wordScreenState.phoneticVisible,
-                        onCheckedChange = {
+                            )
+                    }
+                }
+
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                            shape = RectangleShape
+                        ) {
+                            val ctrl = LocalCtrl.current
+                            val shortcutText = if (isMacOS()) "$ctrl L" else "$ctrl+L"
+                            Row(modifier = Modifier.padding(10.dp)){
+                                Text(text = "显示词形  " )
+                                CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                    Text(text = shortcutText)
+                                }
+                            }
+                        }
+                    },
+                    delayMillis = 100,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.CenterEnd,
+                        alignment = Alignment.CenterEnd,
+                        offset = DpOffset(5.dp,0.dp)
+                    )
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable {
                             scope.launch {
                                 if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
-                                    dictationState.phoneticVisible = it
+                                    dictationState.morphologyVisible = !dictationState.morphologyVisible
                                     dictationState.saveDictationState()
                                 }
-                                wordScreenState.phoneticVisible = it
+                                wordScreenState.morphologyVisible = !wordScreenState.morphologyVisible
                                 wordScreenState.saveWordScreenState()
                             }
-                        },
-
-                        )
-                }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
-                ) {
-                    Row {
+                        }.padding(start = 16.dp, end = 8.dp)
+                    ) {
                         Text("显示词形", color = MaterialTheme.colors.onBackground)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = "$ctrl+L",
-                            color = MaterialTheme.colors.onBackground
+                        Spacer(Modifier.width(15.dp))
+                        Switch(
+                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                            checked = wordScreenState.morphologyVisible,
+                            onCheckedChange = {
+                                scope.launch {
+                                    if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
+                                        dictationState.morphologyVisible = it
+                                        dictationState.saveDictationState()
+                                    }
+                                    wordScreenState.morphologyVisible = it
+                                    wordScreenState.saveWordScreenState()
+                                }
+
+                            },
                         )
                     }
+                }
 
-                    Spacer(Modifier.width(15.dp))
-                    Switch(
-                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = wordScreenState.morphologyVisible,
-                        onCheckedChange = {
+
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                            shape = RectangleShape
+                        ) {
+                            val ctrl = LocalCtrl.current
+                            val shortcutText = if (isMacOS()) "$ctrl E" else "$ctrl+E"
+                            Row(modifier = Modifier.padding(10.dp)){
+                                Text(text = "英文释义  " )
+                                CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                    Text(text = shortcutText)
+                                }
+                            }
+                        }
+                    },
+                    delayMillis = 100,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.CenterEnd,
+                        alignment = Alignment.CenterEnd,
+                        offset = DpOffset(5.dp,0.dp)
+                    )
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable {
                             scope.launch {
                                 if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
-                                    dictationState.morphologyVisible = it
+                                    dictationState.definitionVisible = !dictationState.definitionVisible
                                     dictationState.saveDictationState()
                                 }
-                                wordScreenState.morphologyVisible = it
+                                wordScreenState.definitionVisible = !wordScreenState.definitionVisible
                                 wordScreenState.saveWordScreenState()
                             }
-
-                        },
-                    )
-                }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
-                ) {
-                    Row {
+                        }.padding(start = 16.dp, end = 8.dp)
+                    ) {
                         Text("英文释义", color = MaterialTheme.colors.onBackground)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = "$ctrl+E",
-                            color = MaterialTheme.colors.onBackground
+
+                        Spacer(Modifier.width(15.dp))
+                        Switch(
+                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                            checked = wordScreenState.definitionVisible,
+                            onCheckedChange = {
+                                scope.launch {
+                                    if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
+                                        dictationState.definitionVisible = it
+                                        dictationState.saveDictationState()
+                                    }
+                                    wordScreenState.definitionVisible = it
+                                    wordScreenState.saveWordScreenState()
+                                }
+                            },
                         )
                     }
+                }
 
-                    Spacer(Modifier.width(15.dp))
-                    Switch(
-                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = wordScreenState.definitionVisible,
-                        onCheckedChange = {
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                            shape = RectangleShape
+                        ) {
+                            val ctrl = LocalCtrl.current
+                            val shortcutText = if (isMacOS()) "$ctrl K" else "$ctrl+K"
+                            Row(modifier = Modifier.padding(10.dp)){
+                                Text(text = "中文释义  " )
+                                CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                    Text(text = shortcutText)
+                                }
+                            }
+                        }
+                    },
+                    delayMillis = 100,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.CenterEnd,
+                        alignment = Alignment.CenterEnd,
+                        offset = DpOffset(5.dp,0.dp)
+                    )
+                ) {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable {
                             scope.launch {
                                 if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
-                                    dictationState.definitionVisible = it
+                                    dictationState.translationVisible = !dictationState.translationVisible
                                     dictationState.saveDictationState()
                                 }
-                                wordScreenState.definitionVisible = it
+                                wordScreenState.translationVisible = !wordScreenState.translationVisible
                                 wordScreenState.saveWordScreenState()
                             }
-                        },
-                    )
-                }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
-                ) {
-                    Row {
+                        }.padding(start = 16.dp, end = 8.dp)
+                    ) {
                         Text("中文释义", color = MaterialTheme.colors.onBackground)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = "$ctrl+K",
-                            color = MaterialTheme.colors.onBackground
+                        Spacer(Modifier.width(15.dp))
+                        Switch(
+                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                            checked = wordScreenState.translationVisible,
+                            onCheckedChange = {
+                                scope.launch {
+                                    if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
+                                        dictationState.translationVisible = it
+                                        dictationState.saveDictationState()
+                                    }
+                                    wordScreenState.translationVisible = it
+                                    wordScreenState.saveWordScreenState()
+                                }
+
+                            },
                         )
                     }
-
-                    Spacer(Modifier.width(15.dp))
-                    Switch(
-                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = wordScreenState.translationVisible,
-                        onCheckedChange = {
-                            scope.launch {
-                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
-                                    dictationState.translationVisible = it
-                                    dictationState.saveDictationState()
-                                }
-                                wordScreenState.translationVisible = it
-                                wordScreenState.saveWordScreenState()
-                            }
-
-                        },
-                    )
                 }
 
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
+
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                            shape = RectangleShape
+                        ) {
+                            val ctrl = LocalCtrl.current
+                            //这里两个平台使用不同的快捷键，Windows 使用 Ctrl+H，Mac 使用 Command+R，
+                            // 因为 Command+H 在 macOS 上是隐藏应用的快捷键
+                            val shortcutText = if (isMacOS()) "$ctrl R" else "$ctrl+H"
+                            Row(modifier = Modifier.padding(10.dp)){
+                                Text(text = "显示例句  " )
+                                CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                    Text(text = shortcutText)
+                                }
+                            }
+                        }
+                    },
+                    delayMillis = 100,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.CenterEnd,
+                        alignment = Alignment.CenterEnd,
+                        offset = DpOffset(5.dp,0.dp)
+                    )
                 ) {
-                    Row {
-                        //这里两个平台使用不同的快捷键，Windows 使用 Ctrl+H，Mac 使用 Command+R，
-                        // 因为 Command+H 在 macOS 上是隐藏应用的快捷键
-                        val key = if (isMacOS()) "R" else "H"
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable {
+                            scope.launch {
+                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
+                                    dictationState.sentencesVisible = !dictationState.sentencesVisible
+                                    dictationState.saveDictationState()
+                                }
+                                wordScreenState.sentencesVisible = !wordScreenState.sentencesVisible
+                                wordScreenState.saveWordScreenState()
+                            }
+                        }.padding(start = 16.dp, end = 8.dp)
+                    ) {
                         Text("显示例句", color = MaterialTheme.colors.onBackground)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = "$ctrl+$key",
-                            color = MaterialTheme.colors.onBackground
+                        Spacer(Modifier.width(15.dp))
+                        Switch(
+                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                            checked = wordScreenState.sentencesVisible,
+                            onCheckedChange = {
+                                scope.launch {
+                                    if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
+                                        dictationState.sentencesVisible = it
+                                        dictationState.saveDictationState()
+                                    }
+                                    wordScreenState.sentencesVisible = it
+                                    wordScreenState.saveWordScreenState()
+                                }
+
+                            },
                         )
                     }
-
-                    Spacer(Modifier.width(15.dp))
-                    Switch(
-                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = wordScreenState.sentencesVisible,
-                        onCheckedChange = {
-                            scope.launch {
-                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
-                                    dictationState.sentencesVisible = it
-                                    dictationState.saveDictationState()
-                                }
-                                wordScreenState.sentencesVisible = it
-                                wordScreenState.saveWordScreenState()
-                            }
-
-                        },
-                    )
                 }
 
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                            shape = RectangleShape
+                        ) {
+                            val ctrl = LocalCtrl.current
+                            val shortcutText = if (isMacOS()) "$ctrl S" else "$ctrl+S"
+                            Row(modifier = Modifier.padding(10.dp)){
+                                Text(text = "显示字幕  " )
+                                CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
+                                    Text(text = shortcutText)
+                                }
+                            }
+                        }
+                    },
+                    delayMillis = 100,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.CenterEnd,
+                        alignment = Alignment.CenterEnd,
+                        offset = DpOffset(5.dp,0.dp)
+                    )
                 ) {
-                    Row {
-                        Text("显示字幕", color = MaterialTheme.colors.onBackground)
-                        Spacer(Modifier.width(10.dp))
-                        Text(
-                            text = "$ctrl+S",
-                            color = MaterialTheme.colors.onBackground
-                        )
-                    }
-
-                    Spacer(Modifier.width(15.dp))
-                    Switch(
-                        colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                        checked = wordScreenState.subtitlesVisible,
-                        onCheckedChange = {
+                    Row(
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.fillMaxWidth().clickable {
                             scope.launch {
                                 if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
-                                    dictationState.subtitlesVisible = it
+                                    dictationState.subtitlesVisible = !dictationState.subtitlesVisible
                                     dictationState.saveDictationState()
                                 }
-                                wordScreenState.subtitlesVisible = it
+                                wordScreenState.subtitlesVisible = !wordScreenState.subtitlesVisible
                                 wordScreenState.saveWordScreenState()
                             }
+                        }.padding(start = 16.dp, end = 8.dp)
+                    ) {
+                        Text("显示字幕", color = MaterialTheme.colors.onBackground)
+                        Spacer(Modifier.width(15.dp))
+                        Switch(
+                            colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                            checked = wordScreenState.subtitlesVisible,
+                            onCheckedChange = {
+                                scope.launch {
+                                    if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
+                                        dictationState.subtitlesVisible = it
+                                        dictationState.saveDictationState()
+                                    }
+                                    wordScreenState.subtitlesVisible = it
+                                    wordScreenState.saveWordScreenState()
+                                }
 
-                        },
-                    )
+                            },
+                        )
+                    }
                 }
+
                 Divider()
                 Row(
                     horizontalArrangement = Arrangement.SpaceBetween,
