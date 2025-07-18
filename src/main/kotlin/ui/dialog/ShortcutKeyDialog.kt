@@ -42,7 +42,7 @@ fun ShortcutKeyDialog(close: () -> Unit) {
             shape = RectangleShape,
         ) {
             Column(Modifier.fillMaxSize()) {
-
+                val plus = if (isMacOS()) "" else "+"
                 val ctrl = LocalCtrl.current
                 val shift = if (isMacOS()) "⇧" else "Shift"
                 SelectionContainer {
@@ -65,7 +65,7 @@ fun ShortcutKeyDialog(close: () -> Unit) {
                                     background = background
                                 )
                             ) {
-                                append("  $shift + ← ")
+                                append("  $shift $plus ← ")
                             }
                             withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
                                 append("  选择要复制的单词\n或者使用快捷键")
@@ -76,10 +76,10 @@ fun ShortcutKeyDialog(close: () -> Unit) {
                                     background = background
                                 )
                             ) {
-                                append("  $ctrl + B ")
+                                append("  $ctrl $plus B ")
                             }
                             withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                                append("  激活复制功能，激活后，不用先抄写就可以自由的复制，可用用 $ctrl + A 全选。")
+                                append("  激活复制功能，激活后，不用先抄写就可以自由的复制，可用用 $ctrl $plus A 全选。")
                             }
 
                         }
@@ -151,7 +151,7 @@ fun ShortcutKeyDialog(close: () -> Unit) {
                                     background = background
                                 )
                             ) {
-                                append("  $ctrl + $shift + A ")
+                                append("  $ctrl $plus $shift $plus A ")
                             }
                             withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
                                 append("\n向上移动光标")
@@ -162,7 +162,7 @@ fun ShortcutKeyDialog(close: () -> Unit) {
                                     background = background
                                 )
                             ) {
-                                append("  $ctrl + $shift + I ")
+                                append("  $ctrl $plus $shift $plus I ")
                             }
                             withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
                                 append("\n向下移动光标")
@@ -173,7 +173,7 @@ fun ShortcutKeyDialog(close: () -> Unit) {
                                     background = background
                                 )
                             ) {
-                                append("  $ctrl + $shift + K ")
+                                append("  $ctrl $plus $shift $plus K ")
                             }
                         }
                         Text(annotatedString)
@@ -200,7 +200,7 @@ fun ShortcutKeyDialog(close: () -> Unit) {
                                     background = background
                                 )
                             ) {
-                                append("  $ctrl + F ")
+                                append("  $ctrl $plus F ")
                             }
                             withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
                                 append("  会优先搜索当前词库，如果当前词库没有查到，再搜索内置词典。")
@@ -231,7 +231,7 @@ fun ShortcutKeyDialog(close: () -> Unit) {
                                     background = background
                                 )
                             ) {
-                                append("  $ctrl + N ")
+                                append("  $ctrl $plus N ")
                             }
 
                         }
