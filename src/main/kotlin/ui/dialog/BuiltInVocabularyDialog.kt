@@ -64,7 +64,6 @@ fun BuiltInVocabularyDialog(
                     var waiting by remember{ mutableStateOf(false)}
                     val scope = rememberCoroutineScope()
                     /** 保存词库 */
-                    /** 保存词库 */
                     val save:(File) -> Unit = { file ->
                         waiting = true
                         scope.launch(Dispatchers.IO) {
@@ -95,7 +94,7 @@ fun BuiltInVocabularyDialog(
                                             fileToSave.writeBytes(file.readBytes())
                                             finish = true
                                             close()
-                                            openChooseVocabulary(file.absolutePath)
+                                            openChooseVocabulary(fileToSave.absolutePath)
                                         }catch (e:Exception){
                                             e.printStackTrace()
                                             JOptionPane.showMessageDialog(window,"保存失败，错误信息：\n${e.message}")
@@ -107,7 +106,7 @@ fun BuiltInVocabularyDialog(
                                         fileToSave.writeBytes(file.readBytes())
                                         finish = true
                                         close()
-                                        openChooseVocabulary(file.absolutePath)
+                                        openChooseVocabulary(fileToSave.absolutePath)
                                     }catch (e:Exception){
                                         e.printStackTrace()
                                         JOptionPane.showMessageDialog(window,"保存失败，错误信息：\n${e.message}")

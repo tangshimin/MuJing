@@ -324,7 +324,6 @@ fun LinkVocabularyDialog(
 
 
         /** 保存词库 */
-        /** 保存词库 */
         val save:() -> Unit = {
             scope.launch (Dispatchers.IO){
 

@@ -1852,7 +1852,7 @@ fun VocabularyEmpty(
                                         if (answer == 0) {
                                             try{
                                                 fileToSave.writeBytes(file.readBytes())
-                                                openChooseVocabulary(file.absolutePath)
+                                                openChooseVocabulary(fileToSave.absolutePath)
                                             }catch (e:Exception){
                                                 e.printStackTrace()
                                                 JOptionPane.showMessageDialog(parentWindow,"保存失败，错误信息：\n${e.message}")
@@ -1862,7 +1862,7 @@ fun VocabularyEmpty(
                                     } else {
                                         try{
                                             fileToSave.writeBytes(file.readBytes())
-                                            openChooseVocabulary(file.absolutePath)
+                                            openChooseVocabulary(fileToSave.absolutePath)
                                         }catch (e:Exception){
                                             e.printStackTrace()
                                             JOptionPane.showMessageDialog(parentWindow,"保存失败，错误信息：\n${e.message}")
