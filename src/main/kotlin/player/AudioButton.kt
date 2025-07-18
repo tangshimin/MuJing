@@ -1,6 +1,5 @@
 package player
 
-import theme.LocalCtrl
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.BorderStroke
@@ -19,18 +18,19 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import tts.AzureTTS
 import data.Word
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
-import ui.wordscreen.WordScreenState
 import state.getAudioDirectory
+import theme.LocalCtrl
+import tts.AzureTTS
 import tts.MSTTSpeech
 import tts.MacTTS
 import tts.UbuntuTTS
+import ui.wordscreen.WordScreenState
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
@@ -91,9 +91,8 @@ fun AudioButton(
         Column(
             verticalArrangement = Arrangement.Center,
             modifier = Modifier
-                .height(66.dp)
-                .width(IntrinsicSize.Max)
-        ) {
+                .height(IntrinsicSize.Min)
+                .width(IntrinsicSize.Min)){
             TooltipArea(
                 tooltip = {
                     Surface(

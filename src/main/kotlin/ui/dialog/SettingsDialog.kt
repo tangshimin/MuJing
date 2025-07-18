@@ -148,7 +148,6 @@ fun SettingTextStyle(
             horizontalAlignment = Alignment.CenterHorizontally,
             modifier = Modifier.fillMaxSize().padding(top = 48.dp, bottom = 60.dp)
         ) {
-//            val background = if (MaterialTheme.colors.isLight) Color.LightGray else MaterialTheme.colors.background
             Column(Modifier.width(600.dp)) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
@@ -251,18 +250,17 @@ fun SettingTextStyle(
                             }
                     )
                     Spacer(Modifier.width(5.dp))
-                    Column(verticalArrangement = Arrangement.SpaceBetween) {
-                        val top = (textHeight - 36.dp).div(2)
+                    Column(verticalArrangement = Arrangement.Center) {
                         var numberFontSize = LocalTextStyle.current.fontSize
                         if (smallStyleList.contains(state.global.wordTextStyle)) numberFontSize =
                             MaterialTheme.typography.overline.fontSize
-                        Spacer(modifier = Modifier.height(top))
+
                         Text(
                             text = "3",
                             color = MaterialTheme.colors.primary,
                             fontSize = numberFontSize
                         )
-                        Spacer(modifier = Modifier.height(top))
+                        Spacer(modifier = Modifier.height(textHeight.div(4)))
                         Text(
                             text = "1",
                             color = Color.Red,
@@ -270,15 +268,11 @@ fun SettingTextStyle(
                         )
                     }
                     Spacer(Modifier.width(5.dp))
-                    var volumeTop = textHeight.div(2) - 20.dp
-                    if (volumeTop < 0.dp) volumeTop = 0.dp
-                    if (state.global.wordTextStyle == "H1") volumeTop = 23.dp
-
                     Icon(
                         Icons.Filled.VolumeDown,
                         contentDescription = "Localized description",
                         tint = MaterialTheme.colors.primary,
-                        modifier = Modifier.padding(top = volumeTop),
+                        modifier = Modifier.padding(top = 12.dp),
                     )
                 }
             }

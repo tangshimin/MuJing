@@ -5,6 +5,7 @@ import androidx.compose.foundation.ContextMenuArea
 import androidx.compose.foundation.ContextMenuItem
 import androidx.compose.foundation.ContextMenuState
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.LocalTextContextMenu
@@ -97,7 +98,7 @@ fun Word(
         Row(
             horizontalArrangement = Arrangement.Center,
             verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.padding(top = 48.dp).height(IntrinsicSize.Max)
+            modifier = Modifier.height(IntrinsicSize.Max)
         ) {
             var textHeight by remember { mutableStateOf(0.dp) }
             val bottom = computeBottom(
@@ -147,6 +148,7 @@ fun Word(
                         .padding(bottom = bottom)
                         .align(Alignment.Center)
                         .onGloballyPositioned { layoutCoordinates ->
+                            // 测量单词的高度
                         textHeight = (layoutCoordinates.size.height).dp
                     },
                     text = buildAnnotatedString {
@@ -228,24 +230,21 @@ fun Word(
             }
 
 
-            Column {
-                val top = (textHeight - 36.dp).div(2)
+            Column (Modifier.height(textHeight),
+                verticalArrangement = Arrangement.Center
+                ){
                 var numberFontSize = LocalTextStyle.current.fontSize
                 if(smallStyleList.contains(global.wordTextStyle)) numberFontSize = MaterialTheme.typography.overline.fontSize
-                Spacer(modifier = Modifier.height(top))
                 Text(text = "${if (correctTime > 0) correctTime else ""}",
                     color = MaterialTheme.colors.primary,
-                    fontSize =  numberFontSize)
-                Spacer(modifier = Modifier.height(top))
+                    fontSize =  numberFontSize,)
+
+                Spacer(modifier = Modifier.height(textHeight.div(4)))
                 Text(text = "${if (wrongTime > 0) wrongTime else ""}",
                     color = Color.Red,
-                    fontSize =  numberFontSize
+                    fontSize =  numberFontSize,
                 )
             }
-            var paddingTop = textHeight.div(2) - 20.dp
-            if(paddingTop<0.dp) paddingTop =  0.dp
-            if(global.wordTextStyle == "H1") paddingTop = 23.dp
-
             AudioButton(
                 audioSet = audioSet,
                 addToAudioSet = addToAudioSet,
@@ -256,8 +255,9 @@ fun Word(
                 pronunciation = pronunciation,
                 azureTTS = azureTTS,
                 playTimes = playTimes,
-                paddingTop = paddingTop,
+                paddingTop = 12.dp,
             )
+
         }
 }
 

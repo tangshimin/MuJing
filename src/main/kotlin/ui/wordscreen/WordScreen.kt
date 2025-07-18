@@ -1462,7 +1462,7 @@ fun MainContent(
                     )
                 }
 
-                Row(Modifier.align(Alignment.Center)){
+                Row(Modifier.align(Alignment.Center).padding(top = 48.dp)){
                     Word(
                         word = currentWord,
                         global = appState.global,

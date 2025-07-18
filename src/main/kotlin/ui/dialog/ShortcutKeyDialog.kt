@@ -154,7 +154,7 @@ fun ShortcutKeyDialog(close: () -> Unit) {
                                 append("  $ctrl $plus $shift $plus A ")
                             }
                             withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                                append("\n向上移动光标")
+                                append("。\n向上移动光标")
                             }
                             withStyle(
                                 style = SpanStyle(
@@ -165,7 +165,7 @@ fun ShortcutKeyDialog(close: () -> Unit) {
                                 append("  $ctrl $plus $shift $plus I ")
                             }
                             withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
-                                append("\n向下移动光标")
+                                append("。\n向下移动光标")
                             }
                             withStyle(
                                 style = SpanStyle(
@@ -174,6 +174,61 @@ fun ShortcutKeyDialog(close: () -> Unit) {
                                 )
                             ) {
                                 append("  $ctrl $plus $shift $plus K ")
+                            }
+                            withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                                append("。\n")
+                            }
+                        }
+                        Text(annotatedString)
+                    }
+                }
+                Divider(Modifier.padding(bottom = 10.dp))
+                SelectionContainer {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Start,
+                        modifier = Modifier.padding(start = 16.dp,bottom = 10.dp)
+                    ) {
+                        Text("播放字幕", modifier = Modifier.padding(end = 20.dp))
+                        val annotatedString = buildAnnotatedString {
+
+                            val background = if (MaterialTheme.colors.isLight) Color.LightGray else Color(35, 35, 35)
+                            withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                                append("在记忆单词界面播放字幕快捷键：\n播放第一条字幕")
+                            }
+
+                            withStyle(
+                                style = SpanStyle(
+                                    color = MaterialTheme.colors.primary,
+                                    background = background
+                                )
+                            ) {
+                                append("  $ctrl $plus 1   ")
+                            }
+                            withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                                append("。\n播放第二条字幕")
+                            }
+                            withStyle(
+                                style = SpanStyle(
+                                    color = MaterialTheme.colors.primary,
+                                    background = background
+                                )
+                            ) {
+                                append("  $ctrl $plus 2  ")
+                            }
+                            withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                                append("。\n播放第三条字幕")
+                            }
+                            withStyle(
+                                style = SpanStyle(
+                                    color = MaterialTheme.colors.primary,
+                                    background = background
+                                )
+                            ) {
+                                append("  $ctrl $plus 3  ")
+                            }
+                            withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                                append("。\n")
                             }
                         }
                         Text(annotatedString)
@@ -232,6 +287,9 @@ fun ShortcutKeyDialog(close: () -> Unit) {
                                 )
                             ) {
                                 append("  $ctrl $plus N ")
+                            }
+                            withStyle(style = SpanStyle(color = MaterialTheme.colors.onBackground)) {
+                                append("。")
                             }
 
                         }
