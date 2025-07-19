@@ -1,8 +1,5 @@
 package ui
 
-import theme.CustomLocalProvider
-import theme.LocalCtrl
-import theme.PlayerLocalProvider
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.*
@@ -23,13 +20,7 @@ import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.KeyShortcut
-import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.isMetaPressed
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -40,6 +31,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
+import com.formdev.flatlaf.extras.FlatDesktop
 import com.movcontext.MuJing.BuildConfig
 import data.*
 import kotlinx.coroutines.Dispatchers
@@ -49,9 +41,8 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
-import theme.scrollbarStyle
 import state.*
-import theme.toAwt
+import theme.*
 import ui.dialog.*
 import ui.edit.ChooseEditVocabulary
 import ui.edit.EditVocabulary
@@ -70,9 +61,12 @@ import ui.wordscreen.WordScreenState
 import ui.wordscreen.rememberPronunciation
 import ui.wordscreen.rememberWordState
 import util.computeVideoBounds
+import java.awt.Desktop
 import java.awt.Rectangle
 import java.io.File
+import java.util.function.Consumer
 import javax.swing.JOptionPane
+import javax.swing.UIManager
 
 
 @ExperimentalFoundationApi
@@ -430,6 +424,32 @@ private fun FrameWindowScope.WindowMenuBar(
     close: () -> Unit,
 ) = MenuBar {
 
+    if(isMacOS()){
+        // MacOS 的 Application Menu
+        val desktop = Desktop.getDesktop()
+        // 关于菜单栏
+        var aboutDialogVisible by remember { mutableStateOf(false) }
+        if( desktop.isSupported( Desktop.Action.APP_ABOUT ) ) {
+            desktop.setAboutHandler(  {
+                aboutDialogVisible = true
+            } );
+        }
+        if (aboutDialogVisible) {
+            AboutDialog(
+                version = BuildConfig.APP_VERSION,
+                close = { aboutDialogVisible = false }
+            )
+        }
+        // 设置菜单栏
+        if( desktop.isSupported( Desktop.Action.APP_PREFERENCES ) ) {
+            desktop.setPreferencesHandler(  {
+                appState.openSettings = true
+            } )
+
+        }
+
+    }
+
     val isWindows = isWindows()
     Menu("词库${ if (isWindows) "(V)" else ""}", mnemonic = 'V') {
         var showFilePicker by remember {mutableStateOf(false)}
@@ -585,8 +605,10 @@ private fun FrameWindowScope.WindowMenuBar(
             appState.generateVocabularyFromVideo = true
         })
         Separator()
-        val shortcut = if(isMacOS()) KeyShortcut(Key.Comma, meta = true) else KeyShortcut(Key.Comma, ctrl = true)
-        Item("设置${if(isWindows) "(S)" else ""}", mnemonic = 'S', shortcut = shortcut, onClick = { appState.openSettings = true })
+        if(!isMacOS()){
+            val shortcut = if(isMacOS()) KeyShortcut(Key.Comma, meta = true) else KeyShortcut(Key.Comma, ctrl = true)
+            Item("设置${if(isWindows) "(S)" else ""}", mnemonic = 'S', shortcut = shortcut, onClick = { appState.openSettings = true })
+        }
         if(appState.openSettings){
             SettingsDialog(
                 close = {appState.openSettings = false},
@@ -682,14 +704,17 @@ private fun FrameWindowScope.WindowMenuBar(
             appState.showUpdateDialog = true
             appState.latestVersion = ""
         })
-        var aboutDialogVisible by remember { mutableStateOf(false) }
-        Item("关于${if(isWindows) "(A)" else ""}", mnemonic = 'A', onClick = { aboutDialogVisible = true })
-        if (aboutDialogVisible) {
-            AboutDialog(
-                version = BuildConfig.APP_VERSION,
-                close = { aboutDialogVisible = false }
-            )
+        if(!isMacOS()){
+            var aboutDialogVisible by remember { mutableStateOf(false) }
+            Item("关于${if(isWindows) "(A)" else ""}", mnemonic = 'A', onClick = { aboutDialogVisible = true })
+            if (aboutDialogVisible) {
+                AboutDialog(
+                    version = BuildConfig.APP_VERSION,
+                    close = { aboutDialogVisible = false }
+                )
+            }
         }
+
 
     }
 }
