@@ -151,7 +151,7 @@ class WordScreenTest {
 
 
     /**
-     * ���用TestTag安全点击，避免多个元素匹配问题
+     * 用TestTag安全点击，避免多个元素匹配问题
      */
     private fun safeClickWithTestTag(tag: String) {
         runBlocking {
