@@ -1,5 +1,7 @@
 package util
 
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowState
 import data.Caption
 import org.mozilla.universalchardet.UniversalDetector
@@ -54,27 +56,139 @@ fun computeVideoBounds(
     val mainWidth = windowState.size.width.value.toInt()
     val mainHeight = windowState.size.height.value.toInt()
 
-    val size = if (mainWidth in 801..1079) {
-        Dimension(642, 390)
-    } else if (mainWidth > 1080) {
-        Dimension(1005, 610)
-    } else {
-        Dimension(540, 304)
+    // 根据不同分辨率设置不同的窗口大小
+    val size = when {
+        mainWidth > 3840 -> { // 4K分辨率及以上
+            // 保持与原始设计相同的比例 (约93%)
+            Dimension(3570, 2010) // 约为4K宽度的93%
+        }
+        mainWidth > 2560 -> { // 2K和4K之间
+            Dimension(2380, 1340) // 约为3K宽度的93%
+        }
+        mainWidth > 1920 -> { // 2K分辨率
+            Dimension(1780, 1000) // 约为2K宽度的93%
+        }
+        mainWidth > 1080 -> { // 普通高分辨率
+            Dimension(1005, 610) // 原始尺寸
+        }
+        mainWidth in 801..1079 -> { // 中等分辨率
+            Dimension(642, 390) // 原始尺寸
+        }
+        else -> { // 低分辨率
+            Dimension(540, 304) // 原始尺寸
+        }
     }
-    if(density!=1f){
-        size.width = size.width.div(density).toInt()
-        size.height = size.height.div(density).toInt()
+
+    // 处理高DPI缩放
+//    if(density!=1f){
+//        size.width = size.width.div(density).toInt()
+//        size.height = size.height.div(density).toInt()
+//    }
+
+    // 计算窗口位置
+    // 根据分辨率调整窗口的位置偏移
+    var offsetX = 0
+    var offsetY = 0
+
+    when {
+        mainWidth > 3840 -> { // 4K分辨率及以上
+            offsetX = 0
+            offsetY = -50 // 在4K分辨率上稍微上移窗口
+        }
+        mainWidth > 2560 -> { // 2K和4K之间
+            offsetX = 0
+            offsetY = -30
+        }
+        mainWidth > 1920 -> { // 2K分辨率
+            offsetX = 0
+            offsetY = -20
+        }
     }
-    var x = (mainWidth - size.width).div(2)
-    var y = ((mainHeight - size.height).div(2))
+
+    // 居中计算基本位置
+    var x = (mainWidth - size.width).div(2) + offsetX
+    var y = ((mainHeight - size.height).div(2)) + offsetY
+
+    // 添加主窗口位置偏移
     x += mainX
     y += mainY
-    if (openSettings) x += 109
+
+    // 设置选项面板打开时的偏移
+    if (openSettings) {
+        // 根据分辨率调整设置面板打开时的偏移量
+        val settingsOffset = when {
+            mainWidth > 2560 -> 150 // 在高分��率下增加偏移
+            mainWidth > 1920 -> 130
+            else -> 109 // 保持原来的偏移
+        }
+        x += settingsOffset
+    }
+
     val point = Point(x, y)
     return Rectangle(point, size)
 }
 
 
+/**
+ * 计算视频播放的大小
+ */
+fun computeVideoSize(
+    windowSize: DpSize,
+    density: Float
+): DpSize {
+    val mainWidth = windowSize.width.value.toInt()
+    // 根据不同分辨率设置不同的窗口大小，使用统一的 5:3 宽高比
+//    val size = when {
+//        mainWidth > 3840 -> { // 4K分辨率及以上
+//            // 保持宽度不变，调整高度为 5:3 比例
+//            DpSize(3570.dp, 2142.dp) // 5:3 比例
+//        }
+//        mainWidth > 2560 -> { // 2K和4K之间
+//            DpSize(2380.dp, 1428.dp) // 5:3 比例
+//        }
+//        mainWidth > 1920 -> { // 2K分辨率
+//            DpSize(1780.dp, 1068.dp) // 5:3 比例
+//        }
+//        mainWidth > 1080 -> { // 普通高分辨率
+//            DpSize(1005.dp, 603.dp) // 5:3 比例
+//        }
+//        mainWidth in 801..1079 -> { // 中等分辨率
+//            DpSize(642.dp, 385.dp) // 5:3 比例
+//        }
+//        else -> { // 低分辨率
+//            DpSize(540.dp, 324.dp) // 5:3 比例
+//        }
+//    }
+
+    // 使用标准16:9视频比例的窗口大小设置
+    // 对于学习视频，16:9比例是当今最常见的视频格式
+    val size = when {
+        mainWidth > 3840 -> { // 4K分辨率及以上
+            DpSize(3570.dp, 2008.dp) // 16:9 比例
+        }
+        mainWidth > 2560 -> { // 2K和4K之间
+            DpSize(2380.dp, 1339.dp) // 16:9 比例
+        }
+        mainWidth > 1920 -> { // 2K分辨率
+            DpSize(1780.dp, 1001.dp) // 16:9 比例
+        }
+        mainWidth > 1080 -> { // 普通高分辨率
+            DpSize(1005.dp, 565.dp) // 16:9 比例
+        }
+        mainWidth in 801..1079 -> { // 中等分辨率
+            DpSize(642.dp, 361.dp) // 16:9 比例
+        }
+        else -> { // 低分辨率
+            DpSize(540.dp, 304.dp) // 16:9 比例
+        }
+    }
+
+    // 在 Compose 中使用 DpSize 和 dp 单位时，不需要手动处理 density
+    // dp 单位已经会根据系统的缩放设置自动进行适配
+
+    println("最终计算的视频窗口大小: $size")
+    return size
+}
 
 /**
  * 解析字幕，返回最大字符数和字幕列表，用于显示。

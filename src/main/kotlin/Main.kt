@@ -9,5 +9,7 @@ import ui.App
 @ExperimentalFoundationApi
 @ExperimentalAnimationApi
 fun main() = application {
+    // 让 Compose 能显示在 Swing 组件上面
+    System.setProperty("compose.interop.blending", "true")
     App()
 }

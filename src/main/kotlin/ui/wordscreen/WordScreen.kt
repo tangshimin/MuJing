@@ -1,7 +1,6 @@
 package ui.wordscreen
 
-import theme.LocalCtrl
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -45,17 +44,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
-import state.*
-import ui.wordscreen.MemoryStrategy.*
+import state.AppState
+import state.ScreenType
+import state.getResourcesFile
+import theme.LocalCtrl
 import tts.AzureTTS
 import tts.rememberAzureTTS
 import ui.Toolbar
 import ui.components.MacOSTitle
 import ui.components.RemoveButton
 import ui.dialog.*
+import ui.wordscreen.MemoryStrategy.*
 import util.createTransferHandler
 import util.rememberMonospace
-import java.awt.Component
 import java.awt.Rectangle
 import java.io.File
 import java.nio.file.Paths
@@ -63,7 +64,6 @@ import java.time.Duration
 import java.util.*
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
-import javax.swing.JFrame
 import javax.swing.JOptionPane
 import javax.swing.filechooser.FileSystemView
 import kotlin.concurrent.schedule
@@ -160,7 +160,6 @@ fun WordScreen(
                         azureTTS = azureTTS,
                         currentWord = currentWord,
                         videoBounds = videoBounds,
-                        resetVideoBounds = resetVideoBounds,
                         wordFocusRequester = wordFocusRequester,
                         window = window,
                         openVocabulary = { showFilePicker = true },
@@ -384,7 +383,6 @@ fun MainContent(
     azureTTS: AzureTTS,
     currentWord:Word,
     videoBounds: Rectangle,
-    resetVideoBounds :() -> Rectangle,
     wordFocusRequester:FocusRequester,
     window: ComposeWindow,
     openVocabulary: () -> Unit,
@@ -399,8 +397,11 @@ fun MainContent(
         /** 是否正在播放视频 */
         var isPlaying by remember { mutableStateOf(false) }
 
-        /** 快捷键播放字幕的索引 */
-        var plyingIndex by remember { mutableStateOf(0) }
+        /** 正在播放的视频信息 */
+        var playMedia :MediaInfo? by remember { mutableStateOf(null) }
+
+        /** 正在使用快捷键播放字幕的索引 */
+        var plyingIndex by remember { mutableStateOf(1) }
 
         /** 显示填充后的书签图标 */
         var showBookmark by remember { mutableStateOf(false) }
@@ -411,8 +412,13 @@ fun MainContent(
         /** 显示把当前单词加入到熟悉词库的确认对话框 */
         var showFamiliarDialog by remember { mutableStateOf(false) }
 
-        /** 字幕输入框焦点请求器*/
-        val (focusRequester1,focusRequester2,focusRequester3) = remember { FocusRequester.createRefs() }
+
+        /** 第一条字幕输入框的焦点请求器 */
+        val focusRequester1 = remember { FocusRequester() }
+        /** 第二条字幕输入框的焦点请求器 */
+        val focusRequester2 = remember { FocusRequester() }
+        /** 第三条字幕输入框的焦点请求器 */
+        val focusRequester3 = remember { FocusRequester() }
 
         /** 等宽字体*/
         val monospace  = rememberMonospace()
@@ -423,39 +429,6 @@ fun MainContent(
 
         /** 是否正在播放单词发音 */
         var isPlayingAudio by remember { mutableStateOf(false) }
-
-    val onVideoBoundsChanged :(Boolean) -> Unit= {
-        wordScreenState.isChangeVideoBounds = it
-        if(it){
-            wordScreenState.changePlayerBounds(videoBounds)
-        }
-    }
-        /**
-         * 用快捷键播放视频时被调用的函数，
-         * Caption 表示要播放的字幕，String 表示视频的地址，Int 表示字幕的轨道 ID。
-         */
-        @OptIn(ExperimentalSerializationApi::class)
-        val shortcutPlay: (playTriple: Triple<Caption, String, Int>?) -> Unit = { playTriple ->
-            if (playTriple != null && !isPlaying) {
-                scope.launch {
-                        play(
-                            window = appState.videoPlayerWindow,
-                            setIsPlaying = { isPlaying = it },
-                            appState.global.videoVolume,
-                            playTriple,
-                            appState.videoPlayerComponent,
-                            videoBounds,
-                            wordScreenState.externalSubtitlesVisible,
-                            vocabularyDir = wordScreenState.getVocabularyDir(),
-                            resetVideoBounds = resetVideoBounds,
-                            isVideoBoundsChanged = wordScreenState.isChangeVideoBounds,
-                            setIsVideoBoundsChanged = onVideoBoundsChanged
-                        )
-                }
-            }
-        }
-
-
         /** 删除当前单词 */
         val deleteWord:() -> Unit = {
             val index = wordScreenState.index
@@ -587,6 +560,71 @@ fun MainContent(
                 JOptionPane.showMessageDialog(window, "保存困难词库失败,错误信息:\n${e.message}")
             }
 
+        }
+
+        /** 焦点请求 */
+        val focusRequest:(Int) -> Unit = { index ->
+            try {
+                if(wordScreenState.subtitlesVisible){
+                    when(index){
+                        1 -> focusRequester1.requestFocus()
+                        2 -> focusRequester2.requestFocus()
+                        3 -> focusRequester3.requestFocus()
+                        else -> wordFocusRequester.requestFocus()
+                    }
+                }else{
+                    wordFocusRequester.requestFocus()
+                }
+            } catch (_: IllegalStateException) {
+                // FocusRequester 未初始化时的安全处理
+                println("FocusRequester not initialized, skipping focus request for index: $index")
+                // 尝试使用主要的 wordFocusRequester 作为后备
+                try {
+                    wordFocusRequester.requestFocus()
+                } catch (_: IllegalStateException) {
+                    println("wordFocusRequester also not initialized, skipping focus request")
+                }
+            }
+        }
+
+        /** 用快捷键播放视频时被调用的函数， */
+        val handleMediaPlay: (
+                index:Int
+                ) -> Unit = { index ->
+            plyingIndex = index
+            val mediaInfo =  when {
+                // 先从 MKV 或 SUBTITLES 类型的词库获取 MediaInfo
+                (wordScreenState.getCurrentWord().captions.size >= index) -> {
+                    val caption = currentWord.captions[index -1]
+                    MediaInfo(
+                        caption,
+                        wordScreenState.vocabulary.relateVideoPath,
+                        wordScreenState.vocabulary.subtitlesTrackId
+                    )
+                }
+                // 混合词库 DOCUMENT 从 ExternalCaptions 获取 MediaInfo
+                (wordScreenState.getCurrentWord().externalCaptions.size >= index) -> {
+                    getMediaInfoFromExternalCaption(currentWord.externalCaptions, index - 1)
+                }
+                else -> null
+            }
+
+            if(mediaInfo != null){
+                // 验证视频文件的路径
+                val resolvedPath =  resolveMediaPath(
+                    mediaInfo.mediaPath,
+                    wordScreenState.getVocabularyDir()
+                )
+                if(resolvedPath != ""){
+                    mediaInfo.mediaPath = resolvedPath
+                    isPlaying = true
+                    playMedia = mediaInfo
+                }else{
+                    //TODO 需要提示用户视频文件不存在
+                    val message = if(mediaInfo.mediaPath.isEmpty())"视频地址为空" else "视频地址错误"
+                    println("resolveMediaPath error: $message")
+                }
+            }
         }
 
         /** 处理全局快捷键的回调函数 */
@@ -747,43 +785,19 @@ fun MainContent(
                 }
                 (isCtrlPressed &&  it.key == Key.One && it.type == KeyEventType.KeyUp) -> {
                     if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest ){
-                        val playTriple = if (wordScreenState.vocabulary.type == VocabularyType.DOCUMENT) {
-                            getPayTriple(currentWord, 0)
-                        } else {
-                            val caption = wordScreenState.getCurrentWord().captions[0]
-                            Triple(caption, wordScreenState.vocabulary.relateVideoPath, wordScreenState.vocabulary.subtitlesTrackId)
-                        }
-                        plyingIndex = 0
-                        if (playTriple != null && wordScreenState.subtitlesVisible &&  wordScreenState.isWriteSubtitles ) focusRequester1.requestFocus()
-                        shortcutPlay(playTriple)
+                        handleMediaPlay(1)
                     }
                     true
                 }
                 (isCtrlPressed && it.key == Key.Two && it.type == KeyEventType.KeyUp) -> {
                     if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest){
-                        val playTriple = if (wordScreenState.getCurrentWord().externalCaptions.size >= 2) {
-                            getPayTriple(currentWord, 1)
-                        } else if (wordScreenState.getCurrentWord().captions.size >= 2) {
-                            val caption = wordScreenState.getCurrentWord().captions[1]
-                            Triple(caption, wordScreenState.vocabulary.relateVideoPath, wordScreenState.vocabulary.subtitlesTrackId)
-                        }else null
-                        plyingIndex = 1
-                        if (playTriple != null && wordScreenState.subtitlesVisible && wordScreenState.isWriteSubtitles) focusRequester2.requestFocus()
-                        shortcutPlay(playTriple)
+                        handleMediaPlay(2)
                     }
                     true
                 }
                 (isCtrlPressed &&  it.key == Key.Three && it.type == KeyEventType.KeyUp) -> {
                     if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest){
-                        val playTriple = if (wordScreenState.getCurrentWord().externalCaptions.size >= 3) {
-                            getPayTriple(currentWord, 2)
-                        } else if (wordScreenState.getCurrentWord().captions.size >= 3) {
-                            val caption = wordScreenState.getCurrentWord().captions[2]
-                            Triple(caption, wordScreenState.vocabulary.relateVideoPath, wordScreenState.vocabulary.subtitlesTrackId)
-                        }else null
-                        plyingIndex = 2
-                        if (playTriple != null && wordScreenState.subtitlesVisible && wordScreenState.isWriteSubtitles) focusRequester3.requestFocus()
-                        shortcutPlay(playTriple)
+                        handleMediaPlay(3)
                     }
                     true
                 }
@@ -1551,13 +1565,12 @@ fun MainContent(
             Captions(
                 captionsVisible = wordScreenState.subtitlesVisible,
                 playTripleMap = getPlayTripleMap(wordScreenState.vocabulary.type,wordScreenState.vocabulary.subtitlesTrackId,wordScreenState.vocabulary.relateVideoPath,  currentWord),
-                videoPlayerWindow = appState.videoPlayerWindow,
-                videoPlayerComponent = appState.videoPlayerComponent,
                 isPlaying = isPlaying,
                 plyingIndex = plyingIndex,
                 setPlayingIndex = {plyingIndex = it},
                 volume = appState.global.videoVolume,
                 setIsPlaying = { isPlaying = it },
+                setPlayingMedia = {playMedia = it},
                 word = currentWord,
                 bounds = videoBounds,
                 textFieldValueList = listOf(wordScreenState.captionsTextFieldValue1,wordScreenState.captionsTextFieldValue2,wordScreenState.captionsTextFieldValue3),
@@ -1572,14 +1585,9 @@ fun MainContent(
                 modifier = captionsModifier,
                 focusRequesterList = listOf(focusRequester1,focusRequester2,focusRequester3),
                 jumpToWord = {jumpToWord()},
-                externalVisible = wordScreenState.externalSubtitlesVisible,
                 openSearch = {appState.openSearch()},
                 fontSize = appState.global.detailFontSize,
-                resetVideoBounds = resetVideoBounds,
-                isVideoBoundsChanged = wordScreenState.isChangeVideoBounds,
-                setIsChangeBounds = onVideoBoundsChanged,
                 isWriteSubtitles = wordScreenState.isWriteSubtitles,
-                vocabularyDir = wordScreenState.getVocabularyDir()
             )
 
             if (showDeleteDialog) {
@@ -1676,6 +1684,20 @@ fun MainContent(
             }
         }
 
+            MiniVideoPlayer(
+                modifier = Modifier.align(Alignment.Center),
+                windowSize = appState.global.size,
+                isPlaying = isPlaying,
+                setIsPlaying = {
+                    isPlaying = it
+                    if(!isPlaying){
+                        focusRequest(plyingIndex)
+                    }
+                               },
+                volume = appState.global.videoVolume,
+                mediaInfo = playMedia,
+                externalSubtitlesVisible = wordScreenState.externalSubtitlesVisible
+            )
 
         if (nextButtonVisible) {
             TooltipArea(
@@ -2293,7 +2315,6 @@ fun Sentences(
  * - Triple 的 Caption  -> caption.content 用于输入和阅读，caption.start 和 caption.end 用于播放视频
  * - Triple 的 String   -> 字幕对应的视频地址
  * - Triple 的 Int      -> 字幕的轨道
- * @param videoPlayerWindow 视频播放窗口
  * @param isPlaying 是否正在播放视频
  * @param volume 音量
  * @param setIsPlaying 设置是否正在播放视频播放的回调
@@ -2311,10 +2332,9 @@ fun Sentences(
 fun Captions(
     captionsVisible: Boolean,
     playTripleMap: Map<Int, Triple<Caption, String, Int>>,
-    videoPlayerWindow: JFrame,
-    videoPlayerComponent: Component,
     isPlaying: Boolean,
     setIsPlaying: (Boolean) -> Unit,
+    setPlayingMedia: (MediaInfo) -> Unit,
     plyingIndex: Int,
     setPlayingIndex: (Int) -> Unit,
     volume: Float,
@@ -2328,17 +2348,12 @@ fun Captions(
     modifier: Modifier,
     focusRequesterList:List<FocusRequester>,
     jumpToWord: () -> Unit,
-    externalVisible:Boolean,
     openSearch: () -> Unit,
     fontSize: TextUnit,
-    resetVideoBounds :() ->  Rectangle,
-    isVideoBoundsChanged:Boolean,
-    setIsChangeBounds:(Boolean) -> Unit = {},
     isWriteSubtitles:Boolean,
-    vocabularyDir:File
 ) {
     if (captionsVisible) {
-        val horizontalArrangement = if (isPlaying && !isVideoBoundsChanged) Arrangement.Center else Arrangement.Start
+        val horizontalArrangement = if (isPlaying) Arrangement.Center else Arrangement.Start
         Row(
             horizontalArrangement = horizontalArrangement,
             modifier = modifier
@@ -2375,33 +2390,41 @@ fun Captions(
                     var failedMessage by remember { mutableStateOf("") }
                     val playCurrentCaption:()-> Unit = {
                         if (!isPlaying) {
-                            scope.launch {
-                                play(
-                                    window = videoPlayerWindow,
-                                    setIsPlaying = { setIsPlaying(it) },
-                                    volume = volume,
-                                    playTriple = playTriple,
-                                    videoPlayerComponent = videoPlayerComponent,
-                                    bounds = bounds,
-                                    onFailed = { message ->
-                                        isPlayFailed = true
-                                        failedMessage = message
-                                    },
-                                    externalSubtitlesVisible = externalVisible,
-                                    resetVideoBounds = resetVideoBounds,
-                                    isVideoBoundsChanged = isVideoBoundsChanged,
-                                    setIsVideoBoundsChanged = setIsChangeBounds,
-                                    vocabularyDir = vocabularyDir,
-                                    updatePlayingIndex = { setPlayingIndex(index) }
-                                )
-                            }
-
+//                            scope.launch {
+//                                play(
+//                                    window = videoPlayerWindow,
+//                                    setIsPlaying = { setIsPlaying(it) },
+//                                    volume = volume,
+//                                    playTriple = playTriple,
+//                                    videoPlayerComponent = videoPlayerComponent,
+//                                    bounds = bounds,
+//                                    onFailed = { message ->
+//                                        isPlayFailed = true
+//                                        failedMessage = message
+//                                    },
+//                                    externalSubtitlesVisible = externalVisible,
+//                                    resetVideoBounds = resetVideoBounds,
+//                                    isVideoBoundsChanged = isVideoBoundsChanged,
+//                                    setIsVideoBoundsChanged = setIsChangeBounds,
+//                                    vocabularyDir = vocabularyDir,
+//                                    updatePlayingIndex = { setPlayingIndex(index) }
+//                                )
+//                            }
+                            setPlayingIndex(index+1)
+                            setIsPlaying(true)
+                            val playMedia = MediaInfo(
+                                playTriple.first,
+                                playTriple.second,
+                                playTriple.third,
+                            )
+                            setPlayingMedia(playMedia)
                         }
-                        if(isWriteSubtitles || focused){
-                            focusRequesterList[index].requestFocus()
-                        }else{
-                            jumpToWord()
-                        }
+//                        if(isWriteSubtitles || focused){
+//                            focusRequesterList[index].requestFocus()
+//                            println("重新获得焦点")
+//                        }else{
+//                            jumpToWord()
+//                        }
                     }
                     var selectable by remember { mutableStateOf(false) }
                     val focusMoveUp:() -> Unit = {
@@ -2484,7 +2507,7 @@ fun Captions(
 
             }
         }
-        if ((!isPlaying || isVideoBoundsChanged) && (word.captions.isNotEmpty() || word.externalCaptions.isNotEmpty()))
+        if (!isPlaying && (word.captions.isNotEmpty() || word.externalCaptions.isNotEmpty()))
             Divider(Modifier.padding(start = 50.dp))
     }
 }
@@ -3069,16 +3092,16 @@ fun CopyButton(wordValue:String){
 
 
 /**
- * @param currentWord 当前正在记忆的单词
+ * 从外部字幕中获取媒体信息
+ * @param externalCaptions 外部字幕列表
  * @param index links 的 index
- * @return Triple<Caption, String, Int>? ,视频播放器需要的信息
+ * @return MediaInfo? 如果 index 小于 currentWord.externalCaptions.size，则返回 MediaInfo，否则返回 null
  */
-fun getPayTriple(currentWord: Word, index: Int): Triple<Caption, String, Int>? {
-
-    return if (index < currentWord.externalCaptions.size) {
-        val externalCaption = currentWord.externalCaptions[index]
+fun getMediaInfoFromExternalCaption(externalCaptions: MutableList<ExternalCaption>, index: Int): MediaInfo? {
+    return if (index < externalCaptions.size) {
+        val externalCaption = externalCaptions[index]
         val caption = Caption(externalCaption.start, externalCaption.end, externalCaption.content)
-        Triple(caption, externalCaption.relateVideoPath, externalCaption.subtitlesTrackId)
+        MediaInfo(caption, externalCaption.relateVideoPath, externalCaption.subtitlesTrackId)
     } else {
         null
     }
