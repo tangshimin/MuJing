@@ -2,6 +2,7 @@ package ui.components
 
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.Divider
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -19,13 +20,14 @@ fun MacOSTitle(
     window: ComposeWindow,
     modifier: Modifier = Modifier.height(44.dp)
 ) {
+
     Text(
         text = title,
         textAlign = TextAlign.Center,
         color = MaterialTheme.colors.onBackground,
         modifier = modifier.padding(top = 8.dp)
     )
-
+    Divider()
     LaunchedEffect(Unit){
         window.rootPane.putClientProperty("apple.awt.fullWindowContent", true)
         window.rootPane.putClientProperty("apple.awt.transparentTitleBar", true)

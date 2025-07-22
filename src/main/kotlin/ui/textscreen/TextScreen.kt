@@ -619,11 +619,13 @@ fun TextScreen(
         }
 
         if (isMacOS()) {
-            MacOSTitle(
-                title = title,
-                window = window,
-                modifier = Modifier.align(Alignment.TopCenter).height(44.dp)
-            )
+            Column(Modifier.align(Alignment.TopCenter)){
+                MacOSTitle(
+                    title = title,
+                    window = window,
+                    modifier = Modifier.height(44.dp).fillMaxWidth()
+                )
+            }
         }
         Row(modifier = Modifier.align(Alignment.TopStart)){
             Toolbar(

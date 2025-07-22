@@ -55,8 +55,13 @@ fun WordScreenSidebar(
         val scope = rememberCoroutineScope()
         Box(Modifier
             .testTag("WordScreenSidebar")
-            .width(216.dp).fillMaxHeight().onKeyEvent { it ->
-            if (it.isCtrlPressed && it.key == Key.One && it.type == KeyEventType.KeyUp){
+            .width(216.dp)
+            .padding(top = if(isMacOS()) 44.dp else 0.dp)
+            .fillMaxHeight().onKeyEvent { it ->
+            // isCtrlPressed
+            // macOS 下是 Command 键, windows 下是 Ctrl 键
+            val isCtrlPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
+            if (isCtrlPressed && it.key == Key.One && it.type == KeyEventType.KeyUp){
             scope.launch {
                 appState.openSidebar = !appState.openSidebar
                 if(!appState.openSidebar){
@@ -66,6 +71,7 @@ fun WordScreenSidebar(
             true
         }else false
         }){
+
             val stateVertical = rememberScrollState(0)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -74,7 +80,7 @@ fun WordScreenSidebar(
                     .fillMaxSize()
                     .verticalScroll(stateVertical)
             ) {
-                Spacer(Modifier.fillMaxWidth().height(if (isMacOS()) 78.dp else 48.dp))
+                Spacer(Modifier.fillMaxWidth().height(if (isMacOS()) 48.dp else 48.dp))
                 Divider()
                 val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
 
