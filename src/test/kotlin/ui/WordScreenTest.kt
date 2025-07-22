@@ -126,11 +126,11 @@ class WordScreenTest {
         composeTestRule.waitUntilExactlyOneExists(hasText("1/96"), 15000)
 
         // 测试设置按钮
-        composeTestRule.onNode(hasTestTag("SettingsButton"))
+        composeTestRule.onNode(hasTestTag("SidebarButton"))
             .assertExists()
 
         // 打开侧边栏
-        safeClickWithTestTag("SettingsButton")
+        safeClickWithTestTag("SidebarButton")
 
         // 测试侧边栏
         composeTestRule.waitUntilExactlyOneExists(hasTestTag("WordScreenSidebar"), 15000)
@@ -143,7 +143,7 @@ class WordScreenTest {
         }
 
         // 关闭侧边栏
-        safeClickWithTestTag("SettingsButton")
+        safeClickWithTestTag("SidebarButton")
 
         // 等待侧边栏消失
         composeTestRule.waitUntilDoesNotExist(hasTestTag("WordScreenSidebar"), 15000)
