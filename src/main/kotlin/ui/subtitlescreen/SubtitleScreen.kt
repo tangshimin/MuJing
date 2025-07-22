@@ -32,9 +32,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import player.*
 import state.GlobalState
-import ui.Toolbar
+
 import ui.components.MacOSTitle
 import ui.components.RemoveButton
+import ui.components.Toolbar
 import ui.wordscreen.playSound
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
@@ -930,7 +931,7 @@ fun SubtitleScreen(
             MacOSTitle(
                 title = title,
                 window = window,
-                modifier = Modifier.align(Alignment.TopCenter).padding(top = 5.dp)
+                modifier = Modifier.align(Alignment.TopCenter).height(44.dp)
             )
         }
         Row(modifier = Modifier.align(Alignment.TopStart)){
@@ -973,7 +974,7 @@ fun SubtitleScreen(
                         showOpenFile = true
                         openFileChooser()
                     },
-                    modifier = Modifier.padding(top = if (isMacOS()) 30.dp else 0.dp)
+                    modifier = Modifier.padding(top = if (isMacOS()) 44.dp else 0.dp)
                 ) {
                     Icon(
                         Icons.Filled.Folder,

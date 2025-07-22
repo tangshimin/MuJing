@@ -50,7 +50,7 @@ import state.getResourcesFile
 import theme.LocalCtrl
 import tts.AzureTTS
 import tts.rememberAzureTTS
-import ui.Toolbar
+import ui.components.Toolbar
 import ui.components.MacOSTitle
 import ui.components.RemoveButton
 import ui.dialog.*
@@ -228,7 +228,7 @@ fun WordScreen(
 
                 IconButton(
                     onClick = { showFilePicker = true },
-                    modifier = Modifier.padding(top = if (isMacOS()) 30.dp else 0.dp)
+                    modifier = Modifier.padding(top = if (isMacOS()) 44.dp else 0.dp)
                 ) {
                     Icon(
                         Icons.Filled.Folder,
@@ -310,7 +310,6 @@ fun Header(
             MacOSTitle(
                 title = title,
                 window = window,
-                modifier = Modifier.padding(top = 5.dp)
             )
         }
 

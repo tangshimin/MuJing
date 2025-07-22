@@ -40,7 +40,7 @@ import kotlinx.coroutines.launch
 import player.isMacOS
 import player.isWindows
 import state.GlobalState
-import ui.Toolbar
+import ui.components.Toolbar
 import ui.components.MacOSTitle
 import ui.dialog.FormatDialog
 import ui.subtitlescreen.OpenMode
@@ -622,7 +622,7 @@ fun TextScreen(
             MacOSTitle(
                 title = title,
                 window = window,
-                modifier = Modifier.align(Alignment.TopCenter).padding(top = 5.dp)
+                modifier = Modifier.align(Alignment.TopCenter).height(44.dp)
             )
         }
         Row(modifier = Modifier.align(Alignment.TopStart)){
@@ -662,7 +662,7 @@ fun TextScreen(
                 )
             ) {
                 IconButton(onClick = { openFileChooser() },
-                    modifier = Modifier.padding(top = if (isMacOS()) 30.dp else 0.dp)) {
+                    modifier = Modifier.padding(top = if (isMacOS()) 44.dp else 0.dp)) {
                     Icon(
                         Icons.Filled.Folder,
                         contentDescription = "Localized description",

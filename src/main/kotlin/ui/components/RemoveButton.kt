@@ -51,7 +51,7 @@ fun RemoveButton(
         var tint by remember(color){ mutableStateOf(color) }
         IconButton(
             onClick = onClick,
-            modifier = Modifier.padding(top = if (isMacOS()) 30.dp else 0.dp)
+            modifier = Modifier.padding(top = if (isMacOS()) 44.dp else 0.dp)
                 .onPointerEvent(PointerEventType.Enter){
                     tint = Color.Red
                 }

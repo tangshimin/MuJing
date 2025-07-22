@@ -1,11 +1,15 @@
 package ui.components
 
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
 import com.formdev.flatlaf.FlatClientProperties
 
 
@@ -13,12 +17,13 @@ import com.formdev.flatlaf.FlatClientProperties
 fun MacOSTitle(
     title: String,
     window: ComposeWindow,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier.height(44.dp)
 ) {
     Text(
         text = title,
+        textAlign = TextAlign.Center,
         color = MaterialTheme.colors.onBackground,
-        modifier = modifier
+        modifier = modifier.padding(top = 8.dp)
     )
 
     LaunchedEffect(Unit){
@@ -29,7 +34,7 @@ fun MacOSTitle(
         //加了这一行，全屏的时候工具栏的背景颜色才会跟随主题一起变化
         window.rootPane.putClientProperty(
             FlatClientProperties.MACOS_WINDOW_BUTTONS_SPACING,
-            FlatClientProperties.MACOS_WINDOW_BUTTONS_SPACING_LARGE
+            FlatClientProperties.MACOS_WINDOW_BUTTONS_SPACING_MEDIUM
         )
 
     }
