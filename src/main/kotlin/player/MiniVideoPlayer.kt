@@ -1,5 +1,6 @@
 package player
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,12 +21,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
@@ -63,6 +64,11 @@ fun MiniVideoPlayer(
         /** VLC 视频播放组件 */
         val videoPlayerComponent  = remember { createMediaPlayerComponent() }
         val videoPlayer = remember { videoPlayerComponent.createMediaPlayer() }
+        val surface = remember {
+            SkiaBitmapVideoSurface().also {
+                videoPlayer.videoSurface().set(it)
+            }
+        }
         val focusRequester = remember { FocusRequester() }
         var isPaused by remember { mutableStateOf(false) }
         var currentTime by remember{mutableStateOf("00:00:00")}
@@ -189,11 +195,22 @@ fun MiniVideoPlayer(
                 }
             }
         ) {
-            SwingPanel(
-                background = Color.Transparent,
-                modifier = Modifier.fillMaxSize(),
-                factory = { videoPlayerComponent },
-            )
+
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                surface.bitmap.value?.let { bitmap ->
+                    Image(
+                        bitmap,
+                        modifier = Modifier
+                            .background(Color.Transparent)
+                            .fillMaxSize(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Fit,
+                        alignment = Alignment.Center,
+                    )
+                }
+            }
+
 
             Column(modifier = Modifier.align(Alignment.BottomCenter),
                 verticalArrangement = Arrangement.Top,
