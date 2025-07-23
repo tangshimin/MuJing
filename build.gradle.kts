@@ -96,6 +96,9 @@ compose.desktop {
         jvmArgs += listOf("-Dstderr.encoding=UTF-8")
         jvmArgs += listOf("-Dsun.stdout.encoding=UTF-8")
         jvmArgs += listOf("-Dapple.awt.application.appearance=system")
+        // 直接在 Swing 组件上渲染 Compose,文档链接：
+        // https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-desktop-swing-interoperability.html#experimental-off-screen-rendering
+        jvmArgs += listOf("-Dcompose.swing.render.on.graphics=true")
         // 让 Compose 能显示在 Swing 组件上面,文档链接：
         // https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-desktop-swing-interoperability.html#use-swing-in-a-compose-multiplatform-application
         jvmArgs += listOf("-Dcompose.interop.blending=true")
