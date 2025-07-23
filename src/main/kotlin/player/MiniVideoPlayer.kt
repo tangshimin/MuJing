@@ -38,6 +38,7 @@ import ui.wordscreen.replaceSeparator
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent
+import uk.co.caprica.vlcj.player.component.EmbeddedMediaPlayerComponent
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer
 import util.computeVideoSize
 import java.awt.Component
@@ -378,15 +379,11 @@ data class MediaInfo(
 )
 
 
-//
-//fun createMediaPlayer(): EmbeddedMediaPlayer {
-//    val videoComponent =  createMediaPlayerComponent() as CallbackMediaPlayerComponent
-//    return videoComponent.mediaPlayer()
-//}
 
 fun Component.createMediaPlayer(): EmbeddedMediaPlayer {
     return when (this) {
         is CallbackMediaPlayerComponent -> mediaPlayer()
+        is EmbeddedMediaPlayerComponent -> mediaPlayer()
         else -> throw IllegalArgumentException("You can only call mediaPlayer() on vlcj player component")
     }
 }
