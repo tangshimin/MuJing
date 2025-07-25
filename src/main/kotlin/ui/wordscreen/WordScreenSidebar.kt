@@ -80,7 +80,7 @@ fun WordScreenSidebar(
                     .fillMaxSize()
                     .verticalScroll(stateVertical)
             ) {
-                Spacer(Modifier.fillMaxWidth().height(if (isMacOS()) 48.dp else 48.dp))
+                Spacer(Modifier.fillMaxWidth().height( 48.dp))
                 Divider()
                 val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
 

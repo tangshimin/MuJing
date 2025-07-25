@@ -193,7 +193,6 @@ fun App(
                                     title = title,
                                     playerWindow = appState.videoPlayerWindow,
                                     videoVolume = appState.global.videoVolume,
-                                    mediaPlayerComponent = appState.videoPlayerComponent,
                                     futureFileChooser = appState.futureFileChooser,
                                     openLoadingDialog = { appState.openLoadingDialog()},
                                     closeLoadingDialog = { appState.loadingFileChooserVisible = false },

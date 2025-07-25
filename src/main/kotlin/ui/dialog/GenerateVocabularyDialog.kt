@@ -335,7 +335,6 @@ fun GenerateVocabularyDialog(
                                     if (selectedFilePath.isEmpty() && selectedFileList.isEmpty()) {
                                         loading = true
                                         parseTrackList(
-                                            state.videoPlayerComponent,
                                             window,
                                             state.videoPlayerWindow,
                                             file.absolutePath,

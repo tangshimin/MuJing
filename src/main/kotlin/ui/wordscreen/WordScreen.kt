@@ -26,8 +26,8 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.modifier.modifierLocalConsumer
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -56,6 +56,7 @@ import ui.components.MacOSTitle
 import ui.components.RemoveButton
 import ui.dialog.*
 import ui.wordscreen.MemoryStrategy.*
+import util.computeVideoSize
 import util.createTransferHandler
 import util.rememberMonospace
 import java.awt.Rectangle
@@ -1683,17 +1684,22 @@ fun MainContent(
                 )
             }
         }
-
+            // 显示器缩放
+            // TODO 这个密度参数根本就没有使用，需要重构
+            val density = LocalDensity.current.density
+            val videoPlayerSize by remember(appState.global.size,density){
+                derivedStateOf {
+                    computeVideoSize(appState.global.size,density)
+                }
+            }
             MiniVideoPlayer(
                 modifier = Modifier.align(Alignment.Center),
-                windowSize = appState.global.size,
+                size = videoPlayerSize,
                 isPlaying = isPlaying,
-                setIsPlaying = {
-                    isPlaying = it
-                    if(!isPlaying){
-                        focusRequest(plyingIndex)
-                    }
-                               },
+                stop = {
+                    isPlaying = false
+                    focusRequest(plyingIndex)
+                    },
                 volume = appState.global.videoVolume,
                 mediaInfo = playMedia,
                 externalSubtitlesVisible = wordScreenState.externalSubtitlesVisible

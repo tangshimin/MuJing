@@ -1,6 +1,5 @@
 package ui.subtitlescreen
 
-import theme.LocalCtrl
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -32,20 +31,15 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import player.*
 import state.GlobalState
-
+import theme.LocalCtrl
 import ui.components.MacOSTitle
 import ui.components.RemoveButton
 import ui.components.Toolbar
 import ui.wordscreen.playSound
-import uk.co.caprica.vlcj.player.base.MediaPlayer
-import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import util.computeMediaType
 import util.createTransferHandler
 import util.parseSubtitles
-import java.awt.Component
-import java.awt.GraphicsEnvironment
-import java.awt.Point
-import java.awt.Rectangle
+import java.awt.*
 import java.io.File
 import java.util.concurrent.FutureTask
 import java.util.regex.Pattern
@@ -71,7 +65,6 @@ fun SubtitleScreen(
     title: String,
     playerWindow: JFrame,
     videoVolume: Float,
-    mediaPlayerComponent: Component,
     futureFileChooser: FutureTask<JFileChooser>,
     openLoadingDialog: () -> Unit,
     closeLoadingDialog: () -> Unit,
@@ -103,18 +96,46 @@ fun SubtitleScreen(
     /** 启动播放多行字幕后，在这一行显示播放按钮 */
     var playIconIndex  by remember{mutableStateOf(0)}
 
+    // 添加 PiP 相关状态
+    val pipWindow = remember {
+        PiPVideoWindow(onClose = { isPlaying = false })
+    }
 
-    val eventListener = object:MediaPlayerEventAdapter() {
-        override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
-            if(multipleLines.enabled) {
-                subtitlesState.currentIndex = timedCaption.getCaptionIndex(newTime, subtitlesState.currentIndex)
-            }
+
+
+    val startPiPPlayback: (MediaInfo) -> Unit = { playMedia ->
+        if (pipWindow.isInPiPMode()) {
+            pipWindow.exitPiPMode()
+        } else {
+
+            val pipBounds = validateAndGetVideoBounds(subtitlesState.videoBounds)
+            pipWindow.enterPiPMode(
+                mediaInfo = playMedia,
+                volume = videoVolume,
+                timeChanged = {
+                    if(multipleLines.enabled) {
+                        val currentIndex = timedCaption.getCaptionIndex(it, subtitlesState.currentIndex)
+                        if(currentIndex <= multipleLines.endIndex){
+                            subtitlesState.currentIndex = currentIndex
+                        }
+                    }
+                },
+                externalSubtitlesVisible = subtitlesState.externalSubtitlesVisible,
+                bounds = pipBounds,
+                updateBounds = { newBounds ->
+                    isVideoBoundsChanged = true
+                    subtitlesState.videoBounds.x = newBounds.x
+                    subtitlesState.videoBounds.y = newBounds.y
+                    subtitlesState.videoBounds.width = newBounds.width
+                    subtitlesState.videoBounds.height = newBounds.height
+
+                    subtitlesState.saveTypingSubtitlesState()
+                }
+            )
+
         }
     }
 
-    LaunchedEffect(Unit){
-        mediaPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(eventListener)
-    }
 
 
 
@@ -174,7 +195,6 @@ fun SubtitleScreen(
                         if (subtitlesState.mediaPath != file.absolutePath) {
                             selectedPath = file.absolutePath
                             parseTrackList(
-                                mediaPlayerComponent,
                                 window,
                                 playerWindow,
                                 file.absolutePath,
@@ -342,33 +362,20 @@ fun SubtitleScreen(
                         } else {
                             // 使用内部字幕轨道
                             if (subtitlesState.trackID != -1) {
-                                val playTriple = Triple(caption, subtitlesState.mediaPath, subtitlesState.trackID)
-                                corePlay(
-                                    window = playerWindow,
-                                    setIsPlaying = { isPlaying = it },
-                                    volume = videoVolume,
-                                    playTriple = playTriple,
-                                    videoPlayerComponent = mediaPlayerComponent,
-                                    bounds = videoPlayerBounds,
-                                    resetVideoBounds = resetVideoBounds,
-                                    isVideoBoundsChanged = isVideoBoundsChanged,
-                                    setIsVideoBoundsChanged = {isVideoBoundsChanged = it}
+                               val  playMedia = MediaInfo(
+                                    mediaPath =  subtitlesState.mediaPath,
+                                    caption = caption,
+                                    trackId = subtitlesState.trackID,
                                 )
+                                startPiPPlayback(playMedia)
                                 // 使用外部字幕
                             } else {
-                                val externalPlayTriple = Triple(caption, subtitlesState.mediaPath, -1)
-                                corePlay(
-                                    window = playerWindow,
-                                    setIsPlaying = { isPlaying = it },
-                                    volume = videoVolume,
-                                    playTriple = externalPlayTriple,
-                                    videoPlayerComponent = mediaPlayerComponent,
-                                    bounds = videoPlayerBounds,
-                                    externalSubtitlesVisible = subtitlesState.externalSubtitlesVisible,
-                                    resetVideoBounds = resetVideoBounds,
-                                    isVideoBoundsChanged = isVideoBoundsChanged,
-                                    setIsVideoBoundsChanged = {isVideoBoundsChanged = it}
+                                val playMedia = MediaInfo(
+                                    mediaPath =  subtitlesState.mediaPath,
+                                    caption = caption,
+                                    trackId = -1,
                                 )
+                                startPiPPlayback(playMedia)
                             }
                         }
                     }
@@ -443,7 +450,6 @@ fun SubtitleScreen(
             scope.launch (Dispatchers.Default){
                 showSelectTrack = true
                     parseTrackList(
-                        mediaPlayerComponent = mediaPlayerComponent,
                         parentComponent = window,
                         playerWindow = playerWindow,
                         videoPath = subtitlesState.mediaPath,
@@ -1190,4 +1196,25 @@ fun SelectTrack(
     val pattern = Pattern.compile(regex,Pattern.CASE_INSENSITIVE)
     val matcher = pattern.matcher(description)
     return if(matcher.find()) 24 else 12
+}
+
+/**
+ * 对视频窗口位置和大小进行校验，如果没有设置过位置和大小，就显示在屏幕右上角。
+ */
+private fun validateAndGetVideoBounds(b: Rectangle): Rectangle{
+    if(b.x == 0 && b.y == 0 && b.width == 0 && b.height == 0){
+        // 如果没有设置过位置和大小，则使用默认值
+        // 计算 PiP 窗口位置（屏幕右上角）
+        val screenSize = Toolkit.getDefaultToolkit().screenSize
+        val bounds = Rectangle(
+            screenSize.width - 540 - 20,
+            44,
+            540,
+            303
+        )
+        return bounds
+    }
+
+
+    return b
 }

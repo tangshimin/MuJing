@@ -11,6 +11,7 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import state.getSettingsDirectory
+import java.awt.Rectangle
 import java.io.File
 import javax.swing.JOptionPane
 
@@ -30,6 +31,10 @@ data class DataSubtitlesState(
     var currentCaptionVisible: Boolean = true,
     var notWroteCaptionVisible: Boolean = true,
     var externalSubtitlesVisible: Boolean = true,
+    var videoX:Int = 0,
+    var videoY:Int = 0,
+    var videoWidth:Int = 0,
+    var videoHeight:Int = 0,
 )
 
 /** 抄写单词的可观察状态 */
@@ -78,6 +83,15 @@ class SubtitlesState(dataSubtitlesState: DataSubtitlesState) {
     /** 外部字幕的可见性 */
     var externalSubtitlesVisible by mutableStateOf(dataSubtitlesState.externalSubtitlesVisible)
 
+    /** 视频播放器的大小和位置 */
+    var videoBounds by mutableStateOf(
+    Rectangle(
+        dataSubtitlesState.videoX,
+        dataSubtitlesState.videoY,
+        dataSubtitlesState.videoWidth,
+        dataSubtitlesState.videoHeight)
+    )
+
     /** 保存抄写字幕的配置信息 */
     fun saveTypingSubtitlesState() {
         runBlocking {
@@ -95,6 +109,10 @@ class SubtitlesState(dataSubtitlesState: DataSubtitlesState) {
                     currentCaptionVisible,
                     notWroteCaptionVisible,
                     externalSubtitlesVisible,
+                    videoBounds.x,
+                    videoBounds.y,
+                    videoBounds.width,
+                    videoBounds.height
                 )
                 val encodeBuilder = Json {
                     prettyPrint = true

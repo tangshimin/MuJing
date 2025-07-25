@@ -110,13 +110,11 @@ fun Component.mediaPlayer(): MediaPlayer {
 
 /**
  * 解析选择的文件，返回字幕名称列表，用于用户选择具体的字幕。
- * @param mediaPlayerComponent VLC 组件
  * @param playerWindow 播放视频的窗口
  * @param videoPath 视频路径
  * @param setTrackList 解析完成后，用来设置字幕列表的回调。
  */
 fun parseTrackList(
-    mediaPlayerComponent: Component,
     parentComponent: Component,
     playerWindow: JFrame,
     videoPath: String,
@@ -124,6 +122,7 @@ fun parseTrackList(
 ) {
     val result = checkSubtitles(videoPath,parentComponent)
     if(result){
+        val mediaPlayerComponent = createMediaPlayerComponent()
         mediaPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(object : MediaPlayerEventAdapter() {
             override fun mediaPlayerReady(mediaPlayer: MediaPlayer) {
                 val list = mutableListOf<Pair<Int, String>>()

@@ -1,6 +1,6 @@
 package player
 
-import androidx.compose.foundation.Image
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -25,23 +25,20 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import data.Caption
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import ui.wordscreen.replaceSeparator
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.CallbackMediaPlayerComponent
 import uk.co.caprica.vlcj.player.component.EmbeddedMediaPlayerComponent
 import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer
-import util.computeVideoSize
 import java.awt.Component
 import java.io.File
 
@@ -52,12 +49,14 @@ import java.io.File
 @Composable
 fun MiniVideoPlayer(
     modifier: Modifier,
-    windowSize: DpSize,
+    size: DpSize,
     isPlaying : Boolean,
-    setIsPlaying: (Boolean) -> Unit,
+    stop: () -> Unit,
     volume: Float,
     mediaInfo: MediaInfo?,
     externalSubtitlesVisible:Boolean = false,
+    timeChanged:(Long) -> Unit = {},
+    isInPiPMode:Boolean = false
 ) {
 
     if(isPlaying && mediaInfo != null) {
@@ -65,7 +64,7 @@ fun MiniVideoPlayer(
         val videoPlayerComponent  = remember { createMediaPlayerComponent() }
         val videoPlayer = remember { videoPlayerComponent.createMediaPlayer() }
         val surface = remember {
-            SkiaBitmapVideoSurface().also {
+            SkiaImageVideoSurface().also {
                 videoPlayer.videoSurface().set(it)
             }
         }
@@ -75,15 +74,6 @@ fun MiniVideoPlayer(
         var videoDuration by remember{mutableStateOf("00:00:00")}
         /** 展开设置菜单 */
         var settingsExpanded by remember { mutableStateOf(false) }
-
-        // 显示器缩放
-        val density = LocalDensity.current.density
-        // 视频窗口的大小
-        val size by remember(windowSize,density){
-            derivedStateOf {
-                computeVideoSize(windowSize,density)
-            }
-        }
 
         // 事件监听器
         val eventListener = object : MediaPlayerEventAdapter() {
@@ -126,7 +116,7 @@ fun MiniVideoPlayer(
                 videoPlayer.events().removeMediaPlayerEventListener(this)
                 // 切换到主线程更新状态
                 CoroutineScope(Dispatchers.Main).launch {
-                    setIsPlaying(false)
+                    stop()
                 }
             }
 
@@ -147,7 +137,7 @@ fun MiniVideoPlayer(
                 videoPlayer.events().removeMediaPlayerEventListener(this)
                 // 切换到主线程更新状态
                 CoroutineScope(Dispatchers.Main).launch {
-                    setIsPlaying(false)
+                    stop()
                 }
             }
 
@@ -170,7 +160,7 @@ fun MiniVideoPlayer(
                 videoPlayer.events().removeMediaPlayerEventListener(this)
                 // 切换到主线程更新状态
                 CoroutineScope(Dispatchers.Main).launch {
-                    setIsPlaying(false)
+                    stop()
                 }
             }
         }
@@ -195,21 +185,47 @@ fun MiniVideoPlayer(
                 }
             }
         ) {
+            Canvas(
+                Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .align(Alignment.Center)
+            ) {
 
+                surface.image.value?.let{ image ->
 
-            Box(modifier = Modifier.fillMaxSize()) {
-                surface.bitmap.value?.let { bitmap ->
-                    Image(
-                        bitmap,
-                        modifier = Modifier
-                            .background(Color.Transparent)
-                            .fillMaxSize(),
-                        contentDescription = null,
-                        contentScale = ContentScale.Fit,
-                        alignment = Alignment.Center,
-                    )
+                    // 获取真实的画布尺寸（考虑显示器缩放）
+                    val canvasWidth = size.width.value
+                    val canvasHeight = size.height.value
+                    val imageWidth = image.width.toFloat() / density
+                    val imageHeight = image.height.toFloat() / density
+
+                    // 计算缩放比例，确保图片适应 Canvas 且保持宽高比
+                    val scale = minOf(canvasWidth / imageWidth, canvasHeight / imageHeight)
+                    val scaledWidth = imageWidth * scale
+                    val scaledHeight = imageHeight * scale
+
+                    // 计算居中位置
+                    val xOffset = (canvasWidth - scaledWidth) / 2
+                    val yOffset = (canvasHeight - scaledHeight) / 2
+
+                    drawIntoCanvas { canvas ->
+                        // 保存当前画布状态
+                        canvas.save()
+
+                        // 应用变换：先移动到目标位置，再缩放
+                        canvas.translate(xOffset, yOffset)
+                        canvas.scale(scale, scale)
+
+                        // 绘制图片
+                        canvas.nativeCanvas.drawImage(image, 0f, 0f)
+
+                        // 恢复画布状态
+                        canvas.restore()
+                    }
                 }
             }
+
 
 
             Column(modifier = Modifier.align(Alignment.BottomCenter),
@@ -262,7 +278,7 @@ fun MiniVideoPlayer(
                             videoPlayer.controls().pause()
                         }
                         videoPlayer.events().removeMediaPlayerEventListener(eventListener)
-                        setIsPlaying(false)
+                        stop()
                     }) {
                         Icon(
                             imageVector = Icons.Default.Stop,
@@ -314,11 +330,23 @@ fun MiniVideoPlayer(
         }
 
 
+        /**
+         *  使用一个 50 毫秒的协程来定时更新字幕。
+         *  VLCJ 的 timeChanged 时间间隔很不稳定，
+         *  大部分是在 0～ 50 毫秒之间，有时候会到 200 毫秒或 300毫秒。
+         *  暂时先设置为 50 毫秒。
+         */
+        LaunchedEffect( Unit) {
+            while (isActive) {
+                val time = videoPlayer.status().time()
+                timeChanged(time)
+                delay(50)
+            }
+        }
 
         LaunchedEffect(Unit) {
             // 添加事件监听器
             videoPlayer.events().addMediaPlayerEventListener(eventListener)
-
             val caption = mediaInfo.caption
             val start = convertTimeToSeconds(caption.start)
             val end = convertTimeToSeconds(caption.end)

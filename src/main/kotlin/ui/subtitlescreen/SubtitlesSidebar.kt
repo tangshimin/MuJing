@@ -37,9 +37,10 @@ fun SubtitlesSidebar(
             verticalArrangement = Arrangement.Top,
             modifier = Modifier
                 .width(216.dp)
+                .padding(top = if(isMacOS()) 44.dp else 0.dp)
                 .fillMaxHeight()
         ) {
-            Spacer(Modifier.fillMaxWidth().height(if (isMacOS()) 78.dp else 48.dp))
+            Spacer(Modifier.fillMaxWidth().height(48.dp))
             Divider()
             val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
 
@@ -109,24 +110,8 @@ fun SubtitlesSidebar(
                 }
             }
             Divider()
-            Row(
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
-            ) {
-                Row {
-                    Text("外部字幕", color = MaterialTheme.colors.onBackground)
 
-                }
 
-                Spacer(Modifier.width(15.dp))
-
-                Switch(
-                    colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                    checked = externalSubtitlesVisible,
-                    onCheckedChange = {setExternalSubtitlesVisible(!externalSubtitlesVisible) },
-                )
-            }
             Row(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
@@ -139,6 +124,24 @@ fun SubtitlesSidebar(
                     colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
                     checked = isPlayKeystrokeSound,
                     onCheckedChange = { setIsPlayKeystrokeSound(it) },
+                )
+            }
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().clickable { }.padding(start = 16.dp, end = 8.dp)
+            ) {
+                Row {
+                    Text("显示外部字幕", color = MaterialTheme.colors.onBackground)
+
+                }
+
+                Spacer(Modifier.width(15.dp))
+
+                Switch(
+                    colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
+                    checked = externalSubtitlesVisible,
+                    onCheckedChange = {setExternalSubtitlesVisible(!externalSubtitlesVisible) },
                 )
             }
 
