@@ -1,32 +1,24 @@
 package ui
 
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.Subtitles
-import androidx.compose.material.icons.filled.Title
-import androidx.compose.material.icons.outlined.PlayCircle
-import androidx.compose.material.icons.outlined.Search
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalScrollbarStyle
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
@@ -43,8 +35,14 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
-import state.*
-import theme.*
+import state.AppState
+import state.ScreenType
+import state.computeFontSize
+import state.rememberAppState
+import theme.CustomLocalProvider
+import theme.PlayerLocalProvider
+import theme.scrollbarStyle
+import theme.toAwt
 import ui.dialog.*
 import ui.edit.ChooseEditVocabulary
 import ui.edit.EditVocabulary
@@ -605,8 +603,9 @@ private fun FrameWindowScope.WindowMenuBar(
         })
         Separator()
         if(!isMacOS()){
-            val shortcut = if(isMacOS()) KeyShortcut(Key.Comma, meta = true) else KeyShortcut(Key.Comma, ctrl = true)
-            Item("设置${if(isWindows) "(S)" else ""}", mnemonic = 'S', shortcut = shortcut, onClick = { appState.openSettings = true })
+            val shortcut = KeyShortcut(Key.Comma, ctrl = true)
+            val menuText = "设置(S)    Ctrl+,"
+            Item(menuText, mnemonic = 'S', shortcut = if(isWindows()) null else shortcut, onClick = { appState.openSettings = true })
         }
         if(appState.openSettings){
             SettingsDialog(
