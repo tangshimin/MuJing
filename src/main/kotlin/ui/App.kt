@@ -604,8 +604,8 @@ private fun FrameWindowScope.WindowMenuBar(
         Separator()
         if(!isMacOS()){
             val shortcut = KeyShortcut(Key.Comma, ctrl = true)
-            val menuText = "设置(S)    Ctrl+,"
-            Item(menuText, mnemonic = 'S', shortcut = if(isWindows()) null else shortcut, onClick = { appState.openSettings = true })
+            val menuText = "设置(S)"
+            Item(menuText, mnemonic = 'S', shortcut = shortcut, onClick = { appState.openSettings = true })
         }
         if(appState.openSettings){
             SettingsDialog(
