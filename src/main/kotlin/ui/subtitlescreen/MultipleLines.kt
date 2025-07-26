@@ -21,6 +21,9 @@ class MultipleLines{
 
     /** 结束时间 */
     var endTime by mutableStateOf("")
+
+    /** AB循环播放状态 */
+    var isLooping by mutableStateOf(false)
 }
 
 @Composable

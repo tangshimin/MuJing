@@ -140,7 +140,7 @@ fun MultipleLinesToolbar(
     ) {
         // 为工具栏添加背景和阴影效果
         Surface(
-            modifier = modifier.width(144.dp),
+            modifier = modifier.width(192.dp),
             elevation = 8.dp,  // 提供阴影效果，增强浮动感
             color = MaterialTheme.colors.surface,  // 使用主题的 surface 颜色
             shape = MaterialTheme.shapes.medium,  // 使用圆角形状
@@ -150,7 +150,6 @@ fun MultipleLinesToolbar(
             )
         ) {
             Row {
-
                 // 播放按钮
                 TooltipArea(
                     tooltip = {
@@ -227,6 +226,43 @@ fun MultipleLinesToolbar(
                             tint = MaterialTheme.colors.onSurface
                         )
                     }
+                }
+
+                // 循环按钮
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(
+                                1.dp,
+                                MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+                            ),
+                            shape = RectangleShape
+                        ) {
+                            Text(
+                                text = if (multipleLines.isLooping) "关闭循环播放" else "开启循环播放",
+                                modifier = Modifier.padding(10.dp)
+                            )
+                        }
+                    },
+                    delayMillis = 300,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.TopCenter,
+                        alignment = Alignment.TopCenter,
+                        offset = DpOffset.Zero
+                    )
+                ) {
+                    IconToggleButton(
+                        checked = multipleLines.isLooping,
+                        onCheckedChange = { multipleLines.isLooping = it }
+                    ){
+                        Icon(
+                            Icons.Filled.Repeat,
+                            contentDescription = "循环播放",
+                            tint = if (multipleLines.isLooping) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface
+                        )
+                    }
+
                 }
 
                 // 退出按钮

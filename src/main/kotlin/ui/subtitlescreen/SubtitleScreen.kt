@@ -127,7 +127,14 @@ fun SubtitleScreen(
                     // 当画中画播放器内部状态改变时，同步更新字幕浏览器的播放状态
                     isPlaying = it
                 },
-                initialPlayingState = true // 传递初始播放状态为 true
+                initialPlayingState = true, // 传递初始播放状态为 true
+                isLooping = multipleLines.enabled && multipleLines.isLooping, // 只在多行模式下启用循环播放
+                onLoopRestart = {
+                    // 循环重启时，重置到多行字幕的开始索引
+                    if(multipleLines.enabled) {
+                        subtitlesState.currentIndex = multipleLines.startIndex
+                    }
+                }
             )
 
         }

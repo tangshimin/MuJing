@@ -149,7 +149,9 @@ fun MiniVideoPlayer(
     timeChanged:(Long) -> Unit = {},
     onPlayerReady: (EmbeddedMediaPlayer) -> Unit = {},
     onPlayingStateChanged: (Boolean) -> Unit = {},
-    externalPlayingState: Boolean = false
+    externalPlayingState: Boolean = false,
+    isLooping: Boolean = false, // 添加循环播放参数
+    onLoopRestart: () -> Unit = {} // 添加循环重启回调
 ) {
 
     if(mediaInfo != null) {
@@ -167,6 +169,10 @@ fun MiniVideoPlayer(
         var videoDuration by remember{mutableStateOf("00:00:00")}
         /** 展开设置菜单 */
         var settingsExpanded by remember { mutableStateOf(false) }
+
+        // 循环播放相关状态
+        val endTimeMillis = remember(mediaInfo.caption.end) { convertTimeToMilliseconds2(mediaInfo.caption.end) }
+        val startTimeMillis = remember(mediaInfo.caption.start) { convertTimeToMilliseconds2(mediaInfo.caption.start) }
 
         // 事件监听器
         val eventListener = object : MediaPlayerEventAdapter() {
@@ -227,6 +233,7 @@ fun MiniVideoPlayer(
              * - 播放器可能会自动进入停止状态
              * - 通常表示用户已经播放完/听完了内容
              *
+             * 注意：循环播放现在通过时间监听实现，避免 VLC 内部循环导致的崩溃问题
              */
             override fun finished(mediaPlayer: MediaPlayer?) {
                 // 切换到主线程更新状态
@@ -252,7 +259,7 @@ fun MiniVideoPlayer(
              */
             override fun error(mediaPlayer: MediaPlayer?) {
                 // 输出错误信息
-
+                println("播放错误: 未知错误")
                 // 切换到主线程更新状态
                 CoroutineScope(Dispatchers.Main).launch {
                     stop()
@@ -437,16 +444,40 @@ fun MiniVideoPlayer(
 
 
         /**
-         *  使用一个 50 毫秒的协程来定时更新字幕。
+         *  使用 50 毫秒的协程来定时更新字幕。
          *  VLCJ 的 timeChanged 时间间隔很不稳定，
          *  大部分是在 0～ 50 毫秒之间，有时候会到 200 毫秒或 300毫秒。
          *  暂时先设置为 50 毫秒。
          */
-        LaunchedEffect( Unit) {
+        LaunchedEffect(Unit) {
             while (isActive) {
                 val time = videoPlayer.status().time()
                 timeChanged(time)
                 delay(50)
+            }
+        }
+
+        /**
+         *  只在需要循环播放时启动 10 毫秒的协程来检测循环播放，
+         *  实现基于时间监听的循环播放功能，避免 VLC 内部循环导致的崩溃问题。
+         */
+        LaunchedEffect(isLooping) {
+            if (isLooping) {
+                while (isActive) {
+                    val time = videoPlayer.status().time()
+
+                    // 检查是否需要循环播放，并且没有正在进行循环重启
+                    if (videoPlayer.status().isPlaying && time >= endTimeMillis) {
+                        println("循环播放: 基于时间监听 - 当前时间 ${time}ms >= 结束时间 ${endTimeMillis}ms")
+                        // 安全地重置到开始时间
+                        videoPlayer.controls().setTime(startTimeMillis)
+                        println("循环播放: 重置到开始时间 ${startTimeMillis}ms")
+                        // 调用循环重启回调
+                        onLoopRestart()
+                    }
+
+                    delay(10)
+                }
             }
         }
 
@@ -536,5 +567,37 @@ fun Component.createMediaPlayer(): EmbeddedMediaPlayer {
         is CallbackMediaPlayerComponent -> mediaPlayer()
         is EmbeddedMediaPlayerComponent -> mediaPlayer()
         else -> throw IllegalArgumentException("You can only call mediaPlayer() on vlcj player component")
+    }
+}
+
+/**
+ * 将字幕时间格式（如 "00:01:23,456" 或 "00:01:23.456"）转换为毫秒
+ * @param timeString 时间字符串，格式为 "HH:MM:SS,mmm" 或 "HH:MM:SS.mmm"
+ * @return 对应的毫秒数
+ */
+fun convertTimeToMilliseconds2(timeString: String): Long {
+    try {
+        val parts = timeString.split(":")
+        if (parts.size != 3) return 0L
+
+        val hours = parts[0].toLong()
+        val minutes = parts[1].toLong()
+
+        // 支持两种格式：逗号分隔 (00:00:00,000) 和点分隔 (00:00:00.000)
+        val secondsAndMillis = if (parts[2].contains(",")) {
+            parts[2].split(",")
+        } else {
+            parts[2].split(".")
+        }
+
+        if (secondsAndMillis.size != 2) return 0L
+
+        val seconds = secondsAndMillis[0].toLong()
+        val milliseconds = secondsAndMillis[1].toLong()
+
+        return hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds
+    } catch (e: Exception) {
+        println("时间转换失败: $timeString, 错误: ${e.message}")
+        return 0L
     }
 }

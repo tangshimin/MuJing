@@ -154,6 +154,10 @@ class PiPVideoWindow(
      * @param initialPlayingState 初始播放状态，默认 true。
      *   - true: 窗口创建后立即开始播放
      *   - false: 窗口创建后处于暂停状态，需要手动播放
+     * @param isLooping 是否循环播放，默认 false。
+     *   - true: 播放完毕后自动从头开始播放
+     *   - false: 播放完毕后停止
+     * @param onLoopRestart 循环播放时，视频从头开始播放的回调函数
      *
      * @sample
      * ```kotlin
@@ -212,7 +216,9 @@ class PiPVideoWindow(
         bounds: Rectangle = Rectangle(100, 100, 320, 180),
         updateBounds: (Rectangle) -> Unit = {},
         onPlayingStateChanged: (Boolean) -> Unit = {},
-        initialPlayingState: Boolean = true // 添加初始播放状态参数
+        initialPlayingState: Boolean = true, // 添加初始播放状态参数
+        isLooping: Boolean = false, // 添加循环播放参数
+        onLoopRestart: () -> Unit = {} // 添加循环重启回调
     ) {
         if (isInPiPMode) return
 
@@ -286,7 +292,9 @@ class PiPVideoWindow(
                             isVideoPlaying = isPlaying
                             updatePlayingStateCallback?.invoke(isPlaying)
                         },
-                        externalPlayingState = internalPlayingState
+                        externalPlayingState = internalPlayingState,
+                        isLooping = isLooping,
+                        onLoopRestart = onLoopRestart
                     )
                 }
             }
