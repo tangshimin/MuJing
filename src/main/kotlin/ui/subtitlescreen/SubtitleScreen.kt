@@ -93,8 +93,8 @@ fun SubtitleScreen(
     var charWidth by remember{ mutableStateOf(computeCharWidth(subtitlesState.trackDescription)) }
     /** 一次播放多条字幕 */
     val multipleLines = rememberMultipleLines()
-    /** 启动播放多行字幕后，在这一行显示播放按钮 */
-    var playIconIndex  by remember{mutableStateOf(0)}
+    /** 启动播放多行字幕后，多行工具栏显示的位置索引 */
+    var toolbarDisplayIndex by remember{mutableStateOf(0)}
 
     // 添加 PiP 相关状态
     val pipWindow = remember {
@@ -544,13 +544,13 @@ fun SubtitleScreen(
             }
             (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyUp) -> {
                 if(multipleLines.enabled){
-                    // 如果视频正在播放，完全停止播放并关闭窗口
-                    if (isPlaying && pipWindow.isInPiPMode()) {
+                    // 如果画中画窗口存在（无论是否正在播放），都要停止并关闭窗口
+                    if (pipWindow.isInPiPMode()) {
                         pipWindow.stopVideo()
                     }
                     // 退出多行模式
                     multipleLines.enabled = false
-                    playIconIndex = 0
+                    toolbarDisplayIndex = 0
                 }
                 true
             }
@@ -683,32 +683,45 @@ fun SubtitleScreen(
 
                             val enableMultipleLines:() -> Unit = {
                                 if(!multipleLines.enabled){
+                                    // 启用多行字幕
                                     multipleLines.enabled = true
-                                    multipleLines.startIndex = index
-                                    multipleLines.endIndex = index
-                                    playIconIndex = index
+
+                                    //如果 startIndex 是最后一条字幕就显示在倒数第二条字幕
+                                    if(index == captionList.lastIndex){
+                                        multipleLines.startIndex = index - 1
+                                        multipleLines.endIndex = index - 1
+                                        toolbarDisplayIndex = index -1
+                                    }else{
+                                        multipleLines.startIndex = index
+                                        multipleLines.endIndex = index
+                                        toolbarDisplayIndex = index + 1
+                                    }
 
                                     multipleLines.startTime = caption.start
                                     multipleLines.endTime = caption.end
-                                }else if(multipleLines.startIndex > index){
+                                }else if(multipleLines.startIndex > index){// 设置开始
                                     multipleLines.startIndex = index
-                                    playIconIndex = index
+                                    // 如果 startIndex 是第一条字幕就显示在第二条字幕
+                                    // 如果是多行字幕的第一个字幕，工具条显示在第一个字幕的上方
+                                    toolbarDisplayIndex = if(index == 0) 1 else index - 1
 
                                     multipleLines.startTime = caption.start
-                                    // 播放器的位置向上偏移
-                                    multipleLines.isUp = true
-                                }else if(multipleLines.startIndex < index){
+                                }else if(multipleLines.startIndex < index){// 设置结束
                                     multipleLines.endIndex = index
-                                    playIconIndex = index
+                                    // 如果 endIndex 是最后一条字幕就显示在倒数第二条字幕
+                                    toolbarDisplayIndex = if(index == captionList.lastIndex){
+                                        index - 1
+                                    }else{
+                                        index + 1
+                                    }
 
                                     multipleLines.endTime = caption.end
-                                    // 播放器的位置向下偏移
-                                    multipleLines.isUp = false
+
                                 }
                             }
 
                             val selectAll:() -> Unit = {
-                                playIconIndex = 0
+                                toolbarDisplayIndex = 0
                                 multipleLines.startIndex = 0
                                 multipleLines.endIndex = captionList.lastIndex
                                 multipleLines.startTime = captionList.first().start
@@ -785,109 +798,105 @@ fun SubtitleScreen(
                                 }
                             }
 
-                            Row(
-                                horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier
-                                    .width(rowWidth)
-                                    .padding(start = 150.dp)
-                                    .background(rowBackgroundColor)
-                            ) {
-
-                                val indexColor =  if(index <=  subtitlesState.currentIndex){
-                                    MaterialTheme.colors.primary.copy(alpha = ContentAlpha.medium)
-                                }else{
-                                    if(subtitlesState.notWroteCaptionVisible){
-                                        MaterialTheme.colors.onBackground.copy(alpha = alpha)
-                                    }else{
-                                        Color.Transparent
-                                    }
-                                }
-
+                            Box{
                                 Row(
+                                    horizontalArrangement = Arrangement.Start,
                                     verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.width(indexWidth)
+                                    modifier = Modifier
+                                        .width(rowWidth)
+                                        .padding(start = 150.dp)
+                                        .background(rowBackgroundColor)
                                 ) {
 
-                                    MultipleLinesToolbar(
-                                        index = index,
-                                        isPlaying = isPlaying,
-                                        playIconIndex = playIconIndex,
-                                        multipleLines = multipleLines,
-                                        mediaType = mediaType,
-                                        cancel = {
-                                            // 如果视频正在播放，完全停止播放并关闭窗口
-                                            if (isPlaying && pipWindow.isInPiPMode()) {
-                                                pipWindow.stopVideo()
-                                            }
-                                            // 退出多行模式
-                                            multipleLines.enabled = false
-                                            playIconIndex = 0
-                                        },
-                                        selectAll = selectAll,
-                                        playCaption = playCaption,
-                                        playerPoint2 = playerPoint2,
-                                        window = window,
-                                        isVideoBoundsChanged = isVideoBoundsChanged,
-                                        videoPlayerBounds = videoPlayerBounds,
-                                        adjustPosition = { density, videoPlayerBounds ->
-                                            adjustPosition(density, videoPlayerBounds)
-                                        },
-                                    )
-                                    NumButton(
-                                        index = index,
-                                        indexColor = indexColor,
-                                        onClick = enableMultipleLines,
-                                    )
-
-                                }
-
-                                Spacer(Modifier.width(20.dp))
-
-                                Caption(
-                                    caption = caption,
-                                    showUnderline = subtitlesState.currentIndex == index,
-                                    isTranscribe = subtitlesState.transcriptionCaption,
-                                    notWroteCaptionVisible = subtitlesState.notWroteCaptionVisible,
-                                    index = index,
-                                    currentIndex = subtitlesState.currentIndex,
-                                    currentIndexChanged = {
-                                        subtitlesState.currentIndex = index
-                                        subtitlesState.firstVisibleItemIndex = listState.firstVisibleItemIndex
-                                        saveSubtitlesState()
-                                    },
-                                    visible = subtitlesState.currentCaptionVisible,
-                                    multipleLines = multipleLines,
-                                    next = next,
-                                    updateCaptionBounds = {textRect = it},
-                                    alpha = alpha,
-                                    keyEvent = textFieldKeyEvent,
-                                    focusRequester = textFieldRequester,
-                                    selectable = selectable,
-                                    exitSelection = {selectable = false},
-                                )
-
-                                Row(Modifier.width(48.dp).height(IntrinsicSize.Max)) {
-                                    if (subtitlesState.currentIndex == index && !multipleLines.enabled) {
-                                        PlayButton(
-                                           caption = caption,
-                                            isPlaying = isPlaying,
-                                            playCaption = playCaption,
-                                            textFieldRequester = textFieldRequester,
-                                            isVideoBoundsChanged = isVideoBoundsChanged,
-                                            videoPlayerBounds = videoPlayerBounds,
-                                            textRect = textRect,
-                                            window = window,
-                                            playerPoint1 = playerPoint1,
-                                            adjustPosition = { density, videoPlayerBounds ->
-                                                adjustPosition(density, videoPlayerBounds)
-                                            },
-                                            mediaType = mediaType,
-                                        )
+                                    val indexColor =  if(index <=  subtitlesState.currentIndex){
+                                        MaterialTheme.colors.primary.copy(alpha = ContentAlpha.medium)
+                                    }else{
+                                        if(subtitlesState.notWroteCaptionVisible){
+                                            MaterialTheme.colors.onBackground.copy(alpha = alpha)
+                                        }else{
+                                            Color.Transparent
+                                        }
                                     }
-                                }
 
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+
+                                        NumButton(
+                                            index = index,
+                                            indexColor = indexColor,
+                                            onClick = enableMultipleLines,
+                                        )
+
+                                    }
+
+                                    Spacer(Modifier.width(20.dp))
+
+                                    Caption(
+                                        caption = caption,
+                                        showUnderline = subtitlesState.currentIndex == index,
+                                        isTranscribe = subtitlesState.transcriptionCaption,
+                                        notWroteCaptionVisible = subtitlesState.notWroteCaptionVisible,
+                                        index = index,
+                                        currentIndex = subtitlesState.currentIndex,
+                                        currentIndexChanged = {
+                                            subtitlesState.currentIndex = index
+                                            subtitlesState.firstVisibleItemIndex = listState.firstVisibleItemIndex
+                                            saveSubtitlesState()
+                                        },
+                                        visible = subtitlesState.currentCaptionVisible,
+                                        multipleLines = multipleLines,
+                                        next = next,
+                                        updateCaptionBounds = {textRect = it},
+                                        alpha = alpha,
+                                        keyEvent = textFieldKeyEvent,
+                                        focusRequester = textFieldRequester,
+                                        selectable = selectable,
+                                        exitSelection = {selectable = false},
+                                    )
+
+                                    Row(Modifier.width(48.dp).height(IntrinsicSize.Max)) {
+                                        if (subtitlesState.currentIndex == index && !multipleLines.enabled) {
+                                            PlayButton(
+                                                caption = caption,
+                                                isPlaying = isPlaying,
+                                                playCaption = playCaption,
+                                                textFieldRequester = textFieldRequester,
+                                                isVideoBoundsChanged = isVideoBoundsChanged,
+                                                videoPlayerBounds = videoPlayerBounds,
+                                                textRect = textRect,
+                                                window = window,
+                                                playerPoint1 = playerPoint1,
+                                                adjustPosition = { density, videoPlayerBounds ->
+                                                    adjustPosition(density, videoPlayerBounds)
+                                                },
+                                                mediaType = mediaType,
+                                            )
+                                        }
+                                    }
+
+                                }
+                                MultipleLinesToolbar(
+                                    modifier = Modifier.padding(start = 150.dp),
+                                    index = index,
+                                    isPlaying = isPlaying,
+                                    toolbarDisplayIndex = toolbarDisplayIndex,
+                                    multipleLines = multipleLines,
+                                    mediaType = mediaType,
+                                    cancel = {
+                                        // 如果画中画窗口存在（无论是否正在播放），都要停止并关闭窗口
+                                        if (pipWindow.isInPiPMode()) {
+                                            pipWindow.stopVideo()
+                                        }
+                                        // 退出多行模式
+                                        multipleLines.enabled = false
+                                        toolbarDisplayIndex = 0
+                                    },
+                                    selectAll = selectAll,
+                                    playCaption = playCaption,
+                                )
                             }
+
 
                         }
                     }

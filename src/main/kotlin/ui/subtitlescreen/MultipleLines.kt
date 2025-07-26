@@ -21,12 +21,6 @@ class MultipleLines{
 
     /** 结束时间 */
     var endTime by mutableStateOf("")
-
-    /** 播放器的位置是否向上偏移,
-     * 播放多条字幕要选择两个索引
-     * 如果后选择的是开始索引，就向上偏移
-     * 如果后现在的是结束索引，就向下偏移 */
-    var isUp by mutableStateOf(false)
 }
 
 @Composable
