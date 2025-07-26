@@ -3,6 +3,7 @@ package player
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.DropdownMenu
@@ -42,24 +43,116 @@ import uk.co.caprica.vlcj.player.embedded.EmbeddedMediaPlayer
 import java.awt.Component
 import java.io.File
 
+
 /**
  * MiniVideoPlayer 是一个用于在 Compose UI 中显示视频播放器的组件。
+ *
+ * 这是一个基于 VLC 的嵌入式视频播放器，支持画中画(PiP)模式、字幕显示、播放控制等功能。
+ * 主要用于字幕浏览器中的视频播放场景，提供完整的视频播放体验。
+ *
+ * ## 核心功能
+ * - 基于 VLC 的视频播放，支持多种视频格式(MP4、MKV等)
+ * - 内置播放控制界面(播放/暂停、停止、时间显示)
+ * - 支持内部和外部字幕轨道
+ * - 双向状态同步，支持外部控制播放/暂停状态
+ * - 键盘快捷键支持(空格键播放/暂停)
+ * - 可拖拽的画中画窗口
+ * - 字幕显示和选择功能
+ * - 指定时间段播放(根据字幕时间自动设置开始和结束时间)
+ *
+ * ## 状态管理
+ * - 内部状态：`isPlaying` - 当前播放/暂停状态
+ * - 外部状态：`externalPlayingState` - 接收外部状态变化
+ * - 状态同步：通过 `onPlayingStateChanged` 回调通知外部状态变化
+ * - 自动同步：外部状态变化会自动更新内部状态
+ *
+ * ## 使用场景
+ * 主要用于字幕浏览器的画中画视频播放，配合 `PiPVideoWindow` 使用。
+ * 支持单句字幕播放和多行字幕连续播放模式。
+ *
+ * @param modifier Compose 修饰符，用于设置组件的布局和样式
+ * @param size 视频播放器的尺寸，指定宽度和高度
+ * @param stop 停止播放的回调函数，会关闭播放器窗口并清理资源
+ * @param volume 音量大小，范围 0.0-100.0
+ * @param mediaInfo 媒体信息，包含视频路径、字幕信息、轨道ID等，为null时不显示播放器
+ * @param externalSubtitlesVisible 是否显示外部字幕文件，默认为 false
+ * @param timeChanged 时间变化回调，每50ms触发一次，用于更新播放进度和字幕同步
+ * @param onPlayerReady 播放器准备就绪回调，返回 VLC EmbeddedMediaPlayer 实例
+ * @param onPlayingStateChanged 播放状态变化回调，用于向外部通知状态变化
+ * @param externalPlayingState 外部播放状态，用于接收外部的播放/暂停控制
+ *
+ * @sample
+ * ```kotlin
+ * MiniVideoPlayer(
+ *     modifier = Modifier.fillMaxSize(),
+ *     size = DpSize(540.dp, 303.dp),
+ *     stop = { /* 关闭播放器并清理资源 */ },
+ *     volume = 50f,
+ *     mediaInfo = MediaInfo(
+ *         caption = Caption("00:00:10,000", "00:00:15,000", "Hello World"),
+ *         mediaPath = "/path/to/video.mp4",
+ *         trackId = -1
+ *     ),
+ *     externalSubtitlesVisible = false,
+ *     timeChanged = { time -> /* 处理时间变化 */ },
+ *     onPlayerReady = { player -> /* 播放器就绪 */ },
+ *     onPlayingStateChanged = { isPlaying -> /* 处理状态变化 */ },
+ *     externalPlayingState = false
+ * )
+ * ```
+ *
+ * ## 播放控件
+ * - **播放/暂停按钮**：切换播放状态，支持空格键快捷键
+ * - **停止按钮**：停止播放并调用 stop 回调
+ * - **时间显示**：显示当前时间/总时长
+ * - **设置按钮**：显示字幕相关设置（当前为占位符）
+ *
+ * ## 字幕支持
+ * - **内部字幕**：支持 MKV 等容器格式的内嵌字幕轨道
+ * - **外部字幕**：支持 SRT 等外部字幕文件
+ * - **字幕显示**：在视频底部显示当前字幕内容
+ * - **时间段播放**：根据字幕的开始和结束时间自动播放指定片段
+ *
+ * ## 技术实现
+ * - 使用 VLC 的 EmbeddedMediaPlayer 进行视频播放
+ * - 通过 SkiaImageVideoSurface 在 Compose Canvas 中渲染视频帧
+ * - 使用 MediaPlayerEventAdapter 监听播放器事件
+ * - 支持指定时间段播放(start-time, stop-time)
+ * - 自动处理播放器生命周期和资源释放
+ * - 50ms 定时器用于时间同步和进度更新
+ *
+ * ## 事件处理
+ * - **stopped**: 用户手动停止或播放器被强制停止时触发
+ * - **finished**: 媒体播放到达文件末尾时触发
+ * - **error**: 播放遇到错误时触发
+ * - **timeChanged**: 播放时间变化时触发
+ * - **mediaPlayerReady**: 播放器准备就绪时触发
+ *
+ * ## 注意事项
+ * - 组件内部会自动管理 VLC 播放器的创建和销毁
+ * - 只有当 mediaInfo 不为 null 时才会创建播放器
+ * - 播放器会在组件销毁时自动释放资源
+ * - 支持的视频格式取决于系统中的 VLC 安装
+ * - 外部状态变化会立即同步到内部状态
+ * - 状态变化通过回调函数通知外部组件
  */
+
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun MiniVideoPlayer(
     modifier: Modifier,
     size: DpSize,
-    isPlaying : Boolean,
     stop: () -> Unit,
     volume: Float,
     mediaInfo: MediaInfo?,
     externalSubtitlesVisible:Boolean = false,
     timeChanged:(Long) -> Unit = {},
-    isInPiPMode:Boolean = false
+    onPlayerReady: (EmbeddedMediaPlayer) -> Unit = {},
+    onPlayingStateChanged: (Boolean) -> Unit = {},
+    externalPlayingState: Boolean = false
 ) {
 
-    if(isPlaying && mediaInfo != null) {
+    if(mediaInfo != null) {
         /** VLC 视频播放组件 */
         val videoPlayerComponent  = remember { createMediaPlayerComponent() }
         val videoPlayer = remember { videoPlayerComponent.createMediaPlayer() }
@@ -69,7 +162,7 @@ fun MiniVideoPlayer(
             }
         }
         val focusRequester = remember { FocusRequester() }
-        var isPaused by remember { mutableStateOf(false) }
+        var isPlaying by remember { mutableStateOf(false) }
         var currentTime by remember{mutableStateOf("00:00:00")}
         var videoDuration by remember{mutableStateOf("00:00:00")}
         /** 展开设置菜单 */
@@ -97,6 +190,9 @@ fun MiniVideoPlayer(
                     (duration / 60000 % 60).toInt(),
                     (duration / 1000 % 60).toInt()
                 )
+                // 通知外部播放器已准备好
+                onPlayerReady(videoPlayer)
+
             }
 
             /**
@@ -113,7 +209,6 @@ fun MiniVideoPlayer(
              *
              */
             override fun stopped(mediaPlayer: MediaPlayer?) {
-                videoPlayer.events().removeMediaPlayerEventListener(this)
                 // 切换到主线程更新状态
                 CoroutineScope(Dispatchers.Main).launch {
                     stop()
@@ -134,7 +229,6 @@ fun MiniVideoPlayer(
              *
              */
             override fun finished(mediaPlayer: MediaPlayer?) {
-                videoPlayer.events().removeMediaPlayerEventListener(this)
                 // 切换到主线程更新状态
                 CoroutineScope(Dispatchers.Main).launch {
                     stop()
@@ -157,20 +251,33 @@ fun MiniVideoPlayer(
              * - 播放器状态不确定，建议重新初始化
              */
             override fun error(mediaPlayer: MediaPlayer?) {
-                videoPlayer.events().removeMediaPlayerEventListener(this)
+                // 输出错误信息
+
                 // 切换到主线程更新状态
                 CoroutineScope(Dispatchers.Main).launch {
                     stop()
                 }
             }
         }
+        // 监听外部播放状态变化
+        LaunchedEffect(externalPlayingState) {
+            isPlaying = externalPlayingState
+        }
+
+        // 初始化播放状态
+        LaunchedEffect(Unit) {
+            isPlaying = externalPlayingState
+        }
+
         val play = {
-            if(!isPaused){
+            if(isPlaying){
                 videoPlayer.controls().pause()
-                isPaused = true
+                isPlaying = false
+                onPlayingStateChanged(false) // 通知外部播放状态改变
             }else{
                 videoPlayer.controls().play()
-                isPaused = false
+                isPlaying = true
+                onPlayingStateChanged(true) // 通知外部恢复状态改变
             }
         }
         Box(modifier.size(size).background(Color.Black).shadow(10.dp, shape = RoundedCornerShape(10.dp))
@@ -263,7 +370,7 @@ fun MiniVideoPlayer(
                     // 播放/暂停按钮
                     IconButton(onClick = { play() }){
                         Icon(
-                            imageVector = if (!isPaused) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                             contentDescription = if (isPlaying) "Pause" else "Play",
                             tint = Color.White
                         )
@@ -277,7 +384,6 @@ fun MiniVideoPlayer(
                         if(videoPlayer.status().isPlaying){
                             videoPlayer.controls().pause()
                         }
-                        videoPlayer.events().removeMediaPlayerEventListener(eventListener)
                         stop()
                     }) {
                         Icon(

@@ -1695,7 +1695,6 @@ fun MainContent(
             MiniVideoPlayer(
                 modifier = Modifier.align(Alignment.Center),
                 size = videoPlayerSize,
-                isPlaying = isPlaying,
                 stop = {
                     isPlaying = false
                     focusRequest(plyingIndex)

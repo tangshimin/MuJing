@@ -105,9 +105,9 @@ fun SubtitleScreen(
 
     val startPiPPlayback: (MediaInfo) -> Unit = { playMedia ->
         if (pipWindow.isInPiPMode()) {
-            pipWindow.exitPiPMode()
+            // 如果已经在画中画模式，不要退出，而是什么都不做
+            // 让 playCaption 函数处理暂停/恢复逻辑
         } else {
-
             val pipBounds = validateAndGetVideoBounds(subtitlesState.videoBounds)
             pipWindow.enterPiPMode(
                 mediaInfo = playMedia,
@@ -130,7 +130,12 @@ fun SubtitleScreen(
                     subtitlesState.videoBounds.height = newBounds.height
 
                     subtitlesState.saveTypingSubtitlesState()
-                }
+                },
+                onPlayingStateChanged = { it ->
+                    // 当画中画播放器内部状态改变时，同步更新字幕浏览器的播放状态
+                    isPlaying = it
+                },
+                initialPlayingState = true // 传递初始播放状态为 true
             )
 
         }
@@ -346,6 +351,7 @@ fun SubtitleScreen(
             val file = File(subtitlesState.mediaPath)
             if (file.exists() ) {
                 if (!isPlaying) {
+                    // 播放逻辑
                     scope.launch {
                         isPlaying = true
 
@@ -360,22 +366,45 @@ fun SubtitleScreen(
                             )
                             // 视频
                         } else {
-                            // 使用内部字幕轨道
-                            if (subtitlesState.trackID != -1) {
-                               val  playMedia = MediaInfo(
-                                    mediaPath =  subtitlesState.mediaPath,
-                                    caption = caption,
-                                    trackId = subtitlesState.trackID,
-                                )
-                                startPiPPlayback(playMedia)
-                                // 使用外部字幕
+                            // 如果已经在画中画模式且视频暂停，直接恢复播放
+                            if (pipWindow.isInPiPMode() && !pipWindow.isVideoPlaying()) {
+                                pipWindow.resumeVideo()
                             } else {
-                                val playMedia = MediaInfo(
-                                    mediaPath =  subtitlesState.mediaPath,
-                                    caption = caption,
-                                    trackId = -1,
-                                )
-                                startPiPPlayback(playMedia)
+                                // 使用内部字幕轨道
+                                if (subtitlesState.trackID != -1) {
+                                   val  playMedia = MediaInfo(
+                                        mediaPath =  subtitlesState.mediaPath,
+                                        caption = caption,
+                                        trackId = subtitlesState.trackID,
+                                    )
+                                    startPiPPlayback(playMedia)
+                                    // 使用外部字幕
+                                } else {
+                                    val playMedia = MediaInfo(
+                                        mediaPath =  subtitlesState.mediaPath,
+                                        caption = caption,
+                                        trackId = -1,
+                                    )
+                                    startPiPPlayback(playMedia)
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // 暂停逻辑
+                    scope.launch {
+                        // 音频暂停
+                        if(file.extension == "wav" || file.extension == "mp3"|| file.extension == "aac"){
+                            if(audioPlayerComponent.mediaPlayer().status().isPlaying) {
+                                audioPlayerComponent.mediaPlayer().controls().pause()
+                            }
+                            isPlaying = false
+                        } else {
+                            // 视频暂停 - 暂停画中画播放器而不是退出
+
+                            if (pipWindow.isInPiPMode() && pipWindow.isVideoPlaying()) {
+                                pipWindow.pauseVideo()
+                                // 注意：不在这里设置 isPlaying = false，因为 pauseVideo() 会通过回调设置
                             }
                         }
                     }
@@ -515,6 +544,11 @@ fun SubtitleScreen(
             }
             (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyUp) -> {
                 if(multipleLines.enabled){
+                    // 如果视频正在播放，完全停止播放并关闭窗口
+                    if (isPlaying && pipWindow.isInPiPMode()) {
+                        pipWindow.stopVideo()
+                    }
+                    // 退出多行模式
                     multipleLines.enabled = false
                     playIconIndex = 0
                 }
@@ -782,6 +816,11 @@ fun SubtitleScreen(
                                         multipleLines = multipleLines,
                                         mediaType = mediaType,
                                         cancel = {
+                                            // 如果视频正在播放，完全停止播放并关闭窗口
+                                            if (isPlaying && pipWindow.isInPiPMode()) {
+                                                pipWindow.stopVideo()
+                                            }
+                                            // 退出多行模式
                                             multipleLines.enabled = false
                                             playIconIndex = 0
                                         },

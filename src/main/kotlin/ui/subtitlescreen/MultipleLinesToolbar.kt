@@ -173,12 +173,14 @@ fun MultipleLinesToolbar(
                         Icons.Filled.VolumeDown
                     } else if (mediaType == "audio") {
                         Icons.Filled.VolumeUp
+                    } else if (isPlaying) {
+                        Icons.Filled.Pause
                     } else Icons.Filled.PlayArrow
 
                     Icon(
                         icon,
                         contentDescription = "Localized description",
-                        tint = MaterialTheme.colors.onBackground
+                        tint = if(isPlaying) MaterialTheme.colors.primary else MaterialTheme.colors.onBackground
                     )
                 }
             }
