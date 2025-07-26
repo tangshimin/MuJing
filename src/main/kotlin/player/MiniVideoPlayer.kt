@@ -1,9 +1,7 @@
 package player
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.DropdownMenu
@@ -26,8 +24,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
-import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
@@ -299,47 +295,14 @@ fun MiniVideoPlayer(
                 }
             }
         ) {
-            Canvas(
-                Modifier
+
+            CustomCanvas(
+                modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black)
-                    .align(Alignment.Center)
-            ) {
-
-                surface.image.value?.let{ image ->
-
-                    // 获取真实的画布尺寸（考虑显示器缩放）
-                    val canvasWidth = size.width.value
-                    val canvasHeight = size.height.value
-                    val imageWidth = image.width.toFloat() / density
-                    val imageHeight = image.height.toFloat() / density
-
-                    // 计算缩放比例，确保图片适应 Canvas 且保持宽高比
-                    val scale = minOf(canvasWidth / imageWidth, canvasHeight / imageHeight)
-                    val scaledWidth = imageWidth * scale
-                    val scaledHeight = imageHeight * scale
-
-                    // 计算居中位置
-                    val xOffset = (canvasWidth - scaledWidth) / 2
-                    val yOffset = (canvasHeight - scaledHeight) / 2
-
-                    drawIntoCanvas { canvas ->
-                        // 保存当前画布状态
-                        canvas.save()
-
-                        // 应用变换：先移动到目标位置，再缩放
-                        canvas.translate(xOffset, yOffset)
-                        canvas.scale(scale, scale)
-
-                        // 绘制图片
-                        canvas.nativeCanvas.drawImage(image, 0f, 0f)
-
-                        // 恢复画布状态
-                        canvas.restore()
-                    }
-                }
-            }
-
+                    .align(Alignment.Center),
+                surface = surface
+            )
 
 
             Column(modifier = Modifier.align(Alignment.BottomCenter),
