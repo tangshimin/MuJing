@@ -1684,25 +1684,29 @@ fun MainContent(
                 )
             }
         }
-            // 显示器缩放
-            // TODO 这个密度参数根本就没有使用，需要重构
-            val density = LocalDensity.current.density
-            val videoPlayerSize by remember(appState.global.size,density){
-                derivedStateOf {
-                    computeVideoSize(appState.global.size,density)
+
+            if(isPlaying){
+                // 显示器缩放
+                // TODO 这个密度参数根本就没有使用，需要重构
+                val density = LocalDensity.current.density
+                val videoPlayerSize by remember(appState.global.size,density){
+                    derivedStateOf {
+                        computeVideoSize(appState.global.size,density)
+                    }
                 }
-            }
-            MiniVideoPlayer(
-                modifier = Modifier.align(Alignment.Center),
-                size = videoPlayerSize,
-                stop = {
-                    isPlaying = false
-                    focusRequest(plyingIndex)
+                MiniVideoPlayer(
+                    modifier = Modifier.align(Alignment.Center),
+                    size = videoPlayerSize,
+                    stop = {
+                        isPlaying = false
+                        focusRequest(plyingIndex)
                     },
-                volume = appState.global.videoVolume,
-                mediaInfo = playMedia,
-                externalSubtitlesVisible = wordScreenState.externalSubtitlesVisible
-            )
+                    volume = appState.global.videoVolume,
+                    mediaInfo = playMedia,
+                    externalSubtitlesVisible = wordScreenState.externalSubtitlesVisible
+                )
+            }
+
 
         if (nextButtonVisible) {
             TooltipArea(
