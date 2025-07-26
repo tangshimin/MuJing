@@ -27,7 +27,6 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -51,9 +50,9 @@ import state.getResourcesFile
 import theme.LocalCtrl
 import tts.AzureTTS
 import tts.rememberAzureTTS
-import ui.components.Toolbar
 import ui.components.MacOSTitle
 import ui.components.RemoveButton
+import ui.components.Toolbar
 import ui.dialog.*
 import ui.wordscreen.MemoryStrategy.*
 import util.computeVideoSize
@@ -1686,12 +1685,10 @@ fun MainContent(
         }
 
             if(isPlaying){
-                // 显示器缩放
-                // TODO 这个密度参数根本就没有使用，需要重构
-                val density = LocalDensity.current.density
-                val videoPlayerSize by remember(appState.global.size,density){
+
+                val videoPlayerSize by remember(appState.global.size){
                     derivedStateOf {
-                        computeVideoSize(appState.global.size,density)
+                        computeVideoSize(appState.global.size)
                     }
                 }
                 MiniVideoPlayer(

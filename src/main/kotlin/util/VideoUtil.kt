@@ -134,43 +134,23 @@ fun computeVideoBounds(
  */
 fun computeVideoSize(
     windowSize: DpSize,
-    density: Float
 ): DpSize {
     val mainWidth = windowSize.width.value.toInt()
-    // 根据不同分辨率设置不同的窗口大小，使用统一的 5:3 宽高比
-//    val size = when {
-//        mainWidth > 3840 -> { // 4K分辨率及以上
-//            // 保持宽度不变，调整高度为 5:3 比例
-//            DpSize(3570.dp, 2142.dp) // 5:3 比例
-//        }
-//        mainWidth > 2560 -> { // 2K和4K之间
-//            DpSize(2380.dp, 1428.dp) // 5:3 比例
-//        }
-//        mainWidth > 1920 -> { // 2K分辨率
-//            DpSize(1780.dp, 1068.dp) // 5:3 比例
-//        }
-//        mainWidth > 1080 -> { // 普通高分辨率
-//            DpSize(1005.dp, 603.dp) // 5:3 比例
-//        }
-//        mainWidth in 801..1079 -> { // 中等分辨率
-//            DpSize(642.dp, 385.dp) // 5:3 比例
-//        }
-//        else -> { // 低分辨率
-//            DpSize(540.dp, 324.dp) // 5:3 比例
-//        }
-//    }
 
     // 使用标准16:9视频比例的窗口大小设置
     // 对于学习视频，16:9比例是当今最常见的视频格式
+    // 基础尺寸：1005.dp × 565.dp (经过 Mac 和 Windows 测试验证)
     val size = when {
         mainWidth > 3840 -> { // 4K分辨率及以上
-            DpSize(3570.dp, 2008.dp) // 16:9 比例
+            // 按比例放大约 2.4 倍 (3840/1920 = 2, 适当增加到 2.4)
+            DpSize(2412.dp, 1356.dp) // 16:9 比例
         }
         mainWidth > 2560 -> { // 2K和4K之间
-            DpSize(2380.dp, 1339.dp) // 16:9 比例
+            // 按比例放大约 1.6 倍 (2560/1920 ≈ 1.33, 适当增加到 1.6)
+            DpSize(1608.dp, 904.dp) // 16:9 比例
         }
         mainWidth > 1920 -> { // 2K分辨率
-            DpSize(1780.dp, 1001.dp) // 16:9 比例
+            DpSize(1005.dp, 565.dp) // 16:9 比例，经测试验证的最佳尺寸
         }
         mainWidth > 1080 -> { // 普通高分辨率
             DpSize(1005.dp, 565.dp) // 16:9 比例
