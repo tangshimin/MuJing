@@ -11,12 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -43,7 +40,6 @@ import util.rememberMonospace
  * @param currentIndexChanged 当前选中的字幕索引改变时
  * @param visible 是否显示当前字幕
  * @param multipleLines 是否启用多行字幕功能
- * @param updateCaptionBounds 更新字幕边界
  * @param alpha 透明度 0.0f - 1.0f 之间 越小颜色越透明，越大颜色越深。
  * if currentIndex == index then 1.0f else 0.74f
  * @param keyEvent 快捷键事件处理
@@ -63,7 +59,7 @@ fun Caption(
     visible: Boolean = true,
     multipleLines: MultipleLines,
     next: () -> Unit,
-    updateCaptionBounds: (Rect) -> Unit,
+//    updateCaptionBounds: (Rect) -> Unit,
     alpha: Float,
     keyEvent: (KeyEvent) -> Boolean,
     focusRequester: FocusRequester,
@@ -160,13 +156,6 @@ fun Caption(
                 modifier = Modifier
                     .align(Alignment.CenterStart)
                     .padding(bottom = 5.dp)
-                    .onGloballyPositioned { coordinates ->
-                        if (currentIndex == index) {
-                            // 如果视频播放按钮被遮挡，就使用这个位置计算出视频播放器的位置
-                            updateCaptionBounds(coordinates.boundsInWindow())
-                        }
-
-                    }
             )
         }
 

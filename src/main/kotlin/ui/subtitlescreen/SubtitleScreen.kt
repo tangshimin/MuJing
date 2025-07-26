@@ -17,7 +17,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.key.*
@@ -39,7 +38,9 @@ import ui.wordscreen.playSound
 import util.computeMediaType
 import util.createTransferHandler
 import util.parseSubtitles
-import java.awt.*
+import java.awt.GraphicsEnvironment
+import java.awt.Rectangle
+import java.awt.Toolkit
 import java.io.File
 import java.util.concurrent.FutureTask
 import java.util.regex.Pattern
@@ -80,16 +81,9 @@ fun SubtitleScreen(
     var selectedPath by remember { mutableStateOf("") }
     var showSelectTrack by remember { mutableStateOf(false) }
     val trackList = remember { mutableStateListOf<Pair<Int, String>>() }
-    var textRect by remember{ mutableStateOf(Rect(0.0F,0.0F,0.0F,0.0F))}
-    val videoPlayerBounds by remember { mutableStateOf(Rectangle(0, 0, 540, 303)) }
     var loading by remember { mutableStateOf(false) }
     var mediaType by remember { mutableStateOf(computeMediaType(subtitlesState.mediaPath)) }
     val audioPlayerComponent = LocalAudioPlayerComponent.current
-    var isVideoBoundsChanged by remember{ mutableStateOf(false) }
-    /** 如果移动了播放器的位置，用这个变量保存计算的位置，点击恢复按钮的时候用这个临时的变量恢复 */
-    val playerPoint1 by remember{mutableStateOf(Point(0,0))}
-    /** 如果移动了播放器的位置，用这个变量保存计算的位置，点击恢复按钮的时候用这个临时的变量恢复,多行模式的位置 */
-    val playerPoint2 by remember{mutableStateOf(Point(0,0))}
     var charWidth by remember{ mutableStateOf(computeCharWidth(subtitlesState.trackDescription)) }
     /** 一次播放多条字幕 */
     val multipleLines = rememberMultipleLines()
@@ -123,7 +117,6 @@ fun SubtitleScreen(
                 externalSubtitlesVisible = subtitlesState.externalSubtitlesVisible,
                 bounds = pipBounds,
                 updateBounds = { newBounds ->
-                    isVideoBoundsChanged = true
                     subtitlesState.videoBounds.x = newBounds.x
                     subtitlesState.videoBounds.y = newBounds.y
                     subtitlesState.videoBounds.width = newBounds.width
@@ -335,15 +328,6 @@ fun SubtitleScreen(
         subtitlesState.saveTypingSubtitlesState()
     }
 
-    val resetVideoBounds:() -> Rectangle = {
-        isVideoBoundsChanged = false
-        if(multipleLines.enabled){
-            Rectangle(playerPoint2.x, playerPoint2.y, 540, 303)
-        }else{
-            Rectangle(playerPoint1.x, playerPoint1.y, 540, 303)
-        }
-
-    }
 
     /**  使用按钮播放视频时调用的回调函数   */
     val playCaption: (Caption) -> Unit = { caption ->
@@ -847,7 +831,6 @@ fun SubtitleScreen(
                                         visible = subtitlesState.currentCaptionVisible,
                                         multipleLines = multipleLines,
                                         next = next,
-                                        updateCaptionBounds = {textRect = it},
                                         alpha = alpha,
                                         keyEvent = textFieldKeyEvent,
                                         focusRequester = textFieldRequester,
@@ -862,14 +845,6 @@ fun SubtitleScreen(
                                                 isPlaying = isPlaying,
                                                 playCaption = playCaption,
                                                 textFieldRequester = textFieldRequester,
-                                                isVideoBoundsChanged = isVideoBoundsChanged,
-                                                videoPlayerBounds = videoPlayerBounds,
-                                                textRect = textRect,
-                                                window = window,
-                                                playerPoint1 = playerPoint1,
-                                                adjustPosition = { density, videoPlayerBounds ->
-                                                    adjustPosition(density, videoPlayerBounds)
-                                                },
                                                 mediaType = mediaType,
                                             )
                                         }
@@ -1047,34 +1022,6 @@ fun SubtitleScreen(
 
 }
 
-/**
- *  根据一些特殊情况调整播放器的位置，
- * 比如显示器缩放，播放器的位置超出屏幕边界。
- * */
-private fun adjustPosition(density: Float, videoPlayerBounds: Rectangle) {
-    val graphicsDevice =
-        GraphicsEnvironment.getLocalGraphicsEnvironment().defaultScreenDevice
-    // 只要一个显示器时，才判断屏幕边界
-    if (GraphicsEnvironment.getLocalGraphicsEnvironment().screenDevices.size == 1) {
-        val width = graphicsDevice.displayMode.width
-        val height = graphicsDevice.displayMode.height
-        val actualWidth = (540 * density).toInt()
-        if (videoPlayerBounds.x + actualWidth > width) {
-            videoPlayerBounds.x = width - actualWidth
-        }
-        val actualHeight = (330 * density).toInt()
-        if (videoPlayerBounds.y < 0) videoPlayerBounds.y = 0
-        if (videoPlayerBounds.y + actualHeight > height) {
-            videoPlayerBounds.y = height - actualHeight
-        }
-    }
-
-    // 显示器缩放
-    if (density != 1f) {
-        videoPlayerBounds.x = videoPlayerBounds.x.div(density).toInt()
-        videoPlayerBounds.y = videoPlayerBounds.y.div(density).toInt()
-    }
-}
 
 enum class OpenMode {
     Open, Drag,
