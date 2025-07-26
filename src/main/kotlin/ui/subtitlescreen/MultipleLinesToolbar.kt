@@ -198,35 +198,6 @@ fun MultipleLinesToolbar(
                     }
                 }
 
-                // 全选按钮
-                TooltipArea(
-                    tooltip = {
-                        Surface(
-                            elevation = 4.dp,
-                            border = BorderStroke(
-                                1.dp,
-                                MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
-                            ),
-                            shape = RectangleShape
-                        ) {
-                            Text(text = "全选", modifier = Modifier.padding(10.dp))
-                        }
-                    },
-                    delayMillis = 300,
-                    tooltipPlacement = TooltipPlacement.ComponentRect(
-                        anchor = Alignment.TopCenter,
-                        alignment = Alignment.TopCenter,
-                        offset = DpOffset.Zero
-                    )
-                ) {
-                    IconButton(onClick = selectAll) {
-                        Icon(
-                            Icons.Filled.Checklist,
-                            contentDescription = "全选字幕",
-                            tint = MaterialTheme.colors.onSurface
-                        )
-                    }
-                }
 
                 // 循环按钮
                 TooltipArea(
@@ -264,6 +235,38 @@ fun MultipleLinesToolbar(
                     }
 
                 }
+
+
+                // 全选按钮
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(
+                                1.dp,
+                                MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+                            ),
+                            shape = RectangleShape
+                        ) {
+                            Text(text = "全选", modifier = Modifier.padding(10.dp))
+                        }
+                    },
+                    delayMillis = 300,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.TopCenter,
+                        alignment = Alignment.TopCenter,
+                        offset = DpOffset.Zero
+                    )
+                ) {
+                    IconButton(onClick = selectAll) {
+                        Icon(
+                            Icons.Filled.Checklist,
+                            contentDescription = "全选字幕",
+                            tint = MaterialTheme.colors.onSurface
+                        )
+                    }
+                }
+
 
                 // 退出按钮
                 TooltipArea(
