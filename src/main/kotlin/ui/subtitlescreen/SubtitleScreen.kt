@@ -38,7 +38,6 @@ import ui.wordscreen.playSound
 import util.computeMediaType
 import util.createTransferHandler
 import util.parseSubtitles
-import java.awt.GraphicsEnvironment
 import java.awt.Rectangle
 import java.awt.Toolkit
 import java.io.File
