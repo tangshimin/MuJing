@@ -219,6 +219,21 @@ fun App(
                                 )
                             }
                         }
+
+                        AnimatedVideoPlayer(
+                                playerState = playerState,
+                                audioSet = appState.localAudioSet,
+                                audioVolume = appState.global.audioVolume,
+                                videoVolume = appState.global.videoVolume,
+                                videoVolumeChanged = {
+                                    appState.global.videoVolume = it
+                                    appState.saveGlobalState()
+                                },
+                                visible = playerState.showPlayerWindow,
+                                windowState = windowState,
+                                close = { playerState.showPlayerWindow = false }
+                            )
+
                     }
 
                 }
@@ -257,30 +272,7 @@ fun App(
         }
     }
 
-    if(playerState.showPlayerWindow){
 
-        MaterialTheme(colors = appState.colors) {
-            // 和 Compose UI 有关的 LocalProvider 需要放在 MaterialTheme 里面,不然无效。
-            PlayerLocalProvider {
-                val pronunciation = rememberPronunciation()
-                Player(
-                    playerState = playerState,
-                    audioSet = appState.localAudioSet,
-                    pronunciation = pronunciation,
-                    audioVolume = appState.global.audioVolume,
-                    videoVolume = appState.global.videoVolume,
-                    videoVolumeChanged = {
-                        appState.global.videoVolume = it
-                        appState.saveGlobalState()
-                    },
-                )
-            }
-
-
-        }
-
-
-    }
 
     var showEditVocabulary by remember { mutableStateOf(false) }
     var chosenPath by remember { mutableStateOf("") }

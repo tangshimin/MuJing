@@ -7,6 +7,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -104,3 +105,14 @@ fun rememberPlayerState() = remember {
         playerState
     }
 }
+
+@ExperimentalSerializationApi
+@Serializable
+data class PlayerData(
+    var showSequence: Boolean = false,
+    var danmakuVisible: Boolean = false,
+    var autoCopy: Boolean = false,
+    var autoSpeak: Boolean = true,
+    var preferredChinese: Boolean = true
+)
+

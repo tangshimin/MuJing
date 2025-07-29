@@ -22,6 +22,7 @@ import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.*
 import data.Caption
@@ -278,3 +279,5 @@ private fun VideoLayer(
         }
     }
 }
+
+fun Dimension.toComposeSize(): DpSize = DpSize(width.dp, height.dp)

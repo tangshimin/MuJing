@@ -4,9 +4,17 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowState
 import data.Caption
+import ffmpeg.findFFmpegPath
+import net.bramp.ffmpeg.FFmpeg
+import net.bramp.ffmpeg.FFmpegExecutor
+import net.bramp.ffmpeg.builder.FFmpegBuilder
+import net.bramp.ffmpeg.builder.FFmpegBuilder.Verbosity
+import net.bramp.ffmpeg.job.FFmpegJob
 import org.mozilla.universalchardet.UniversalDetector
 import player.PlayerCaption
 import player.convertTimeToMilliseconds
+import player.convertTimeToMilliseconds2
+import state.getSettingsDirectory
 import subtitleFile.FormatSRT
 import subtitleFile.TimedTextObject
 import ui.dialog.removeItalicSymbol
@@ -171,11 +179,56 @@ fun computeVideoSize(
 }
 
 /**
- * 解析字幕，返回最大字符数和字幕列表，用于显示。
- * @param subtitlesPath 字幕的路径
- * @param setMaxLength 用于设置字幕的最大字符数的回调函数
+ * 解析字幕文件并设置相关状态
+ *
+ * 该函数用于解析指定路径的字幕文件（支持SRT格式），自动检测文件编码，
+ * 解析字幕内容并通过回调函数设置最大字符数和字幕列表。主要用于字幕显示界面。
+ *
+ * @param subtitlesPath 字幕文件的完整路径（支持SRT格式）
+ * @param setMaxLength 用于设置字幕最大字符数的回调函数
+ *                     - 参数: Int - 所有字幕条目中最长的字符数
+ *                     - 用途: 帮助UI组件确定合适的显示宽度
  * @param setCaptionList 用于设置字幕列表的回调函数
- * @param resetSubtitlesState 字幕文件删除，或者被修改，导致不能解析，就重置
+ *                       - 参数: List<Caption> - 解析后的字幕条目列表
+ *                       - 每个Caption包含开始时间、结束时间和内容
+ * @param resetSubtitlesState 重置字幕状态的回调函数
+ *                           - 当字幕文件不存在、被删除或解析失败时调用
+ *                           - 用于清理相关的UI状态
+ *
+ * 功能特性：
+ * - 自动检测文件编码（使用UniversalDetector）
+ * - 移除字幕中的位置信息标签
+ * - 移除斜体符号标记
+ * - 处理换行符（移除多余换行）
+ * - 计算字幕内容的最大字符数
+ * - 统一时间格式为 "hh:mm:ss,ms"
+ *
+ * 错误处理：
+ * - 文件不存在时显示"找不到字幕"提示并调用resetSubtitlesState
+ * - 解析失败时显示详细错误信息并调用resetSubtitlesState
+ * - 编码检测失败时使用系统默认编码
+ *
+ * @throws Exception 当文件读取或解析过程中发生错误时
+ *
+ * @see Caption 字幕条目数据类（用于显示）
+ * @see FormatSRT SRT格式解析器
+ * @see UniversalDetector 编码检测工具
+ *
+ * 示例用法：
+ * ```kotlin
+ * parseSubtitles(
+ *     subtitlesPath = "/path/to/subtitle.srt",
+ *     setMaxLength = { maxLen -> println("最大字符数: $maxLen") },
+ *     setCaptionList = { captions -> displayCaptions(captions) },
+ *     resetSubtitlesState = { clearSubtitleUI() }
+ * )
+ * ```
+ *
+ * 注意事项：
+ * - 仅支持SRT格式的字幕文件
+ * - 会自动处理各种编码格式的字幕文件
+ * - 解析失败时会弹出错误对话框提示用户
+ * - 字幕内容会被清理（移除格式标记和多余换行）
  */
 fun parseSubtitles(
     subtitlesPath: String,
@@ -232,6 +285,128 @@ fun parseSubtitles(
 }
 
 
+/**
+ * 使用 FFmpeg 提取视频中的字幕并返回字幕列表
+ *
+ * 该函数会从指定的视频文件中提取指定轨道的字幕，将其转换为 SRT 格式，
+ * 然后解析为 PlayerCaption 对象列表。提取过程中会在应用程序设置目录中
+ * 创建临时的 SRT 文件，处理完成后会自动删除。
+ *
+ * @param videoPath 视频文件的完整路径
+ * @param subtitleId 字幕轨道ID，从0开始计数
+ *                   - 0: 第一个字幕轨道
+ *                   - 1: 第二个字幕轨道
+ *                   - 以此类推
+ * @param verbosity FFmpeg 的详细输出级别，默认为 INFO
+ *                  可选值：QUIET, PANIC, FATAL, ERROR, WARNING, INFO, VERBOSE, DEBUG, TRACE
+ *
+ * @return List<PlayerCaption> 解析后的字幕列表
+ *         - 如果提取成功，返回包含所有字幕条目的列表
+ *         - 如果提取失败或视频中没有指定的字幕轨道，返回空列表
+ *
+ * @throws Exception 当 FFmpeg 执行失败或文件路径无效时可能抛出异常
+ *
+ * @see PlayerCaption 字幕条目数据类
+ * @see parseSubtitles 用于解析 SRT 文件的工具函数
+ *
+ * 示例用法：
+ * ```kotlin
+ * val captions = readCaptionList("/path/to/video.mp4", 0)
+ * captions.forEach { caption ->
+ *     println("${caption.start} -> ${caption.end}: ${caption.content}")
+ * }
+ * ```
+ *
+ * 注意事项：
+ * - 需要确保视频文件存在且包含字幕轨道
+ * - subtitleId 超出范围时会返回空列表
+ * - 函数会自动处理临时文件的清理
+ * - 支持大多数常见的字幕格式（如 ASS、SSA、VTT 等）
+ */
+fun readCaptionList(
+    videoPath: String,
+    subtitleId: Int,
+    verbosity: Verbosity = Verbosity.INFO
+): List<PlayerCaption> {
+    val captionList = mutableListOf<PlayerCaption>()
+    val applicationDir = getSettingsDirectory()
+    val ffmpeg = FFmpeg(findFFmpegPath())
+    val builder = FFmpegBuilder()
+        .setVerbosity(verbosity)
+        .setInput(videoPath)
+        .addOutput("$applicationDir/temp.srt")
+        .addExtraArgs("-map", "0:s:$subtitleId") //  -map 0:s:0 表示提取第一个字幕，-map 0:s:1 表示提取第二个字幕。
+        .done()
+    val executor = FFmpegExecutor(ffmpeg)
+    val job = executor.createJob(builder)
+    job.run()
+    if (job.state == FFmpegJob.State.FINISHED) {
+        println("extractSubtitle success")
+        captionList.addAll(parseSubtitles("$applicationDir/temp.srt"))
+        File("$applicationDir/temp.srt").delete()
+    }
+    return captionList
+}
+
+
+/**
+ * 解析字幕文件并返回PlayerCaption列表
+ *
+ * 该函数直接解析SRT格式的字幕文件，将时间转换为毫秒格式，
+ * 并返回适用于视频播放器的PlayerCaption对象列表。与上面的parseSubtitles函数不同，
+ * 这个函数不使用回调，而是直接返回解析结果。
+ *
+ * @param subtitlesPath 字幕文件的完整路径（仅支持SRT格式）
+ *
+ * @return List<PlayerCaption> 解析后的字幕列表
+ *         - 成功时：包含所有字幕条目的列表，时间以毫秒为单位
+ *         - 失败时：返回空列表
+ *         - 文件不存在时：返回空列表并显示错误提示
+ *
+ * 功能特性：
+ * - 自动检测字幕文件编码（UTF-8、GBK、Big5等）
+ * - 移除字幕中的位置信息标签（如{\an8}等）
+ * - 移除斜体标记符号
+ * - 处理换行符（替换为适合显示的格式）
+ * - 将时间格式从"hh:mm:ss,ms"转换为毫秒数值
+ * - 静默处理最大字符数计算（虽然不返回此值）
+ *
+ * 与第一个parseSubtitles函数的区别：
+ * - 返回类型：List<PlayerCaption> vs 通过回调设置
+ * - 时间格式：毫秒数值 vs 时间字符串
+ * - 换行处理：replaceNewLine vs removeNewLine
+ * - 用途：视频播放器 vs 字幕显示界面
+ *
+ * 错误处理：
+ * - 文件不存在时显示"找不到字幕"对话框
+ * - 解析异常时显示详细错误信息对话框
+ * - 编码检测失败时自动使用系统默认编码
+ * - 所有错误情况都返回空列表，不会抛出异常
+ *
+ * @see PlayerCaption 播放器字幕条目数据类（包含毫秒时间戳）
+ * @see Caption 显示用字幕条目数据类（包含时间字符串）
+ * @see convertTimeToMilliseconds 时间字符串转毫秒的工具函数
+ * @see replaceNewLine 换行符替换函数
+ *
+ * 示例用法：
+ * ```kotlin
+ * val playerCaptions = parseSubtitles("/path/to/subtitle.srt")
+ * if (playerCaptions.isNotEmpty()) {
+ *     playerCaptions.forEach { caption ->
+ *         println("${caption.start}ms - ${caption.end}ms: ${caption.content}")
+ *     }
+ * } else {
+ *     println("字幕解析失败或文件为空")
+ * }
+ * ```
+ *
+ * 注意事项：
+ * - 专为视频播放器设计，时间格式为毫秒便于同步
+ * - 仅支持SRT格式，其他格式需要先转换
+ * - 解析失败时会显示用户友好的错误对话框
+ * - 函数执行完成后会自动关闭文件流资源
+ * - 内容清理策略与显示用的parseSubtitles略有不同
+ */
 fun parseSubtitles(subtitlesPath: String):List<PlayerCaption>{
     val formatSRT = FormatSRT()
     val file = File(subtitlesPath)
@@ -254,8 +429,8 @@ fun parseSubtitles(subtitlesPath: String):List<PlayerCaption>{
                 content = removeItalicSymbol(content)
                 content = replaceNewLine(content)
                 val newCaption = PlayerCaption(
-                    start = convertTimeToMilliseconds(caption.start.getTime("hh:mm:ss,ms")),
-                    end = convertTimeToMilliseconds(caption.end.getTime("hh:mm:ss,ms")),
+                    start = convertTimeToMilliseconds2(caption.start.getTime("hh:mm:ss,ms")),
+                    end = convertTimeToMilliseconds2(caption.end.getTime("hh:mm:ss,ms")),
                     content = content
                 )
                 if (caption.content.length > maxLength) {

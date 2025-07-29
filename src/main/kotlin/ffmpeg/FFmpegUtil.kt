@@ -5,11 +5,9 @@ import net.bramp.ffmpeg.FFmpegExecutor
 import net.bramp.ffmpeg.builder.FFmpegBuilder
 import net.bramp.ffmpeg.builder.FFmpegBuilder.Verbosity
 import net.bramp.ffmpeg.job.FFmpegJob
-import player.PlayerCaption
 import player.isWindows
 import state.getResourcesFile
 import state.getSettingsDirectory
-import util.parseSubtitles
 import java.io.File
 import javax.swing.JOptionPane
 
@@ -80,33 +78,6 @@ fun convertToSrt(
     return "failed"
 }
 
-/**
- * 使用 FFmpeg 提取视频里的字幕，并且返回一个 Caption List
- */
-fun readCaptionList(
-    videoPath: String,
-    subtitleId: Int,
-    verbosity: Verbosity = Verbosity.INFO
-    ): List<PlayerCaption> {
-    val captionList = mutableListOf<PlayerCaption>()
-    val applicationDir = getSettingsDirectory()
-    val ffmpeg = FFmpeg(findFFmpegPath())
-    val builder = FFmpegBuilder()
-        .setVerbosity(verbosity)
-        .setInput(videoPath)
-        .addOutput("$applicationDir/temp.srt")
-        .addExtraArgs("-map", "0:s:$subtitleId") //  -map 0:s:0 表示提取第一个字幕，-map 0:s:1 表示提取第二个字幕。
-        .done()
-    val executor = FFmpegExecutor(ffmpeg)
-    val job = executor.createJob(builder)
-    job.run()
-    if (job.state == FFmpegJob.State.FINISHED) {
-        println("extractSubtitle success")
-        captionList.addAll(parseSubtitles("$applicationDir/temp.srt"))
-        File("$applicationDir/temp.srt").delete()
-    }
-    return captionList
-}
 
 
 /**
