@@ -13,10 +13,13 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
@@ -28,6 +31,8 @@ import data.VocabularyType
 import data.getFamiliarVocabularyFile
 import data.getHardVocabularyFile
 import data.loadVocabulary
+import event.EventBus
+import event.PlayerEventType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
@@ -40,7 +45,6 @@ import state.ScreenType
 import state.computeFontSize
 import state.rememberAppState
 import theme.CustomLocalProvider
-import theme.PlayerLocalProvider
 import theme.scrollbarStyle
 import theme.toAwt
 import ui.dialog.*
@@ -58,7 +62,6 @@ import ui.textscreen.TextState
 import ui.textscreen.rememberTextState
 import ui.wordscreen.WordScreen
 import ui.wordscreen.WordScreenState
-import ui.wordscreen.rememberPronunciation
 import ui.wordscreen.rememberWordState
 import util.computeVideoBounds
 import java.awt.Desktop
@@ -71,7 +74,7 @@ import javax.swing.JOptionPane
 @ExperimentalAnimationApi
 @OptIn(
     ExperimentalComposeUiApi::class,
-    ExperimentalSerializationApi::class
+    ExperimentalSerializationApi::class, InternalComposeUiApi::class
 )
 @Composable
 fun App(
@@ -100,6 +103,8 @@ fun App(
             )
 
             var title by remember{ mutableStateOf("") }
+            val scope = rememberCoroutineScope()
+            val eventBus = remember { EventBus() }
             Window(
                 title = title,
                 icon = painterResource("logo/logo.png"),
@@ -110,6 +115,22 @@ fun App(
                     if (isCtrlPressed && it.key == Key.Comma && it.type == KeyEventType.KeyUp) {
                         appState.openSettings = true
                         true
+                    }
+
+                    // 处理视频播放器的快捷键
+                    if(playerState.showPlayerWindow){
+                        if (it.key == Key.Spacebar && it.type == KeyEventType.KeyUp) {
+                            scope.launch {
+                                eventBus.post(PlayerEventType.PLAY)
+                            }
+                            true
+                        }else if (it.key == Key.Escape && it.type == KeyEventType.KeyUp) {
+                                scope.launch {
+                                    eventBus.post(PlayerEventType.ESC)
+                                }
+                            true
+                        }
+                        false
                     }else{
                         false // 返回 false 让 Compose 继续处理事件
                     }
@@ -220,6 +241,7 @@ fun App(
                             }
                         }
 
+
                         AnimatedVideoPlayer(
                                 playerState = playerState,
                                 audioSet = appState.localAudioSet,
@@ -231,7 +253,8 @@ fun App(
                                 },
                                 visible = playerState.showPlayerWindow,
                                 windowState = windowState,
-                                close = { playerState.showPlayerWindow = false }
+                                close = { playerState.showPlayerWindow = false },
+                            eventBus = eventBus,
                             )
 
                     }

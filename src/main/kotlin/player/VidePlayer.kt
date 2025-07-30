@@ -6,7 +6,6 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -28,16 +27,18 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
+import event.EventBus
+import event.PlayerEventType
 import icons.ArrowDown
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
@@ -67,7 +68,8 @@ fun AnimatedVideoPlayer(
     videoVolume: Float,
     videoVolumeChanged: (Float) -> Unit,
     windowState: WindowState,
-    close: () -> Unit
+    close: () -> Unit,
+    eventBus: EventBus
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -85,7 +87,8 @@ fun AnimatedVideoPlayer(
             videoVolume = videoVolume,
             videoVolumeChanged = videoVolumeChanged,
             windowState = windowState,
-            close = close
+            close = close,
+            eventBus = eventBus
         )
     }
 }
@@ -99,7 +102,8 @@ fun VideoPlayer(
     videoVolume: Float,
     videoVolumeChanged: (Float) -> Unit,
     windowState: WindowState,
-    close: () -> Unit
+    close: () -> Unit,
+    eventBus: EventBus
 ){
 
     val videoPath = playerState.videoPath
@@ -184,7 +188,7 @@ fun VideoPlayer(
 
     /** 播放 */
     val play: () -> Unit = {
-        if (videoPath.isNotEmpty()){
+        if (playerState.videoPath.isNotEmpty()){
             if (isPlaying) {
                 isPlaying = false
                 videoPlayerComponent.mediaPlayer().controls().pause()
@@ -192,6 +196,8 @@ fun VideoPlayer(
                 isPlaying = true
                 videoPlayerComponent.mediaPlayer().controls().play()
             }
+        }else{
+            println("VideoPath is Empty")
         }
     }
 
@@ -272,19 +278,6 @@ fun VideoPlayer(
         shape = MaterialTheme.shapes.medium,  // 使用圆角形状
         modifier = Modifier.fillMaxSize()
             .pointerHoverIcon(playerCursor)
-            .combinedClickable(
-                interactionSource = remember(::MutableInteractionSource),
-                indication = null,
-                onDoubleClick = {
-                    if (showingDetail) {
-                        showingDetail = false
-                    } else if(isWindows()){
-                        // 处理双击全屏
-                    }
-                },
-                onClick = {},
-                onLongClick = {}
-            )
             .onPointerEvent(PointerEventType.Enter) {
                 if (!controlBoxVisible) {
                     controlBoxVisible = true
@@ -303,23 +296,21 @@ fun VideoPlayer(
                 }
             }
             .focusRequester(focusRequester)
-            .onKeyEvent{ keyEvent ->
-                // 处理键盘事件
-                if (keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp) { // 空格键
-                    play()
-                    true // 事件已处理
-                } else if (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyUp) { // 空格键
-                   close()
-                    true // 事件已处理
-                } else {
-                    false // 事件未处理
-                }
-            }
-
+            .focusable(enabled = true)
     ) {
 
         LaunchedEffect(Unit){
-            focusRequester.requestFocus()
+
+            eventBus.events.collect { event ->
+                if (event is PlayerEventType) {
+                    if(event == PlayerEventType.PLAY) {
+                        play()
+                    }else if( event == PlayerEventType.ESC) {
+                        close()
+                    }
+
+                }
+            }
         }
 
         LaunchedEffect(controlBoxVisible){
@@ -349,18 +340,23 @@ fun VideoPlayer(
 
                 // 非全屏的时候才显示关闭按钮
                 if(windowState.placement != WindowPlacement.Fullscreen){
-                    Row(Modifier
-                        .align (Alignment.TopStart)
-                        .padding(start = 72.dp, top = 8.dp)){
-                        // 关闭视频播放器
-                        Icon(
-                            Icons.Filled.ArrowDown,
-                            contentDescription = "Close Video Player",
-                            tint = Color.White,
-                            modifier = Modifier.clickable(onClick = close)
-                        )
+                    if(isMacOS()){
+                        Row(Modifier
+                            .align (Alignment.TopStart)
+                            .padding(start = 72.dp, top = 8.dp)){
+                            // 关闭视频播放器
+                            Icon(
+                                Icons.Filled.ArrowDown,
+                                contentDescription = "Close Video Player",
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .clickable(onClick = close)
+                                    .focusable(false)// 不让按钮自动获取焦点
+                            )
 
+                        }
                     }
+
                 }
 
 
@@ -429,6 +425,7 @@ fun VideoPlayer(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Start,
                         ) {
+                            val focusManager = LocalFocusManager.current
                             // 时间
                             Text(" $timeText ", color =Color.White)
                             // 播放按钮
@@ -453,7 +450,10 @@ fun VideoPlayer(
                             // 设置按钮
                             PlayerSettingsButton(
                                 settingsExpanded = settingsExpanded,
-                                onSettingsExpandedChanged = { settingsExpanded = it },
+                                onSettingsExpandedChanged = {
+                                    settingsExpanded = it
+                                    focusManager.clearFocus() // 点击后清除焦点
+                                },
                                 playerState = playerState,
                                 onKeepControlBoxVisible = { controlBoxVisible = true }
                             )
@@ -465,7 +465,10 @@ fun VideoPlayer(
                                 currentSubtitleTrack = currentSubtitleTrack,
                                 currentAudioTrack = currentAudioTrack,
                                 showSubtitleMenu = showSubtitleMenu,
-                                onShowSubtitleMenuChanged = { showSubtitleMenu = it },
+                                onShowSubtitleMenuChanged = {
+                                    showSubtitleMenu = it
+                                    focusManager.clearFocus() // 点击后清除焦点
+                                },
                                 onShowSubtitlePicker = { showSubtitlePicker = true },
                                 onSubtitleTrackChanged = setCurrentSubtitleTrack,
                                 onAudioTrackChanged = setCurrentAudioTrack,
@@ -474,7 +477,10 @@ fun VideoPlayer(
 
                             // 字幕列表按钮
                             CaptionListButton(
-                                onClick = {showCaptionList = !showCaptionList }
+                                onClick = {
+                                    showCaptionList = !showCaptionList
+                                    focusManager.clearFocus() // 点击后清除焦点
+                                }
                             )
 
                         }
@@ -624,6 +630,13 @@ fun VideoPlayer(
                 // 相当于 60 FPS 的更新频率
                 // 16 毫秒大约是 60 FPS 的一帧
                 delay(16) // 保持适当的延迟
+            }
+        }
+
+        DisposableEffect(Unit){
+            onDispose {
+                videoPlayer.release()
+                audioPlayerComponent.mediaPlayer().release()
             }
         }
     }
@@ -997,6 +1010,7 @@ fun CaptionListButton(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun CaptionList(
     show: Boolean,
@@ -1057,10 +1071,26 @@ fun CaptionList(
                                 verticalArrangement = Arrangement.spacedBy(4.dp),
                             ) {
                                 itemsIndexed(timedCaption.captionList) { index, caption ->
+                                    val focusManager = LocalFocusManager.current
+                                    var background by remember { mutableStateOf(Color.Transparent) }
                                     Box(
                                         modifier = Modifier
                                             .fillMaxWidth()
-                                            .clickable { play(caption.start) }
+                                            .background(background)
+                                            .onClick(
+                                                onClick = {
+                                                    play(caption.start)
+                                                    focusManager.clearFocus() // 释放焦点
+                                                }
+                                            )
+                                            .onPointerEvent(PointerEventType.Enter) {
+                                                background = Color.White.copy(alpha = 0.08f) // 柔和的悬停色
+
+                                            }
+                                            .onPointerEvent(PointerEventType.Exit){
+                                                background = Color.Transparent // 鼠标移出时还原
+                                            }
+
                                     ){
                                         SelectionContainer {
                                             Text(
