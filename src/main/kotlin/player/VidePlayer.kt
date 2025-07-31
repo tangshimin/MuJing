@@ -337,7 +337,9 @@ fun VideoPlayer(
                     if(event == PlayerEventType.PLAY) {
                         play()
                     }else if( event == PlayerEventType.ESC) {
-                        close()
+                      if(windowState.placement == WindowPlacement.Fullscreen){
+                            windowState.placement = WindowPlacement.Floating
+                      }
                     }
 
                 }
