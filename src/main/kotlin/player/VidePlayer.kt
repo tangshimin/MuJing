@@ -40,13 +40,18 @@ import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import event.EventBus
 import event.PlayerEventType
 import icons.ArrowDown
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
+import kotlinx.coroutines.launch
 import tts.rememberAzureTTS
 import ui.wordscreen.rememberPronunciation
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
+import util.findSubtitleFiles
+import util.getSubtitleLangLabel
+import util.parseSubtitles
 import util.readCaptionList
 import java.awt.Component
 import java.awt.Cursor
@@ -167,8 +172,14 @@ fun VideoPlayer(
     /** 支持的视频类型 */
     val videoFormatList = remember{ mutableStateListOf("mp4","mkv") }
 
-    /** 字幕轨道列表 */
+    /** 内部字幕轨道列表 */
     val subtitleTrackList = remember{mutableStateListOf<Pair<Int,String>>()}
+
+    /**  外部字幕列表 */
+    val extSubList = remember { mutableStateListOf<Pair<String,File>>() }
+
+    /** 当前设置的外部字幕轨道,默认值为 -1 表示为设置 */
+    var extSubIndex by remember { mutableStateOf(-1) }
 
     /** 音频轨道列表 */
     val audioTrackList = remember{mutableStateListOf<Pair<Int,String>>()}
@@ -182,7 +193,7 @@ fun VideoPlayer(
     var hideControlBoxTask : TimerTask? by remember{ mutableStateOf(null) }
     /** 焦点请求器 */
     val focusRequester = remember { FocusRequester() }
-
+    val scope = rememberCoroutineScope()
 
     val azureTTS = rememberAzureTTS()
 
@@ -252,9 +263,30 @@ fun VideoPlayer(
         }
     }
 
-    val setCurrentSubtitleTrack:(Int)-> Unit = {
-        currentSubtitleTrack = it
-        videoPlayerComponent.mediaPlayer().subpictures().setTrack(it)
+    val setCurrentSubtitleTrack:(Int)-> Unit = { trackId ->
+        scope.launch(Dispatchers.Default) {
+            // disable-禁用字幕的 TrackID 为 -1
+            currentSubtitleTrack = trackId
+            println("Track ID: $trackId")
+//        videoPlayerComponent.mediaPlayer().subpictures().setTrack(trackId)
+            if(trackId  != -1){
+                val list = readCaptionList(videoPath = videoPath, subtitleId = trackId)
+                timedCaption.setCaptionList(list)
+            }else{
+                // 禁用字幕
+                println("禁用字幕 clear timedCaption")
+                timedCaption.clear()
+            }
+        }
+
+    }
+
+    val setExternalSubtitle :(Int,File) -> Unit = {index, file ->
+        scope.launch (Dispatchers.Default){
+            val captions = parseSubtitles(file.absolutePath)
+            timedCaption.setCaptionList(captions)
+            extSubIndex = index
+        }
     }
 
     val setCurrentAudioTrack:(Int)-> Unit = {
@@ -262,15 +294,14 @@ fun VideoPlayer(
         videoPlayerComponent.mediaPlayer().audio().setTrack(it)
     }
 
+    // 手动添加字幕
     val addSubtitle:(String) -> Unit = {path->
-        videoPlayerComponent.mediaPlayer().subpictures().setSubTitleFile(path)
-        Timer("update subtitle track list", false).schedule(500) {
-            subtitleTrackList.clear()
-            videoPlayerComponent.mediaPlayer().subpictures().trackDescriptions().forEach { trackDescription ->
-                subtitleTrackList.add(Pair(trackDescription.id(),trackDescription.description()))
-            }
-            val count = videoPlayerComponent.mediaPlayer().subpictures().trackCount()
-            currentSubtitleTrack = count
+        scope.launch(Dispatchers.Default) {
+            val file = File(path)
+
+            val baseName = File(videoPath).nameWithoutExtension
+            val lang = getSubtitleLangLabel(baseName,file.name)
+            extSubList.add(lang to file)
         }
     }
 
@@ -461,6 +492,7 @@ fun VideoPlayer(
                             SubtitleAndAudioSelector(
                                 videoPath = videoPath,
                                 subtitleTrackList = subtitleTrackList,
+                                extSubList = extSubList,
                                 audioTrackList = audioTrackList,
                                 currentSubtitleTrack = currentSubtitleTrack,
                                 currentAudioTrack = currentAudioTrack,
@@ -469,8 +501,10 @@ fun VideoPlayer(
                                     showSubtitleMenu = it
                                     focusManager.clearFocus() // 点击后清除焦点
                                 },
+                                setExternalSubtitle = setExternalSubtitle,
+                                extSubIndex = extSubIndex,
                                 onShowSubtitlePicker = { showSubtitlePicker = true },
-                                onSubtitleTrackChanged = setCurrentSubtitleTrack,
+                                onSubTrackChanged = setCurrentSubtitleTrack,
                                 onAudioTrackChanged = setCurrentAudioTrack,
                                 onKeepControlBoxVisible = { controlBoxVisible = true }
                             )
@@ -562,12 +596,39 @@ fun VideoPlayer(
         /** 打开视频后自动播放 */
         LaunchedEffect(videoPath) {
             if(videoPath.isNotEmpty()){
-                videoPlayer.media().play(videoPath,":sub-autodetect-file")
+                videoPlayer.media().play(videoPath,":no-sub-autodetect-file")
                 isPlaying = true
 
-                // 自动加载第一个字幕
+                // 自动加载第一个内置字幕
                 val list = readCaptionList(videoPath = videoPath, subtitleId = 0)
                 timedCaption.setCaptionList(list)
+
+                // 自动探测外部字幕
+                val subtitleFiles =  findSubtitleFiles(videoPath)
+                extSubList.addAll(subtitleFiles)
+
+                // 如果没有内置字幕，加载语言标签为英语的外部字幕
+                if (list.isEmpty() && extSubList.isNotEmpty()) {
+                    var foundIndex = -1
+                    var foundFile: File? = null
+                    for ((idx, value) in subtitleFiles.withIndex()) {
+                        val (lang, file) = value
+                        if (lang == "en" || lang == "eng" || lang == "English" || lang == "english" || lang == "英文"
+                            || lang == "简体&英文" || lang == "繁体&英文"
+                            || lang == "英语" || lang == "英语（美国）" || lang == "英语（英国）"
+                        ) {
+                            foundIndex = idx
+                            foundFile = file
+                            break
+                        }
+                    }
+                    if (foundFile != null) {
+                        val captions = parseSubtitles(foundFile.absolutePath)
+                        timedCaption.setCaptionList(captions)
+                        extSubIndex = foundIndex
+                    }
+                }
+
             }
         }
 
@@ -591,14 +652,18 @@ fun VideoPlayer(
                     // 设置视频音量
                     mediaPlayer.audio().setVolume(videoVolume.toInt())
                     // 初始化字幕和音频轨道列表
-                    currentSubtitleTrack = mediaPlayer.subpictures().track()
+//                    currentSubtitleTrack = mediaPlayer.subpictures().track()
                     currentAudioTrack = mediaPlayer.audio().track()
                     if(subtitleTrackList.isNotEmpty()) subtitleTrackList.clear()
                     if(audioTrackList.isNotEmpty()) audioTrackList.clear()
-
-                    mediaPlayer.subpictures().trackDescriptions().forEach { trackDescription ->
-                        subtitleTrackList.add(Pair(trackDescription.id(),trackDescription.description()))
+                    // 更新字幕轨道
+                    mediaPlayer.subpictures().trackDescriptions().forEachIndexed { index,trackDescription ->
+                        // trackList 的 index 从 -1 开始，表示禁用
+                        // 使用 index 作为字幕轨道 ID 是为了便于 ffmpeg 提取字幕
+                        // trackDescription.id() 是 vlc 内部的 ID 暂时不使用
+                        subtitleTrackList.add(Pair(index - 1,trackDescription.description()))
                     }
+                    // 更新音频轨道
                     mediaPlayer.audio().trackDescriptions().forEach { trackDescription ->
                         audioTrackList.add(Pair(trackDescription.id(),trackDescription.description()))
                     }
@@ -611,7 +676,7 @@ fun VideoPlayer(
             videoPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(eventListener)
         }
 
-        // 或者添加条件判断减少不必要的操作
+       // 更新字幕
         LaunchedEffect(Unit) {
             var lastTime = 0L
             while (isActive) {
@@ -647,13 +712,16 @@ fun VideoPlayer(
 fun SubtitleAndAudioSelector(
     videoPath: String,
     subtitleTrackList: List<Pair<Int,String>>,
+    extSubList: List<Pair<String,File>> = emptyList(),
     audioTrackList: List<Pair<Int,String>>,
     currentSubtitleTrack: Int,
     currentAudioTrack: Int,
     showSubtitleMenu: Boolean,
     onShowSubtitleMenuChanged: (Boolean) -> Unit,
     onShowSubtitlePicker: () -> Unit,
-    onSubtitleTrackChanged: (Int) -> Unit,
+    onSubTrackChanged: (Int) -> Unit,
+    extSubIndex: Int,
+    setExternalSubtitle: (Int,File) -> Unit,
     onAudioTrackChanged: (Int) -> Unit,
     onKeepControlBoxVisible: () -> Unit
 ) {
@@ -689,7 +757,7 @@ fun SubtitleAndAudioSelector(
         }
     }
 
-    var height = (subtitleTrackList.size * 40 + 100).dp
+    var height = ((subtitleTrackList.size + extSubList.size) * 40 + 100).dp
     if(height > 740.dp) height = 740.dp
 
     DropdownMenu(
@@ -741,11 +809,11 @@ fun SubtitleAndAudioSelector(
                     Box(Modifier.width(282.dp).height(650.dp)) {
                         val scrollState = rememberLazyListState()
                         LazyColumn(Modifier.fillMaxSize(), scrollState) {
-                            items(subtitleTrackList) { (track, description) ->
+                            items(subtitleTrackList) { (trackId, description) ->
                                 DropdownMenuItem(
                                     onClick = {
                                         onShowSubtitleMenuChanged(false)
-                                        onSubtitleTrackChanged(track)
+                                        onSubTrackChanged(trackId)
                                     },
                                     modifier = Modifier.width(282.dp).height(40.dp)
                                 ) {
@@ -753,7 +821,7 @@ fun SubtitleAndAudioSelector(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier.fillMaxWidth()
                                     ) {
-                                        val color = if(currentSubtitleTrack == track)
+                                        val color = if(currentSubtitleTrack == trackId)
                                             MaterialTheme.colors.primary else Color.Transparent
                                         Spacer(Modifier
                                             .background(color)
@@ -762,8 +830,27 @@ fun SubtitleAndAudioSelector(
                                         )
                                         Text(
                                             text = description,
-                                            color = if(currentSubtitleTrack == track)
+                                            color = if(currentSubtitleTrack == trackId)
                                                 MaterialTheme.colors.primary else  MaterialTheme.colors.onSurface,
+                                            fontSize = 12.sp,
+                                            modifier = Modifier.padding(start = 10.dp)
+                                        )
+                                    }
+                                }
+                            }
+
+                            itemsIndexed(extSubList) { index,(lang,file) ->
+                                DropdownMenuItem(
+                                    onClick = {setExternalSubtitle(index,file)},
+                                    modifier = Modifier.width(282.dp).height(40.dp)
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(
+                                            text = lang,
+                                            color = if(extSubIndex == index) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface,
                                             fontSize = 12.sp,
                                             modifier = Modifier.padding(start = 10.dp)
                                         )

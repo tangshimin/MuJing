@@ -330,25 +330,31 @@ fun readCaptionList(
 ): List<PlayerCaption> {
     val captionList = mutableListOf<PlayerCaption>()
     val applicationDir = getSettingsDirectory()
-    val ffmpeg = FFmpeg(findFFmpegPath())
-    val builder = FFmpegBuilder()
-        .setVerbosity(verbosity)
-        .setInput(videoPath)
-        .addOutput("$applicationDir/temp.srt")
-        .addExtraArgs("-map", "0:s:$subtitleId") //  -map 0:s:0 表示提取第一个字幕，-map 0:s:1 表示提取第二个字幕。
-        .done()
-    val executor = FFmpegExecutor(ffmpeg)
-    val job = executor.createJob(builder)
-    job.run()
-    if (job.state == FFmpegJob.State.FINISHED) {
-        println("extractSubtitle success")
-        captionList.addAll(parseSubtitles("$applicationDir/temp.srt"))
-        File("$applicationDir/temp.srt").delete()
+    val tempSrtPath = "$applicationDir/temp.srt"
+    try {
+        val ffmpeg = FFmpeg(findFFmpegPath())
+        val builder = FFmpegBuilder()
+            .setVerbosity(verbosity)
+            .setInput(videoPath)
+            .addOutput(tempSrtPath)
+            .addExtraArgs("-map", "0:s:$subtitleId")
+            .done()
+        val executor = FFmpegExecutor(ffmpeg)
+        val job = executor.createJob(builder)
+        job.run()
+        if (job.state == FFmpegJob.State.FINISHED) {
+            println("extractSubtitle success")
+            captionList.addAll(parseSubtitles(tempSrtPath))
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        // 发生异常时返回空列表
+        return emptyList()
+    } finally {
+        File(tempSrtPath).delete()
     }
     return captionList
 }
-
-
 /**
  * 解析字幕文件并返回PlayerCaption列表
  *
@@ -448,4 +454,89 @@ fun parseSubtitles(subtitlesPath: String):List<PlayerCaption>{
         JOptionPane.showMessageDialog(null, "找不到字幕")
     }
     return captionList
+}
+
+
+/**
+ * 自动查找与视频文件关联的字幕文件
+ *
+ * 该函数会在视频文件所在目录及其下的 Subs 文件夹中查找所有 .srt 字幕文件，
+ * 并自动提取每个字幕文件的语言标签。语言标签的提取规则见 getSubtitleLangLabel。
+ *
+ * 查找逻辑：
+ * 1. 查找与视频同目录下、以 baseName 开头的 .srt 文件，提取语言标签。
+ * 2. 查找同目录下名为 Subs（不区分大小写）的子文件夹中的所有 .srt 文件，提取语言标签。
+ *
+ * @param videoPath 视频文件的完整路径
+ * @return List<Pair<String, File>> 返回 (语言标签, 字幕文件) 的列表
+ *
+ * @see getSubtitleLangLabel 用于提取语言标签的工具函数
+ */
+fun findSubtitleFiles(videoPath: String): List<Pair<String,File>> {
+    val videoFile = File(videoPath)
+    val baseName = videoFile.nameWithoutExtension
+    val dir = videoFile.parentFile ?: return emptyList()
+    val result = mutableListOf<Pair<String,File>>()
+
+    // 1. 查找同目录下的 .srt 字幕
+    dir.listFiles { file ->
+        file.isFile &&
+                file.name.startsWith(baseName) &&
+                file.name.endsWith(".srt", ignoreCase = true)
+    }?.forEach { file ->
+        val nameWithoutExt = file.name.removeSuffix(".srt")
+        var lang = nameWithoutExt.removePrefix(baseName)
+        if (lang.startsWith("_")) lang = lang.removePrefix("_")
+        if (lang.startsWith(".")) lang = lang.removePrefix(".")
+        if (lang.isBlank()) lang = "subtitle"
+        result.add(lang to file)
+    }
+
+    // 2. 查找 Subs 子文件夹下的 .srt 字幕
+    // 查找同目录下所有名为 Subs/ subs/ SUBS 等的文件夹
+    val subsDirs = dir.listFiles { file ->
+        file.isDirectory && file.name.equals("Subs", ignoreCase = true)
+    } ?: emptyArray()
+
+    for (subsDir in subsDirs) {
+        subsDir.listFiles { file ->
+            file.isFile && file.name.endsWith(".srt", ignoreCase = true)
+        }?.forEach { file ->
+            var lang = file.name.removeSuffix(".srt")
+            if (lang.startsWith("_")) lang = lang.removePrefix("_")
+            result.add(lang to file)
+        }
+    }
+
+    return result
+
+}
+
+/**
+ * 提取字幕文件的语言标签
+ *
+ * 根据字幕文件名和视频基础名，自动提取语言标签部分。
+ * - 如果文件名以 baseName 开头，则去除 baseName 和前缀的下划线/点，空则返回 "subtitle"
+ * - 如果文件名不以 baseName 开头，则直接去除前缀下划线
+ *
+ * 适用于自动识别同目录或 Subs 文件夹下的字幕文件语言标识。
+ *
+ * @param baseName 视频文件的基础名（不含扩展名）
+ * @param fileName 字幕文件名（含扩展名）
+ * @return 提取出的语言标签字符串
+ */
+fun getSubtitleLangLabel(baseName: String, fileName: String): String {
+    val nameWithoutExt = fileName.removeSuffix(".srt")
+    val lang = if (nameWithoutExt.startsWith(baseName)) {
+        var l = nameWithoutExt.removePrefix(baseName)
+        if (l.startsWith("_")) l = l.removePrefix("_")
+        if (l.startsWith(".")) l = l.removePrefix(".")
+        if (l.isBlank()) l = "subtitle"
+        l
+    } else {
+        var l = nameWithoutExt
+        if (l.startsWith("_")) l = l.removePrefix("_")
+        l
+    }
+    return lang
 }
