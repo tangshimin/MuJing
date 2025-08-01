@@ -374,22 +374,32 @@ fun VideoPlayer(
 
             ) {
 
-                // 视频渲染
-                CustomCanvas(
-                    modifier =  Modifier
+                if(playerState.videoPath.isNotEmpty()){
+                    // 视频渲染
+                    CustomCanvas(
+                        modifier =  Modifier
+                            .fillMaxSize()
+                            .background(Color.Black)
+                            .align(Alignment.Center)
+                            .pointerInput(Unit) {
+                                detectTapGestures(
+                                    onTap = { play() }, // 单击调用 play 函数
+                                    onDoubleTap = {
+                                        fullscreen()
+                                    } // 双击切换全屏
+                                )
+                            },
+                        surface = surface
+                    )
+                }else{
+                    // 如果没有视频路径，则显示一个黑色背景
+                    Box(Modifier
                         .fillMaxSize()
                         .background(Color.Black)
                         .align(Alignment.Center)
-                        .pointerInput(Unit) {
-                            detectTapGestures(
-                                onTap = { play() }, // 单击调用 play 函数
-                                onDoubleTap = {
-                                    fullscreen()
-                                } // 双击切换全屏
-                            )
-                        },
-                    surface = surface
-                )
+                    )
+                }
+
 
                 // 非全屏的时候才显示关闭按钮
                 if(windowState.placement != WindowPlacement.Fullscreen){
@@ -411,8 +421,6 @@ fun VideoPlayer(
                     }
 
                 }
-
-
 
                 // 字幕显示和控制栏
                 Column(
@@ -481,6 +489,26 @@ fun VideoPlayer(
                                         tint = Color.White,
                                     )
                                 }
+                                // 停止按钮
+                                StopButton(
+                                    enabled = videoPath.isNotEmpty(),
+                                    onClick = {
+                                        videoPlayer.controls().stop()
+                                        isPlaying = false
+                                        playerState.videoPath = ""
+                                        caption = ""
+                                        timeProgress = 0f
+                                        timeText = ""
+                                        extSubList.clear()
+                                        timedCaption.clear()
+                                        extSubIndex = -1
+                                        // 清理音频轨道和字幕轨道状态
+                                        audioTrackList.clear()
+                                        currentAudioTrack = 0
+                                        subtitleTrackList.clear()
+                                        currentSubtitleTrack = 0
+                                    }
+                                )
                                 // 音量
                                 VolumeControl(
                                     videoVolume = videoVolume,
@@ -1307,7 +1335,7 @@ fun FullScreenButton(
                 )
             }
         },
-        delayMillis = 100, // 延迟 500 毫秒显示 Tooltip
+        delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
         tooltipPlacement = TooltipPlacement.ComponentRect(
             anchor = Alignment.TopCenter,
             alignment = Alignment.TopCenter,
@@ -1319,6 +1347,44 @@ fun FullScreenButton(
             Icon(
                 imageVector = if (isFullscreen) Icons.Filled.FullscreenExit else Icons.Filled.Fullscreen,
                 contentDescription = if (isFullscreen) "退出全屏" else "进入全屏",
+                tint = Color.White
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun StopButton(
+    enabled: Boolean,
+    onClick: () -> Unit
+) {
+    TooltipArea(
+        tooltip = {
+            Surface(
+                elevation = 4.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Text(
+                    text = "停止播放",
+                    color = MaterialTheme.colors.onSurface,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        },
+        delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+        tooltipPlacement = TooltipPlacement.ComponentRect(
+            anchor = Alignment.TopCenter,
+            alignment = Alignment.TopCenter,
+            offset = DpOffset.Zero
+        )
+
+    ) {
+        IconButton(onClick = onClick,enabled = enabled) {
+            Icon(
+                imageVector =  Icons.Filled.Stop,
+                contentDescription = "停止播放",
                 tint = Color.White
             )
         }
