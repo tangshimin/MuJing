@@ -2,6 +2,7 @@ package player
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.draggable
@@ -417,107 +418,108 @@ fun VideoPlayer(
                     // 底部控制栏
                     if (controlBoxVisible) {
                         // 进度条
-                        var sliderVisible by remember { mutableStateOf(false) }
                         Box(
                             Modifier
-                                .fillMaxWidth().padding(start = 5.dp, end = 5.dp, bottom = 10.dp)
+                                .fillMaxWidth().padding(start = 16.dp, end = 16.dp, bottom = 10.dp)
                                 .offset(x = 0.dp, y = 20.dp)
-                                .onPointerEvent(PointerEventType.Enter) { sliderVisible = true }
-                                .onPointerEvent(PointerEventType.Exit) {
-                                    if(!timeSliderPress){
-                                        sliderVisible = false
-                                    }
-                                }
+
                         ) {
-                            val animatedPosition by animateFloatAsState(
+                            val animatedTimeProgress by animateFloatAsState(
                                 targetValue = timeProgress,
-                                animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec
+                                animationSpec = tween(durationMillis = 300) // 动画持续时间为 300 毫秒
                             )
-                            if (sliderVisible) {
-                                Slider(
-                                    value = timeProgress,
-                                    modifier = Modifier.align(Alignment.Center)
-                                        .onPointerEvent(PointerEventType.Press){ timeSliderPress = true }
-                                        .onPointerEvent(PointerEventType.Release){ timeSliderPress = false }
-                                        .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
-                                    onValueChange = {
-                                        timeProgress = it
-                                        videoPlayerComponent.mediaPlayer().controls().setPosition(timeProgress)
-                                    })
-                            } else {
-                                LinearProgressIndicator(
-                                    progress = animatedPosition,
-                                    modifier = Modifier.align(Alignment.Center).fillMaxWidth()
-                                        .padding(horizontal = 14.dp) // 添加水平 padding 与 Slider 对齐
-                                        .offset(x = 0.dp, y = (-20).dp).padding(top = 20.dp)
-                                )
-                            }
+                            Slider(
+                                value = animatedTimeProgress,
+                                modifier = Modifier.align(Alignment.Center)
+                                    .onPointerEvent(PointerEventType.Press){ timeSliderPress = true }
+                                    .onPointerEvent(PointerEventType.Release){ timeSliderPress = false }
+                                    .pointerHoverIcon(PointerIcon(Cursor(Cursor.HAND_CURSOR))),
+                                onValueChange = {
+                                    timeProgress = it
+                                    videoPlayerComponent.mediaPlayer().controls().setPosition(timeProgress)
+                                },
+                                colors = SliderDefaults.colors(
+                                    inactiveTrackColor = Color.DarkGray // 这里设置未激活轨道颜色
+                                ))
                         }
                         //时间、播放、音量、弹幕、设置
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Start,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
                         ) {
                             val focusManager = LocalFocusManager.current
-                            // 时间
-                            Text(" $timeText ", color =Color.White)
-                            // 播放按钮
-                            IconButton(onClick = {
-                                play()
-                            }) {
-                                Icon(
-                                    if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                                    contentDescription = "Localized description",
-                                    tint = Color.White,
+                            Row(verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Start,
+                            ){
+                                // 播放按钮
+                                IconButton(onClick = {
+                                    play()
+                                }) {
+                                    Icon(
+                                        if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                                        contentDescription = "Localized description",
+                                        tint = Color.White,
+                                    )
+                                }
+                                // 音量
+                                VolumeControl(
+                                    videoVolume = videoVolume,
+                                    videoVolumeChanged = videoVolumeChanged,
+                                    videoPlayerComponent = videoPlayerComponent,
+                                    audioSliderPress = audioSliderPress,
+                                    onAudioSliderPressChanged = { audioSliderPress = it }
+                                )
+                                // 时间
+                                Text(" $timeText ", color =Color.White)
+                            }
+
+                            Row(verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Start,
+                            ){
+
+
+                                // 字幕和音频轨道选择按钮
+                                SubtitleAndAudioSelector(
+                                    videoPath = videoPath,
+                                    subtitleTrackList = subtitleTrackList,
+                                    extSubList = extSubList,
+                                    audioTrackList = audioTrackList,
+                                    currentSubtitleTrack = currentSubtitleTrack,
+                                    currentAudioTrack = currentAudioTrack,
+                                    showSubtitleMenu = showSubtitleMenu,
+                                    onShowSubtitleMenuChanged = {
+                                        showSubtitleMenu = it
+                                        focusManager.clearFocus() // 点击后清除焦点
+                                    },
+                                    setExternalSubtitle = setExternalSubtitle,
+                                    extSubIndex = extSubIndex,
+                                    onShowSubtitlePicker = { showSubtitlePicker = true },
+                                    onSubTrackChanged = setCurrentSubtitleTrack,
+                                    onAudioTrackChanged = setCurrentAudioTrack,
+                                    onKeepControlBoxVisible = { controlBoxVisible = true }
+                                )
+
+                                // 设置按钮
+                                PlayerSettingsButton(
+                                    settingsExpanded = settingsExpanded,
+                                    onSettingsExpandedChanged = {
+                                        settingsExpanded = it
+                                        focusManager.clearFocus() // 点击后清除焦点
+                                    },
+                                    playerState = playerState,
+                                    onKeepControlBoxVisible = { controlBoxVisible = true }
+                                )
+
+                                // 字幕列表按钮
+                                CaptionListButton(
+                                    onClick = {
+                                        showCaptionList = !showCaptionList
+                                        focusManager.clearFocus() // 点击后清除焦点
+                                    }
                                 )
                             }
-                            // 音量
-                            VolumeControl(
-                                videoVolume = videoVolume,
-                                videoVolumeChanged = videoVolumeChanged,
-                                videoPlayerComponent = videoPlayerComponent,
-                                audioSliderPress = audioSliderPress,
-                                onAudioSliderPressChanged = { audioSliderPress = it }
-                            )
 
-                            // 设置按钮
-                            PlayerSettingsButton(
-                                settingsExpanded = settingsExpanded,
-                                onSettingsExpandedChanged = {
-                                    settingsExpanded = it
-                                    focusManager.clearFocus() // 点击后清除焦点
-                                },
-                                playerState = playerState,
-                                onKeepControlBoxVisible = { controlBoxVisible = true }
-                            )
-                            // 字幕和音频轨道选择按钮
-                            SubtitleAndAudioSelector(
-                                videoPath = videoPath,
-                                subtitleTrackList = subtitleTrackList,
-                                extSubList = extSubList,
-                                audioTrackList = audioTrackList,
-                                currentSubtitleTrack = currentSubtitleTrack,
-                                currentAudioTrack = currentAudioTrack,
-                                showSubtitleMenu = showSubtitleMenu,
-                                onShowSubtitleMenuChanged = {
-                                    showSubtitleMenu = it
-                                    focusManager.clearFocus() // 点击后清除焦点
-                                },
-                                setExternalSubtitle = setExternalSubtitle,
-                                extSubIndex = extSubIndex,
-                                onShowSubtitlePicker = { showSubtitlePicker = true },
-                                onSubTrackChanged = setCurrentSubtitleTrack,
-                                onAudioTrackChanged = setCurrentAudioTrack,
-                                onKeepControlBoxVisible = { controlBoxVisible = true }
-                            )
-
-                            // 字幕列表按钮
-                            CaptionListButton(
-                                onClick = {
-                                    showCaptionList = !showCaptionList
-                                    focusManager.clearFocus() // 点击后清除焦点
-                                }
-                            )
 
                         }
                     }
@@ -1051,7 +1053,8 @@ fun VolumeControl(
                     }
                 },
                 modifier = Modifier
-                    .width(60.dp)
+                    .width(100.dp)
+                    .padding(end = 16.dp)
                     .onPointerEvent(PointerEventType.Enter) {
                         volumeSliderVisible = true
                     }
