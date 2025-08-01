@@ -250,19 +250,22 @@ fun App(
 
 
                         AnimatedVideoPlayer(
-                                playerState = playerState,
-                                audioSet = appState.localAudioSet,
-                                audioVolume = appState.global.audioVolume,
-                                videoVolume = appState.global.videoVolume,
-                                videoVolumeChanged = {
-                                    appState.global.videoVolume = it
-                                    appState.saveGlobalState()
-                                },
-                                visible = playerState.showPlayerWindow,
-                                windowState = windowState,
-                                close = { playerState.showPlayerWindow = false },
+                            playerState = playerState,
+                            audioSet = appState.localAudioSet,
+                            audioVolume = appState.global.audioVolume,
+                            videoVolume = appState.global.videoVolume,
+                            videoVolumeChanged = {
+                                appState.global.videoVolume = it
+                                appState.saveGlobalState()
+                            },
+                            visible = playerState.showPlayerWindow,
+                            windowState = windowState,
+                            close = {
+                                playerState.showPlayerWindow = false
+                                playerState.videoPath = ""
+                            },
                             eventBus = eventBus,
-                            )
+                        )
 
                     }
 
