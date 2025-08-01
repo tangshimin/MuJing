@@ -1244,7 +1244,7 @@ fun VerticalSplitter(
 ){
     Box(
         modifier = Modifier
-            .width(1.dp)
+            .width(4.dp)
             .fillMaxHeight()
             .pointerHoverIcon(PointerIcon(Cursor(Cursor.E_RESIZE_CURSOR)))
             .draggable(
