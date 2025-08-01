@@ -5,6 +5,7 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
@@ -212,6 +213,14 @@ fun VideoPlayer(
             println("VideoPath is Empty")
         }
     }
+    /** 全屏 */
+    val fullscreen:() -> Unit = {
+        windowState.placement = if (windowState.placement == WindowPlacement.Fullscreen) {
+            WindowPlacement.Floating
+        } else {
+            WindowPlacement.Fullscreen
+        }
+    }
 
     /** 播放单词发音 */
     val playAudio:(String) -> Unit = { word ->
@@ -341,6 +350,8 @@ fun VideoPlayer(
                       if(windowState.placement == WindowPlacement.Fullscreen){
                             windowState.placement = WindowPlacement.Floating
                       }
+                    }else if(event == PlayerEventType.FULL_SCREEN) {
+                       fullscreen()
                     }
 
                 }
@@ -368,7 +379,15 @@ fun VideoPlayer(
                     modifier =  Modifier
                         .fillMaxSize()
                         .background(Color.Black)
-                        .align(Alignment.Center),
+                        .align(Alignment.Center)
+                        .pointerInput(Unit) {
+                            detectTapGestures(
+                                onTap = { play() }, // 单击调用 play 函数
+                                onDoubleTap = {
+                                    fullscreen()
+                                } // 双击切换全屏
+                            )
+                        },
                     surface = surface
                 )
 
@@ -511,6 +530,16 @@ fun VideoPlayer(
                                     onKeepControlBoxVisible = { controlBoxVisible = true }
                                 )
 
+                                // 全屏按钮
+                                FullScreenButton(
+                                    isFullscreen = windowState.placement == WindowPlacement.Fullscreen,
+                                    onToggleFullscreen = {
+                                        fullscreen()
+                                        focusManager.clearFocus() // 点击后清除焦点
+                                    }
+                                )
+
+
                                 // 字幕列表按钮
                                 CaptionListButton(
                                     onClick = {
@@ -518,6 +547,7 @@ fun VideoPlayer(
                                         focusManager.clearFocus() // 点击后清除焦点
                                     }
                                 )
+
                             }
 
 
@@ -1255,4 +1285,42 @@ fun VerticalSplitter(
                 startDragImmediately = true,
             )
     )
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun FullScreenButton(
+    isFullscreen: Boolean,
+    onToggleFullscreen: () -> Unit
+) {
+    TooltipArea(
+        tooltip = {
+            Surface(
+                elevation = 4.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Text(
+                    text = if (isFullscreen) "退出全屏（f）" else "进入全屏（f)",
+                    color = MaterialTheme.colors.onSurface,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        },
+        delayMillis = 100, // 延迟 500 毫秒显示 Tooltip
+        tooltipPlacement = TooltipPlacement.ComponentRect(
+            anchor = Alignment.TopCenter,
+            alignment = Alignment.TopCenter,
+            offset = DpOffset.Zero
+        )
+
+    ) {
+        IconButton(onClick = onToggleFullscreen) {
+            Icon(
+                imageVector = if (isFullscreen) Icons.Filled.FullscreenExit else Icons.Filled.Fullscreen,
+                contentDescription = if (isFullscreen) "退出全屏" else "进入全屏",
+                tint = Color.White
+            )
+        }
+    }
 }

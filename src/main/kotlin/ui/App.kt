@@ -66,6 +66,7 @@ import ui.wordscreen.rememberWordState
 import util.computeVideoBounds
 import java.awt.Desktop
 import java.awt.Rectangle
+import java.awt.im.InputContext
 import java.io.File
 import javax.swing.JOptionPane
 
@@ -128,6 +129,12 @@ fun App(
                                 scope.launch {
                                     eventBus.post(PlayerEventType.ESC)
                                 }
+                            true
+                        }else if (it.key == Key.F && it.type == KeyEventType.KeyUp) {
+                            scope.launch {
+                                    eventBus.post(PlayerEventType.FULL_SCREEN)
+                                }
+
                             true
                         }
                         false

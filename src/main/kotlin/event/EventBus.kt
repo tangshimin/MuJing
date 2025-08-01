@@ -11,9 +11,10 @@ class EventBus {
 }
 
 /**
- * 播放器事件类型
+ * 播放器的键盘事件类型
  */
 enum class PlayerEventType {
     PLAY, // 播放
     ESC, // 退出
+    FULL_SCREEN, // 全屏
 }
