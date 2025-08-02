@@ -18,8 +18,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
@@ -66,7 +64,6 @@ import ui.wordscreen.rememberWordState
 import util.computeVideoBounds
 import java.awt.Desktop
 import java.awt.Rectangle
-import java.awt.im.InputContext
 import java.io.File
 import javax.swing.JOptionPane
 
@@ -250,7 +247,7 @@ fun App(
 
 
                         AnimatedVideoPlayer(
-                            playerState = playerState,
+                            state = playerState,
                             audioSet = appState.localAudioSet,
                             audioVolume = appState.global.audioVolume,
                             videoVolume = appState.global.videoVolume,

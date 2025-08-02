@@ -1,8 +1,10 @@
 package player
 
 import androidx.compose.runtime.*
+import androidx.compose.runtime.snapshots.SnapshotStateList
 import data.MutableVocabulary
 import data.loadMutableVocabulary
+import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -13,6 +15,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import state.getSettingsDirectory
 import java.io.File
+import java.time.LocalDateTime
 import javax.swing.JOptionPane
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -22,6 +25,8 @@ class PlayerState(playerData: PlayerData) {
     var showPlayerWindow by  mutableStateOf(false)
     /** 播放器 > 视频地址 */
     var videoPath by mutableStateOf("")
+    var startTime by mutableStateOf("00:00:00")
+
     /** 与视频关联的词库，用于生成弹幕 */
     var vocabulary by  mutableStateOf<MutableVocabulary?>(null)
     /** 与视频关联的词库地址，用于保存词库，因为看视频时可以查看单词详情，如果觉得太简单了可以删除或加入到熟悉词库 */
@@ -32,6 +37,8 @@ class PlayerState(playerData: PlayerData) {
     var autoCopy by mutableStateOf(playerData.autoCopy)
     var autoSpeak by mutableStateOf(playerData.autoSpeak)
     var preferredChinese by mutableStateOf(playerData.preferredChinese)
+
+    var recentList = readRecentList()
 
 
     /** 设置视频地址的函数，放到这里是因为记忆单词窗口可以接受拖放的视频，然后打开视频播放器 */
@@ -73,17 +80,134 @@ class PlayerState(playerData: PlayerData) {
         }
     }
 
-    fun closePlayerWindow(){
-        showPlayerWindow = false
-        videoPath = ""
-        vocabularyPath = ""
-        vocabulary = null
+
+
+
+    /**
+     * 读取最近播放视频的列表。
+     *
+     * 从存储的文件中加载最近播放的视频列表，并按时间倒序排序。
+     * 如果文件不存在或解析失败，则返回一个空列表。
+     *
+     * @return 一个包含最近播放视频的可观察状态列表（SnapshotStateList）。
+     */
+    private fun readRecentList(): SnapshotStateList<RecentVideo> {
+        val recentListFile = getRecentVideoFile()
+        var list = if (recentListFile.exists()) {
+            try {
+                Json.decodeFromString<List<RecentVideo>>(recentListFile.readText())
+            } catch (exception: Exception) {
+                exception.printStack()
+                listOf()
+            }
+
+        } else {
+            listOf()
+        }
+        list = list.sortedByDescending { it.time }
+        return list.toMutableStateList()
     }
+
+    fun updateLastPlayedTime(newTime: String) {
+        runBlocking {
+            launch(Dispatchers.IO) {
+                if (recentList.isNotEmpty()) {
+                    val firstItem = recentList.first()
+                    firstItem.lastPlayedTime =newTime
+                    val encodeBuilder = Json {
+                        prettyPrint = true
+                        encodeDefaults = true
+                    }
+                    val json = encodeBuilder.encodeToString(recentList.toList())
+                    getRecentVideoFile().writeText(json)
+                }
+
+
+            }
+        }
+    }
+
+    /**
+     * 将视频保存到最近播放列表。
+     *
+     * 如果视频已存在于最近播放列表中，则将其移到列表顶部。
+     * 如果列表已满（最多20个），则移除最旧的条目。
+     * 保存更新后的列表到存储文件中。
+     *
+     * @param recentVideo 最近播放的视频条目，包含视频的名称和路径。
+     */
+    fun saveToRecentList(recentVideo: RecentVideo) {
+        runBlocking {
+            launch(Dispatchers.IO) {
+                if (recentVideo.name.isNotEmpty()) {
+                    val existingItem = recentList.find { it.name == recentVideo.name && it.path == recentVideo.path }
+                    if (existingItem != null) {
+                        recentList.remove(existingItem)
+                    }
+//                    val newItem = RecentVideo(LocalDateTime.now().toString(), name, path)
+                    val newItem = recentVideo.copy(time = LocalDateTime.now().toString())
+                    recentList.add(0, newItem)
+                    if (recentList.size > 20) {
+                        recentList.removeAt(20) // 保持最近列表最多20个
+                    }
+                    val encodeBuilder = Json {
+                        prettyPrint = true
+                        encodeDefaults = true
+                    }
+
+                    val json = encodeBuilder.encodeToString(recentList.toList())
+                    getRecentVideoFile().writeText(json)
+                }
+            }
+        }
+    }
+
+    fun clearRecentList() {
+        runBlocking {
+            launch(Dispatchers.IO) {
+                recentList.clear()
+                val encodeBuilder = Json {
+                    prettyPrint = true
+                    encodeDefaults = true
+                }
+                val json = encodeBuilder.encodeToString(recentList.toList())
+                getRecentVideoFile().writeText(json)
+            }
+        }
+    }
+
+    /**
+     * 从最近播放列表中移除无效视频条目。
+     *
+     * 从列表中删除指定的视频条目，并将更新后的列表保存到存储文件中。
+     *
+     * @param invalidItem 要移除的最近播放视频条目。
+     */
+    fun removeRecentItem(invalidItem: RecentVideo) {
+        runBlocking {
+            launch (Dispatchers.IO){
+                recentList.remove(invalidItem)
+                val encodeBuilder = Json {
+                    prettyPrint = true
+                    encodeDefaults = true
+                }
+                val json = encodeBuilder.encodeToString(recentList.toList())
+                val recentListFile = getRecentVideoFile()
+                recentListFile.writeText(json)
+            }
+        }
+    }
+
 }
 
 private fun getPlayerSettingsFile(): File {
     val settingsDir = getSettingsDirectory()
     return File(settingsDir, "PlayerSettings.json")
+}
+
+private fun getRecentVideoFile(): File {
+    val settingsDir = getSettingsDirectory()
+    return File(settingsDir, "RecentVideo.json")
 }
 
 @OptIn(ExperimentalSerializationApi::class)
@@ -96,6 +220,7 @@ fun rememberPlayerState() = remember {
             val playerData = decodeFormat.decodeFromString<PlayerData>(playerSettings.readText())
             PlayerState(playerData)
         } catch (exception: Exception) {
+            exception.printStack()
             println("解析视频播放器的设置失败，将使用默认值")
             val playerState = PlayerState(PlayerData())
             playerState
@@ -116,3 +241,20 @@ data class PlayerData(
     var preferredChinese: Boolean = true
 )
 
+@Serializable
+data class RecentVideo(
+    val time: String,
+    val name: String,
+    val path: String,
+    var lastPlayedTime: String = "00:00:00"
+) {
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is RecentVideo) return false
+        return this.name == other.name && this.path == other.path
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode() + path.hashCode()
+    }
+}

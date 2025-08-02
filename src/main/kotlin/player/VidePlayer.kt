@@ -61,6 +61,7 @@ import java.awt.Point
 import java.awt.Toolkit
 import java.awt.image.BufferedImage
 import java.io.File
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.concurrent.schedule
 import kotlin.time.Duration.Companion.milliseconds
@@ -69,7 +70,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun AnimatedVideoPlayer(
     visible: Boolean,
-    playerState: PlayerState,
+    state: PlayerState,
     audioSet: MutableSet<String>,
     audioVolume: Float,
     videoVolume: Float,
@@ -88,7 +89,7 @@ fun AnimatedVideoPlayer(
         )
     ) {
         VideoPlayer(
-            playerState = playerState,
+            state = state,
             audioSet = audioSet,
             audioVolume = audioVolume,
             videoVolume = videoVolume,
@@ -100,10 +101,10 @@ fun AnimatedVideoPlayer(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
 @Composable
 fun VideoPlayer(
-    playerState: PlayerState,
+    state: PlayerState,
     audioSet: MutableSet<String>,
     audioVolume: Float,
     videoVolume: Float,
@@ -113,9 +114,9 @@ fun VideoPlayer(
     eventBus: EventBus
 ){
 
-    val videoPath = playerState.videoPath
-    val videoPathChanged = playerState.videoPathChanged
-    val vocabularyPathChanged = playerState.vocabularyPathChanged
+    val videoPath = state.videoPath
+    val videoPathChanged = state.videoPathChanged
+    val vocabularyPathChanged = state.vocabularyPathChanged
 
     /** 视频播放组件 */
     val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent()) }
@@ -201,7 +202,7 @@ fun VideoPlayer(
 
     /** 播放 */
     val play: () -> Unit = {
-        if (playerState.videoPath.isNotEmpty()){
+        if (state.videoPath.isNotEmpty()){
             if (isPlaying) {
                 isPlaying = false
                 videoPlayerComponent.mediaPlayer().controls().pause()
@@ -374,7 +375,7 @@ fun VideoPlayer(
 
             ) {
 
-                if(playerState.videoPath.isNotEmpty()){
+                if(state.videoPath.isNotEmpty()){
                     // 视频渲染
                     CustomCanvas(
                         modifier =  Modifier
@@ -495,7 +496,8 @@ fun VideoPlayer(
                                     onClick = {
                                         videoPlayer.controls().stop()
                                         isPlaying = false
-                                        playerState.videoPath = ""
+                                        state.videoPath = ""
+                                        state.startTime = "00:00:00"
                                         caption = ""
                                         timeProgress = 0f
                                         timeText = ""
@@ -554,7 +556,7 @@ fun VideoPlayer(
                                         settingsExpanded = it
                                         focusManager.clearFocus() // 点击后清除焦点
                                     },
-                                    playerState = playerState,
+                                    playerState = state,
                                     onKeepControlBoxVisible = { controlBoxVisible = true }
                                 )
 
@@ -584,12 +586,83 @@ fun VideoPlayer(
                 }
 
                 // 刚打开播放器时的打开视频按钮
-                if(videoPath.isEmpty()){
+                if(state.videoPath.isEmpty()){
                     MaterialTheme(colors = darkColors(primary = Color.LightGray)) {
-                        Row( modifier = Modifier
-                            .align(Alignment.Center)){
-                            OutlinedButton(onClick = { showFilePicker = true }){
-                                Text(text = "打开视频",color = MaterialTheme.colors.onSurface)
+                        Column(Modifier
+                            .align(Alignment.Center)
+                            .width(600.dp)
+                        ) {
+
+                            var alert by remember { mutableStateOf(false) }
+                            if(state.recentList.isNotEmpty()){
+                                Row( modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically){
+                                    Text("最近播放", color = MaterialTheme.colors.onSurface)
+                                    OutlinedButton(onClick = { state.clearRecentList() },
+                                    ){
+                                        Text(text = "清除记录",color = MaterialTheme.colors.onSurface)
+                                    }
+                                }
+
+                                val height = if(state.recentList.size > 10) 480.dp else (state.recentList.size * 48).dp
+                                Box(Modifier
+                                    .background(Color(0xFF111111))
+                                    .fillMaxWidth()
+                                    .height(height)){
+                                    val stateVertical = rememberScrollState(0)
+                                    Column(Modifier.verticalScroll(stateVertical)) {
+                                       state.recentList.forEach { item ->
+                                            ListItem(
+                                                text = { Text(item.name, color = MaterialTheme.colors.onSurface) },
+                                                trailing = {
+                                                    Text(
+                                                        text = item.lastPlayedTime,
+                                                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
+                                                        fontSize = 12.sp
+                                                    )
+                                                },
+                                                modifier = Modifier.clickable {
+                                                    if (File(item.path).exists()) {
+                                                        state.videoPath = item.path
+                                                        state.startTime = item.lastPlayedTime
+                                                        val newItem = item.copy(time = LocalDateTime.now().toString())
+                                                        state.saveToRecentList(newItem)
+                                                    }else{
+                                                        state.removeRecentItem(item)
+                                                        alert = true
+                                                    }
+                                                },
+
+                                            )
+                                        }
+                                    }
+
+                                    VerticalScrollbar(
+                                        modifier = Modifier.align(Alignment.CenterEnd)
+                                            .fillMaxHeight(),
+                                        adapter = rememberScrollbarAdapter(stateVertical)
+                                    )
+                                }
+                            }
+                            if(alert){
+                                AlertDialog(
+                                    onDismissRequest = { alert = false },
+                                    title = { Text("错误",color = MaterialTheme.colors.error) },
+                                    text = { Text("读取文件地址时发生错误，已自动移除。",color = MaterialTheme.colors.onSurface) },
+                                    confirmButton = {
+                                        OutlinedButton(onClick = { alert = false }) {
+                                            Text("确定",color = MaterialTheme.colors.onSurface)
+                                        }
+                                    },
+                                    modifier = Modifier.background(MaterialTheme.colors.surface),
+                                )
+                            }
+                            Row( modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
+                                horizontalArrangement = Arrangement.Center){
+                                OutlinedButton(onClick = { showFilePicker = true }){
+                                    Text(text = "打开视频",color = MaterialTheme.colors.onSurface)
+                                }
                             }
                         }
                     }
@@ -606,6 +679,16 @@ fun VideoPlayer(
                     if (file != null && file.path.isNotEmpty()) {
                         when {
                             showFilePicker -> {
+                                // 提取 file 的名称
+                                val name = File(file.path).nameWithoutExtension
+                                val newItem = RecentVideo(
+                                    time = LocalDateTime.now().toString(),
+                                    name = name,
+                                    path = file.path,
+                                    lastPlayedTime = "00:00:00",
+                                )
+                                state.saveToRecentList(newItem)
+
                                 videoPathChanged(file.path)
                                 showFilePicker = false
                             }
@@ -658,7 +741,8 @@ fun VideoPlayer(
         /** 打开视频后自动播放 */
         LaunchedEffect(videoPath) {
             if(videoPath.isNotEmpty()){
-                videoPlayer.media().play(videoPath,":no-sub-autodetect-file")
+                val startTime = convertTimeToSeconds(state.startTime)
+                videoPlayer.media().play(videoPath,":no-sub-autodetect-file",":start-time=${startTime}")
                 isPlaying = true
 
                 // 自动加载第一个内置字幕
@@ -741,6 +825,7 @@ fun VideoPlayer(
        // 更新字幕
         LaunchedEffect(Unit) {
             var lastTime = 0L
+            var lastSecond = -1L
             while (isActive) {
                 if(videoPlayer.status().isPlaying) {
                     val time = videoPlayer.status().time()
@@ -753,6 +838,16 @@ fun VideoPlayer(
                         }
                         lastTime = time
                     }
+                    // 每秒记录一次播放时间
+                    val currentSecond = time / 1000L
+                    if(currentSecond != lastSecond){
+                        lastSecond = currentSecond
+                        time.milliseconds.toComponents { hours, minutes, seconds, _ ->
+                            val lastPlayed= timeFormat(hours,minutes,seconds)
+                            state.updateLastPlayedTime(lastPlayed)
+                        }
+                    }
+
                 }
                 // 相当于 60 FPS 的更新频率
                 // 16 毫秒大约是 60 FPS 的一帧
