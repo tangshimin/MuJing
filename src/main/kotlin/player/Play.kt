@@ -464,17 +464,28 @@ fun play(
  * 转换时间为秒
  */
 fun convertTimeToSeconds(time:String):Double{
-    val parts = time.split(":")
-    val hours = parts[0].toLong()
-    val minutes = parts[1].toLong()
-    // 如果是 00:00:00,000 需要把 , 替换为 .
-    val seconds = if(parts[2].contains(",")) {
-        parts[2].replace(",",".").toDouble()
-    }else{
-        parts[2].toDouble()
+    try{
+        if(time.isEmpty()) return 0.0
+        val parts = time.split(":")
+        val hours = parts[0].toLong()
+        val minutes = parts[1].toLong()
+        if(parts.size == 2){
+            // 如果没有秒，直接返回小时和分钟的总和
+            return (hours * 3600 + minutes * 60).toDouble()
+        }
+        // 如果是 00:00:00,000 需要把 , 替换为 .
+        val seconds = if(parts[2].contains(",")) {
+            parts[2].replace(",",".").toDouble()
+        }else{
+            parts[2].toDouble()
+        }
+        val totalSeconds = hours * 3600 + minutes * 60 + seconds
+        return totalSeconds
+    }catch (exception: Exception){
+        exception.printStackTrace()
+        return 0.0
     }
-    val totalSeconds = hours * 3600 + minutes * 60 + seconds
-    return totalSeconds
+
 }
 
 /**
