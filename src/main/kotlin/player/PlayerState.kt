@@ -38,8 +38,17 @@ class PlayerState(playerData: PlayerData) {
     var autoSpeak by mutableStateOf(playerData.autoSpeak)
     var preferredChinese by mutableStateOf(playerData.preferredChinese)
 
+    var showCaptionList by mutableStateOf(false)
     var recentList = readRecentList()
 
+    val showContext :(MediaInfo) -> Unit = { mediaInfo ->
+        // 显示视频播放器窗口
+        showPlayerWindow = true
+        // 设置视频路径和开始时间
+        videoPath = mediaInfo.mediaPath
+        startTime = mediaInfo.caption.start
+        showCaptionList = true
+    }
 
     /** 设置视频地址的函数，放到这里是因为记忆单词窗口可以接受拖放的视频，然后打开视频播放器 */
     val videoPathChanged:(String) -> Unit = {

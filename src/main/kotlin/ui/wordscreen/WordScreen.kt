@@ -92,7 +92,8 @@ fun WordScreen(
     resetVideoBounds :() -> Rectangle,
     showPlayer :(Boolean) -> Unit,
     setVideoPath:(String) -> Unit,
-    setVideoVocabulary:(String) -> Unit
+    setVideoVocabulary:(String) -> Unit,
+    showContext :(MediaInfo) -> Unit
 ) {
 
 
@@ -164,6 +165,7 @@ fun WordScreen(
                         wordFocusRequester = wordFocusRequester,
                         window = window,
                         openVocabulary = { showFilePicker = true },
+                        showContext = showContext,
                     )
                 } else {
                     VocabularyEmpty(
@@ -386,6 +388,7 @@ fun MainContent(
     wordFocusRequester:FocusRequester,
     window: ComposeWindow,
     openVocabulary: () -> Unit,
+    showContext:(MediaInfo) -> Unit
 ){
     var nextButtonVisible by remember{ mutableStateOf(false) }
         /** 协程构建器 */
@@ -1699,6 +1702,8 @@ fun MainContent(
                     },
                     volume = appState.global.videoVolume,
                     externalPlayingState = isPlaying,
+                    showContextButton = true,
+                    showContext ={ playMedia?.let { showContext(it) } },
                     mediaInfo = playMedia,
                     externalSubtitlesVisible = wordScreenState.externalSubtitlesVisible
                 )
@@ -3056,7 +3061,6 @@ fun CopyButton(wordValue:String){
                 border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                 shape = RectangleShape
             ) {
-                val ctrl = LocalCtrl.current
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(10.dp)

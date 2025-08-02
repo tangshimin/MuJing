@@ -31,6 +31,7 @@ import data.getHardVocabularyFile
 import data.loadVocabulary
 import event.EventBus
 import event.PlayerEventType
+import io.ktor.utils.io.printStack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
@@ -200,7 +201,8 @@ fun App(
                                     resetVideoBounds = resetVideoBounds,
                                     showPlayer = { playerState.showPlayerWindow = it },
                                     setVideoPath = playerState.videoPathChanged,
-                                    setVideoVocabulary = playerState.vocabularyPathChanged
+                                    setVideoVocabulary = playerState.vocabularyPathChanged,
+                                    showContext = { playerState.showContext(it) }
                                 )
                             }
                             ScreenType.SUBTITLES -> {
@@ -408,6 +410,7 @@ private fun computeTitle(subtitlesState: SubtitlesState) :String{
             val fileName = File(mediaPath).nameWithoutExtension
             fileName + " - " + subtitlesState.trackDescription
         }catch (exception:Exception){
+            exception.printStack()
             "字幕浏览器"
         }
 
@@ -423,6 +426,7 @@ private fun computeTitle(textState: TextState) :String{
             val fileName = File(textPath).nameWithoutExtension
             fileName
         }catch (exception :Exception){
+            exception.printStack()
             "抄写文本"
         }
 
@@ -449,9 +453,7 @@ private fun FrameWindowScope.WindowMenuBar(
         // 关于菜单栏
         var aboutDialogVisible by remember { mutableStateOf(false) }
         if( desktop.isSupported( Desktop.Action.APP_ABOUT ) ) {
-            desktop.setAboutHandler(  {
-                aboutDialogVisible = true
-            } );
+            desktop.setAboutHandler { aboutDialogVisible = true }
         }
         if (aboutDialogVisible) {
             AboutDialog(
@@ -461,10 +463,7 @@ private fun FrameWindowScope.WindowMenuBar(
         }
         // 设置菜单栏
         if( desktop.isSupported( Desktop.Action.APP_PREFERENCES ) ) {
-            desktop.setPreferencesHandler(  {
-                appState.openSettings = true
-            } )
-
+            desktop.setPreferencesHandler{ appState.openSettings = true }
         }
 
     }

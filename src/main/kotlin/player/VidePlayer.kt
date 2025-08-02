@@ -46,6 +46,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import tts.rememberAzureTTS
 import ui.wordscreen.rememberPronunciation
 import uk.co.caprica.vlcj.player.base.MediaPlayer
@@ -145,8 +146,6 @@ fun VideoPlayer(
     val timedCaption = rememberPlayerTimedCaption()
     /** 当前显示的字幕内容 */
     var caption by remember { mutableStateOf("") }
-    var showCaptionList by remember { mutableStateOf(false) }
-
     /** 播放器控制区的可见性 */
     var controlBoxVisible by remember { mutableStateOf(false) }
     var timeSliderPress by remember { mutableStateOf(false) }
@@ -275,10 +274,11 @@ fun VideoPlayer(
     }
 
     val setCurrentSubtitleTrack:(Int)-> Unit = { trackId ->
+        // disable-禁用字幕的 TrackID 为 -1
+        currentSubtitleTrack = trackId
+        println("Track ID: $trackId")
+
         scope.launch(Dispatchers.Default) {
-            // disable-禁用字幕的 TrackID 为 -1
-            currentSubtitleTrack = trackId
-            println("Track ID: $trackId")
 //        videoPlayerComponent.mediaPlayer().subpictures().setTrack(trackId)
             if(trackId  != -1){
                 val list = readCaptionList(videoPath = videoPath, subtitleId = trackId)
@@ -573,7 +573,7 @@ fun VideoPlayer(
                                 // 字幕列表按钮
                                 CaptionListButton(
                                     onClick = {
-                                        showCaptionList = !showCaptionList
+                                        state.showCaptionList = !state.showCaptionList
                                         focusManager.clearFocus() // 点击后清除焦点
                                     }
                                 )
@@ -724,7 +724,7 @@ fun VideoPlayer(
             }
 
             CaptionList(
-                show = showCaptionList ,
+                show = state.showCaptionList ,
                 timedCaption = timedCaption,
                 play = {
                     videoPlayer.controls().setTime(it)
@@ -740,38 +740,41 @@ fun VideoPlayer(
 
         /** 打开视频后自动播放 */
         LaunchedEffect(videoPath) {
+
             if(videoPath.isNotEmpty()){
                 val startTime = convertTimeToSeconds(state.startTime)
                 videoPlayer.media().play(videoPath,":no-sub-autodetect-file",":start-time=${startTime}")
                 isPlaying = true
 
-                // 自动加载第一个内置字幕
-                val list = readCaptionList(videoPath = videoPath, subtitleId = 0)
-                timedCaption.setCaptionList(list)
+                withContext(Dispatchers.IO){
+                    // 自动加载第一个内置字幕
+                    val list = readCaptionList(videoPath = videoPath, subtitleId = 0)
+                    timedCaption.setCaptionList(list)
 
-                // 自动探测外部字幕
-                val subtitleFiles =  findSubtitleFiles(videoPath)
-                extSubList.addAll(subtitleFiles)
+                    // 自动探测外部字幕
+                    val subtitleFiles =  findSubtitleFiles(videoPath)
+                    extSubList.addAll(subtitleFiles)
 
-                // 如果没有内置字幕，加载语言标签为英语的外部字幕
-                if (list.isEmpty() && extSubList.isNotEmpty()) {
-                    var foundIndex = -1
-                    var foundFile: File? = null
-                    for ((idx, value) in subtitleFiles.withIndex()) {
-                        val (lang, file) = value
-                        if (lang == "en" || lang == "eng" || lang == "English" || lang == "english" || lang == "英文"
-                            || lang == "简体&英文" || lang == "繁体&英文"
-                            || lang == "英语" || lang == "英语（美国）" || lang == "英语（英国）"
-                        ) {
-                            foundIndex = idx
-                            foundFile = file
-                            break
+                    // 如果没有内置字幕，加载语言标签为英语的外部字幕
+                    if (list.isEmpty() && extSubList.isNotEmpty()) {
+                        var foundIndex = -1
+                        var foundFile: File? = null
+                        for ((idx, value) in subtitleFiles.withIndex()) {
+                            val (lang, file) = value
+                            if (lang == "en" || lang == "eng" || lang == "English" || lang == "english" || lang == "英文"
+                                || lang == "简体&英文" || lang == "繁体&英文"
+                                || lang == "英语" || lang == "英语（美国）" || lang == "英语（英国）"
+                            ) {
+                                foundIndex = idx
+                                foundFile = file
+                                break
+                            }
                         }
-                    }
-                    if (foundFile != null) {
-                        val captions = parseSubtitles(foundFile.absolutePath)
-                        timedCaption.setCaptionList(captions)
-                        extSubIndex = foundIndex
+                        if (foundFile != null) {
+                            val captions = parseSubtitles(foundFile.absolutePath)
+                            timedCaption.setCaptionList(captions)
+                            extSubIndex = foundIndex
+                        }
                     }
                 }
 
@@ -819,7 +822,7 @@ fun VideoPlayer(
                     isPlaying = false
                 }
             }
-            videoPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(eventListener)
+            videoPlayer.events().addMediaPlayerEventListener(eventListener)
         }
 
        // 更新字幕
@@ -1131,11 +1134,7 @@ fun PlayerSettingsButton(
                 ) {
                     Text("弹幕",color = MaterialTheme.colors.onSurface)
                     Switch(checked = playerState.danmakuVisible, onCheckedChange = {
-                        if (playerState.danmakuVisible) {
-                            playerState.danmakuVisible = false
-                        } else {
-                            playerState.danmakuVisible = true
-                        }
+                        playerState.danmakuVisible = !playerState.danmakuVisible
                         playerState.savePlayerState()
                     })
                 }
@@ -1296,7 +1295,7 @@ fun CaptionList(
                         subtitleListWidth = newWidth.coerceIn(300.dp, 800.dp)
                     }
                 )
-                Box(){
+                Box{
                     val listState = rememberLazyListState(0)
                     var lazyColumnHeight by remember{mutableStateOf(0)}
                     // 字幕列表内容

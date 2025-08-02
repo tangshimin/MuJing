@@ -1,17 +1,23 @@
 package player
 
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.TooltipArea
+import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.Surface
 import androidx.compose.material.Switch
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.outlined.Navigation
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -24,6 +30,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
@@ -76,6 +83,10 @@ import java.io.File
  * @param onPlayerReady 播放器准备就绪回调，返回 VLC EmbeddedMediaPlayer 实例
  * @param onPlayingStateChanged 播放状态变化回调，用于向外部通知状态变化
  * @param externalPlayingState 外部播放状态，用于接收外部的播放/暂停控制
+ * @param showContextButton 是否显示查看语境按钮，默认为 false
+ * @param showContext 查看语境的回调函数，点击按钮时触发
+ * @param isLooping 是否启用循环播放，默认为 false
+ * @param onLoopRestart 循环播放重启回调，
  *
  * @sample
  * ```kotlin
@@ -133,7 +144,7 @@ import java.io.File
  * - 状态变化通过回调函数通知外部组件
  */
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun MiniVideoPlayer(
     modifier: Modifier,
@@ -146,6 +157,8 @@ fun MiniVideoPlayer(
     onPlayerReady: (EmbeddedMediaPlayer) -> Unit = {},
     onPlayingStateChanged: (Boolean) -> Unit = {},
     externalPlayingState: Boolean = false,
+    showContextButton:Boolean = false, //
+    showContext :() -> Unit= {},
     isLooping: Boolean = false, // 添加循环播放参数
     onLoopRestart: () -> Unit = {} // 添加循环重启回调
 ) {
@@ -326,7 +339,7 @@ fun MiniVideoPlayer(
 
 
                 // 控制区
-                Row(verticalAlignment = Alignment.CenterVertically,){
+                Row(verticalAlignment = Alignment.CenterVertically){
 
                     // 当前时间和总时间
                     Text(
@@ -336,43 +349,148 @@ fun MiniVideoPlayer(
                         style = MaterialTheme.typography.bodyLarge
                     )
 
-
-                    // 播放/暂停按钮
-                    IconButton(onClick = { play() }){
-                        Icon(
-                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = if (isPlaying) "Pause" else "Play",
-                            tint = Color.White
+                    TooltipArea(
+                        tooltip = {
+                            Surface(
+                                elevation = 4.dp,
+                                border = BorderStroke(1.dp, androidx.compose.material.MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                shape = RectangleShape
+                            ) {
+                                val text = if (isPlaying) "暂停" else "播放"
+                                Text(
+                                    text = text,
+                                    color = androidx.compose.material.MaterialTheme.colors.onSurface,
+                                    modifier = Modifier.padding(10.dp)
+                                )
+                            }
+                        },
+                        delayMillis = 100,
+                        tooltipPlacement = TooltipPlacement.ComponentRect(
+                            anchor = Alignment.TopCenter,
+                            alignment = Alignment.TopCenter,
+                            offset = DpOffset.Zero
                         )
+                    ) {
+                        // 播放/暂停按钮
+                        IconButton(onClick = play){
+                            Icon(
+                                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                contentDescription = if (isPlaying) "Pause" else "Play",
+                                tint = Color.White
+                            )
+                        }
                     }
+
 
                     // 按钮间隔
                     Spacer(Modifier.width(8.dp))
 
-                    // 停止按钮
-                    IconButton(onClick = {
-                        if(videoPlayer.status().isPlaying){
-                            videoPlayer.controls().pause()
-                        }
-                        stop()
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Stop,
-                            contentDescription = "Stop",
-                            tint = Color.White
+                    TooltipArea(
+                        tooltip = {
+                            Surface(
+                                elevation = 4.dp,
+                                border = BorderStroke(1.dp, androidx.compose.material.MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                shape = RectangleShape
+                            ) {
+                                Text(
+                                    text = "停止",
+                                    color = androidx.compose.material.MaterialTheme.colors.onSurface,
+                                    modifier = Modifier.padding(10.dp)
+                                )
+                            }
+                        },
+                        delayMillis = 100,
+                        tooltipPlacement = TooltipPlacement.ComponentRect(
+                            anchor = Alignment.TopCenter,
+                            alignment = Alignment.TopCenter,
+                            offset = DpOffset.Zero
                         )
+                    ) {
+                        // 停止按钮
+                        IconButton(onClick = {
+                            if(videoPlayer.status().isPlaying){
+                                videoPlayer.controls().pause()
+                            }
+                            stop()
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Stop,
+                                contentDescription = "Stop",
+                                tint = Color.White
+                            )
+                        }
                     }
+
+                    // 按钮间隔
+                    Spacer(Modifier.width(8.dp))
+                    if(showContextButton){
+                        TooltipArea(
+                            tooltip = {
+                                Surface(
+                                    elevation = 4.dp,
+                                    border = BorderStroke(1.dp, androidx.compose.material.MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                    shape = RectangleShape
+                                ) {
+                                    Text(
+                                        text = "查看语境",
+                                        color = androidx.compose.material.MaterialTheme.colors.onSurface,
+                                        modifier = Modifier.padding(10.dp)
+                                    )
+                                }
+                            },
+                            delayMillis = 100,
+                            tooltipPlacement = TooltipPlacement.ComponentRect(
+                                anchor = Alignment.TopCenter,
+                                alignment = Alignment.TopCenter,
+                                offset = DpOffset.Zero
+                            )
+                        ) {
+                            IconButton(onClick = showContext) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Navigation,
+                                    contentDescription = "导航到字幕的具体语境",
+                                    tint = Color.White
+                                )
+                            }
+                        }
+
+                    }
+
 
                     Spacer(Modifier.width(8.dp))
                     // 设置按钮
                     Box {
-                        IconButton(onClick = {settingsExpanded = true}){
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = "Settings",
-                                tint = Color.White
+
+                        TooltipArea(
+                            tooltip = {
+                                Surface(
+                                    elevation = 4.dp,
+                                    border = BorderStroke(1.dp, androidx.compose.material.MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                    shape = RectangleShape
+                                ) {
+                                    Text(
+                                        text = "设置",
+                                        color = androidx.compose.material.MaterialTheme.colors.onSurface,
+                                        modifier = Modifier.padding(10.dp)
+                                    )
+                                }
+                            },
+                            delayMillis = 100,
+                            tooltipPlacement = TooltipPlacement.ComponentRect(
+                                anchor = Alignment.TopCenter,
+                                alignment = Alignment.TopCenter,
+                                offset = DpOffset.Zero
                             )
+                        ) {
+                            IconButton(onClick = {settingsExpanded = true}){
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = "Settings",
+                                    tint = Color.White
+                                )
+                            }
                         }
+
                         DropdownMenu(
                             expanded = settingsExpanded,
                             offset = DpOffset(x = (-60).dp, y = (-100).dp),
