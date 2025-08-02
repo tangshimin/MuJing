@@ -1685,7 +1685,6 @@ fun MainContent(
         }
 
             if(isPlaying){
-
                 val videoPlayerSize by remember(appState.global.size){
                     derivedStateOf {
                         computeVideoSize(appState.global.size)
@@ -1699,6 +1698,7 @@ fun MainContent(
                         focusRequest(plyingIndex)
                     },
                     volume = appState.global.videoVolume,
+                    externalPlayingState = isPlaying,
                     mediaInfo = playMedia,
                     externalSubtitlesVisible = wordScreenState.externalSubtitlesVisible
                 )
