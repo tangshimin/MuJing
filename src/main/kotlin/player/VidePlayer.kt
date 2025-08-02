@@ -481,15 +481,10 @@ fun VideoPlayer(
                                 horizontalArrangement = Arrangement.Start,
                             ){
                                 // 播放按钮
-                                IconButton(onClick = {
-                                    play()
-                                }) {
-                                    Icon(
-                                        if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                                        contentDescription = "Localized description",
-                                        tint = Color.White,
-                                    )
-                                }
+                                PlayButton(
+                                    onClick = play,
+                                    isPlaying = isPlaying
+                                )
                                 // 停止按钮
                                 StopButton(
                                     enabled = videoPath.isNotEmpty(),
@@ -1069,7 +1064,7 @@ fun SubtitleAndAudioSelector(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun PlayerSettingsButton(
     settingsExpanded: Boolean,
@@ -1078,13 +1073,37 @@ fun PlayerSettingsButton(
     onKeepControlBoxVisible: () -> Unit
 ) {
     Box {
-        IconButton(onClick = { onSettingsExpandedChanged(true) }) {
-            Icon(
-                Icons.Filled.Settings,
-                contentDescription = "Localized description",
-                tint = Color.White,
+
+        TooltipArea(
+            tooltip = {
+                Surface(
+                    elevation = 4.dp,
+                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                    shape = RectangleShape
+                ) {
+                    Text(
+                        text = "设置",
+                        color = MaterialTheme.colors.onSurface,
+                        modifier = Modifier.padding(10.dp)
+                    )
+                }
+            },
+            delayMillis = 100,
+            tooltipPlacement = TooltipPlacement.ComponentRect(
+                anchor = Alignment.TopCenter,
+                alignment = Alignment.TopCenter,
+                offset = DpOffset.Zero
             )
+        ) {
+            IconButton(onClick = { onSettingsExpandedChanged(true) }) {
+                Icon(
+                    Icons.Filled.Settings,
+                    contentDescription = "Localized description",
+                    tint = Color.White,
+                )
+            }
         }
+
         DropdownMenu(
             expanded = settingsExpanded,
             offset = DpOffset(x = (-60).dp, y = 0.dp),
@@ -1246,7 +1265,7 @@ fun CaptionListButton(
     ) {
         IconButton(onClick = onClick) {
             Icon(
-                Icons.Filled.Dehaze,
+                Icons.Filled.Menu,
                 contentDescription = "字幕列表",
                 tint = Color.White
             )
@@ -1445,6 +1464,49 @@ fun FullScreenButton(
             )
         }
     }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun PlayButton(
+    isPlaying: Boolean,
+    onClick: () -> Unit
+){
+
+
+    TooltipArea(
+        tooltip = {
+            Surface(
+                elevation = 4.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                val text = if(isPlaying) "暂停（空格）" else "播放（空格）"
+                Text(
+                    text = text,
+                    color = MaterialTheme.colors.onSurface,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        },
+        delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+        tooltipPlacement = TooltipPlacement.ComponentRect(
+            anchor = Alignment.TopCenter,
+            alignment = Alignment.TopCenter,
+            offset = DpOffset.Zero
+        )
+
+    ) {
+        // 播放按钮
+        IconButton(onClick =onClick) {
+            Icon(
+                if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                contentDescription = "Localized description",
+                tint = Color.White,
+            )
+        }
+    }
+
 }
 
 @OptIn(ExperimentalFoundationApi::class)
