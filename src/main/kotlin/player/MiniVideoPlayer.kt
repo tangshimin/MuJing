@@ -1,10 +1,6 @@
 package player
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.TooltipArea
-import androidx.compose.foundation.TooltipPlacement
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -37,6 +33,11 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import data.Caption
 import kotlinx.coroutines.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import state.getSettingsDirectory
 import theme.LocalCtrl
 import ui.wordscreen.replaceSeparator
 import uk.co.caprica.vlcj.player.base.MediaPlayer
@@ -179,7 +180,8 @@ fun MiniVideoPlayer(
         var videoDuration by remember{mutableStateOf("00:00:00")}
         /** 展开设置菜单 */
         var settingsExpanded by remember { mutableStateOf(false) }
-
+        /** 是否显示字幕 */
+        var showCaption by remember { mutableStateOf(loadShowCaptionState()) }
         // 循环播放相关状态
         val endTimeMillis = remember(mediaInfo.caption.end) { convertTimeToMilliseconds2(mediaInfo.caption.end) }
         val startTimeMillis = remember(mediaInfo.caption.start) { convertTimeToMilliseconds2(mediaInfo.caption.start) }
@@ -329,7 +331,7 @@ fun MiniVideoPlayer(
                 horizontalAlignment = Alignment.CenterHorizontally) {
 
                 // 简化的字幕显示 - 直接显示已知的字幕内容
-                if (mediaInfo.caption.content.isNotEmpty()) {
+                if (mediaInfo.caption.content.isNotEmpty() && showCaption) {
                     SelectionContainer {
                         Text(
                             text = mediaInfo.caption.content,
@@ -522,9 +524,11 @@ fun MiniVideoPlayer(
                                         text = "显示字幕",
                                         color = androidx.compose.material.MaterialTheme.colors.onBackground,
                                     )
-                                    Switch(checked = true, onCheckedChange = {
-
-                                    })
+                                    Switch(checked = showCaption,
+                                        onCheckedChange = {
+                                            showCaption = it
+                                            saveShowCaptionState(it) // 保存状态变化
+                                        })
                                 }
                             }
                         }
@@ -694,4 +698,54 @@ fun convertTimeToMilliseconds2(timeString: String): Long {
         println("时间转换失败: $timeString, 错误: ${e.message}")
         return 0L
     }
+}
+
+@Serializable
+data class MiniPlayerSettings(
+    val showCaption: Boolean = true
+)
+
+/**
+ * 保存字幕显示状态到本地文件
+ * @param showCaption 是否显示字幕
+ */
+private fun saveShowCaptionState(showCaption: Boolean) {
+    try {
+        val settings = MiniPlayerSettings(showCaption = showCaption)
+        val json = Json.encodeToString(settings)
+        val file = settingsFile()
+        file.parentFile?.mkdirs() // 确保目录存在
+        file.writeText(json)
+    } catch (e: Exception) {
+        println("保存字幕显示状态失败: ${e.message}")
+    }
+}
+
+/**
+ * 从本地文件加载字幕显示状态
+ * @return 字幕显示状态，默认为true
+ */
+private fun loadShowCaptionState(): Boolean {
+    return try {
+        val file = settingsFile()
+        if (file.exists()) {
+            val json = file.readText()
+            if (json.isNotBlank()) {
+                val settings = Json.decodeFromString<MiniPlayerSettings>(json)
+                settings.showCaption
+            } else {
+                true // 默认显示字幕
+            }
+        } else {
+            true // 默认显示字幕
+        }
+    } catch (e: Exception) {
+        println("加载字幕显示状态失败: ${e.message}")
+        true // 出错时默认显示字幕
+    }
+}
+
+private fun settingsFile(): File {
+    val settingsDir = getSettingsDirectory()
+    return File(settingsDir, "MiniPlayerSettings.json")
 }
