@@ -139,6 +139,16 @@ fun App(
                                 eventBus.post(PlayerEventType.CLOSE_PLAYER)
                             }
                             true
+                        }else if (it.key == Key.DirectionLeft && it.type == KeyEventType.KeyUp) {
+                            scope.launch {
+                                eventBus.post(PlayerEventType.DIRECTION_LEFT)
+                            }
+                            true
+                        }else if (it.key == Key.DirectionRight && it.type == KeyEventType.KeyUp) {
+                            scope.launch {
+                                eventBus.post(PlayerEventType.DIRECTION_RIGHT)
+                            }
+                            true
                         }
                         false
                     }else{

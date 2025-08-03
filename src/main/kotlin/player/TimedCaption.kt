@@ -604,7 +604,17 @@ class VideoPlayerTimedCaption{
         }
         return ""
     }
+    fun getPreviousCaptionTime(): Long {
+        if (currentIndex <= 0 || captionList.isEmpty()) return -1
+        val previousIndex = currentIndex - 1
+        return if (previousIndex >= 0) captionList[previousIndex].start else -1
+    }
 
+    fun getNextCaptionTime(): Long {
+        if (currentIndex >= captionList.size - 1 || captionList.isEmpty()) return -1
+        val nextIndex = currentIndex + 1
+        return if (nextIndex < captionList.size) captionList[nextIndex].start else -1
+    }
 
     /**
      * 检查字幕列表是否为空

@@ -38,6 +38,9 @@ class PlayerState(playerData: PlayerData) {
     var autoSpeak by mutableStateOf(playerData.autoSpeak)
     var preferredChinese by mutableStateOf(playerData.preferredChinese)
 
+    /** 快进模式，默认为时间模式。 时间模式：快进到指定时间；字幕模式：快进到指定字幕 */
+    var skipMode: SkipMode by mutableStateOf(SkipMode.TIME)
+
     var showCaptionList by mutableStateOf(false)
     var recentList = readRecentList()
 
@@ -209,6 +212,10 @@ class PlayerState(playerData: PlayerData) {
 
 }
 
+enum class SkipMode {
+    TIME,     // 时间模式
+    SUBTITLE  // 字幕模式
+}
 private fun getPlayerSettingsFile(): File {
     val settingsDir = getSettingsDirectory()
     return File(settingsDir, "PlayerSettings.json")

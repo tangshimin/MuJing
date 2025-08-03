@@ -357,6 +357,41 @@ fun VideoPlayer(
                        fullscreen()
                     }else if(event == PlayerEventType.CLOSE_PLAYER) {
                       close()
+                    }else if(event == PlayerEventType.DIRECTION_LEFT) {
+                     // 左方向键
+                        if (videoPlayer.status().isPlayable) {
+                            when (state.skipMode) {
+                                SkipMode.TIME -> {
+                                    videoPlayer.controls().skipTime(-5000) // 快退 5 秒
+                                }
+                                SkipMode.SUBTITLE -> {
+                                    // 跳转到上一条字幕
+                                    val previousTime = timedCaption.getPreviousCaptionTime()
+                                    if (previousTime >= 0) {
+                                        videoPlayer.controls().setTime(previousTime)
+                                        caption = timedCaption.getCaption(previousTime)
+                                    }
+                                }
+                            }
+                        }
+                    }else if(event == PlayerEventType.DIRECTION_RIGHT) {
+                        // 右方向键
+                        if (videoPlayer.status().isPlayable) {
+                            when (state.skipMode) {
+                                SkipMode.TIME -> {
+                                    videoPlayer.controls().skipTime(5000) // 快进 5 秒
+                                }
+                                SkipMode.SUBTITLE -> {
+                                    // 跳转到下一条字幕
+                                    val nextTime = timedCaption.getNextCaptionTime()
+                                    if (nextTime >= 0) {
+                                        videoPlayer.controls().setTime(nextTime)
+                                        caption = timedCaption.getCaption(nextTime)
+                                    }
+                                }
+                            }
+                        }
+
                     }
 
                 }
@@ -1150,45 +1185,79 @@ fun PlayerSettingsButton(
                     onKeepControlBoxVisible()
                 }
         ) {
+
+            // 快进模式设置
             DropdownMenuItem(onClick = { }) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("单词定位弹幕",color = MaterialTheme.colors.onSurface)
-                    Switch(checked = !playerState.showSequence, onCheckedChange = {
-                        playerState.showSequence = !it
-                        playerState.savePlayerState()
-                    })
+                Column {
+                    Text("快进模式", color = MaterialTheme.colors.onSurface)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(top = 4.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = playerState.skipMode == SkipMode.TIME,
+                                onClick = {
+                                    playerState.skipMode = SkipMode.TIME
+                                    playerState.savePlayerState()
+                                }
+                            )
+                            Text("时间", fontSize = 12.sp, color = MaterialTheme.colors.onSurface)
+                        }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            RadioButton(
+                                selected = playerState.skipMode == SkipMode.SUBTITLE,
+                                onClick = {
+                                    playerState.skipMode = SkipMode.SUBTITLE
+                                    playerState.savePlayerState()
+                                }
+                            )
+                            Text("字幕", fontSize = 12.sp, color = MaterialTheme.colors.onSurface)
+                        }
+                    }
                 }
             }
-            DropdownMenuItem(onClick = { }) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("数字定位弹幕",color = MaterialTheme.colors.onSurface)
-                    Switch(checked = playerState.showSequence, onCheckedChange = {
-                        playerState.showSequence = it
-                        playerState.savePlayerState()
-                    })
-                }
-            }
-            DropdownMenuItem(onClick = { }) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("弹幕",color = MaterialTheme.colors.onSurface)
-                    Switch(checked = playerState.danmakuVisible, onCheckedChange = {
-                        playerState.danmakuVisible = !playerState.danmakuVisible
-                        playerState.savePlayerState()
-                    })
-                }
-            }
+
+//            DropdownMenuItem(onClick = { }) {
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    horizontalArrangement = Arrangement.SpaceBetween,
+//                    modifier = Modifier.fillMaxWidth()
+//                ) {
+//                    Text("单词定位弹幕",color = MaterialTheme.colors.onSurface)
+//                    Switch(checked = !playerState.showSequence, onCheckedChange = {
+//                        playerState.showSequence = !it
+//                        playerState.savePlayerState()
+//                    })
+//                }
+//            }
+//            DropdownMenuItem(onClick = { }) {
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    horizontalArrangement = Arrangement.SpaceBetween,
+//                    modifier = Modifier.fillMaxWidth()
+//                ) {
+//                    Text("数字定位弹幕",color = MaterialTheme.colors.onSurface)
+//                    Switch(checked = playerState.showSequence, onCheckedChange = {
+//                        playerState.showSequence = it
+//                        playerState.savePlayerState()
+//                    })
+//                }
+//            }
+//            DropdownMenuItem(onClick = { }) {
+//                Row(
+//                    verticalAlignment = Alignment.CenterVertically,
+//                    horizontalArrangement = Arrangement.SpaceBetween,
+//                    modifier = Modifier.fillMaxWidth()
+//                ) {
+//                    Text("弹幕",color = MaterialTheme.colors.onSurface)
+//                    Switch(checked = playerState.danmakuVisible, onCheckedChange = {
+//                        playerState.danmakuVisible = !playerState.danmakuVisible
+//                        playerState.savePlayerState()
+//                    })
+//                }
+//            }
         }
     }
 }

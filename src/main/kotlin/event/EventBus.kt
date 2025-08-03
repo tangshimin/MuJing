@@ -18,4 +18,8 @@ enum class PlayerEventType {
     ESC, // 退出全屏
     FULL_SCREEN, // 全屏
     CLOSE_PLAYER, // 关闭播放器
+    DIRECTION_LEFT, // 左方向键
+    DIRECTION_RIGHT, // 右方向键
+    DIRECTION_UP, // 上方向键
+    DIRECTION_DOWN, // 下方向键
 }
