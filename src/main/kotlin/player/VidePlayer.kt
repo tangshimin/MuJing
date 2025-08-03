@@ -533,6 +533,7 @@ fun VideoPlayer(
                                         audioTrackList.clear()
                                         currentAudioTrack = 0
                                         subtitleTrackList.clear()
+                                        extSubList.clear()
                                         currentSubtitleTrack = 0
                                     }
                                 )
@@ -778,6 +779,7 @@ fun VideoPlayer(
 
                     // 自动探测外部字幕
                     val subtitleFiles =  findSubtitleFiles(videoPath)
+                    extSubList.clear()
                     extSubList.addAll(subtitleFiles)
 
                     // 如果没有内置字幕，加载语言标签为英语的外部字幕
