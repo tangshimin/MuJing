@@ -15,6 +15,7 @@ class EventBus {
  */
 enum class PlayerEventType {
     PLAY, // 播放
-    ESC, // 退出
+    ESC, // 退出全屏
     FULL_SCREEN, // 全屏
+    CLOSE_PLAYER, // 关闭播放器
 }

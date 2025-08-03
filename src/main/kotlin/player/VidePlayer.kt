@@ -41,6 +41,7 @@ import event.EventBus
 import event.PlayerEventType
 import icons.ArrowDown
 import kotlinx.coroutines.*
+import theme.LocalCtrl
 import tts.rememberAzureTTS
 import ui.wordscreen.rememberPronunciation
 import uk.co.caprica.vlcj.player.base.MediaPlayer
@@ -354,6 +355,8 @@ fun VideoPlayer(
                       }
                     }else if(event == PlayerEventType.FULL_SCREEN) {
                        fullscreen()
+                    }else if(event == PlayerEventType.CLOSE_PLAYER) {
+                      close()
                     }
 
                 }
@@ -409,15 +412,44 @@ fun VideoPlayer(
                         Row(Modifier
                             .align (Alignment.TopStart)
                             .padding(start = 72.dp, top = 8.dp)){
-                            // 关闭视频播放器
-                            Icon(
-                                Icons.Filled.ArrowDown,
-                                contentDescription = "Close Video Player",
-                                tint = Color.White,
-                                modifier = Modifier
-                                    .clickable(onClick = close)
-                                    .focusable(false)// 不让按钮自动获取焦点
-                            )
+
+
+                            TooltipArea(
+                                tooltip = {
+                                    Surface(
+                                        elevation = 4.dp,
+                                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                        shape = RoundedCornerShape(4.dp)
+                                    ) {
+                                        val ctrl = LocalCtrl.current
+                                        val shortcut = if (isMacOS()) "$ctrl W" else "$ctrl+W"
+                                        Row(modifier = Modifier.padding(10.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ){
+                                            Text(text = "关闭播放器  ",color = MaterialTheme.colors.onSurface)
+                                            Text(text =shortcut,color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                                        }
+
+                                    }
+                                },
+                                delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+                                tooltipPlacement = TooltipPlacement.ComponentRect(
+                                    anchor = Alignment.BottomCenter,
+                                    alignment = Alignment.BottomCenter,
+                                    offset = DpOffset.Zero
+                                )
+
+                            ) {
+                                // 关闭视频播放器
+                                Icon(
+                                    Icons.Filled.ArrowDown,
+                                    contentDescription = "Close Video Player",
+                                    tint = Color.White,
+                                    modifier = Modifier
+                                        .clickable(onClick = close)
+                                        .focusable(false)// 不让按钮自动获取焦点
+                                )
+                            }
 
                         }
                     }

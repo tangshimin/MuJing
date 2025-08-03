@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import data.Caption
 import kotlinx.coroutines.*
+import theme.LocalCtrl
 import ui.wordscreen.replaceSeparator
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
@@ -300,8 +301,13 @@ fun MiniVideoPlayer(
             .focusRequester(focusRequester)
             .onKeyEvent{ keyEvent ->
                 // 处理键盘事件
+                val isModifierPressed = if(isMacOS()) keyEvent.isMetaPressed else  keyEvent.isCtrlPressed
+
                 if (keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp) { // 空格键
                     play()
+                    true // 事件已处理
+                }else if (isModifierPressed && keyEvent.key == Key.G && keyEvent.type == KeyEventType.KeyUp) { // 空格键
+                    showContext() // 显示语境
                     true // 事件已处理
                 } else {
                     false // 事件未处理
@@ -431,12 +437,19 @@ fun MiniVideoPlayer(
                                     border = BorderStroke(1.dp, androidx.compose.material.MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                                     shape = RectangleShape
                                 ) {
-                                    Text(
-                                        text = "查看语境",
-                                        color = androidx.compose.material.MaterialTheme.colors.onSurface,
-                                        modifier = Modifier.padding(10.dp)
-                                    )
-                                }
+                                    val ctrl = LocalCtrl.current
+                                    val shortcut = if (isMacOS()) "$ctrl G" else "$ctrl+G"
+                                    Row(modifier = Modifier.padding(10.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ){
+                                        Text(
+                                            text = "查看语境 ",
+                                            color = androidx.compose.material.MaterialTheme.colors.onSurface,
+                                        )
+                                        Text(text =shortcut,
+                                            color = androidx.compose.material.MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
+                                        )
+                                    }                                }
                             },
                             delayMillis = 100,
                             tooltipPlacement = TooltipPlacement.ComponentRect(

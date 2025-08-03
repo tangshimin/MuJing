@@ -110,8 +110,8 @@ fun App(
                 state = windowState,
                 onCloseRequest = {close() },
                 onKeyEvent = { it ->
-                    val isCtrlPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
-                    if (isCtrlPressed && it.key == Key.Comma && it.type == KeyEventType.KeyUp) {
+                    val isModifierPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
+                    if (isModifierPressed && it.key == Key.Comma && it.type == KeyEventType.KeyUp) {
                         appState.openSettings = true
                         true
                     }
@@ -133,6 +133,11 @@ fun App(
                                     eventBus.post(PlayerEventType.FULL_SCREEN)
                                 }
 
+                            true
+                        }else if (isModifierPressed && it.key == Key.W && it.type == KeyEventType.KeyUp) {
+                            scope.launch {
+                                eventBus.post(PlayerEventType.CLOSE_PLAYER)
+                            }
                             true
                         }
                         false
