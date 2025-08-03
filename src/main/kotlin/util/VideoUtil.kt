@@ -502,9 +502,20 @@ fun findSubtitleFiles(videoPath: String): List<Pair<String,File>> {
         subsDir.listFiles { file ->
             file.isFile && file.name.endsWith(".srt", ignoreCase = true)
         }?.forEach { file ->
-            var lang = file.name.removeSuffix(".srt")
-            if (lang.startsWith("_")) lang = lang.removePrefix("_")
-            result.add(lang to file)
+            val nameWithoutExt = file.name.removeSuffix(".srt")
+            if(nameWithoutExt.startsWith(baseName)){
+                var lang = nameWithoutExt.removePrefix(baseName)
+                if (lang.startsWith("_")) lang = lang.removePrefix("_")
+                if (lang.startsWith(".")) lang = lang.removePrefix(".")
+                if (lang.isBlank()) lang = "subtitle"
+                result.add(lang to file)
+            } else {
+                var lang = nameWithoutExt
+                if (lang.startsWith("_")) lang = lang.removePrefix("_")
+                if (lang.startsWith(".")) lang = lang.removePrefix(".")
+                result.add(lang to file)
+            }
+
         }
     }
 
