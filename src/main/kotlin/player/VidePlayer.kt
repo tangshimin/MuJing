@@ -1,8 +1,6 @@
 package player
 
 import androidx.compose.animation.*
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -42,11 +40,7 @@ import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import event.EventBus
 import event.PlayerEventType
 import icons.ArrowDown
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import tts.rememberAzureTTS
 import ui.wordscreen.rememberPronunciation
 import uk.co.caprica.vlcj.player.base.MediaPlayer
@@ -459,12 +453,9 @@ fun VideoPlayer(
                                 .offset(x = 0.dp, y = 20.dp)
 
                         ) {
-                            val animatedTimeProgress by animateFloatAsState(
-                                targetValue = timeProgress,
-                                animationSpec = tween(durationMillis = 300) // 动画持续时间为 300 毫秒
-                            )
+
                             Slider(
-                                value = animatedTimeProgress,
+                                value = timeProgress,
                                 modifier = Modifier.align(Alignment.Center)
                                     .onPointerEvent(PointerEventType.Press){ timeSliderPress = true }
                                     .onPointerEvent(PointerEventType.Release){ timeSliderPress = false }
