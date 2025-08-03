@@ -493,19 +493,38 @@ fun convertTimeToSeconds(time:String):Double{
  * 转换时间为毫秒
  */
 fun convertTimeToMilliseconds(time:String):Long{
-    val parts = time.split(":")
-    val hours = parts[0].toLong()
-    val minutes = parts[1].toLong()
-    // 如果是 00:00:00,000 需要把 , 替换为 .
-    val seconds = if(parts[2].contains(",")){
-        parts[2].replace(",",".").toLong()
-    }else{
-        parts[2].substringBefore(".").toLong()
-    }
-    val milliseconds = parts[2].substringAfter(".").toLong()
+    try{
+        val parts = time.split(":")
+        // 如果时间格式不正确，直接返回 0
+        if(parts.size != 3) return 0L
 
-    val totalMilliseconds = ((hours * 3600 + minutes * 60 + seconds) * 1000) + milliseconds
-    return totalMilliseconds
+        val hours = parts[0].toLong()
+        val minutes = parts[1].toLong()
+
+        // 支持两种格式：逗号分隔 (00:00:00,000) 和点分隔 (00:00:00.000)
+        val secondsAndMillis = if (parts[2].contains(",")) {
+            parts[2].split(",")
+        } else {
+            parts[2].split(".")
+        }
+
+        if (secondsAndMillis.size != 2){
+            // 如果没有秒和毫秒部分，直接返回小时和分钟的总和
+            return (hours * 3600 + minutes * 60) * 1000
+        }
+
+        val seconds = secondsAndMillis[0].toLong()
+        val milliseconds = secondsAndMillis[1].toLong()
+
+        val totalMilliseconds = ((hours * 3600 + minutes * 60 + seconds) * 1000) + milliseconds
+        return totalMilliseconds
+
+    }catch (exception: Exception){
+        exception.printStackTrace()
+        println("时间转换失败: $time, 错误: ${exception.message}")
+
+        return 0L
+    }
 }
 
 

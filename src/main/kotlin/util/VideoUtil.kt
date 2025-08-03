@@ -13,7 +13,6 @@ import net.bramp.ffmpeg.job.FFmpegJob
 import org.mozilla.universalchardet.UniversalDetector
 import player.PlayerCaption
 import player.convertTimeToMilliseconds
-import player.convertTimeToMilliseconds2
 import state.getSettingsDirectory
 import subtitleFile.FormatSRT
 import subtitleFile.TimedTextObject
@@ -435,8 +434,8 @@ fun parseSubtitles(subtitlesPath: String):List<PlayerCaption>{
                 content = removeItalicSymbol(content)
                 content = replaceNewLine(content)
                 val newCaption = PlayerCaption(
-                    start = convertTimeToMilliseconds2(caption.start.getTime("hh:mm:ss,ms")),
-                    end = convertTimeToMilliseconds2(caption.end.getTime("hh:mm:ss,ms")),
+                    start = convertTimeToMilliseconds(caption.start.getTime("hh:mm:ss,ms")),
+                    end = convertTimeToMilliseconds(caption.end.getTime("hh:mm:ss,ms")),
                     content = content
                 )
                 if (caption.content.length > maxLength) {

@@ -183,8 +183,8 @@ fun MiniVideoPlayer(
         /** 是否显示字幕 */
         var showCaption by remember { mutableStateOf(loadShowCaptionState()) }
         // 循环播放相关状态
-        val endTimeMillis = remember(mediaInfo.caption.end) { convertTimeToMilliseconds2(mediaInfo.caption.end) }
-        val startTimeMillis = remember(mediaInfo.caption.start) { convertTimeToMilliseconds2(mediaInfo.caption.start) }
+        val endTimeMillis = remember(mediaInfo.caption.end) { convertTimeToMilliseconds(mediaInfo.caption.end) }
+        val startTimeMillis = remember(mediaInfo.caption.start) { convertTimeToMilliseconds(mediaInfo.caption.start) }
 
         // 事件监听器
         val eventListener = object : MediaPlayerEventAdapter() {
@@ -665,38 +665,6 @@ fun Component.createMediaPlayer(): EmbeddedMediaPlayer {
         is CallbackMediaPlayerComponent -> mediaPlayer()
         is EmbeddedMediaPlayerComponent -> mediaPlayer()
         else -> throw IllegalArgumentException("You can only call mediaPlayer() on vlcj player component")
-    }
-}
-
-/**
- * 将字幕时间格式（如 "00:01:23,456" 或 "00:01:23.456"）转换为毫秒
- * @param timeString 时间字符串，格式为 "HH:MM:SS,mmm" 或 "HH:MM:SS.mmm"
- * @return 对应的毫秒数
- */
-fun convertTimeToMilliseconds2(timeString: String): Long {
-    try {
-        val parts = timeString.split(":")
-        if (parts.size != 3) return 0L
-
-        val hours = parts[0].toLong()
-        val minutes = parts[1].toLong()
-
-        // 支持两种格式：逗号分隔 (00:00:00,000) 和点分隔 (00:00:00.000)
-        val secondsAndMillis = if (parts[2].contains(",")) {
-            parts[2].split(",")
-        } else {
-            parts[2].split(".")
-        }
-
-        if (secondsAndMillis.size != 2) return 0L
-
-        val seconds = secondsAndMillis[0].toLong()
-        val milliseconds = secondsAndMillis[1].toLong()
-
-        return hours * 3600000 + minutes * 60000 + seconds * 1000 + milliseconds
-    } catch (e: Exception) {
-        println("时间转换失败: $timeString, 错误: ${e.message}")
-        return 0L
     }
 }
 
