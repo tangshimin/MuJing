@@ -7,12 +7,14 @@ import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import java.nio.file.Files
 
 plugins {
+    // 版本设置在 settings.gradle.kts 的 plugins 块中
+    // kotlin
     kotlin("jvm")
     // jetbrainsCompose
     id("org.jetbrains.compose")
     // compose-compiler
-    id("org.jetbrains.kotlin.plugin.compose") version "2.0.0"
-    kotlin("plugin.serialization") version "2.0.0"
+    id("org.jetbrains.kotlin.plugin.compose")
+    kotlin("plugin.serialization")
     id("com.github.gmazzo.buildconfig") version "5.3.5"
 }
 
@@ -77,8 +79,8 @@ buildscript {
 }
 
 tasks.withType<KotlinCompile>().configureEach {
-    kotlinOptions {
-        kotlinOptions.freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+    compilerOptions {
+        compilerOptions.freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
     }
 }
 
@@ -90,18 +92,24 @@ tasks.withType<KotlinCompile>().configureEach {
 compose.desktop {
     application {
         mainClass = "MainKt"
-        jvmArgs += listOf("-client")
-        jvmArgs += listOf("-Dfile.encoding=UTF-8")
-        jvmArgs += listOf("-Dstdout.encoding=UTF-8")
-        jvmArgs += listOf("-Dstderr.encoding=UTF-8")
-        jvmArgs += listOf("-Dsun.stdout.encoding=UTF-8")
-        jvmArgs += listOf("-Dapple.awt.application.appearance=system")
-        // 直接在 Swing 组件上渲染 Compose,文档链接：
-        // https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-desktop-swing-interoperability.html#experimental-off-screen-rendering
-        jvmArgs += listOf("-Dcompose.swing.render.on.graphics=true")
-        // 让 Compose 能显示在 Swing 组件上面,文档链接：
-        // https://www.jetbrains.com/help/kotlin-multiplatform-dev/compose-desktop-swing-interoperability.html#use-swing-in-a-compose-multiplatform-application
-        jvmArgs += listOf("-Dcompose.interop.blending=true")
+        jvmArgs += listOf(
+            "-server", //server 模式
+            "-XX:+UnlockExperimentalVMOptions",// 解锁实验性 JVM 选项
+            "-XX:+UseZGC",// ZGC 垃圾回收器
+            "-XX:+ZUncommit",// ZGC 垃圾回收器的未使用内存归还功能
+            "-XX:ZUncommitDelay=10", // ZGC 垃圾回收器的未使用内存归还延迟，单位为秒
+            "-XX:+UncommitMemory", // 把未使用的堆内存主动归还给操作系统
+            "-Xms128m", // 设置初始堆大小
+            "-Xmx1g", // 设置最大堆大小
+            "-Dfile.encoding=UTF-8",
+            "-Dstdout.encoding=UTF-8",
+            "-Dstderr.encoding=UTF-8",
+            "-Dsun.stdout.encoding=UTF-8",
+            "-Dapple.awt.application.appearance=system",
+            "-Dcompose.swing.render.on.graphics=true", // 直接在 Swing 组件上渲染 Compose
+            "-Dcompose.interop.blending=true" // 让 Compose 能显示在 Swing 组件上面
+        )
+
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "幕境"
