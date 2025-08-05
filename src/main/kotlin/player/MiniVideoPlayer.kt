@@ -167,7 +167,7 @@ fun MiniVideoPlayer(
 
     if(mediaInfo != null) {
         /** VLC 视频播放组件 */
-        val videoPlayerComponent  = remember { createMediaPlayerComponent() }
+        val videoPlayerComponent  = remember { createMediaPlayerComponent2() }
         val videoPlayer = remember { videoPlayerComponent.createMediaPlayer() }
         val surface = remember {
             SkiaImageVideoSurface().also {
@@ -186,98 +186,6 @@ fun MiniVideoPlayer(
         val endTimeMillis = remember(mediaInfo.caption.end) { convertTimeToMilliseconds(mediaInfo.caption.end) }
         val startTimeMillis = remember(mediaInfo.caption.start) { convertTimeToMilliseconds(mediaInfo.caption.start) }
 
-        // 事件监听器
-        val eventListener = object : MediaPlayerEventAdapter() {
-
-            override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
-                // 更新当前时间
-                currentTime = String.format(
-                    "%02d:%02d:%02d",
-                    (newTime / 3600000).toInt(),
-                    (newTime / 60000 % 60).toInt(),
-                    (newTime / 1000 % 60).toInt()
-                )
-            }
-
-            override fun mediaPlayerReady(mediaPlayer: MediaPlayer?) {
-                videoPlayer.audio().setVolume((volume).toInt())
-                val duration = videoPlayer.media().info().duration()
-                videoDuration = String.format(
-                    "%02d:%02d:%02d",
-                    (duration / 3600000).toInt(),
-                    (duration / 60000 % 60).toInt(),
-                    (duration / 1000 % 60).toInt()
-                )
-                // 通知外部播放器已准备好
-                onPlayerReady(videoPlayer)
-
-            }
-
-            /**
-             * stopped 事件触发时机：
-             * 1. 用户手动调用 stop() 方法
-             * 2. 播放器被强制停止（如资源不足）
-             * 3. 应用程序请求停止播放
-             *
-             * 特点：
-             * - 这是一个"主动停止"事件
-             * - 播放器状态被重置到初始状态
-             * - 通常是预期的行为，不表示错误
-             * - 通常表示用户已经播放完/听完了内容
-             *
-             */
-            override fun stopped(mediaPlayer: MediaPlayer?) {
-                // 切换到主线程更新状态
-                CoroutineScope(Dispatchers.Main).launch {
-                    stop()
-                }
-            }
-
-            /**
-             * finished 事件触发时机：
-             * 1. 媒体播放到达文件末尾
-             * 2. 播放列表中的最后一个项目播放完成
-             * 3. 流媒体播放结束
-             *
-             * 特点：
-             * - 这是一个"自然结束"事件
-             * - 表示内容已完整播放
-             * - 播放器可能会自动进入停止状态
-             * - 通常表示用户已经播放完/听完了内容
-             *
-             * 注意：循环播放现在通过时间监听实现，避免 VLC 内部循环导致的崩溃问题
-             */
-            override fun finished(mediaPlayer: MediaPlayer?) {
-                // 切换到主线程更新状态
-                CoroutineScope(Dispatchers.Main).launch {
-                    stop()
-                }
-            }
-
-            /**
-             * error 事件触发时机：
-             * 1. 媒体文件损坏或格式不支持
-             * 2. 网络流播放时网络中断或连接失败
-             * 3. 解码器无法处理媒体内容
-             * 4. 磁盘空间不足导致播放失败
-             * 5. 权限问题无法访问媒体文件
-             * 6. VLC 内部错误或资源不足
-             *
-             * 特点：
-             * - 这是一个"异常停止"事件，播放遇到无法恢复的错误
-             * - 通常需要用户干预（如检查文件、网络等）
-             * - 应该向用户显示错误信息
-             * - 播放器状态不确定，建议重新初始化
-             */
-            override fun error(mediaPlayer: MediaPlayer?) {
-                // 输出错误信息
-                println("播放错误: 未知错误")
-                // 切换到主线程更新状态
-                CoroutineScope(Dispatchers.Main).launch {
-                    stop()
-                }
-            }
-        }
         // 监听外部播放状态变化
         LaunchedEffect(externalPlayingState) {
             isPlaying = externalPlayingState
@@ -579,7 +487,99 @@ fun MiniVideoPlayer(
             }
         }
 
-        LaunchedEffect(Unit) {
+        DisposableEffect(Unit) {
+            // 事件监听器
+            val eventListener = object : MediaPlayerEventAdapter() {
+
+                override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
+                    // 更新当前时间
+                    currentTime = String.format(
+                        "%02d:%02d:%02d",
+                        (newTime / 3600000).toInt(),
+                        (newTime / 60000 % 60).toInt(),
+                        (newTime / 1000 % 60).toInt()
+                    )
+                }
+
+                override fun mediaPlayerReady(mediaPlayer: MediaPlayer?) {
+                    videoPlayer.audio().setVolume((volume).toInt())
+                    val duration = videoPlayer.media().info().duration()
+                    videoDuration = String.format(
+                        "%02d:%02d:%02d",
+                        (duration / 3600000).toInt(),
+                        (duration / 60000 % 60).toInt(),
+                        (duration / 1000 % 60).toInt()
+                    )
+                    // 通知外部播放器已准备好
+                    onPlayerReady(videoPlayer)
+
+                }
+
+                /**
+                 * stopped 事件触发时机：
+                 * 1. 用户手动调用 stop() 方法
+                 * 2. 播放器被强制停止（如资源不足）
+                 * 3. 应用程序请求停止播放
+                 *
+                 * 特点：
+                 * - 这是一个"主动停止"事件
+                 * - 播放器状态被重置到初始状态
+                 * - 通常是预期的行为，不表示错误
+                 * - 通常表示用户已经播放完/听完了内容
+                 *
+                 */
+                override fun stopped(mediaPlayer: MediaPlayer?) {
+                    // 切换到主线程更新状态
+                    CoroutineScope(Dispatchers.Main).launch {
+                        stop()
+                    }
+                }
+
+                /**
+                 * finished 事件触发时机：
+                 * 1. 媒体播放到达文件末尾
+                 * 2. 播放列表中的最后一个项目播放完成
+                 * 3. 流媒体播放结束
+                 *
+                 * 特点：
+                 * - 这是一个"自然结束"事件
+                 * - 表示内容已完整播放
+                 * - 播放器可能会自动进入停止状态
+                 * - 通常表示用户已经播放完/听完了内容
+                 *
+                 * 注意：循环播放现在通过时间监听实现，避免 VLC 内部循环导致的崩溃问题
+                 */
+                override fun finished(mediaPlayer: MediaPlayer?) {
+                    // 切换到主线程更新状态
+                    CoroutineScope(Dispatchers.Main).launch {
+                        stop()
+                    }
+                }
+
+                /**
+                 * error 事件触发时机：
+                 * 1. 媒体文件损坏或格式不支持
+                 * 2. 网络流播放时网络中断或连接失败
+                 * 3. 解码器无法处理媒体内容
+                 * 4. 磁盘空间不足导致播放失败
+                 * 5. 权限问题无法访问媒体文件
+                 * 6. VLC 内部错误或资源不足
+                 *
+                 * 特点：
+                 * - 这是一个"异常停止"事件，播放遇到无法恢复的错误
+                 * - 通常需要用户干预（如检查文件、网络等）
+                 * - 应该向用户显示错误信息
+                 * - 播放器状态不确定，建议重新初始化
+                 */
+                override fun error(mediaPlayer: MediaPlayer?) {
+                    // 输出错误信息
+                    println("播放错误: 未知错误")
+                    // 切换到主线程更新状态
+                    CoroutineScope(Dispatchers.Main).launch {
+                        stop()
+                    }
+                }
+            }
             // 添加事件监听器
             videoPlayer.events().addMediaPlayerEventListener(eventListener)
             val caption = mediaInfo.caption
@@ -600,12 +600,14 @@ fun MiniVideoPlayer(
             }
 
             focusRequester.requestFocus()
-        }
 
-
-        DisposableEffect(Unit) {
             onDispose {
-                videoPlayer.release()
+                if(videoPlayer.status().isPlaying) {
+                    videoPlayer.controls().stop()
+                }
+                surface.release()
+                videoPlayerComponent.release()
+                System.gc()
             }
         }
     }

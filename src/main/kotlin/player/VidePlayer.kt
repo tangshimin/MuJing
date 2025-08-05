@@ -43,10 +43,8 @@ import icons.ArrowDown
 import kotlinx.coroutines.*
 import theme.LocalCtrl
 import tts.rememberAzureTTS
-import ui.wordscreen.rememberPronunciation
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
-import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
 import util.findSubtitleFiles
 import util.getSubtitleLangLabel
 import util.parseSubtitles
@@ -115,17 +113,14 @@ fun VideoPlayer(
     val vocabularyPathChanged = state.vocabularyPathChanged
 
     /** 视频播放组件 */
-    val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent()) }
+    val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent2()) }
     val videoPlayer = remember { videoPlayerComponent.createMediaPlayer() }
     val surface = remember {
         SkiaImageVideoSurface().also {
             videoPlayer.videoSurface().set(it)
         }
     }
-    val pronunciation = rememberPronunciation()
-    /**音频播放组件 */
-    val audioPlayerComponent by remember{mutableStateOf(AudioPlayerComponent())}
-
+    
     /** 是否正在播放视频 */
     var isPlaying by remember { mutableStateOf(false) }
 
@@ -217,24 +212,7 @@ fun VideoPlayer(
         }
     }
 
-    /** 播放单词发音 */
-    val playAudio:(String) -> Unit = { word ->
-        val audioPath = getAudioPath(
-            word = word,
-            audioSet = audioSet,
-            addToAudioSet = {audioSet.add(it)},
-            pronunciation = pronunciation,
-            azureTTS = azureTTS,
-        )
-        playAudio(
-            word,
-            audioPath,
-            pronunciation =  pronunciation,
-            audioVolume,
-            audioPlayerComponent,
-            changePlayerState = { },
-        )
-    }
+
 
     /** 使用这个函数处理拖放的文件 */
     val parseImportFile: (List<File>) -> Unit = { files ->
@@ -277,7 +255,6 @@ fun VideoPlayer(
         extSubIndex = -2 // 禁用外部字幕
 
         scope.launch(Dispatchers.Default) {
-//        videoPlayerComponent.mediaPlayer().subpictures().setTrack(trackId)
             if(trackId  != -1){
                 val list = readCaptionList(videoPath = videoPath, subtitleId = trackId)
                 timedCaption.setCaptionList(list)
@@ -431,6 +408,7 @@ fun VideoPlayer(
                             },
                         surface = surface
                     )
+
                 }else{
                     // 如果没有视频路径，则显示一个黑色背景
                     Box(Modifier
@@ -843,7 +821,7 @@ fun VideoPlayer(
             }
         }
 
-        LaunchedEffect(Unit){
+        DisposableEffect(Unit){
             val eventListener = object: MediaPlayerEventAdapter() {
                 override fun timeChanged(mediaPlayer: MediaPlayer, newTime: Long) {
                     if(videoDuration == 0L) return
@@ -885,6 +863,24 @@ fun VideoPlayer(
                 }
             }
             videoPlayer.events().addMediaPlayerEventListener(eventListener)
+
+            onDispose {
+                try{
+                    // 停止播放
+                    if(videoPlayer.status().isPlaying) {
+                        videoPlayer.controls().stop()
+                    }
+                    // 释放视频表面资源
+                    surface.release()
+                    videoPlayerComponent.release()
+                    System.gc()
+
+                }catch (e: Exception) {
+                    e.printStackTrace()
+                    println("释放视频播放器资源时发生错误: ${e.message}")
+                }
+            }
+
         }
 
        // 更新字幕
@@ -920,12 +916,12 @@ fun VideoPlayer(
             }
         }
 
-        DisposableEffect(Unit){
-            onDispose {
-                videoPlayer.release()
-                audioPlayerComponent.mediaPlayer().release()
-            }
-        }
+//        DisposableEffect(Unit){
+//            onDispose {
+//                videoPlayer.release()
+//                audioPlayerComponent.mediaPlayer().release()
+//            }
+//        }
     }
 }
 

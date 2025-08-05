@@ -2,6 +2,7 @@ package player
 
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableStateOf
+import io.ktor.utils.io.*
 import org.jetbrains.skia.ColorSpace
 import org.jetbrains.skia.Image
 import org.jetbrains.skia.ImageInfo
@@ -28,6 +29,22 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
 
     val image: State<Image?> = skiaImage
 
+    fun release() {
+        try{
+            // 释放当前的 Skia Image
+            skiaImage.value?.close()
+            skiaImage.value = null
+
+            // 释放 Pixmap 资源
+            if (::pixmap.isInitialized) {
+                pixmap.close()
+            }
+        }catch (ex: Exception) {
+            // 捕获并忽略异常，确保资源释放不会导致崩溃
+            ex.printStack()
+        }
+
+    }
     private inner class SkiaImageBufferFormatCallback : BufferFormatCallback {
         private var sourceWidth: Int = 0
         private var sourceHeight: Int = 0
@@ -38,10 +55,18 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
             return RV32BufferFormat(sourceWidth, sourceHeight)
         }
 
+        override fun newFormatSize(
+            bufferWidth: Int,
+            bufferHeight: Int,
+            displayWidth: Int,
+            displayHeight: Int
+        ) = Unit
+
         override fun allocatedBuffers(buffers: Array<ByteBuffer>) {
             val buffer = buffers[0]
             val pointer = ByteBufferFactory.getAddress(buffer)
             val imageInfo = ImageInfo.makeN32Premul(sourceWidth, sourceHeight, ColorSpace.sRGB)
+
             pixmap = Pixmap.make(imageInfo, pointer, sourceWidth * 4)
         }
     }
@@ -51,9 +76,20 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
             mediaPlayer: MediaPlayer,
             nativeBuffers: Array<ByteBuffer>,
             bufferFormat: BufferFormat,
+            displayWidth: Int,
+            displayHeight: Int
         ) {
+            if (!mediaPlayer.status().isPlaying) {
+                return
+            }
+
+            // 清理 Skia 资源
+            skiaImage.value?.close()
             skiaImage.value = Image.makeFromPixmap(pixmap)
         }
+
+        override fun lock(mediaPlayer: MediaPlayer?) = Unit
+        override fun unlock(mediaPlayer: MediaPlayer?) = Unit
     }
 
     private inner class SkiaImageCallbackVideoSurface : CallbackVideoSurface(
