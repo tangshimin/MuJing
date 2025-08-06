@@ -4,20 +4,13 @@ import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
-import androidx.compose.material.DropdownMenu
-import androidx.compose.material.DropdownMenuItem
-import androidx.compose.material.Surface
-import androidx.compose.material.Switch
+import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material.icons.outlined.Navigation
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -34,7 +27,6 @@ import androidx.compose.ui.unit.dp
 import data.Caption
 import kotlinx.coroutines.*
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import state.getSettingsDirectory
@@ -244,7 +236,7 @@ fun MiniVideoPlayer(
                         Text(
                             text = mediaInfo.caption.content,
                             color = Color.White,
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.h5,
                             modifier = Modifier
                                 .background(Color.Black.copy(alpha = 0.7f))
                                 .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -262,20 +254,20 @@ fun MiniVideoPlayer(
                         text = "$currentTime / $videoDuration",
                         color = Color.White,
                         modifier = Modifier.padding(8.dp),
-                        style = MaterialTheme.typography.bodyLarge
+                        style = MaterialTheme.typography.subtitle2
                     )
 
                     TooltipArea(
                         tooltip = {
                             Surface(
                                 elevation = 4.dp,
-                                border = BorderStroke(1.dp, androidx.compose.material.MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                                 shape = RectangleShape
                             ) {
                                 val text = if (isPlaying) "暂停" else "播放"
                                 Text(
                                     text = text,
-                                    color = androidx.compose.material.MaterialTheme.colors.onSurface,
+                                    color = MaterialTheme.colors.onSurface,
                                     modifier = Modifier.padding(10.dp)
                                 )
                             }
@@ -305,12 +297,12 @@ fun MiniVideoPlayer(
                         tooltip = {
                             Surface(
                                 elevation = 4.dp,
-                                border = BorderStroke(1.dp, androidx.compose.material.MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                                 shape = RectangleShape
                             ) {
                                 Text(
                                     text = "停止",
-                                    color = androidx.compose.material.MaterialTheme.colors.onSurface,
+                                    color =MaterialTheme.colors.onSurface,
                                     modifier = Modifier.padding(10.dp)
                                 )
                             }
@@ -344,7 +336,7 @@ fun MiniVideoPlayer(
                             tooltip = {
                                 Surface(
                                     elevation = 4.dp,
-                                    border = BorderStroke(1.dp, androidx.compose.material.MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                    border = BorderStroke(1.dp,MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                                     shape = RectangleShape
                                 ) {
                                     val ctrl = LocalCtrl.current
@@ -354,10 +346,10 @@ fun MiniVideoPlayer(
                                     ){
                                         Text(
                                             text = "查看语境 ",
-                                            color = androidx.compose.material.MaterialTheme.colors.onSurface,
+                                            color =MaterialTheme.colors.onSurface,
                                         )
                                         Text(text =shortcut,
-                                            color = androidx.compose.material.MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
+                                            color =MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
                                         )
                                     }                                }
                             },
@@ -388,12 +380,12 @@ fun MiniVideoPlayer(
                             tooltip = {
                                 Surface(
                                     elevation = 4.dp,
-                                    border = BorderStroke(1.dp, androidx.compose.material.MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                    border = BorderStroke(1.dp,MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                                     shape = RectangleShape
                                 ) {
                                     Text(
                                         text = "设置",
-                                        color = androidx.compose.material.MaterialTheme.colors.onSurface,
+                                        color =MaterialTheme.colors.onSurface,
                                         modifier = Modifier.padding(10.dp)
                                     )
                                 }
@@ -416,7 +408,7 @@ fun MiniVideoPlayer(
 
                         DropdownMenu(
                             expanded = settingsExpanded,
-                            offset = DpOffset(x = (-60).dp, y = (-100).dp),
+                            offset = DpOffset(x = (-60).dp, y = (-10).dp),
                             onDismissRequest = {
                                 settingsExpanded = false
                                 focusRequester.requestFocus()
@@ -430,7 +422,7 @@ fun MiniVideoPlayer(
                                 ) {
                                     Text(
                                         text = "显示字幕",
-                                        color = androidx.compose.material.MaterialTheme.colors.onBackground,
+                                        color =MaterialTheme.colors.onBackground,
                                     )
                                     Switch(checked = showCaption,
                                         onCheckedChange = {
