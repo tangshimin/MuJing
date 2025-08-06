@@ -70,6 +70,7 @@ fun SubtitleScreen(
     closeLoadingDialog: () -> Unit,
     openSearch: () -> Unit,
     showPlayer :(Boolean) -> Unit,
+    colors: Colors,
 ) {
     val scope = rememberCoroutineScope()
     val focusManager = LocalFocusManager.current
@@ -134,7 +135,8 @@ fun SubtitleScreen(
                     if(multipleLines.enabled) {
                         subtitlesState.currentIndex = multipleLines.startIndex
                     }
-                }
+                },
+                colors = colors,
             )
 
         }

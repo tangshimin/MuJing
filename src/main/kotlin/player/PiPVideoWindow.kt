@@ -2,6 +2,8 @@ package player
 
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.window.WindowDraggableArea
+import androidx.compose.material.Colors
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -102,7 +104,7 @@ import java.awt.event.WindowEvent
  * - 窗口位置会在边界检查后自动调整以确保可见性
  */
 class PiPVideoWindow(
-    private val onClose: () -> Unit
+    private val onClose: () -> Unit,
 ) {
     private var pipWindow: ComposeWindow? = null
     private var isInPiPMode = false
@@ -218,7 +220,8 @@ class PiPVideoWindow(
         onPlayingStateChanged: (Boolean) -> Unit = {},
         initialPlayingState: Boolean = true, // 添加初始播放状态参数
         isLooping: Boolean = false, // 添加循环播放参数
-        onLoopRestart: () -> Unit = {} // 添加循环重启回调
+        onLoopRestart: () -> Unit = {}, // 添加循环重启回调,
+        colors: Colors,
     ) {
         if (isInPiPMode) return
 
@@ -273,29 +276,30 @@ class PiPVideoWindow(
                     internalPlayingState = true
                     updatePlayingStateCallback?.invoke(true) // 通知外部恢复状态改变
                 }
-
-                WindowDraggableArea {
-                    MiniVideoPlayer(
-                        modifier = Modifier.fillMaxSize(),
-                        size = DpSize(bounds.width.dp, bounds.height.dp),
-                        stop = {
-                            exitPiPMode()
-                        },
-                        timeChanged = timeChanged,
-                        volume = volume,
-                        mediaInfo = mediaInfo,
-                        externalSubtitlesVisible = externalSubtitlesVisible,
-                        onPlayerReady = { player ->
-                            videoPlayerRef = player
-                        },
-                        onPlayingStateChanged = { isPlaying ->
-                            isVideoPlaying = isPlaying
-                            updatePlayingStateCallback?.invoke(isPlaying)
-                        },
-                        externalPlayingState = internalPlayingState,
-                        isLooping = isLooping,
-                        onLoopRestart = onLoopRestart
-                    )
+                MaterialTheme(colors = colors){
+                    WindowDraggableArea {
+                        MiniVideoPlayer(
+                            modifier = Modifier.fillMaxSize(),
+                            size = DpSize(bounds.width.dp, bounds.height.dp),
+                            stop = {
+                                exitPiPMode()
+                            },
+                            timeChanged = timeChanged,
+                            volume = volume,
+                            mediaInfo = mediaInfo,
+                            externalSubtitlesVisible = externalSubtitlesVisible,
+                            onPlayerReady = { player ->
+                                videoPlayerRef = player
+                            },
+                            onPlayingStateChanged = { isPlaying ->
+                                isVideoPlaying = isPlaying
+                                updatePlayingStateCallback?.invoke(isPlaying)
+                            },
+                            externalPlayingState = internalPlayingState,
+                            isLooping = isLooping,
+                            onLoopRestart = onLoopRestart
+                        )
+                    }
                 }
             }
 

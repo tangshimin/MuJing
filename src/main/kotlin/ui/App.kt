@@ -239,6 +239,7 @@ fun App(
                                     closeLoadingDialog = { appState.loadingFileChooserVisible = false },
                                     openSearch = {appState.openSearch()},
                                     showPlayer = { playerState.showPlayerWindow = it },
+                                    colors = appState.colors
                                 )
                             }
 
