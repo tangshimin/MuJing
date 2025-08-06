@@ -13,17 +13,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposePanel
-import androidx.compose.ui.awt.awtEventOrNull
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
-import androidx.compose.ui.layout.boundsInWindow
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.TextFieldValue
@@ -42,9 +37,7 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
-import player.isMacOS
-import player.isWindows
-import player.play
+import player.*
 import state.AppState
 import state.getResourcesFile
 import ui.edit.displayExchange
@@ -54,15 +47,10 @@ import ui.window.windowBackgroundFlashingOnCloseFixHack
 import ui.wordscreen.getPlayTripleMap
 import ui.wordscreen.secondsToString
 import java.awt.BorderLayout
-import java.awt.Component
-import java.awt.Point
-import java.awt.Rectangle
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
 import java.io.File
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 import javax.swing.JFrame
 
 /**
@@ -790,9 +778,6 @@ fun EditWordComposeContent(
             }
             var linkSize by remember { mutableStateOf(tempWord.externalCaptions.size) }
             EditingCaptions(
-                videoVolume = appState.global.videoVolume,
-                playerWindow = appState.videoPlayerWindow,
-                videoPlayerComponent = appState.videoPlayerComponent,
                 vocabularyDir = vocabularyDir,
                 vocabularyType = vocabulary.type,
                 subtitlesTrackId = vocabulary.subtitlesTrackId,
@@ -910,9 +895,6 @@ fun EditWordComposeContent(
 )
 @Composable
 fun EditingCaptions(
-    videoVolume: Float,
-    playerWindow: JFrame,
-    videoPlayerComponent: Component,
     relateVideoPath: String,
     subtitlesTrackId: Int,
     vocabularyType: VocabularyType,
@@ -976,99 +958,16 @@ fun EditingCaptions(
                         tint = MaterialTheme.colors.onBackground
                     )
                 }
-
-                val playerBounds by remember {
-                    mutableStateOf(
-                        Rectangle(
-                            0,
-                            0,
-                            540,
-                            303
-                        )
-                    )
-                }
-                val mousePoint by remember{ mutableStateOf(Point(0,0)) }
-                var isVideoBoundsChanged by remember{mutableStateOf(false)}
-                val resetVideoBounds:() -> Rectangle = {
-                    isVideoBoundsChanged = false
-                    Rectangle(mousePoint.x, mousePoint.y, 540, 303)
-                }
-                var isPlaying by remember { mutableStateOf(false) }
-                var playFailed by remember{mutableStateOf(false)}
-                var failedMessage by remember{mutableStateOf("")}
-                Box{
-                    IconButton(onClick = {},
-                        modifier = Modifier
-                            .onPointerEvent(PointerEventType.Press) { pointerEvent ->
-                                val location =
-                                    pointerEvent.awtEventOrNull?.locationOnScreen
-                                if (location != null) {
-                                    if(isVideoBoundsChanged){
-                                        mousePoint.x = location.x - 270 + 24
-                                        mousePoint.y = location.y - 320
-                                    }else{
-                                        playerBounds.x = location.x - 270 + 24
-                                        playerBounds.y = location.y - 320
-                                    }
-
-                                    if (!isPlaying) {
-                                        scope.launch {
-                                            play(
-                                                window = playerWindow,
-                                                setIsPlaying = { isPlaying = it },
-                                                volume = videoVolume,
-                                                playTriple = playTriple,
-                                                videoPlayerComponent = videoPlayerComponent,
-                                                bounds = playerBounds,
-                                                onFailed = { message ->
-                                                    playFailed = true
-                                                    failedMessage = message
-                                                },
-                                                resetVideoBounds = resetVideoBounds,
-                                                isVideoBoundsChanged = isVideoBoundsChanged,
-                                                vocabularyDir = vocabularyDir,
-                                                setIsVideoBoundsChanged = { isVideoBoundsChanged = it }
-                                            )
-                                        }
-                                    }
-                                }
-                            }) {
-                        Icon(
-                            Icons.Filled.PlayArrow,
-                            contentDescription = "Localized description",
-                            tint = MaterialTheme.colors.primary
-                        )
-                    }
-                    DropdownMenu(
-                        expanded = playFailed,
-                        onDismissRequest = { playFailed = false },
-                        modifier = Modifier.width(210.dp).height(40.dp)
-                    ) {
-                        Surface(
-                            elevation = 5.dp,
-                            shape = RectangleShape,
-                        ) {
-                            Column(Modifier.width(210.dp).height(40.dp)) {
-                                Text(failedMessage, color = MaterialTheme.colors.onBackground,modifier = Modifier.padding(start = 10.dp))
-                            }
-                            LaunchedEffect(Unit){
-                                delay(2000)
-                                playFailed = false
-                            }
-                        }
-                    }
-                }
-
-
                 var showSettingTimeLineDialog by remember { mutableStateOf(false) }
                 if (showSettingTimeLineDialog) {
                     SettingTimeLine(
                         index = index,
-                        videoVolume = videoVolume,
-                        playerWindow = playerWindow,
-                        playTriple = playTriple,
                         vocabularyDir = vocabularyDir,
-                        mediaPlayerComponent = videoPlayerComponent,
+                        mediaInfo = MediaInfo(
+                            mediaPath = playTriple.second,
+                            caption = playTriple.first,
+                            trackId = playTriple.third
+                        ),
                         confirm = { (index, start, end) ->
                             scope.launch {
                                 if (vocabularyType == VocabularyType.DOCUMENT) {
@@ -1174,19 +1073,17 @@ fun EditingCaptions(
  * @param index 字幕的索引
  * @param close 点击取消后调用的回调
  * @param confirm 点击确定后调用的回调
- * @param playTriple 视频播放参数，Caption 表示要播放的字幕，String 表示视频的地址，Int 表示字幕的轨道 ID。
+ * @param vocabularyDir 词库目录
+ * @param mediaInfo 视频信息，包含视频路径、字幕开始时间、结束时间和字幕轨道ID
  */
 @ExperimentalComposeUiApi
 @Composable
 fun SettingTimeLine(
     index: Int,
-    videoVolume: Float,
-    playerWindow: JFrame,
     close: () -> Unit,
     vocabularyDir:File,
     confirm: (Triple<Int, Double, Double>) -> Unit,
-    playTriple: Triple<Caption, String, Int>,
-    mediaPlayerComponent: Component,
+    mediaInfo: MediaInfo,
 ) {
     DialogWindow(
         title = "调整时间轴",
@@ -1197,76 +1094,65 @@ fun SettingTimeLine(
             size = DpSize(700.dp, 700.dp)
         ),
     ) {
+
+        val videoPlayerComponent  = remember { createMediaPlayerComponent2() }
+        val videoPlayer = remember { videoPlayerComponent.createMediaPlayer() }
+        val surface = remember {
+            SkiaImageVideoSurface().also {
+                videoPlayer.videoSurface().set(it)
+            }
+        }
         /** 协程构建器 */
         val scope = rememberCoroutineScope()
         val focusRequester = remember { FocusRequester() }
-        /** 视频地址 */
-        val relativeVideoPath = playTriple.second
-        val playerBounds by remember {
-            mutableStateOf(
-                Rectangle(
-                    0,
-                    0,
-                    540,
-                    303
-                )
-            )
-        }
-        val mousePoint by remember{ mutableStateOf(Point(0,0)) }
-        var isVideoBoundsChanged by remember{mutableStateOf(false)}
-        val resetVideoBounds:() -> Rectangle = {
-            isVideoBoundsChanged = false
-            Rectangle(mousePoint.x, mousePoint.y, 540, 303)
-        }
         var isSPressed by remember { mutableStateOf(false)}
-
         var isEPressed by remember { mutableStateOf(false)}
-        var isPlaying by remember { mutableStateOf(false) }
         var isSAndDirectionPressed by remember { mutableStateOf(false)}
         var isEAndDirectionPressed by remember { mutableStateOf(false)}
+        var errorMessage by remember { mutableStateOf("") }
 
-        /** 字幕内容 */
-        val caption = playTriple.first
+
         /** 当前字幕的开始时间，单位是秒 */
         var start by remember {
             mutableStateOf(
-                LocalTime.parse(caption.start, DateTimeFormatter.ofPattern("HH:mm:ss.SSS"))
-                    .toNanoOfDay().toDouble().div(1000_000_000)
+                convertTimeToSeconds(mediaInfo.caption.start)
             )
         }
         /** 当前字幕的结束时间，单位是秒 */
         var end by remember {
             mutableStateOf(
-                LocalTime.parse(caption.end, DateTimeFormatter.ofPattern("HH:mm:ss.SSS"))
-                    .toNanoOfDay().toDouble().div(1000_000_000)
+                convertTimeToSeconds(mediaInfo.caption.end)
             )
         }
         /** 调整时间轴的精度 */
         var precise by remember { mutableStateOf(1f) }
 
-        val oldStart = caption.start
-        val oldEnd = caption.end
+        val oldStart = mediaInfo.caption.start
+        val oldEnd = mediaInfo.caption.end
 
         val play = {
             scope.launch {
-                val newCaption = caption.copy(
-                    start = secondsToString(start) ,
-                    end = secondsToString(end)
-                )
-                play(
-                    window = playerWindow,
-                    setIsPlaying = { isPlaying = it },
-                    volume = videoVolume,
-                    playTriple = playTriple.copy(first = newCaption),
-                    videoPlayerComponent = mediaPlayerComponent,
-                    bounds = playerBounds,
-                    vocabularyDir = vocabularyDir,
-                    resetVideoBounds = resetVideoBounds,
-                    isVideoBoundsChanged = isVideoBoundsChanged,
-                    setIsVideoBoundsChanged = { isVideoBoundsChanged = it }
-                )
+                if(!videoPlayer.status().isPlaying){
+                    // 验证视频文件的路径
+                    val resolvedPath =  resolveMediaPath(mediaInfo.mediaPath, vocabularyDir)
+                    if(resolvedPath != ""){
+                        mediaInfo.mediaPath = resolvedPath
+                    }else{
+                       errorMessage =  if(mediaInfo.mediaPath.isEmpty())"视频地址为空" else "文件不存在:\n${mediaInfo.mediaPath}"
+                      println(errorMessage)
+                    }
+
+                    videoPlayer.media().play(mediaInfo.mediaPath,":start-time=$start", ":stop-time=$end")
+                }
             }
 
+        }
+
+        DisposableEffect(Unit) {
+            onDispose {
+                surface.release()
+                videoPlayerComponent.release()
+            }
         }
 
         Surface(
@@ -1332,20 +1218,15 @@ fun SettingTimeLine(
                     }
 
                     Divider()
-                    Box(
-                        modifier = Modifier.width(540.dp).height(303.dp)
-                        .background(Color.Black)
-                        .onGloballyPositioned { coordinates ->
-                            val rect = coordinates.boundsInWindow()
-                            if(isVideoBoundsChanged){
-                                mousePoint.x = window.x + rect.left.toInt()
-                                mousePoint.y = window.y + rect.top.toInt()
-                            }else{
-                                playerBounds.x = window.x + rect.left.toInt() + 10
-                                playerBounds.y = window.y + rect.top.toInt()+35
-                            }
-
-                        })
+                    Box(modifier = Modifier.width(540.dp).height(303.dp)){
+                        CustomCanvas(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black)
+                                .align(Alignment.Center),
+                            surface = surface
+                        )
+                    }
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         verticalAlignment = Alignment.CenterVertically,
@@ -1464,16 +1345,9 @@ fun SettingTimeLine(
                             Text("确定")
                         }
 
-                        OutlinedButton(onClick = {},
-                            modifier = Modifier
-                                .padding(start = 20.dp)
-                                .onPointerEvent(PointerEventType.Press) { pointerEvent ->
-                                    val location =
-                                        pointerEvent.awtEventOrNull?.locationOnScreen
-                                    if (location != null && !isPlaying) {
-                                        play()
-                                    }
-                                }
+                        OutlinedButton(onClick = { play() },
+                            modifier = Modifier.padding(start = 20.dp)
+
                         ) {
                             Text("预览")
                         }
@@ -1485,6 +1359,23 @@ fun SettingTimeLine(
                     }
                 }
             }
+        }
+
+       // 错误提示对话框
+        if(errorMessage.isNotEmpty()){
+            AlertDialog(
+                onDismissRequest = { errorMessage = "" },
+                title = { Text("错误",color = MaterialTheme.colors.error) },
+                text = {
+                    SelectionContainer { Text(errorMessage) }
+                },
+                confirmButton = {
+                    OutlinedButton(onClick = { errorMessage = "" }) {
+                        Text("确定")
+                    }
+                },
+                modifier = Modifier.width(500.dp).height(250.dp)
+            )
         }
     }
 }
