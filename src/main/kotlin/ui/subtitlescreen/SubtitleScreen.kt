@@ -598,6 +598,10 @@ fun SubtitleScreen(
                 selectTrack = { selectTypingSubTitles() },
                 isPlayKeystrokeSound = globalState.isPlayKeystrokeSound,
                 setIsPlayKeystrokeSound = { setIsPlayKeystrokeSound(it) },
+                resetVideoBounds = {
+                    subtitlesState.videoBounds = Rectangle(0, 0, 0, 0)
+                    subtitlesState.saveTypingSubtitlesState()
+                }
             )
             val topPadding = if (isMacOS()) 78.dp else 48.dp
             if (isOpenSettings) {

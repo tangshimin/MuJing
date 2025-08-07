@@ -5,10 +5,17 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.FlipToBack
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.dp
 import player.isMacOS
 
@@ -30,6 +37,7 @@ fun SubtitlesSidebar(
     setIsPlayKeystrokeSound: (Boolean) -> Unit,
     trackSize: Int,
     selectTrack: () -> Unit,
+    resetVideoBounds:() -> Unit,
 ) {
     if (isOpen) {
         Column(
@@ -143,6 +151,50 @@ fun SubtitlesSidebar(
                     checked = externalSubtitlesVisible,
                     onCheckedChange = {setExternalSubtitlesVisible(!externalSubtitlesVisible) },
                 )
+            }
+
+            var playExpanded by remember { mutableStateOf(false) }
+            Row(
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.fillMaxWidth().height(48.dp)
+                    .clickable {  playExpanded = true }
+                    .padding(start = 16.dp, end = 8.dp)
+            ) {
+                Text("播放设置", color = MaterialTheme.colors.onBackground)
+                Spacer(Modifier.width(15.dp))
+
+                CursorDropdownMenu(
+                    expanded = playExpanded,
+                    onDismissRequest = { playExpanded = false },
+                ) {
+                    Surface(
+                        elevation = 4.dp,
+                        shape = RectangleShape,
+                    ) {
+                        Row(Modifier.width(280.dp).height(48.dp)){
+                            DropdownMenuItem(
+                                onClick = resetVideoBounds,
+                                modifier = Modifier.width(280.dp).height(48.dp)
+                            ) {
+                                Text("恢复播放器的默认大小和位置",modifier = Modifier.padding(end = 10.dp))
+                                Icon(
+                                    imageVector = Icons.Filled.FlipToBack,
+                                    contentDescription = "",
+                                    tint = MaterialTheme.colors.onBackground,
+                                    modifier = Modifier.size(40.dp, 40.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+                Icon(
+                    imageVector = Icons.Filled.PlayArrow,
+                    contentDescription = "",
+                    tint = MaterialTheme.colors.onBackground,
+                    modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
+                )
+
             }
 
         }
