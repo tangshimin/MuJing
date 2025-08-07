@@ -93,7 +93,6 @@ fun App(
             val close: () -> Unit = {
                 showMainWindow = false
                 audioPlayerComponent.mediaPlayer().release()
-                appState.videoPlayerComponent.mediaPlayer().release()
             }
 
             val windowState = rememberWindowState(
@@ -197,24 +196,13 @@ fun App(
                                     }
                                 }
 
-                                val resetVideoBounds :() -> Rectangle ={
-                                    val bounds = computeVideoBounds(windowState, appState.openSidebar,density)
-                                    wordState.isChangeVideoBounds = false
-                                    appState.videoPlayerWindow.size =bounds.size
-                                    appState.videoPlayerWindow.location = bounds.location
-                                    appState.videoPlayerComponent.size = bounds.size
-                                    videoBounds.location = bounds.location
-                                    videoBounds.size = bounds.size
-                                    wordState.changePlayerBounds(bounds)
-                                    bounds
-                                }
+
                                 WordScreen(
                                     window = window,
                                     title = title,
                                     appState = appState,
                                     wordScreenState = wordState,
                                     videoBounds = videoBounds,
-                                    resetVideoBounds = resetVideoBounds,
                                     showPlayer = { playerState.showPlayerWindow = it },
                                     setVideoPath = playerState.videoPathChanged,
                                     setVideoVocabulary = playerState.vocabularyPathChanged,

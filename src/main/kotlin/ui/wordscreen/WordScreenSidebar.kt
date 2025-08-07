@@ -1,6 +1,5 @@
 package ui.wordscreen
 
-import theme.LocalCtrl
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
@@ -21,15 +20,15 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import tts.AzureTTS
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.isMacOS
 import state.AppState
+import theme.LocalCtrl
+import tts.AzureTTS
 import ui.dialog.AzureTTSDialog
 import ui.dialog.SelectChapterDialog
-import java.awt.Rectangle
 
 /**
  * 侧边菜单
@@ -44,7 +43,6 @@ fun WordScreenSidebar(
     dictationState: DictationState,
     azureTTS: AzureTTS,
     wordRequestFocus:() -> Unit,
-    resetVideoBounds :() -> Rectangle,
 ) {
 
     AnimatedVisibility (
@@ -1041,52 +1039,6 @@ fun WordScreenSidebar(
                         modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
                     )
                 }
-
-                var playExpanded by remember { mutableStateOf(false) }
-                Row(
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth().height(48.dp)
-                        .clickable {  playExpanded = true }
-                        .padding(start = 16.dp, end = 8.dp)
-                ) {
-                    Text("播放设置", color = MaterialTheme.colors.onBackground)
-                    Spacer(Modifier.width(15.dp))
-
-                    CursorDropdownMenu(
-                        expanded = playExpanded,
-                        onDismissRequest = { playExpanded = false },
-                    ) {
-                        Surface(
-                            elevation = 4.dp,
-                            shape = RectangleShape,
-                        ) {
-                            Row(Modifier.width(280.dp).height(48.dp)){
-                                DropdownMenuItem(
-                                    onClick = { resetVideoBounds() },
-                                    modifier = Modifier.width(280.dp).height(48.dp)
-                                ) {
-                                    Text("恢复播放器的默认大小和位置",modifier = Modifier.padding(end = 10.dp))
-                                    Icon(
-                                        imageVector = Icons.Filled.FlipToBack,
-                                        contentDescription = "",
-                                        tint = MaterialTheme.colors.onBackground,
-                                        modifier = Modifier.size(40.dp, 40.dp)
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    Icon(
-                        imageVector = Icons.Filled.PlayArrow,
-                        contentDescription = "",
-                        tint = MaterialTheme.colors.onBackground,
-                        modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
-                    )
-
-                }
-
-
             }
 
             val topPadding = if (isMacOS()) 30.dp else 0.dp

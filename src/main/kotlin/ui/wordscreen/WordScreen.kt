@@ -89,7 +89,6 @@ fun WordScreen(
     appState: AppState,
     wordScreenState: WordScreenState,
     videoBounds: Rectangle,
-    resetVideoBounds :() -> Rectangle,
     showPlayer :(Boolean) -> Unit,
     setVideoPath:(String) -> Unit,
     setVideoVocabulary:(String) -> Unit,
@@ -149,7 +148,6 @@ fun WordScreen(
                 wordScreenState = wordScreenState,
                 dictationState = dictationState,
                 wordRequestFocus = wordRequestFocus,
-                resetVideoBounds = resetVideoBounds,
                 azureTTS = azureTTS
                 )
 
@@ -2401,26 +2399,6 @@ fun Captions(
                     var failedMessage by remember { mutableStateOf("") }
                     val playCurrentCaption:()-> Unit = {
                         if (!isPlaying) {
-//                            scope.launch {
-//                                play(
-//                                    window = videoPlayerWindow,
-//                                    setIsPlaying = { setIsPlaying(it) },
-//                                    volume = volume,
-//                                    playTriple = playTriple,
-//                                    videoPlayerComponent = videoPlayerComponent,
-//                                    bounds = bounds,
-//                                    onFailed = { message ->
-//                                        isPlayFailed = true
-//                                        failedMessage = message
-//                                    },
-//                                    externalSubtitlesVisible = externalVisible,
-//                                    resetVideoBounds = resetVideoBounds,
-//                                    isVideoBoundsChanged = isVideoBoundsChanged,
-//                                    setIsVideoBoundsChanged = setIsChangeBounds,
-//                                    vocabularyDir = vocabularyDir,
-//                                    updatePlayingIndex = { setPlayingIndex(index) }
-//                                )
-//                            }
                             setPlayingIndex(index+1)
                             setIsPlaying(true)
                             val playMedia = MediaInfo(
@@ -2430,12 +2408,6 @@ fun Captions(
                             )
                             setPlayingMedia(playMedia)
                         }
-//                        if(isWriteSubtitles || focused){
-//                            focusRequesterList[index].requestFocus()
-//                            println("重新获得焦点")
-//                        }else{
-//                            jumpToWord()
-//                        }
                     }
                     var selectable by remember { mutableStateOf(false) }
                     val focusMoveUp:() -> Unit = {
