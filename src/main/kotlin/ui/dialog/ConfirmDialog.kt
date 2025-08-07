@@ -43,6 +43,7 @@ fun ConfirmDialog(message: String, confirm: () -> Unit, close: () -> Unit) {
             size = DpSize(400.dp, 300.dp)
         ),
     ) {
+        window.isAlwaysOnTop = true
         windowBackgroundFlashingOnCloseFixHack()
         Surface(
             elevation = 5.dp,

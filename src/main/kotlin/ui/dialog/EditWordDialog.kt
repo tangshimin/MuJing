@@ -224,6 +224,7 @@ fun EditWordComposeContent(
     var saveEnable by remember { mutableStateOf(false) }
     var captionsChanged by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
+    val focusRequester = remember { FocusRequester() }
 
     LaunchedEffect(inputWordStr, usphone, ukphone, translationFieldValue, sentencesFieldValue, definitionFieldValue, exchange,captionsChanged,tempWord.captions.size,tempWord.externalCaptions.size) {
         // 单词不为空，并且任何一个字段发生变化，就激活保存按钮
@@ -332,6 +333,7 @@ fun EditWordComposeContent(
                     modifier = Modifier
                         .border(border = border)
                         .padding(start = 10.dp, top = 8.dp, bottom = 8.dp)
+                        .focusRequester(focusRequester)
                         .onKeyEvent {
                             if(it.key == Key.Enter && it.type == KeyEventType.KeyUp){
                                 query()
@@ -786,7 +788,11 @@ fun EditWordComposeContent(
                 captionsChanged = { captionsChanged = it },
                 word = tempWord,
                 captions = tempWord.captions,
-                externalCaptions = tempWord.externalCaptions
+                externalCaptions = tempWord.externalCaptions,
+                requestsFocus = {
+                    focusRequester.requestFocus()
+                },
+                volume = appState.global.videoVolume
             )
 
             if (vocabulary.type == VocabularyType.DOCUMENT && linkSize <= 3) {
@@ -904,9 +910,11 @@ fun EditingCaptions(
     vocabularyDir: File,
     setLinkSize: (Int) -> Unit,
     captionsChanged: (Boolean) -> Unit,
-    captions:List<Caption> ,
+    captions:List<Caption>,
     externalCaptions: List<ExternalCaption>,
-    word: Word
+    word: Word,
+    requestsFocus: () -> Unit,
+    volume: Float = 1f
 ) {
     val scope = rememberCoroutineScope()
     val map = getMediaInfo(vocabularyType,subtitlesTrackId,relateVideoPath, captions, externalCaptions)
@@ -962,6 +970,14 @@ fun EditingCaptions(
                         tint = MaterialTheme.colors.onBackground
                     )
                 }
+
+                PlayerBox(
+                    mediaInfo = mediaInfo,
+                    vocabularyDir = vocabularyDir,
+                    volume = volume
+                )
+
+
                 var showSettingTimeLineDialog by remember { mutableStateOf(false) }
                 if (showSettingTimeLineDialog) {
                     SettingTimeLine(
@@ -983,7 +999,9 @@ fun EditingCaptions(
                                         captionsChanged(true)
                                     }
                                 }
+                                requestsFocus()
                             }
+
                         },
                         close = { showSettingTimeLineDialog = false }
                     )
@@ -1011,7 +1029,7 @@ fun EditingCaptions(
                         Icon(
                             Icons.Filled.SpaceBar,
                             contentDescription = "Localized description",
-                            tint = MaterialTheme.colors.primary
+                            tint = MaterialTheme.colors.onBackground
                         )
                     }
                 }
@@ -1028,7 +1046,9 @@ fun EditingCaptions(
                                 }
                                 map.remove(index)
                                 setLinkSize(map.size)
+                                captionsChanged(true)
                                 showConfirmationDialog = false
+                                requestsFocus()
                             }
                         },
                         close = { showConfirmationDialog = false }
@@ -1094,7 +1114,7 @@ fun SettingTimeLine(
             size = DpSize(700.dp, 700.dp)
         ),
     ) {
-
+        window.isAlwaysOnTop = true
         val videoPlayerComponent  = remember { createMediaPlayerComponent2() }
         val videoPlayer = remember { videoPlayerComponent.createMediaPlayer() }
         val surface = remember {

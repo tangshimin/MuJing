@@ -67,7 +67,7 @@ fun PlayerBox(
             Icon(
                 Icons.Filled.PlayArrow,
                 contentDescription = "Localized description",
-                tint = MaterialTheme.colors.primary
+                tint = MaterialTheme.colors.onBackground
             )
         }
 
