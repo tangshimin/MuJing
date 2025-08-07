@@ -1,283 +1,203 @@
 package player
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.window.WindowDraggableArea
-import androidx.compose.material.Divider
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.AlertDialog
+import androidx.compose.material.DropdownMenu
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.OutlinedButton
+import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FlipToBack
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposeDialog
-import androidx.compose.ui.awt.SwingPanel
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.type
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.*
-import data.Caption
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
-import java.awt.Component
-import java.awt.Dimension
-import java.awt.Toolkit
+import java.io.File
 
-@OptIn(ExperimentalComposeUiApi::class)
+/**
+ * 执行简单的视频播放，用在搜索框和链接词库界面中,
+ * 包含播放按钮和视频播放器和错误提示对话框。
+ * @param mediaInfo 视频信息
+ * @param vocabularyDir 词库目录
+ * @param volume 音量，范围 0.0f 到 1.0
+ */
 @Composable
-fun SimplePlayer(
-    close: () -> Unit,
-    videoPlayerBounds: DialogState,
-    volume: Float,
-    playTriple: Triple<Caption, String, Int>,
-    externalSubtitlesVisible:Boolean = false,
-    resetVideoBounds :() ->Unit,
-    isVideoBoundsChanged:Boolean = false,
-    setIsVideoBoundsChanged:(Boolean) -> Unit = {}
+fun PlayerBox(
+    mediaInfo : MediaInfo,
+    vocabularyDir:File,
+    volume : Float
 ){
+    Box{
+        var visible by remember { mutableStateOf(false) }
+        var errorMessage by remember { mutableStateOf("") }
+        IconButton(
+            onClick = {
+                val resolvedPath =  resolveMediaPath(
+                    mediaInfo.mediaPath,
+                    vocabularyDir
+                )
+                if(resolvedPath != ""){
+                    mediaInfo.mediaPath = resolvedPath
+                    visible = true
+                }else{
+                    errorMessage = if(mediaInfo.mediaPath.isEmpty())"视频地址为空" else "视频地址错误:\n${mediaInfo.mediaPath}"
+                }
 
-    /** 窗口的大小和位置 */
-    val windowState = rememberWindowState(
-        size = videoPlayerBounds.size,
-        position = WindowPosition(Alignment.Center)
-    )
-
-    /** 显示视频的窗口 */
-    var playerWindow by remember { mutableStateOf<ComposeDialog?>(null) }
-
-    /** VLC 是视频播放组件 */
-    val videoPlayerComponent by remember { mutableStateOf(createMediaPlayerComponent()) }
-
-    /** 控制视频显示的窗口，弹幕显示到这个窗口 */
-    val controlWindow by remember { mutableStateOf<ComposeDialog?>(null) }
-    
-    /** 是否全屏，如果使用系统的全屏，播放器窗口会黑屏 */
-    var isFullscreen by remember { mutableStateOf(false) }
-
-    /** 全屏之前的位置 */
-    var fullscreenBeforePosition by remember { mutableStateOf(WindowPosition(0.dp,0.dp)) }
-
-    /** 全屏之前的尺寸 */
-    var fullscreenBeforeSize by remember{ mutableStateOf(videoPlayerBounds.size) }
-
-    /** 是否正在播放视频 */
-    var isPlaying by remember { mutableStateOf(false) }
-
-    /** 关闭窗口 */
-    val closeWindow: () -> Unit = {
-        if(videoPlayerComponent.mediaPlayer().status().isPlaying){
-            videoPlayerComponent.mediaPlayer().controls().pause()
-        }
-        close()
-    }
-
-    /** 播放 */
-    val play: () -> Unit = {
-        if (isPlaying) {
-            isPlaying = false
-            videoPlayerComponent.mediaPlayer().controls().pause()
-        } else {
-            isPlaying = true
-            videoPlayerComponent.mediaPlayer().controls().play()
-        }
-    }
-
-    Window(
-        title = "播放视频",
-        state = windowState,
-        icon = painterResource("logo/logo.png"),
-        undecorated = true,
-        transparent = true,
-        resizable = true,
-        onCloseRequest = {closeWindow()},
-    ){
-        /** 全屏 */
-        val fullscreen:()-> Unit = {
-            if(isFullscreen){
-                isFullscreen = false
-                videoPlayerBounds.position =  fullscreenBeforePosition
-                videoPlayerBounds.size = fullscreenBeforeSize
-                controlWindow?.isResizable = true
-                playerWindow?.requestFocus()
-            }else{
-                isFullscreen = true
-                fullscreenBeforePosition = WindowPosition(videoPlayerBounds.position.x,videoPlayerBounds.position.y)
-                fullscreenBeforeSize =  videoPlayerBounds.size
-                videoPlayerBounds.position = WindowPosition((-1).dp, 0.dp)
-                val windowSize = Toolkit.getDefaultToolkit().screenSize.size.toComposeSize()
-                videoPlayerBounds.size = windowSize.copy(width = windowSize.width + 1.dp)
-                controlWindow?.isResizable = false
-                playerWindow?.requestFocus()
-            }
+            },
+            modifier = Modifier
+        ) {
+            Icon(
+                Icons.Filled.PlayArrow,
+                contentDescription = "Localized description",
+                tint = MaterialTheme.colors.primary
+            )
         }
 
-
-        VideoLayer(
-            windowState = videoPlayerBounds,
-            videoPlayerComponent = videoPlayerComponent,
-            setPlayerWindow = { playerWindow = it }
+        PopupVideoPlayer(
+            visible = visible,
+            setVisible = { visible = it },
+            volume = volume,
+            mediaInfo = mediaInfo,
+            offset = DpOffset(0.dp, 0.dp)
         )
 
-        // control layer
-        DialogWindow(
-            onCloseRequest = {  },
-            transparent = true,
-            undecorated = true,
-            state = videoPlayerBounds,
-            icon = painterResource("logo/logo.png"),
-            onPreviewKeyEvent ={ keyEvent ->
-                if (keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp) {
-                    play()
-                    true
-                } else if (keyEvent.key == Key.Escape && keyEvent.type == KeyEventType.KeyDown) {
-                    if(isFullscreen){
-                        fullscreen()
-                        true
-                    }else false
-                }  else if (keyEvent.key == Key.DirectionRight && keyEvent.type == KeyEventType.KeyUp) {
-                    videoPlayerComponent.mediaPlayer().controls().skipTime(+5000L)
-                    true
-                } else if (keyEvent.key == Key.DirectionLeft && keyEvent.type == KeyEventType.KeyUp) {
-                    videoPlayerComponent.mediaPlayer().controls().skipTime(-5000L)
-                    true
-                } else false
+        if(errorMessage.isNotEmpty()){
+            AlertDialog(
+                onDismissRequest = { errorMessage = "" },
+                title = { Text("错误",color = MaterialTheme.colors.error) },
+                text = { SelectionContainer { Text(errorMessage)  } },
+                confirmButton = {
+                    OutlinedButton(onClick = { errorMessage = "" }) {
+                        Text("确定")
+                    }
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun PopupVideoPlayer(
+    visible:Boolean,
+    setVisible:(Boolean) -> Unit = {},
+    mediaInfo: MediaInfo,
+    volume: Float = 1.0f,
+    offset: DpOffset = DpOffset(0.dp, 0.dp),
+    extSubVisible: Boolean = false,
+){
+    DropdownMenu(
+        expanded = visible,
+        offset = offset,
+        onDismissRequest = { setVisible(false) },
+    ) {
+        println("播放视频")
+        Box(Modifier.size(540.dp,330.dp)){
+            val videoPlayerComponent  = remember { createMediaPlayerComponent2() }
+            val videoPlayer = remember { videoPlayerComponent.createMediaPlayer() }
+            val surface = remember {
+                SkiaImageVideoSurface().also {
+                    videoPlayer.videoSurface().set(it)
+                }
+            }
+            var isPlaying by remember { mutableStateOf(false) }
+            val stop = {
+                if (videoPlayer.status().isPlaying) {
+                    videoPlayer.controls().stop()
+                }
+                setVisible(false)
 
             }
-        ) {
-            WindowDraggableArea {
-                Box (Modifier.fillMaxSize()){
-                    Row(Modifier.align(Alignment.BottomCenter)){
-                        if(isVideoBoundsChanged){
-                            IconButton(onClick = {resetVideoBounds()}){
-                                Icon(
-                                    Icons.Filled.FlipToBack,
-                                    contentDescription = "Localized description",
-                                    tint = Color.White,
-                                )
-                            }
-                        }
-
-                        IconButton(onClick = {play()}){
-                            Icon(
-                                if(isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
-                                contentDescription = "Localized description",
-                                tint = Color.White,
-                            )
-                        }
-                        IconButton(onClick = {closeWindow()}){
-                            Icon(
-                                Icons.Filled.Stop,
-                                contentDescription = "Localized description",
-                                tint = Color.White,
-                            )
-                        }
-                    }
+            val play = {
+                if (videoPlayer.status().isPlaying) {
+                    videoPlayer.controls().pause()
+                    isPlaying = false
+                } else {
+                    videoPlayer.controls().play()
+                    isPlaying = true
+                }
+            }
+            CustomCanvas(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(Color.Black)
+                    .align(Alignment.Center),
+                surface = surface
+            )
+            // 控制区
+            Row(modifier = Modifier.align (Alignment.BottomCenter)) {
+                // 这里可以添加控制按钮，比如播放、暂停、停止等
+                IconButton(onClick = play){
+                    Icon(imageVector = if(isPlaying) Icons.Default.Pause else  Icons.Default.PlayArrow,
+                        contentDescription = if(isPlaying) "Pause" else  "Play",
+                        tint = Color.White)
+                }
+                IconButton(onClick = stop){
+                    Icon(imageVector = Icons.Default.Stop,
+                        contentDescription = "Stop",
+                        tint = Color.White)
                 }
             }
 
-            LaunchedEffect(Unit){
 
-                val mediaPlayerEventListener = object: MediaPlayerEventAdapter(){
+            DisposableEffect(Unit){
+
+                val eventListener = object:MediaPlayerEventAdapter(){
                     override fun mediaPlayerReady(mediaPlayer: MediaPlayer) {
-                        println("Ready!")
+                        videoPlayerComponent.requestFocusInWindow()
                         mediaPlayer.audio().setVolume((volume).toInt())
                     }
                     override fun finished(mediaPlayer: MediaPlayer) {
-                        closeWindow()
-                        videoPlayerComponent.mediaPlayer().events().removeMediaPlayerEventListener(this)
+                        setVisible(false)
                     }
                 }
-                videoPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(mediaPlayerEventListener)
-
-                val caption = playTriple.first
-                val relativeVideoPath = playTriple.second
-                val trackId = playTriple.third
-                val start = convertTimeToSeconds(caption.start)
-                val end = convertTimeToSeconds(caption.end)
+                videoPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(eventListener)
+                val start = convertTimeToSeconds(mediaInfo.caption.start)
+                val end = convertTimeToSeconds(mediaInfo.caption.end)
                 // 使用内部字幕轨道,通常是从 MKV 生成的词库
-                if(trackId != -1){
+                if(mediaInfo.trackId != -1){
                     videoPlayerComponent.mediaPlayer().media()
-                        .play(relativeVideoPath, ":sub-track=$trackId", ":start-time=$start", ":stop-time=$end")
+                        .play(mediaInfo.mediaPath, ":sub-track=$mediaInfo.trackId", ":start-time=$start", ":stop-time=$end")
                     // 自动加载外部字幕
-                }else if(externalSubtitlesVisible){
+                }else if(extSubVisible){
                     videoPlayerComponent.mediaPlayer().media()
-                        .play(relativeVideoPath, ":sub-autodetect-file",":start-time=$start", ":stop-time=$end")
+                        .play(mediaInfo.mediaPath, ":sub-autodetect-file",":start-time=$start", ":stop-time=$end")
                 }else{
                     // 视频有硬字幕，加载了外部字幕会发生重叠。
                     videoPlayerComponent.mediaPlayer().media()
-                        .play(relativeVideoPath, ":no-sub-autodetect-file",":start-time=$start", ":stop-time=$end")
+                        .play(mediaInfo.mediaPath, ":no-sub-autodetect-file",":start-time=$start", ":stop-time=$end")
                 }
+
                 isPlaying = true
-            }
 
-        }
-
-        DisposableEffect(Unit){
-            onDispose {
-                videoPlayerComponent.mediaPlayer().release()
-            }
-        }
-
-        LaunchedEffect(videoPlayerBounds) {
-            snapshotFlow { videoPlayerBounds.size }
-                .onEach{
-                   windowState.size = videoPlayerBounds.size
-                    setIsVideoBoundsChanged(true)
+                onDispose {
+                    if(videoPlayer.status().isPlaying) {
+                        videoPlayer.controls().stop()
+                    }
+                    // 释放资源
+                    surface.release()
+                    videoPlayerComponent.release()
                 }
-                .launchIn(this)
-
-            snapshotFlow { videoPlayerBounds.position }
-                .onEach {
-                   windowState.position = videoPlayerBounds.position
-                    setIsVideoBoundsChanged(true)
-                }
-                .launchIn(this)
-        }
-    }
-}
-
-@Composable
-private fun VideoLayer(
-    windowState: DialogState,
-    videoPlayerComponent: Component,
-    setPlayerWindow:(ComposeDialog) -> Unit
-) {
-    DialogWindow(
-        icon = painterResource("logo/logo.png"),
-        state = windowState,
-        undecorated = true,
-        resizable = false,
-        onCloseRequest = {  },
-    ) {
-        setPlayerWindow(window)
-        Column(Modifier.fillMaxSize()) {
-            Divider(color = Color(0xFF121212), modifier = Modifier.height(1.dp))
-            Box(Modifier.fillMaxSize()) {
-                val videoSize by remember(windowState.size) {
-                    derivedStateOf { Dimension(window.size.width, window.size.height) }
-                }
-                videoPlayerComponent.size = videoSize
-                SwingPanel(
-                    background = Color.Transparent,
-                    modifier = Modifier.fillMaxSize(),
-                    factory = { videoPlayerComponent },
-                    update = {}
-                )
-
             }
         }
     }
+
 }
 
-fun Dimension.toComposeSize(): DpSize = DpSize(width.dp, height.dp)

@@ -9,18 +9,14 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.awtEventOrNull
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.DpSize
@@ -31,15 +27,12 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import data.*
-import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
+import player.PlayerBox
 import player.isMacOS
-import player.play
 import state.AppState
 import ui.window.windowBackgroundFlashingOnCloseFixHack
-import ui.wordscreen.getPlayTripleMap
-import java.awt.Point
-import java.awt.Rectangle
+import ui.wordscreen.getMediaInfo
 import java.io.File
 
 /**
@@ -74,7 +67,7 @@ fun LinkCaptionDialog(
             shape = RectangleShape,
         ) {
             Box(modifier = Modifier.fillMaxSize()) {
-                /** 添加或删除了字幕后触发重组，tempWord 的 externalCaptions 增加或删除了字幕不会触发重组 */
+
                 /** 添加或删除了字幕后触发重组，tempWord 的 externalCaptions 增加或删除了字幕不会触发重组 */
                 var externalCaptionSize by remember { mutableStateOf(word.externalCaptions.size) }
                 val tempWord by remember { mutableStateOf(word.deepCopy()) }
@@ -96,77 +89,32 @@ fun LinkCaptionDialog(
                         }
 
                         Column(Modifier.border(border)){
-                            val playTripleMap = getPlayTripleMap(vocabulary.type,subtitlesTrackId,relateVideoPath, tempWord)
-                            playTripleMap.forEach { (_, playTriple) ->
+                            val map = getMediaInfo(
+                                vocabulary.type,
+                                subtitlesTrackId,
+                                relateVideoPath,
+                                tempWord.captions,
+                                tempWord.externalCaptions
+                            )
+                            map.forEach { (_, mediaInfo) ->
                                 ListItem(
                                     text = {
-                                        Text(playTriple.first.content, color = MaterialTheme.colors.onBackground)
+                                        Text(mediaInfo.caption.content, color = MaterialTheme.colors.onBackground)
                                     },
                                     modifier = Modifier.clickable {},
                                     trailing = {
                                         Row {
-                                            val playerBounds by remember {
-                                                mutableStateOf(
-                                                    Rectangle(
-                                                        0,
-                                                        0,
-                                                        540,
-                                                        303
-                                                    )
-                                                )
-                                            }
-                                            val mousePoint by remember { mutableStateOf(Point(0, 0)) }
-                                            var isVideoBoundsChanged by remember { mutableStateOf(false) }
-                                            val resetVideoBounds: () -> Rectangle = {
-                                                isVideoBoundsChanged = false
-                                                Rectangle(mousePoint.x, mousePoint.y, 540, 303)
-                                            }
+                                            PlayerBox(
+                                                mediaInfo = mediaInfo,
+                                                vocabularyDir = vocabularyDir,
+                                                volume = appState.global.videoVolume
+                                            )
 
-                                            IconButton(onClick = {},
-                                                modifier = Modifier
-                                                    .onPointerEvent(PointerEventType.Press) { pointerEvent ->
-                                                        val location =
-                                                            pointerEvent.awtEventOrNull?.locationOnScreen
-                                                        if (location != null && !isPlaying) {
-                                                            if (isVideoBoundsChanged) {
-                                                                mousePoint.x = location.x - 270 + 24
-                                                                mousePoint.y = location.y - 320
-                                                            } else {
-                                                                playerBounds.x = location.x - 270 + 24
-                                                                playerBounds.y = location.y - 320
-                                                            }
-                                                            scope.launch {
-                                                                play(
-                                                                    window = appState.videoPlayerWindow,
-                                                                    setIsPlaying = { isPlaying = it },
-                                                                    volume = appState.global.videoVolume,
-                                                                    playTriple = playTriple,
-                                                                    videoPlayerComponent = appState.videoPlayerComponent,
-                                                                    bounds = playerBounds,
-                                                                    resetVideoBounds = resetVideoBounds,
-                                                                    isVideoBoundsChanged = isVideoBoundsChanged,
-                                                                    vocabularyDir = vocabularyDir,
-                                                                    setIsVideoBoundsChanged = {
-                                                                        isVideoBoundsChanged = it
-                                                                    }
-                                                                )
-                                                            }
-
-                                                        }
-                                                    }
-                                            ) {
-                                                Icon(
-                                                    Icons.Filled.PlayArrow,
-                                                    contentDescription = "Localized description",
-                                                    tint = MaterialTheme.colors.primary
-                                                )
-                                            }
                                             IconButton(
                                                 onClick = {
                                                     var removeIndex = -1
                                                     tempWord.externalCaptions.forEachIndexed { index, externalCaption ->
-
-                                                        if (externalCaption.content == playTriple.first.content) {
+                                                        if (externalCaption.content == mediaInfo.caption.content) {
                                                             removeIndex = index
 
                                                         }
@@ -255,7 +203,8 @@ fun LinkCaptionDialog(
                         }
                     }
                     if (chosenWord != null) {
-                        val playItems = getPlayTripleMap(chosenVocabularyType,subtitlesTrackId,relateVideoPath, chosenWord!!)
+                        val playItems = getMediaInfo(chosenVocabularyType,subtitlesTrackId,relateVideoPath, chosenWord!!.captions, chosenWord!!.externalCaptions)
+
                         if (playItems.isNotEmpty()) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
@@ -270,76 +219,27 @@ fun LinkCaptionDialog(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier.fillMaxWidth().border(border).padding(start = 10.dp)
                             ) {
-                                playItems.forEach { (_,playTriple) ->
-                                    val caption = playTriple.first
+                                playItems.forEach { (_,mediaInfo) ->
                                     ListItem(
                                         text = {
-                                            Text(caption.content, color = MaterialTheme.colors.onBackground)
+                                            Text( mediaInfo.caption.content, color = MaterialTheme.colors.onBackground)
                                         },
                                         modifier = Modifier.clickable {},
                                         trailing = {
                                             Row {
-                                                val playerBounds by remember {
-                                                    mutableStateOf(
-                                                        Rectangle(
-                                                            0,
-                                                            0,
-                                                            540,
-                                                            303
-                                                        )
-                                                    )
-                                                }
-                                                val mousePoint by remember { mutableStateOf(Point(0, 0)) }
-                                                var isVideoBoundsChanged by remember { mutableStateOf(false) }
-                                                val resetVideoBounds: () -> Rectangle = {
-                                                    isVideoBoundsChanged = false
-                                                    Rectangle(mousePoint.x, mousePoint.y, 540, 303)
-                                                }
-                                                IconButton(onClick = {},
-                                                    modifier = Modifier
-                                                        .onPointerEvent(PointerEventType.Press) { pointerEvent ->
-                                                            val location =
-                                                                pointerEvent.awtEventOrNull?.locationOnScreen
-                                                            if (location != null && !isPlaying) {
-                                                                if (isVideoBoundsChanged) {
-                                                                    mousePoint.x = location.x - 270 + 24
-                                                                    mousePoint.y = location.y - 320
-                                                                } else {
-                                                                    playerBounds.x = location.x - 270 + 24
-                                                                    playerBounds.y = location.y - 320
-                                                                }
-                                                                scope.launch {
-                                                                    play(
-                                                                        window = appState.videoPlayerWindow,
-                                                                        setIsPlaying = { isPlaying = it },
-                                                                        volume = appState.global.videoVolume,
-                                                                        playTriple = playTriple,
-                                                                        videoPlayerComponent = appState.videoPlayerComponent,
-                                                                        bounds = playerBounds,
-                                                                        resetVideoBounds = resetVideoBounds,
-                                                                        isVideoBoundsChanged = isVideoBoundsChanged,
-                                                                        vocabularyDir = vocabularyDir,
-                                                                        setIsVideoBoundsChanged = {
-                                                                            isVideoBoundsChanged = it
-                                                                        }
-                                                                    )
-                                                                }
-                                                            }
-                                                        }
-                                                ) {
-                                                    Icon(
-                                                        Icons.Filled.PlayArrow,
-                                                        contentDescription = "Localized description",
-                                                        tint = MaterialTheme.colors.primary
-                                                    )
-                                                }
+                                                PlayerBox(
+                                                    mediaInfo = mediaInfo,
+                                                    vocabularyDir = vocabularyDir,
+                                                    volume = appState.global.videoVolume
+                                                )
+
                                                 IconButton(
                                                     onClick = {
-                                                        selectedCaption = caption
-                                                        if (subtitleVocabularyPath.isNotEmpty() && caption.content.isNotEmpty()) {
+                                                        selectedCaption =  mediaInfo.caption
+                                                        if (subtitleVocabularyPath.isNotEmpty() &&  mediaInfo.caption.content.isNotEmpty()) {
                                                             if (selectedCaption != null) {
                                                                 val externalCaption = ExternalCaption(
-                                                                    playTriple.second,
+                                                                    mediaInfo.mediaPath,
                                                                     subtitlesTrackId,
                                                                     subtitlesName,
                                                                     selectedCaption!!.start,

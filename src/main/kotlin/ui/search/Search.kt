@@ -5,37 +5,28 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.awtEventOrNull
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import data.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
-import player.LocalAudioPlayerComponent
-import player.getAudioPath
-import player.play
-import player.playAudio
+import player.*
 import state.AppState
 import tts.rememberAzureTTS
 import ui.wordscreen.WordScreenState
 import util.rememberMonospace
-import java.awt.Point
-import java.awt.Rectangle
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalSerializationApi::class)
 @Composable
@@ -189,65 +180,18 @@ fun Search(
                                         modifier = Modifier.padding(5.dp)
                                     )
 
-                                    val playTriple =
-                                        Triple(caption, vocabulary.relateVideoPath, vocabulary.subtitlesTrackId)
-                                    val playerBounds by remember {
-                                        mutableStateOf(
-                                            Rectangle(
-                                                0,
-                                                0,
-                                                540,
-                                                303
-                                            )
-                                        )
-                                    }
-                                    val mousePoint by remember{ mutableStateOf(Point(0,0)) }
-                                    var isVideoBoundsChanged by remember{mutableStateOf(false)}
-                                    val resetVideoBounds:() -> Rectangle = {
-                                        isVideoBoundsChanged = false
-                                        Rectangle(mousePoint.x, mousePoint.y, 540, 303)
-                                    }
-                                    var isPlaying by remember { mutableStateOf(false) }
-                                    IconButton(
-                                        onClick = {},
-                                        modifier = Modifier
-                                            .onPointerEvent(PointerEventType.Press) { pointerEvent ->
-                                                val location =
-                                                    pointerEvent.awtEventOrNull?.locationOnScreen
-                                                if (location != null && !isPlaying) {
-                                                    if(isVideoBoundsChanged){
-                                                        mousePoint.x = location.x - 270 + 24
-                                                        mousePoint.y = location.y - 320
-                                                    }else{
-                                                        playerBounds.x = location.x - 270 + 24
-                                                        playerBounds.y = location.y - 320
-                                                    }
-                                                    scope.launch {
-                                                        play(
-                                                            window = appState.videoPlayerWindow,
-                                                            setIsPlaying = {
-                                                                isPlaying = it
-                                                            },
-                                                            volume = appState.global.videoVolume,
-                                                            playTriple = playTriple,
-                                                            videoPlayerComponent = appState.videoPlayerComponent,
-                                                            bounds = playerBounds,
-                                                            vocabularyDir = wordScreenState.getVocabularyDir(),
-                                                            resetVideoBounds = resetVideoBounds,
-                                                            isVideoBoundsChanged = isVideoBoundsChanged,
-                                                            setIsVideoBoundsChanged = { isVideoBoundsChanged = it }
-                                                        )
-                                                    }
 
-                                                }
-                                            }
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.PlayArrow,
-                                            contentDescription = "Localized description",
-                                            tint = MaterialTheme.colors.primary
-                                        )
-                                    }
+                                    val mediaInfo = MediaInfo(
+                                        caption = caption,
+                                        mediaPath = vocabulary.relateVideoPath,
+                                        trackId = vocabulary.subtitlesTrackId
+                                    )
+                                    PlayerBox(
+                                        mediaInfo = mediaInfo,
+                                        vocabularyDir =  wordScreenState.getVocabularyDir(),
+                                        volume = appState.global.videoVolume
+                                    )
+
                                 }
                             }
 
@@ -264,69 +208,18 @@ fun Search(
                                     )
                                     val caption =
                                         Caption(externalCaption.start, externalCaption.end, externalCaption.content)
-                                    val playTriple =
-                                        Triple(
-                                            caption,
-                                            externalCaption.relateVideoPath,
-                                            externalCaption.subtitlesTrackId
-                                        )
-                                    val playerBounds by remember {
-                                        mutableStateOf(
-                                            Rectangle(
-                                                0,
-                                                0,
-                                                540,
-                                                303
-                                            )
-                                        )
-                                    }
-                                    val mousePoint by remember{ mutableStateOf(Point(0,0)) }
-                                    var isVideoBoundsChanged by remember{mutableStateOf(false)}
-                                    val resetVideoBounds:() -> Rectangle = {
-                                        isVideoBoundsChanged = false
-                                        Rectangle(mousePoint.x, mousePoint.y, 540, 303)
-                                    }
-                                    var isPlaying by remember { mutableStateOf(false) }
-                                    IconButton(
-                                        onClick = {},
-                                        modifier = Modifier
-                                            .onPointerEvent(PointerEventType.Press) { pointerEvent ->
-                                                val location =
-                                                    pointerEvent.awtEventOrNull?.locationOnScreen
-                                                if (location != null && !isPlaying) {
-                                                    if(isVideoBoundsChanged){
-                                                        mousePoint.x = location.x - 270 + 24
-                                                        mousePoint.y = location.y - 320
-                                                    }else{
-                                                        playerBounds.x = location.x - 270 + 24
-                                                        playerBounds.y = location.y - 320
-                                                    }
-                                                    scope.launch {
-                                                        play(
-                                                            window = appState.videoPlayerWindow,
-                                                            setIsPlaying = {
-                                                                isPlaying = it
-                                                            },
-                                                            volume = appState.global.videoVolume,
-                                                            playTriple = playTriple,
-                                                            videoPlayerComponent = appState.videoPlayerComponent,
-                                                            bounds = playerBounds,
-                                                            resetVideoBounds = resetVideoBounds,
-                                                            vocabularyDir = wordScreenState.getVocabularyDir(),
-                                                            isVideoBoundsChanged = isVideoBoundsChanged,
-                                                            setIsVideoBoundsChanged = { isVideoBoundsChanged = it }
-                                                        )
-                                                    }
 
-                                                }
-                                            }
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.PlayArrow,
-                                            contentDescription = "Localized description",
-                                            tint = MaterialTheme.colors.primary
-                                        )
-                                    }
+
+                                    val mediaInfo = MediaInfo(
+                                        caption = caption,
+                                        mediaPath = externalCaption.relateVideoPath,
+                                        trackId = externalCaption.subtitlesTrackId
+                                    )
+                                    PlayerBox(
+                                        mediaInfo = mediaInfo,
+                                        vocabularyDir =  wordScreenState.getVocabularyDir(),
+                                        volume = appState.global.videoVolume
+                                    )
                                 }
                             }
 

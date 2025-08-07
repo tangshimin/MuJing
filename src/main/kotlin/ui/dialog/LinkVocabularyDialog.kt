@@ -10,16 +10,12 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Help
-import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.awtEventOrNull
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.input.pointer.PointerEventType
-import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
@@ -34,15 +30,14 @@ import data.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
+import player.MediaInfo
+import player.PlayerBox
 import player.isMacOS
-import player.play
 import state.AppState
 import state.getResourcesFile
 import ui.edit.computeNameMap
 import ui.window.windowBackgroundFlashingOnCloseFixHack
 import util.createTransferHandler
-import java.awt.Point
-import java.awt.Rectangle
 import java.io.File
 import java.util.*
 import javax.swing.JFileChooser
@@ -452,7 +447,8 @@ fun LinkVocabularyDialog(
                                                         modifier = Modifier.width(250.dp).padding(end = 10.dp)
                                                     )
                                                     Text("$count", modifier = Modifier.width(60.dp))
-                                                    IconButton(onClick = { showConfirmationDialog = true },modifier = Modifier.padding(end = 10.dp)) {
+                                                    IconButton(onClick = { showConfirmationDialog = true },
+                                                        modifier = Modifier.padding(end = 10.dp)) {
                                                         Icon(
                                                             imageVector = Icons.Filled.Delete,
                                                             contentDescription = "",
@@ -543,7 +539,8 @@ fun LinkVocabularyDialog(
                                 tooltip = {
                                     Surface(
                                         elevation = 4.dp,
-                                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                        border = BorderStroke(1.dp,
+                                            MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                                         shape = RectangleShape
                                     ) {
                                         Text(text = "帮助", modifier = Modifier.padding(10.dp))
@@ -612,67 +609,22 @@ fun LinkVocabularyDialog(
                                                             text = "${index + 1}. ${externalCaption.content}",
                                                             modifier = Modifier.padding(5.dp)
                                                         )
-                                                        val caption = Caption(externalCaption.start,externalCaption.end,externalCaption.content)
-                                                        val playTriple =
-                                                            Triple(caption, externalCaption.relateVideoPath, externalCaption.subtitlesTrackId)
-                                                        val playerBounds by remember {
-                                                            mutableStateOf(
-                                                                Rectangle(
-                                                                    0,
-                                                                    0,
-                                                                    540,
-                                                                    303
-                                                                )
-                                                            )
-                                                        }
-                                                        val mousePoint by remember{ mutableStateOf(Point(0,0)) }
-                                                        var isVideoBoundsChanged by remember{mutableStateOf(false)}
-                                                        val resetVideoBounds:() -> Rectangle = {
-                                                            isVideoBoundsChanged = false
-                                                            Rectangle(mousePoint.x, mousePoint.y, 540, 303)
-                                                        }
-                                                        var isPlaying by remember { mutableStateOf(false) }
-                                                        IconButton(
-                                                            onClick = {},
-                                                            modifier = Modifier
-                                                                .onPointerEvent(PointerEventType.Press) { pointerEvent ->
-                                                                    val location =
-                                                                        pointerEvent.awtEventOrNull?.locationOnScreen
-                                                                    if (location != null && !isPlaying) {
-                                                                        if (isVideoBoundsChanged) {
-                                                                            mousePoint.x = location.x - 270 + 24
-                                                                            mousePoint.y = location.y - 320
-                                                                        } else {
-                                                                            playerBounds.x = location.x - 270 + 24
-                                                                            playerBounds.y = location.y - 320
-                                                                        }
-                                                                        scope.launch {
-                                                                            play(
-                                                                                window = appState.videoPlayerWindow,
-                                                                                setIsPlaying = {
-                                                                                    isPlaying = it
-                                                                                },
-                                                                                volume = appState.global.videoVolume,
-                                                                                playTriple = playTriple,
-                                                                                videoPlayerComponent = appState.videoPlayerComponent,
-                                                                                bounds = playerBounds,
-                                                                                resetVideoBounds = resetVideoBounds,
-                                                                                isVideoBoundsChanged = isVideoBoundsChanged,
-                                                                                vocabularyDir = File(vocabularyDir),
-                                                                                setIsVideoBoundsChanged = {
-                                                                                    isVideoBoundsChanged = it
-                                                                                }
-                                                                            )
-                                                                        }
-                                                                    }
-                                                                }
-                                                        ) {
-                                                            Icon(
-                                                                Icons.Filled.PlayArrow,
-                                                                contentDescription = "Localized description",
-                                                                tint = MaterialTheme.colors.primary
-                                                            )
-                                                        }
+                                                        val caption = Caption(
+                                                            externalCaption.start,
+                                                            externalCaption.end,
+                                                            externalCaption.content
+                                                        )
+                                                        val mediaInfo = MediaInfo(
+                                                            caption =caption,
+                                                            mediaPath =externalCaption.relateVideoPath,
+                                                            trackId =externalCaption.subtitlesTrackId
+                                                        )
+
+                                                        PlayerBox(
+                                                            mediaInfo = mediaInfo,
+                                                            vocabularyDir = File(vocabularyDir),
+                                                            volume = appState.global.videoVolume
+                                                        )
                                                     }
                                                 }
 
