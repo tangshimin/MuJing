@@ -44,7 +44,7 @@ import ui.edit.displayExchange
 import ui.edit.toAwtSize
 import ui.edit.toPoint
 import ui.window.windowBackgroundFlashingOnCloseFixHack
-import ui.wordscreen.getPlayTripleMap
+import ui.wordscreen.getMediaInfo
 import ui.wordscreen.secondsToString
 import java.awt.BorderLayout
 import java.awt.event.WindowAdapter
@@ -784,7 +784,9 @@ fun EditWordComposeContent(
                 relateVideoPath = vocabulary.relateVideoPath,
                 setLinkSize = { linkSize = it },
                 captionsChanged = { captionsChanged = it },
-                word = tempWord
+                word = tempWord,
+                captions = tempWord.captions,
+                externalCaptions = tempWord.externalCaptions
             )
 
             if (vocabulary.type == VocabularyType.DOCUMENT && linkSize <= 3) {
@@ -797,6 +799,7 @@ fun EditWordComposeContent(
                         vocabularyDir = vocabularyDir,
                         save = {
                             tempWord.externalCaptions = it
+                            saveEnable = true
                             linkSize = it.size
                             isLink = false
                         },
@@ -901,13 +904,14 @@ fun EditingCaptions(
     vocabularyDir: File,
     setLinkSize: (Int) -> Unit,
     captionsChanged: (Boolean) -> Unit,
+    captions:List<Caption> ,
+    externalCaptions: List<ExternalCaption>,
     word: Word
 ) {
     val scope = rememberCoroutineScope()
-    val playTripleMap = getPlayTripleMap(vocabularyType,subtitlesTrackId,relateVideoPath, word)
-    playTripleMap.forEach { (index, playTriple) ->
-        val captionContent = playTriple.first.content
-
+    val map = getMediaInfo(vocabularyType,subtitlesTrackId,relateVideoPath, captions, externalCaptions)
+    map.forEach { (index, mediaInfo) ->
+        val captionContent = mediaInfo.caption.content
         Row(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
@@ -963,11 +967,7 @@ fun EditingCaptions(
                     SettingTimeLine(
                         index = index,
                         vocabularyDir = vocabularyDir,
-                        mediaInfo = MediaInfo(
-                            mediaPath = playTriple.second,
-                            caption = playTriple.first,
-                            trackId = playTriple.third
-                        ),
+                        mediaInfo = mediaInfo,
                         confirm = { (index, start, end) ->
                             scope.launch {
                                 if (vocabularyType == VocabularyType.DOCUMENT) {
@@ -1026,8 +1026,8 @@ fun EditingCaptions(
                                 } else {
                                     word.captions.removeAt(index)
                                 }
-                                playTripleMap.remove(index)
-                                setLinkSize(playTripleMap.size)
+                                map.remove(index)
+                                setLinkSize(map.size)
                                 showConfirmationDialog = false
                             }
                         },

@@ -2570,6 +2570,45 @@ fun getPlayTripleMap(
     return playTripleMap
 }
 
+
+fun getMediaInfo(
+    vocabularyType: VocabularyType,
+    subtitlesTrackId: Int,
+    relateVideoPath:String,
+    captions:List<Caption> ,
+    externalCaptions: List<ExternalCaption>,
+): MutableMap<Int, MediaInfo> {
+
+    val mediaInfoMap = mutableMapOf<Int, MediaInfo>()
+    if (vocabularyType == VocabularyType.DOCUMENT) {
+        if (externalCaptions.isNotEmpty()) {
+            externalCaptions.forEachIndexed { index, externalCaption ->
+                val caption = Caption(externalCaption.start, externalCaption.end, externalCaption.content)
+                val mediaInfo = MediaInfo(
+                    caption,
+                    externalCaption.relateVideoPath,
+                    externalCaption.subtitlesTrackId
+                )
+                mediaInfoMap[index] = mediaInfo
+
+            }
+        }
+    } else {
+        if (captions.isNotEmpty()) {
+            captions.forEachIndexed { index, caption ->
+                val mediaInfo = MediaInfo(
+                    caption,
+                    relateVideoPath,
+                    subtitlesTrackId
+                )
+                mediaInfoMap[index] = mediaInfo
+            }
+
+        }
+    }
+    return mediaInfoMap
+}
+
 fun secondsToString(seconds: Double): String {
     val duration = Duration.ofMillis((seconds * 1000).toLong())
     return String.format(
