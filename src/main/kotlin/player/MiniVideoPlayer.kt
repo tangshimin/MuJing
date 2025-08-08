@@ -174,9 +174,6 @@ fun MiniVideoPlayer(
         var settingsExpanded by remember { mutableStateOf(false) }
         /** 是否显示字幕 */
         var showCaption by remember { mutableStateOf(loadShowCaptionState()) }
-        // 循环播放相关状态
-        val endTimeMillis = remember(mediaInfo.caption.end) { convertTimeToMilliseconds(mediaInfo.caption.end) }
-        val startTimeMillis = remember(mediaInfo.caption.start) { convertTimeToMilliseconds(mediaInfo.caption.start) }
 
         // 监听外部播放状态变化
         LaunchedEffect(externalPlayingState) {
@@ -459,25 +456,25 @@ fun MiniVideoPlayer(
          *  只在需要循环播放时启动 10 毫秒的协程来检测循环播放，
          *  实现基于时间监听的循环播放功能，避免 VLC 内部循环导致的崩溃问题。
          */
-        LaunchedEffect(isLooping) {
-            if (isLooping) {
-                while (isActive) {
-                    val time = videoPlayer.status().time()
-
-                    // 检查是否需要循环播放，并且没有正在进行循环重启
-                    if (videoPlayer.status().isPlaying && time >= endTimeMillis) {
-                        println("循环播放: 基于时间监听 - 当前时间 ${time}ms >= 结束时间 ${endTimeMillis}ms")
-                        // 安全地重置到开始时间
-                        videoPlayer.controls().setTime(startTimeMillis)
-                        println("循环播放: 重置到开始时间 ${startTimeMillis}ms")
-                        // 调用循环重启回调
-                        onLoopRestart()
-                    }
-
-                    delay(10)
-                }
-            }
-        }
+//        LaunchedEffect(isLooping) {
+//            if (isLooping) {
+//                while (isActive) {
+//                    val time = videoPlayer.status().time()
+//
+//                    // 检查是否需要循环播放，并且没有正在进行循环重启
+//                    if (videoPlayer.status().isPlaying && time >= endTimeMillis) {
+//                        println("循环播放: 基于时间监听 - 当前时间 ${time}ms >= 结束时间 ${endTimeMillis}ms")
+//                        // 安全地重置到开始时间
+//                        videoPlayer.controls().setTime(startTimeMillis)
+//                        println("循环播放: 重置到开始时间 ${startTimeMillis}ms")
+//                        // 调用循环重启回调
+//                        onLoopRestart()
+//                    }
+//
+//                    delay(10)
+//                }
+//            }
+//        }
 
         DisposableEffect(Unit) {
             // 事件监听器
@@ -502,67 +499,34 @@ fun MiniVideoPlayer(
                         (duration / 60000 % 60).toInt(),
                         (duration / 1000 % 60).toInt()
                     )
+                    if(isLooping){
+                        videoPlayer.controls().repeat = true
+                    }
                     // 通知外部播放器已准备好
                     onPlayerReady(videoPlayer)
 
                 }
 
-                /**
-                 * stopped 事件触发时机：
-                 * 1. 用户手动调用 stop() 方法
-                 * 2. 播放器被强制停止（如资源不足）
-                 * 3. 应用程序请求停止播放
-                 *
-                 * 特点：
-                 * - 这是一个"主动停止"事件
-                 * - 播放器状态被重置到初始状态
-                 * - 通常是预期的行为，不表示错误
-                 * - 通常表示用户已经播放完/听完了内容
-                 *
-                 */
                 override fun stopped(mediaPlayer: MediaPlayer?) {
-                    // 切换到主线程更新状态
-                    CoroutineScope(Dispatchers.Main).launch {
-                        stop()
-                    }
+                    println("stopped 事件触发: 播放器已停止")
                 }
 
-                /**
-                 * finished 事件触发时机：
-                 * 1. 媒体播放到达文件末尾
-                 * 2. 播放列表中的最后一个项目播放完成
-                 * 3. 流媒体播放结束
-                 *
-                 * 特点：
-                 * - 这是一个"自然结束"事件
-                 * - 表示内容已完整播放
-                 * - 播放器可能会自动进入停止状态
-                 * - 通常表示用户已经播放完/听完了内容
-                 *
-                 * 注意：循环播放现在通过时间监听实现，避免 VLC 内部循环导致的崩溃问题
-                 */
+
                 override fun finished(mediaPlayer: MediaPlayer?) {
+                    println("finished 事件触发: 媒体播放完成")
                     // 切换到主线程更新状态
                     CoroutineScope(Dispatchers.Main).launch {
-                        stop()
+                        if(isLooping){
+                            onLoopRestart()
+                        }else{
+                            println("播放完成: 视频已播放完毕")
+                            stop()
+                        }
                     }
+
                 }
 
-                /**
-                 * error 事件触发时机：
-                 * 1. 媒体文件损坏或格式不支持
-                 * 2. 网络流播放时网络中断或连接失败
-                 * 3. 解码器无法处理媒体内容
-                 * 4. 磁盘空间不足导致播放失败
-                 * 5. 权限问题无法访问媒体文件
-                 * 6. VLC 内部错误或资源不足
-                 *
-                 * 特点：
-                 * - 这是一个"异常停止"事件，播放遇到无法恢复的错误
-                 * - 通常需要用户干预（如检查文件、网络等）
-                 * - 应该向用户显示错误信息
-                 * - 播放器状态不确定，建议重新初始化
-                 */
+
                 override fun error(mediaPlayer: MediaPlayer?) {
                     // 输出错误信息
                     println("播放错误: 未知错误")
@@ -594,6 +558,7 @@ fun MiniVideoPlayer(
             focusRequester.requestFocus()
 
             onDispose {
+                println("MiniVideoPlayer 组件被销毁，释放资源")
                 if(videoPlayer.status().isPlaying) {
                     videoPlayer.controls().stop()
                 }
