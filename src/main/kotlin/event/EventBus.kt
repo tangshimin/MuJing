@@ -22,4 +22,7 @@ enum class PlayerEventType {
     DIRECTION_RIGHT, // 右方向键
     DIRECTION_UP, // 上方向键
     DIRECTION_DOWN, // 下方向键
+    PREVIOUS_CAPTION, // 上一句字幕
+    NEXT_CAPTION, // 下一句字幕
+    REPEAT_CAPTION,// 重复字幕
 }

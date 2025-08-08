@@ -337,34 +337,44 @@ fun VideoPlayer(
                     }else if(event == PlayerEventType.DIRECTION_LEFT) {
                      // 左方向键
                         if (videoPlayer.status().isPlayable) {
-                            when (state.skipMode) {
-                                SkipMode.TIME -> {
-                                    videoPlayer.controls().skipTime(-5000) // 快退 5 秒
-                                }
-                                SkipMode.SUBTITLE -> {
-                                    // 跳转到上一条字幕
-                                    val previousTime = timedCaption.getPreviousCaptionTime()
-                                    if (previousTime >= 0) {
-                                        videoPlayer.controls().setTime(previousTime)
-                                        caption = timedCaption.getCaption(previousTime)
-                                    }
-                                }
-                            }
+                            videoPlayer.controls().skipTime(-5000) // 快退 5 秒
                         }
                     }else if(event == PlayerEventType.DIRECTION_RIGHT) {
                         // 右方向键
                         if (videoPlayer.status().isPlayable) {
-                            when (state.skipMode) {
-                                SkipMode.TIME -> {
-                                    videoPlayer.controls().skipTime(5000) // 快进 5 秒
-                                }
-                                SkipMode.SUBTITLE -> {
-                                    // 跳转到下一条字幕
-                                    val nextTime = timedCaption.getNextCaptionTime()
-                                    if (nextTime >= 0) {
-                                        videoPlayer.controls().setTime(nextTime)
-                                        caption = timedCaption.getCaption(nextTime)
-                                    }
+                            videoPlayer.controls().skipTime(5000) // 快进 5 秒
+                        }
+
+                    }else if(event == PlayerEventType.PREVIOUS_CAPTION && timedCaption.isNotEmpty()) {
+                        if (videoPlayer.status().isPlayable){
+                            // A 键 跳转到上一条字幕
+                            val previousTime = timedCaption.getPreviousCaptionTime()
+                            if (previousTime >= 0) {
+                                videoPlayer.controls().setTime(previousTime)
+                                caption = timedCaption.getCaption(previousTime)
+                            }
+                        }
+
+                    }else if(event == PlayerEventType.NEXT_CAPTION) {
+                        if (videoPlayer.status().isPlayable && timedCaption.isNotEmpty()){
+                            // D 键 跳转到下一条字幕
+                            val nextTime = timedCaption.getNextCaptionTime()
+                            if (nextTime >= 0) {
+                                videoPlayer.controls().setTime(nextTime)
+                                caption = timedCaption.getCaption(nextTime)
+                            }
+                        }
+
+                    }else if(event == PlayerEventType.REPEAT_CAPTION) {
+                        // S 键 重复当前字幕
+                        if(videoPlayer.status().isPlayable && timedCaption.isNotEmpty()){
+                             val time = timedCaption.getCurrentCaptionTime()
+                            if (time >= 0) {
+                                videoPlayer.controls().setTime(time)
+                                caption = timedCaption.getCaption(time)
+                                if (!isPlaying) {
+                                    isPlaying = true
+                                    videoPlayer.controls().play()
                                 }
                             }
                         }

@@ -604,6 +604,10 @@ class VideoPlayerTimedCaption{
         }
         return ""
     }
+
+    fun getCurrentCaptionTime(): Long {
+        return currentCaption.start
+    }
     fun getPreviousCaptionTime(): Long {
         if (currentIndex <= 0 || captionList.isEmpty()) return -1
         val previousIndex = currentIndex - 1

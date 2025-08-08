@@ -149,6 +149,21 @@ fun App(
                                 eventBus.post(PlayerEventType.DIRECTION_RIGHT)
                             }
                             true
+                        }else if (it.key == Key.A && it.type == KeyEventType.KeyUp) {
+                            scope.launch {
+                                eventBus.post(PlayerEventType.PREVIOUS_CAPTION)
+                            }
+                            true
+                        }else if (it.key == Key.S && it.type == KeyEventType.KeyUp) {
+                            scope.launch {
+                                eventBus.post(PlayerEventType.REPEAT_CAPTION)
+                            }
+                            true
+                        }else if (it.key == Key.D && it.type == KeyEventType.KeyUp) {
+                            scope.launch {
+                                eventBus.post(PlayerEventType.NEXT_CAPTION)
+                            }
+                            true
                         }
                         false
                     }else{
