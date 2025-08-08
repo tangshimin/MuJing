@@ -916,12 +916,6 @@ fun VideoPlayer(
             }
         }
 
-//        DisposableEffect(Unit){
-//            onDispose {
-//                videoPlayer.release()
-//                audioPlayerComponent.mediaPlayer().release()
-//            }
-//        }
     }
 }
 
