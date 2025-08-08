@@ -8,6 +8,7 @@ import androidx.compose.foundation.TooltipArea
 import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -18,9 +19,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import data.Caption
+import state.ScreenType
 
 /**
  * 多行字幕工具栏组件
@@ -227,10 +231,13 @@ fun MultipleLinesToolbar(
                         checked = multipleLines.isLooping,
                         onCheckedChange = { multipleLines.isLooping = it }
                     ){
-                        Icon(
-                            Icons.Filled.Repeat,
-                            contentDescription = "循环播放",
-                            tint = if (multipleLines.isLooping) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface
+                        Text(
+                            text = "AB",
+                            style = MaterialTheme.typography.subtitle1,
+                            fontWeight = FontWeight.Bold,
+                            textAlign = TextAlign.Center,
+                            color = if (multipleLines.isLooping) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface,
+                            modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
                         )
                     }
 
