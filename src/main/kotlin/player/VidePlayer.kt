@@ -31,6 +31,8 @@ import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -644,6 +646,17 @@ fun VideoPlayer(
                             Row(verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Start,
                             ){
+                            var enableDanmaku by remember { mutableStateOf(false) }
+                                // 单词弹幕按钮
+                                DanmakuButton(
+                                    isEnabled = enableDanmaku,
+                                    onCheckedChange = {
+//                                        state.showDanmaku = it
+                                        enableDanmaku = it
+                                        // 点击后清除焦点
+                                        focusManager.clearFocus()
+                                    }
+                                )
 
                                 // 自动暂停按钮
                                 AutoPauseButton(
@@ -1871,6 +1884,62 @@ fun AutoPauseButton(
                 contentDescription = "自动暂停",
                 tint = tint
             )
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun DanmakuButton(
+    isEnabled: Boolean,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    TooltipArea(
+        tooltip = {
+            Surface(
+                elevation = 4.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Text(
+                    text = "单词弹幕",
+                    color = MaterialTheme.colors.onSurface,
+                    modifier = Modifier.padding(8.dp)
+                )
+            }
+        },
+        delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+        tooltipPlacement = TooltipPlacement.ComponentRect(
+            anchor = Alignment.TopCenter,
+            alignment = Alignment.TopCenter,
+            offset = DpOffset.Zero
+        )
+
+    ) {
+        IconToggleButton(
+            checked = isEnabled,
+            onCheckedChange = onCheckedChange
+        ) {
+            Box{
+                Text(
+                    text = "弹",
+                    style = MaterialTheme.typography.subtitle1,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center,
+                    color =  if(isEnabled) Color.White else  Color.Gray,
+                    modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
+                )
+                if(!isEnabled){
+                    Icon(
+                        imageVector = icons.Block,
+                        contentDescription = "弹幕已禁用",
+                        tint = Color.White,
+                        modifier = Modifier.align(Alignment.CenterEnd)
+                            .size(12.dp).offset((-12).dp,(4).dp)
+                    )
+                }
+            }
+
         }
     }
 }
