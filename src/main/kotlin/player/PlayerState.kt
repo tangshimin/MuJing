@@ -37,9 +37,7 @@ class PlayerState(playerData: PlayerData) {
     var autoCopy by mutableStateOf(playerData.autoCopy)
     var autoSpeak by mutableStateOf(playerData.autoSpeak)
     var preferredChinese by mutableStateOf(playerData.preferredChinese)
-
-    /** 快进模式，默认为时间模式。 时间模式：快进到指定时间；字幕模式：快进到指定字幕 */
-    var skipMode: SkipMode by mutableStateOf(SkipMode.TIME)
+    var autoPause by mutableStateOf(playerData.autoPause)
 
     var showCaptionList by mutableStateOf(false)
     var recentList = readRecentList()
@@ -79,7 +77,7 @@ class PlayerState(playerData: PlayerData) {
         runBlocking {
             launch (Dispatchers.IO){
                 val playerData = PlayerData(
-                    showSequence, danmakuVisible, autoCopy, autoSpeak, preferredChinese
+                    showSequence, danmakuVisible, autoCopy, autoSpeak, preferredChinese, autoPause
                 )
                 val encodeBuilder = Json {
                     prettyPrint = true
@@ -254,7 +252,8 @@ data class PlayerData(
     var danmakuVisible: Boolean = false,
     var autoCopy: Boolean = false,
     var autoSpeak: Boolean = true,
-    var preferredChinese: Boolean = true
+    var preferredChinese: Boolean = true,
+    var autoPause: Boolean = false
 )
 
 @Serializable

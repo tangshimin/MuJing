@@ -123,6 +123,8 @@ fun VideoPlayer(
     
     /** 是否正在播放视频 */
     var isPlaying by remember { mutableStateOf(false) }
+    /** 是否激活自动暂停 */
+    var autoPauseActive by remember { mutableStateOf(false) }
 
     /** 时间进度条 */
     var timeProgress by remember { mutableStateOf(0f) }
@@ -136,6 +138,14 @@ fun VideoPlayer(
     val timedCaption = rememberPlayerTimedCaption()
     /** 当前显示的字幕内容 */
     var caption by remember { mutableStateOf("") }
+
+    var tempCaption by remember { mutableStateOf("") }
+
+    /** 是否手动跳转字幕。
+     * 用于重复播放当前字幕，播放上一句字幕，播放下一句字幕,
+     * 字幕列表手动点击一条字幕。 */
+    var isManualSeeking by remember { mutableStateOf(false) }
+
     /** 播放器控制区的可见性 */
     var controlBoxVisible by remember { mutableStateOf(false) }
     var timeSliderPress by remember { mutableStateOf(false) }
@@ -198,6 +208,12 @@ fun VideoPlayer(
             } else {
                 isPlaying = true
                 videoPlayerComponent.mediaPlayer().controls().play()
+
+                // 播放时取消自动暂停
+                if(state.autoPause){
+                    autoPauseActive = false
+                    caption = ""
+                }
             }
         }else{
             println("VideoPath is Empty")
@@ -246,6 +262,12 @@ fun VideoPlayer(
         }
     }
 
+    /** 更新字幕索引 */
+    val updateCaptionIndex:() -> Unit = {
+        val newTime = videoPlayer.status().time()
+        timedCaption.updateCurrentIndex(newTime)
+    }
+
     /** 设置内置字幕 */
     val setCurrentSubtitleTrack:(Int)-> Unit = { trackId ->
         // disable-禁用字幕的 TrackID 为 -1
@@ -263,6 +285,8 @@ fun VideoPlayer(
                 println("禁用字幕 clear timedCaption")
                 timedCaption.clear()
             }
+            // 更新字幕索引
+            updateCaptionIndex()
         }
 
     }
@@ -276,6 +300,8 @@ fun VideoPlayer(
             val captions = parseSubtitles(file.absolutePath)
             timedCaption.setCaptionList(captions)
             extSubIndex = index
+            // 更新字幕索引
+            updateCaptionIndex()
         }
     }
 
@@ -294,6 +320,61 @@ fun VideoPlayer(
             extSubList.add(lang to file)
         }
     }
+
+    /** 播放上一条字幕 */
+    val  previousCaption: () -> Unit =  {
+        if (videoPlayer.status().isPlayable && timedCaption.isNotEmpty()){
+            // A 键 跳转到上一条字幕
+            val previousTime = timedCaption.getPreviousCaptionTime()
+            if (previousTime >= 0) {
+                videoPlayer.controls().setTime(previousTime)
+                caption = timedCaption.getCaption(previousTime)
+                if (!isPlaying) {
+                    isPlaying = true
+                    videoPlayer.controls().play()
+                }
+                autoPauseActive = false
+                isManualSeeking = true
+            }
+        }
+    }
+
+   /** 播放下一条字幕 */
+    val  nextCaption: () -> Unit =  {
+       if (videoPlayer.status().isPlayable && timedCaption.isNotEmpty()){
+           // D 键 跳转到下一条字幕
+           val nextTime = timedCaption.getNextCaptionTime()
+           if (nextTime >= 0) {
+               videoPlayer.controls().setTime(nextTime)
+               caption = timedCaption.getCaption(nextTime)
+               if (!isPlaying) {
+                   isPlaying = true
+                   videoPlayer.controls().play()
+               }
+               autoPauseActive = false
+               isManualSeeking = true
+           }
+       }
+    }
+
+
+    /** 重复播放当前字幕 */
+    val  replayCaption: () -> Unit = {
+        if(videoPlayer.status().isPlayable && timedCaption.isNotEmpty()){
+            val time = timedCaption.getCurrentCaptionTime()
+            if (time >= 0) {
+                videoPlayer.controls().setTime(time)
+                caption = timedCaption.getCaption(time)
+                if (!isPlaying) {
+                    isPlaying = true
+                    videoPlayer.controls().play()
+                }
+                autoPauseActive = false
+                isManualSeeking = true
+            }
+        }
+    }
+
 
     Surface(
         shape = MaterialTheme.shapes.medium,  // 使用圆角形状
@@ -345,42 +426,22 @@ fun VideoPlayer(
                             videoPlayer.controls().skipTime(5000) // 快进 5 秒
                         }
 
-                    }else if(event == PlayerEventType.PREVIOUS_CAPTION && timedCaption.isNotEmpty()) {
-                        if (videoPlayer.status().isPlayable){
-                            // A 键 跳转到上一条字幕
-                            val previousTime = timedCaption.getPreviousCaptionTime()
-                            if (previousTime >= 0) {
-                                videoPlayer.controls().setTime(previousTime)
-                                caption = timedCaption.getCaption(previousTime)
-                            }
-                        }
-
+                    }else if(event == PlayerEventType.PREVIOUS_CAPTION) {
+                        // A 键 跳转到上一条字幕
+                        previousCaption()
                     }else if(event == PlayerEventType.NEXT_CAPTION) {
-                        if (videoPlayer.status().isPlayable && timedCaption.isNotEmpty()){
-                            // D 键 跳转到下一条字幕
-                            val nextTime = timedCaption.getNextCaptionTime()
-                            if (nextTime >= 0) {
-                                videoPlayer.controls().setTime(nextTime)
-                                caption = timedCaption.getCaption(nextTime)
-                            }
-                        }
-
+                        // D 键 跳转到下一条字幕
+                        nextCaption()
                     }else if(event == PlayerEventType.REPEAT_CAPTION) {
                         // S 键 重复当前字幕
-                        if(videoPlayer.status().isPlayable && timedCaption.isNotEmpty()){
-                             val time = timedCaption.getCurrentCaptionTime()
-                            if (time >= 0) {
-                                videoPlayer.controls().setTime(time)
-                                caption = timedCaption.getCaption(time)
-                                if (!isPlaying) {
-                                    isPlaying = true
-                                    videoPlayer.controls().play()
-                                }
-                            }
+                        replayCaption()
+                    }else if(event == PlayerEventType.AUTO_PAUSE) {
+                        if(state.autoPause){
+                            autoPauseActive = false
                         }
-
+                        state.autoPause = !state.autoPause
+                        state.savePlayerState()
                     }
-
                 }
             }
         }
@@ -518,6 +579,14 @@ fun VideoPlayer(
                                 onValueChange = {
                                     timeProgress = it
                                     videoPlayerComponent.mediaPlayer().controls().setPosition(timeProgress)
+//                                    val newTime = videoPlayer.status().time()
+//                                    timedCaption.updateCurrentIndex(newTime)
+                                    updateCaptionIndex()
+                                    if(state.autoPause){
+                                        autoPauseActive = false
+                                        isManualSeeking = true
+                                    }
+
                                 },
                                 colors = SliderDefaults.colors(
                                     inactiveTrackColor = Color.DarkGray // 这里设置未激活轨道颜色
@@ -576,6 +645,16 @@ fun VideoPlayer(
                                 horizontalArrangement = Arrangement.Start,
                             ){
 
+                                // 自动暂停按钮
+                                AutoPauseButton(
+                                    isEnabled = state.autoPause,
+                                    active = autoPauseActive,
+                                    onCheckedChange = {
+                                        state.autoPause = it
+                                        // 点击后清除焦点
+                                        focusManager.clearFocus()
+                                    }
+                                )
 
                                 // 字幕和音频轨道选择按钮
                                 SubtitleAndAudioSelector(
@@ -781,9 +860,13 @@ fun VideoPlayer(
                     if(!videoPlayer.status().isPlaying){
                         isPlaying = true
                         videoPlayer.controls().play()
-
                     }
-                }
+                    autoPauseActive = false
+                    isManualSeeking = true
+                },
+                previousCaption = previousCaption,
+                replayCaption = replayCaption,
+                nextCaption =  nextCaption
             )
         }
 
@@ -826,6 +909,9 @@ fun VideoPlayer(
                             extSubIndex = foundIndex
                         }
                     }
+
+                    // 更新字幕索引
+                    updateCaptionIndex()
                 }
 
             }
@@ -893,27 +979,41 @@ fun VideoPlayer(
 
         }
 
-       // 更新字幕
+        // 更新字幕
         LaunchedEffect(Unit) {
             var lastTime = 0L
             var lastSecond = -1L
             while (isActive) {
                 if(videoPlayer.status().isPlaying) {
-                    val time = videoPlayer.status().time()
+                    val newTime = videoPlayer.status().time()
                     // 只有时间变化时才更新字幕
-                    if(time != lastTime) {
-                        val content = timedCaption.getCaption(time)
-                        // 如果字幕内容不等于当前字幕内容，则更新字幕,减少不必要的重组
-                        if(content != caption) {
-                            caption = content
+                    if(newTime != lastTime) {
+                        val content = timedCaption.getCaption(newTime)
+                        if(content != caption){
+                            // 触发自动暂停
+                            if(state.autoPause){
+                                if(!autoPauseActive && caption.isNotEmpty() && !isManualSeeking) {
+                                    // 暂停播放
+                                    videoPlayer.controls().pause()
+                                    isPlaying = false
+                                    autoPauseActive = true
+                                } else if(!autoPauseActive){
+                                    caption = content
+                                    // 播放结束，重复结束
+                                    isManualSeeking = false
+                                }
+                            }else{
+                                caption = content
+                            }
+
                         }
-                        lastTime = time
+                        lastTime = newTime
                     }
                     // 每秒记录一次播放时间
-                    val currentSecond = time / 1000L
+                    val currentSecond = newTime / 1000L
                     if(currentSecond != lastSecond){
                         lastSecond = currentSecond
-                        time.milliseconds.toComponents { hours, minutes, seconds, _ ->
+                        newTime.milliseconds.toComponents { hours, minutes, seconds, _ ->
                             val lastPlayed= timeFormat(hours,minutes,seconds)
                             state.updateLastPlayedTime(lastPlayed)
                         }
@@ -925,6 +1025,7 @@ fun VideoPlayer(
                 delay(16) // 保持适当的延迟
             }
         }
+
 
     }
 }
@@ -1186,38 +1287,7 @@ fun PlayerSettingsButton(
                 }
         ) {
 
-            // 快进模式设置
-            DropdownMenuItem(onClick = { }) {
-                Column {
-                    Text("快进模式", color = MaterialTheme.colors.onSurface)
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.padding(top = 4.dp)
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(
-                                selected = playerState.skipMode == SkipMode.TIME,
-                                onClick = {
-                                    playerState.skipMode = SkipMode.TIME
-                                    playerState.savePlayerState()
-                                }
-                            )
-                            Text("时间", fontSize = 12.sp, color = MaterialTheme.colors.onSurface)
-                        }
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(
-                                selected = playerState.skipMode == SkipMode.SUBTITLE,
-                                onClick = {
-                                    playerState.skipMode = SkipMode.SUBTITLE
-                                    playerState.savePlayerState()
-                                }
-                            )
-                            Text("字幕", fontSize = 12.sp, color = MaterialTheme.colors.onSurface)
-                        }
-                    }
-                }
-            }
+
 
 //            DropdownMenuItem(onClick = { }) {
 //                Row(
@@ -1379,6 +1449,9 @@ fun CaptionList(
     show: Boolean,
     timedCaption: VideoPlayerTimedCaption,
     play: (Long) -> Unit,
+    replayCaption:() -> Unit = {},
+    previousCaption:() -> Unit = {},
+    nextCaption:() -> Unit = {}
 ){
     AnimatedVisibility(
         visible = show,
@@ -1498,8 +1571,109 @@ fun CaptionList(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Divider(Modifier.padding(bottom = 10.dp))
-                        Text("一些按钮",color = Color.Transparent, modifier = Modifier.size(48.dp))
 
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()){
+                            TooltipArea(
+                                tooltip = {
+                                    Surface(
+                                        elevation = 4.dp,
+                                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                        shape = RoundedCornerShape(4.dp)
+                                    ) {
+                                        Row(modifier = Modifier.padding(10.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ){
+                                            Text(text = "上一条字幕 ",color = MaterialTheme.colors.onSurface)
+                                            Text(text ="A",color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                                        }
+                                    }
+                                },
+                                delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+                                tooltipPlacement = TooltipPlacement.ComponentRect(
+                                    anchor = Alignment.TopCenter,
+                                    alignment = Alignment.TopCenter,
+                                    offset = DpOffset.Zero
+                                )
+
+                            ) {
+                                IconButton(onClick = previousCaption){
+                                    Icon(
+                                        imageVector = Icons.Filled.ArrowBackIos,
+                                        contentDescription = "Previous Caption",
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+                            TooltipArea(
+                                tooltip = {
+                                    Surface(
+                                        elevation = 4.dp,
+                                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                        shape = RoundedCornerShape(4.dp)
+                                    ) {
+                                        Row(modifier = Modifier.padding(10.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ){
+                                            Text(text = "重复播放 ",color = MaterialTheme.colors.onSurface)
+                                            Text(text ="S",color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                                        }
+                                    }
+                                },
+                                delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+                                tooltipPlacement = TooltipPlacement.ComponentRect(
+                                    anchor = Alignment.TopCenter,
+                                    alignment = Alignment.TopCenter,
+                                    offset = DpOffset.Zero
+                                )
+
+                            ) {
+                                IconButton(onClick = replayCaption){
+                                    Icon(
+                                        imageVector = Icons.Filled.Replay,
+                                        contentDescription = "Replay Caption",
+                                        tint = Color.White
+                                    )
+                                }
+
+                            }
+
+                            TooltipArea(
+                                tooltip = {
+                                    Surface(
+                                        elevation = 4.dp,
+                                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                        shape = RoundedCornerShape(4.dp)
+                                    ) {
+                                        Row(modifier = Modifier.padding(10.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ){
+                                            Text(text = "下一条字幕 ",color = MaterialTheme.colors.onSurface)
+                                            Text(text ="D",color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                                        }
+                                    }
+                                },
+                                delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+                                tooltipPlacement = TooltipPlacement.ComponentRect(
+                                    anchor = Alignment.TopCenter,
+                                    alignment = Alignment.TopCenter,
+                                    offset = DpOffset.Zero
+                                )
+
+                            ) {
+                                IconButton(onClick = nextCaption){
+                                    Icon(
+                                        imageVector = Icons.Filled.ArrowForwardIos,
+                                        contentDescription = "Next Caption",
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+
+
+                        }
                     }
                 }
 
@@ -1642,6 +1816,56 @@ fun StopButton(
                 imageVector =  Icons.Filled.Stop,
                 contentDescription = "停止播放",
                 tint = Color.White
+            )
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun AutoPauseButton(
+    isEnabled: Boolean,
+    active: Boolean = false,
+    onCheckedChange: (Boolean) -> Unit
+) {
+    TooltipArea(
+        tooltip = {
+            Surface(
+                elevation = 4.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Row(modifier = Modifier.padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ){
+                    Text(text = "播放完每条字幕后自动暂停 ",color = MaterialTheme.colors.onSurface)
+                    Text(text ="P",color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                }
+            }
+        },
+        delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+        tooltipPlacement = TooltipPlacement.ComponentRect(
+            anchor = Alignment.TopCenter,
+            alignment = Alignment.TopCenter,
+            offset = DpOffset.Zero
+        )
+
+    ) {
+        IconToggleButton(
+            checked = isEnabled,
+            onCheckedChange = onCheckedChange
+        ){
+            val icon = if(isEnabled) icons.Autopause else icons.AutopauseDisabled
+
+            val tint = if(isEnabled && active) {
+               MaterialTheme.colors.primary
+            }else{
+                Color.White
+            }
+            Icon(
+                imageVector = icon,
+                contentDescription = "自动暂停",
+                tint = tint
             )
         }
     }

@@ -25,4 +25,5 @@ enum class PlayerEventType {
     PREVIOUS_CAPTION, // 上一句字幕
     NEXT_CAPTION, // 下一句字幕
     REPEAT_CAPTION,// 重复字幕
+    AUTO_PAUSE, // 自动暂停
 }

@@ -164,6 +164,11 @@ fun App(
                                 eventBus.post(PlayerEventType.NEXT_CAPTION)
                             }
                             true
+                        }else if (it.key == Key.P && it.type == KeyEventType.KeyUp) {
+                            scope.launch {
+                                eventBus.post(PlayerEventType.AUTO_PAUSE)
+                            }
+                            true
                         }
                         false
                     }else{

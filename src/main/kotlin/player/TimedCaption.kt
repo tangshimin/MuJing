@@ -555,14 +555,11 @@ class VideoPlayerTimedCaption{
      * - 跳跃播放时通过时间映射表查找，时间复杂度 O(k)，k为同一秒内的字幕数量
      * - 自动更新当前和下一个字幕的缓存
      *
-     * 已知问题：
-     * - TODO: 存在 260 毫秒的延迟，原因待查
-     *
      */
     fun getCaption( newTime:Long): String{
         // newTime 是毫秒
         when (newTime) {
-            // TODO  有 260 毫秒的延迟，还没有找到原因
+
             in currentCaption.start..currentCaption.end -> {
                 return currentCaption.content
             }
@@ -604,7 +601,6 @@ class VideoPlayerTimedCaption{
         }
         return ""
     }
-
     fun getCurrentCaptionTime(): Long {
         return currentCaption.start
     }
@@ -618,6 +614,88 @@ class VideoPlayerTimedCaption{
         if (currentIndex >= captionList.size - 1 || captionList.isEmpty()) return -1
         val nextIndex = currentIndex + 1
         return if (nextIndex < captionList.size) captionList[nextIndex].start else -1
+    }
+
+
+    /**
+     * 从最近列表打开视频后会接着上次观看的时间播放，所以需要更新当前字幕索引，
+     * 如果当前时间没有对应的字幕，就更新当前时间的上一个字幕作为当前字幕索引,
+     *
+     */
+    fun updateCurrentIndex(newTime: Long) {
+        if (captionList.isEmpty()) {
+            currentIndex = 0
+            return
+        }
+
+        // 首先尝试找到当前时间对应的字幕
+        val time = newTime / 1000
+        val list = timeMap[time]
+        var foundIndex = -1
+
+        list?.forEach { pair ->
+            val caption = pair.first
+            val index = pair.second
+            if (newTime in caption.start..caption.end) {
+                foundIndex = index
+                return@forEach
+            }
+        }
+
+        if (foundIndex != -1) {
+            // 找到当前时间的字幕，直接设置
+            currentIndex = foundIndex
+            currentCaption.start = captionList[foundIndex].start
+            currentCaption.end = captionList[foundIndex].end
+            currentCaption.content = captionList[foundIndex].content
+
+            // 设置下一个字幕缓存
+            if (foundIndex + 1 < captionList.size) {
+                nextCaption = captionList[foundIndex + 1]
+            }
+        } else {
+            // 没有找到当前时间的字幕，找到当前时间的上一个字幕
+            var previousIndex = -1
+
+            for (i in captionList.indices) {
+                val caption = captionList[i]
+                if (caption.start >= newTime) {
+                    // 找到第一个开始时间大于等于当前时间的字幕
+                    // 它的前一个就是我们要找的上一个字幕
+                    previousIndex = i - 1
+                    break
+                }
+            }
+
+            // 如果没找到开始时间大于当前时间的字幕，说明当前时间在最后一个字幕之后
+            // 所以使用最后一个字幕的索引
+            if (previousIndex == -1) {
+                previousIndex = captionList.size - 1
+            }
+
+            if (previousIndex >= 0) {
+                // 使用上一个字幕作为当前字幕
+                currentIndex = previousIndex
+                currentCaption.start = captionList[previousIndex].start
+                currentCaption.end = captionList[previousIndex].end
+                currentCaption.content = captionList[previousIndex].content
+
+                // 设置下一个字幕缓存
+                if (previousIndex + 1 < captionList.size) {
+                    nextCaption = captionList[previousIndex + 1]
+                }
+            } else {
+                // 如果当前时间在所有字幕之前，设置为第一个字幕
+                currentIndex = 0
+                currentCaption.start = captionList[0].start
+                currentCaption.end = captionList[0].end
+                currentCaption.content = captionList[0].content
+
+                if (captionList.size > 1) {
+                    nextCaption = captionList[1]
+                }
+            }
+        }
     }
 
     /**
