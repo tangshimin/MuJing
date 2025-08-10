@@ -1715,11 +1715,15 @@ fun FullScreenButton(
                 border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                 shape = RoundedCornerShape(4.dp)
             ) {
-                Text(
-                    text = if (isFullscreen) "退出全屏（f）" else "进入全屏（f)",
-                    color = MaterialTheme.colors.onSurface,
-                    modifier = Modifier.padding(8.dp)
-                )
+                Row(modifier = Modifier.padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ){
+                    Text(
+                        text =if (isFullscreen) "退出全屏 " else "进入全屏 ",
+                        color = MaterialTheme.colors.onSurface
+                    )
+                    Text(text ="F",color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                }
             }
         },
         delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
