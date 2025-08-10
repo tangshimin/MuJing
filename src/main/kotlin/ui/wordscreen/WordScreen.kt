@@ -1701,7 +1701,11 @@ fun MainContent(
                     volume = appState.global.videoVolume,
                     externalPlayingState = isPlaying,
                     showContextButton = true,
-                    showContext ={ playMedia?.let { showContext(it) } },
+                    showContext ={ playMedia?.let {
+                        showContext(it)
+                        isPlaying = false
+                        focusRequest(plyingIndex)
+                    } },
                     mediaInfo = playMedia,
                     externalSubtitlesVisible = wordScreenState.externalSubtitlesVisible
                 )
