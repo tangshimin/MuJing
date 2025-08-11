@@ -43,6 +43,7 @@ val LocalAudioPlayerComponent = staticCompositionLocalOf<AudioPlayerComponent> {
 
 @Composable
 fun rememberAudioPlayerComponent(): AudioPlayerComponent = remember {
+    embeddedVLCDiscovery()
     AudioPlayerComponent()
 }
 

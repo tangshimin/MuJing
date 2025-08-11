@@ -22,13 +22,9 @@ import javax.swing.JFrame
 import javax.swing.JOptionPane
 import javax.swing.event.HyperlinkEvent
 
-
-/**
- * 初始化视频播放组件
- */
-fun createMediaPlayerComponent(): Component {
-    System.setProperty("native.encoding", "UTF-8")
-    val cacheExists = getResourcesFile("VLC/plugins/plugins.dat").exists()
+ /**  查找 VLC 播放器的位置，先从资源目录中查找，
+  * 如果没有找到，就使用从用户本地找。*/
+fun embeddedVLCDiscovery() {
     // 如果是 Windows、macOS 就使用内置的 VLC 播放器
     if(isWindows()){
         System.setProperty("jna.library.path", getResourcesFile("VLC").absolutePath)
@@ -37,6 +33,15 @@ fun createMediaPlayerComponent(): Component {
     }else{
         NativeDiscovery().discover()
     }
+}
+
+/**
+ * 初始化视频播放组件
+ */
+fun createMediaPlayerComponent(): Component {
+    System.setProperty("native.encoding", "UTF-8")
+    val cacheExists = getResourcesFile("VLC/plugins/plugins.dat").exists()
+    embeddedVLCDiscovery()
 
     val args = mutableListOf(
         "--quiet",  // --quiet 是关闭所有的日志。
