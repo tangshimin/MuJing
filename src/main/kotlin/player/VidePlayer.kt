@@ -1923,7 +1923,7 @@ fun DanmakuButton(
             Box{
                 Text(
                     text = "弹",
-                    style = MaterialTheme.typography.subtitle1,
+                    style = MaterialTheme.typography.h6.copy(fontSize = 18.sp),
                     fontWeight = FontWeight.Bold,
                     textAlign = TextAlign.Center,
                     color =  if(isEnabled) Color.White else  Color.Gray,
