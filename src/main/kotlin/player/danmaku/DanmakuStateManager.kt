@@ -3,6 +3,7 @@ package player.danmaku
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import data.Word
+import kotlinx.coroutines.delay
 import kotlin.random.Random
 
 /**
@@ -27,12 +28,30 @@ class DanmakuStateManager {
     // 字体相关
     private var lineHeight = 30f
 
+    // 轨道管理器
+    private val trackManager = TrackManager()
+
+    // 等待队列：没有找到可用轨道的弹幕
+    private val waitingQueue = mutableListOf<PendingDanmaku>()
+
+    /**
+     * 等待中的弹幕数据类
+     */
+    private data class PendingDanmaku(
+        val text: String,
+        val word: Word?,
+        val color: Color,
+        val type: DanmakuType,
+        val addTime: Long = System.currentTimeMillis()
+    )
+
     /**
      * 设置 Canvas 尺寸
      */
     fun setCanvasSize(width: Float, height: Float) {
         canvasWidth = width
         canvasHeight = height
+        trackManager.updateCanvasSize(height, lineHeight)
     }
 
     /**
@@ -40,6 +59,7 @@ class DanmakuStateManager {
      */
     fun setLineHeight(lineHeight: Float) {
         this.lineHeight = lineHeight
+        trackManager.updateCanvasSize(canvasHeight, lineHeight)
     }
 
     /**
@@ -55,11 +75,54 @@ class DanmakuStateManager {
             return
         }
 
-        val startX = canvasWidth
+        when (type) {
+            DanmakuType.SCROLL -> {
+                addScrollDanmaku(text, word, color)
+            }
+            DanmakuType.TOP, DanmakuType.BOTTOM -> {
+                addStaticDanmaku(text, word, color, type)
+            }
+        }
+    }
+
+    /**
+     * 添加滚动弹幕（使用轨道管理）
+     */
+    private fun addScrollDanmaku(text: String, word: Word?, color: Color) {
+        val danmaku = CanvasDanmakuItem(
+            text = text,
+            word = word,
+            color = color,
+            type = DanmakuType.SCROLL,
+            initialX = canvasWidth,
+            initialY = 0f // Y坐标会由轨道管理器设置
+        )
+
+        // 尝试分配轨道
+        val trackIndex = trackManager.assignTrack(danmaku, canvasWidth)
+
+        if (trackIndex >= 0) {
+            // 成功分配轨道，添加到活跃弹幕列表
+            _activeDanmakus.add(danmaku)
+        } else {
+            // 没有可用轨道，加入等待队列
+            waitingQueue.add(PendingDanmaku(text, word, color, DanmakuType.SCROLL))
+
+            // 限制等待队列大小，避免内存溢出
+            if (waitingQueue.size > 20) {
+                waitingQueue.removeAt(0) // 移除最老的等待弹幕
+            }
+        }
+    }
+
+    /**
+     * 添加静态弹幕（顶部/底部）
+     */
+    private fun addStaticDanmaku(text: String, word: Word?, color: Color, type: DanmakuType) {
         val startY = when (type) {
-            DanmakuType.SCROLL -> getRandomTrackY()
             DanmakuType.TOP -> lineHeight
             DanmakuType.BOTTOM -> canvasHeight - lineHeight
+            else -> lineHeight
         }
 
         val danmaku = CanvasDanmakuItem(
@@ -67,7 +130,7 @@ class DanmakuStateManager {
             word = word,
             color = color,
             type = type,
-            initialX = startX,
+            initialX = canvasWidth / 2 - 100f, // 居中显示，粗略计算
             initialY = startY
         )
 
@@ -75,17 +138,58 @@ class DanmakuStateManager {
     }
 
     /**
-     * 清理不活跃的弹幕
+     * 清理不活跃的弹幕并尝试处理等待队列
      */
     fun cleanup() {
+        // 清理不活跃的弹幕
+        val removedDanmakus = _activeDanmakus.filter { !it.isActive }
         _activeDanmakus.removeAll { !it.isActive }
+
+        // 释放轨道
+        removedDanmakus.forEach { danmaku ->
+            trackManager.releaseTrack(danmaku)
+        }
+
+        // 清理轨道管理器
+        trackManager.cleanup()
+
+        // 尝试处理等待队列中的弹幕
+        processWaitingQueue()
     }
 
     /**
-     * 清空所有弹幕
+     * 处理等待队列中的弹幕
      */
-    fun clear() {
-        _activeDanmakus.clear()
+    private fun processWaitingQueue() {
+        if (waitingQueue.isEmpty()) return
+
+        val iterator = waitingQueue.iterator()
+        while (iterator.hasNext() && _activeDanmakus.size < maxDanmakuCount) {
+            val pending = iterator.next()
+
+            // 检查是否等待时间过长，如果是则丢弃
+            if (System.currentTimeMillis() - pending.addTime > 5000) { // 5秒超时
+                iterator.remove()
+                continue
+            }
+
+            // 尝试创建弹幕并分配轨道
+            val danmaku = CanvasDanmakuItem(
+                text = pending.text,
+                word = pending.word,
+                color = pending.color,
+                type = pending.type,
+                initialX = canvasWidth,
+                initialY = 0f
+            )
+
+            val trackIndex = trackManager.assignTrack(danmaku, canvasWidth)
+            if (trackIndex >= 0) {
+                // 成功分配，添加到活跃列表并从等待队列移除
+                _activeDanmakus.add(danmaku)
+                iterator.remove()
+            }
+        }
     }
 
     /**
@@ -100,16 +204,6 @@ class DanmakuStateManager {
      */
     fun resumeAll() {
         _activeDanmakus.forEach { it.isPaused = false }
-    }
-
-    /**
-     * 获取随机轨道Y坐标
-     * 简单实现，后续阶段会用轨道管理器替代
-     */
-    private fun getRandomTrackY(): Float {
-        val trackCount = (canvasHeight / lineHeight).toInt()
-        val trackIndex = Random.nextInt(0, trackCount.coerceAtLeast(1))
-        return (trackIndex + 1) * lineHeight
     }
 
     /**
