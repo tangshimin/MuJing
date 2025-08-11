@@ -2,10 +2,13 @@ package player.danmaku
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
+import data.MutableVocabulary
+import data.VocabularyType
 import data.Word
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
+import player.convertTimeToSeconds
+import java.io.File
 
 /**
  * 时间轴同步器
@@ -171,6 +174,78 @@ class TimelineSynchronizer(
      * 获取当前时间
      */
     fun getCurrentTime(): Long = currentTimeMs
+
+    /**
+     * 从词库加载定时弹幕数据
+     */
+    fun loadTimedDanmakusFromVocabulary(
+        videoPath: String,
+        vocabularyPath: String,
+        vocabulary: MutableVocabulary?
+    ) {
+        timedDanmakuList.clear()
+        currentIndex = 0
+
+        if (vocabulary == null) return
+
+        val vocabularyDir = File(vocabularyPath).parentFile
+        val tempDanmakuList = mutableListOf<TimedDanmakuData>()
+
+        // 使用字幕和MKV 生成的词库
+        if (vocabulary.type == VocabularyType.MKV || vocabulary.type == VocabularyType.SUBTITLES) {
+            val absVideoFile = File(videoPath)
+            val relVideoFile = File(vocabularyDir, absVideoFile.name)
+
+            // absVideoFile.exists() 为真 视频文件没有移动，还是词库里保存的地址
+            // relVideoFile.exists() 为真 视频文件移动了，词库里保存的地址是旧地址
+            if ((absVideoFile.exists() && absVideoFile.absolutePath == vocabulary.relateVideoPath) ||
+                (relVideoFile.exists() && relVideoFile.name == File(vocabulary.relateVideoPath).name)
+            ) {
+                vocabulary.wordList.forEach { word ->
+                    if (word.captions.isNotEmpty()) {
+                        word.captions.forEach { caption ->
+                            val startTimeMs = (convertTimeToSeconds(caption.start) * 1000).toLong()
+                            tempDanmakuList.add(
+                                TimedDanmakuData(
+                                    timeMs = startTimeMs,
+                                    text = word.value,
+                                    word = word,
+                                    color = Color.White,
+                                    type = DanmakuType.SCROLL
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            // 文档词库，或混合词库
+            vocabulary.wordList.forEach { word ->
+                word.externalCaptions.forEach { externalCaption ->
+                    val absVideoFile = File(videoPath)
+                    val relVideoFile = File(vocabularyDir, absVideoFile.name)
+
+                    if ((absVideoFile.exists() && absVideoFile.absolutePath == externalCaption.relateVideoPath) ||
+                        (relVideoFile.exists() && relVideoFile.name == File(externalCaption.relateVideoPath).name)
+                    ) {
+                        val startTimeMs = (convertTimeToSeconds(externalCaption.start) * 1000).toLong()
+                        tempDanmakuList.add(
+                            TimedDanmakuData(
+                                timeMs = startTimeMs,
+                                text = word.value,
+                                word = word,
+                                color = Color.White,
+                                type = DanmakuType.SCROLL
+                            )
+                        )
+                    }
+                }
+            }
+        }
+
+        // 按时间排序并加载
+        timedDanmakuList.addAll(tempDanmakuList.sortedBy { it.timeMs })
+    }
 }
 
 /**
