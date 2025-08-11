@@ -11,6 +11,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlin.random.Random
 
 /**
@@ -25,7 +26,9 @@ fun CanvasDanmakuContainer(
     isEnabled: Boolean = true,
     speed: Float = 3f,
     maxDanmakuCount: Int = 50,
-    onDanmakuManagerCreated: (DanmakuStateManager) -> Unit = {}
+    mediaTimeFlow: Flow<Long>? = null, // 媒体时间流
+    onDanmakuManagerCreated: (DanmakuStateManager) -> Unit = {},
+    onTimelineSynchronizerCreated: (TimelineSynchronizer) -> Unit = {} // 时间轴同步器回调
 ) {
     val density = LocalDensity.current
     val lineHeight = with(density) { (fontSize + 8).dp.toPx() }
@@ -39,9 +42,27 @@ fun CanvasDanmakuContainer(
         }
     }
 
-    // 向外暴露弹幕管理器
+    // 创建时间轴同步器（如果提供了媒体时间流）
+    val timelineSynchronizer = remember(mediaTimeFlow) {
+        if (mediaTimeFlow != null) {
+            danmakuManager.initializeTimelineSync(mediaTimeFlow)
+        } else null
+    }
+
+    // 向外暴露弹幕管理器和时间轴同步器
     LaunchedEffect(danmakuManager) {
         onDanmakuManagerCreated(danmakuManager)
+    }
+
+    LaunchedEffect(timelineSynchronizer) {
+        timelineSynchronizer?.let { onTimelineSynchronizerCreated(it) }
+    }
+
+    // 监听媒体时间变化
+    LaunchedEffect(mediaTimeFlow) {
+        mediaTimeFlow?.collect { timeMs ->
+            danmakuManager.updateMediaTime(timeMs)
+        }
     }
 
     // 更新管理器配置

@@ -4,6 +4,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import data.Word
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlin.random.Random
 
 /**
@@ -34,6 +35,9 @@ class DanmakuStateManager {
     // 等待队列：没有找到可用轨道的弹幕
     private val waitingQueue = mutableListOf<PendingDanmaku>()
 
+    // 时间轴同步器（可选）
+    private var timelineSynchronizer: TimelineSynchronizer? = null
+
     /**
      * 等待中的弹幕数据类
      */
@@ -44,6 +48,21 @@ class DanmakuStateManager {
         val type: DanmakuType,
         val addTime: Long = System.currentTimeMillis()
     )
+
+    /**
+     * 初始化时间轴同步器
+     */
+    fun initializeTimelineSync(mediaTimeFlow: Flow<Long>? = null): TimelineSynchronizer {
+        if (timelineSynchronizer == null) {
+            timelineSynchronizer = TimelineSynchronizer(this)
+        }
+        return timelineSynchronizer!!
+    }
+
+    /**
+     * 获取时间轴同步器
+     */
+    fun getTimelineSynchronizer(): TimelineSynchronizer? = timelineSynchronizer
 
     /**
      * 设置 Canvas 尺寸
@@ -207,15 +226,37 @@ class DanmakuStateManager {
     }
 
     /**
-     * 根据时间添加弹幕（为后续时间轴同步做准备）
+     * 根据时间添加弹幕（现在真正实现时间轴同步）
      */
     fun addTimedDanmaku(
         text: String,
         timeMs: Long,
         word: Word? = null,
-        color: Color = Color.White
+        color: Color = Color.White,
+        type: DanmakuType = DanmakuType.SCROLL
     ) {
-        // 这里先简单添加，后续阶段会实现真正的时间轴同步
-        addDanmaku(text, word, color)
+        timelineSynchronizer?.addTimedDanmaku(timeMs, text, word, color, type)
+            ?: addDanmaku(text, word, color, type) // 如果没有时间轴同步器，直接添加
+    }
+
+    /**
+     * 加载一批定时弹幕数据
+     */
+    fun loadTimedDanmakus(danmakus: List<TimelineSynchronizer.TimedDanmakuData>) {
+        timelineSynchronizer?.loadTimedDanmakus(danmakus)
+    }
+
+    /**
+     * 更新媒体播放时间
+     */
+    fun updateMediaTime(timeMs: Long) {
+        timelineSynchronizer?.updateTime(timeMs)
+    }
+
+    /**
+     * 重置时间轴同步状态
+     */
+    fun resetTimeline() {
+        timelineSynchronizer?.reset()
     }
 }
