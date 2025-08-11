@@ -36,64 +36,13 @@ fun embeddedVLCDiscovery() {
 }
 
 /**
- * 初始化视频播放组件
+ * 视频播放组件
  */
-fun createMediaPlayerComponent(): Component {
-    System.setProperty("native.encoding", "UTF-8")
-    val cacheExists = getResourcesFile("VLC/plugins/plugins.dat").exists()
-    embeddedVLCDiscovery()
-
-    val args = mutableListOf(
-        "--quiet",  // --quiet 是关闭所有的日志。
-        "--sub-language=en",// 使用视频播放器播放视频时，自动选择英语字幕
-    )
-    if(!cacheExists){
-        args.add("--reset-plugins-cache")
-    }
-
-    return if (isMacOS()) {
-        val mediaPlayerFactory = MediaPlayerFactory(args)
-        val callbackMediaPlayerComponent = CallbackMediaPlayerComponent(mediaPlayerFactory, null, null, true, null, null, null, null)
-        callbackMediaPlayerComponent
-    } else if(isWindows()){
-        val mediaPlayerFactory = MediaPlayerFactory(args)
-        val embeddedMediaPlayerComponent = EmbeddedMediaPlayerComponent(mediaPlayerFactory, null, null, null, null)
-        val embeddedMediaPlayer = embeddedMediaPlayerComponent.mediaPlayer()
-        embeddedMediaPlayer.input().enableKeyInputHandling(false)
-        embeddedMediaPlayer.input().enableMouseInputHandling(false)
-        embeddedMediaPlayerComponent
-    }else{
-
-        try{
-            NativeLibrary.getInstance("vlc")
-        }catch ( exception:UnsatisfiedLinkError){
-            val message = JEditorPane()
-            message.contentType = "text/html"
-            message.text = "<p>幕境 需要 <a href='https://www.videolan.org/'>VLC 视频播放器</a> 播放视频和单词发音</p><br>" +
-                    "必须使用命令行 sudo apt-get install vlc  安装VLC，不要从 Snap Store 安装VLC."
-            message.addHyperlinkListener {
-                if(it.eventType == HyperlinkEvent.EventType.ACTIVATED){
-                    Desktop.getDesktop().browse(it.url.toURI())
-                }
-            }
-            message.isEditable = false
-            JOptionPane.showMessageDialog(null, message)
-        }
-        EmbeddedMediaPlayerComponent()
-    }
-}
-
 fun createMediaPlayerComponent2(): CallbackMediaPlayerComponent {
     System.setProperty("native.encoding", "UTF-8")
     val cacheExists = getResourcesFile("VLC/plugins/plugins.dat").exists()
     // 如果是 Windows、macOS 就使用内置的 VLC 播放器
-    if(isWindows()){
-        System.setProperty("jna.library.path", getResourcesFile("VLC").absolutePath)
-    }else if(isMacOS()){
-        System.setProperty("jna.library.path", getResourcesFile("VLC/lib").absolutePath)
-    }else{
-        NativeDiscovery().discover()
-    }
+    embeddedVLCDiscovery()
 
     val args = mutableListOf(
         "--quiet",  // --quiet 是关闭所有的日志。
@@ -168,7 +117,7 @@ fun parseTrackList(
 ) {
     val result = checkSubtitles(videoPath,parentComponent)
     if(result){
-        val mediaPlayerComponent = createMediaPlayerComponent()
+        val mediaPlayerComponent = createMediaPlayerComponent2()
         mediaPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(object : MediaPlayerEventAdapter() {
             override fun mediaPlayerReady(mediaPlayer: MediaPlayer) {
                 val list = mutableListOf<Pair<Int, String>>()

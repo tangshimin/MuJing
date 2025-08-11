@@ -12,10 +12,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import player.createMediaPlayerComponent
 import player.isLinux
 import player.isMacOS
 import player.isWindows
@@ -358,6 +356,7 @@ fun composeAppResource(path: String): File {
         if (!commonPath.exists() && isMacOS()) {
             val arch = System.getProperty("os.arch").lowercase()
             commonPath = if (arch == "arm" || arch == "aarch64") {
+                println("Using macOS ARM64 resources for $path")
                 File("resources/macos-arm64/$path")
             }else {
                 File("resources/macos-x64/$path")
