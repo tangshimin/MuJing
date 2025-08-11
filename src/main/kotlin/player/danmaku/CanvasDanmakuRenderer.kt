@@ -47,6 +47,12 @@ fun CanvasDanmakuRenderer(
                         val measured = textMeasurer.measure(item.text, textStyle)
                         item.textWidth = measured.size.width.toFloat()
                     }
+
+                    // 检查弹幕是否已移出屏幕（静止弹幕由时间控制生命周期）
+                    if (item.type == DanmakuType.SCROLL && item.x + item.textWidth < 0) {
+                        item.isActive = false
+                    }
+
                 }
             }
             delay(16) // ~60 FPS
@@ -100,10 +106,7 @@ private fun DrawScope.drawDanmakuItems(
                 softWrap = false  // 禁止软换行，强制在一行显示
             )
 
-            // 移除滚动弹幕的边界检查逻辑（静止弹幕由时间控制生命周期）
-            if (item.type == DanmakuType.SCROLL && item.x + item.textWidth < 0) {
-                item.isActive = false
-            }
+
         }
     }
 }
