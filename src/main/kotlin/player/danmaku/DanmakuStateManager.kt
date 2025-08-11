@@ -101,6 +101,10 @@ class DanmakuStateManager {
             DanmakuType.TOP, DanmakuType.BOTTOM -> {
                 addStaticDanmaku(text, word, color, type)
             }
+            DanmakuType.ANNOTATION -> {
+                // 标注弹幕需要具体位置，这里提供默认位置
+                addAnnotationDanmaku(text, canvasWidth * 0.5f, canvasHeight * 0.5f, word, color)
+            }
         }
     }
 
@@ -144,16 +148,125 @@ class DanmakuStateManager {
             else -> lineHeight
         }
 
+        // 计算居中位置
+        val estimatedTextWidth = text.length * 12f // 粗略估算，实际会在渲染时精确测量
+        val centerX = (canvasWidth - estimatedTextWidth) / 2
+
         val danmaku = CanvasDanmakuItem(
             text = text,
             word = word,
             color = color,
             type = type,
-            initialX = canvasWidth / 2 - 100f, // 居中显示，粗略计算
+            initialX = centerX,
             initialY = startY
         )
 
+        // 设置显示时长
+        danmaku.setDisplayDuration(3000L) // 默认3秒
+
         _activeDanmakus.add(danmaku)
+    }
+
+    /**
+     * 添加顶部静止弹幕
+     */
+    fun addTopDanmaku(
+        text: String,
+        word: Word? = null,
+        color: Color = Color.White,
+        durationMs: Long = 3000L
+    ) {
+        if (!isEnabled || _activeDanmakus.size >= maxDanmakuCount) {
+            return
+        }
+
+        val estimatedTextWidth = text.length * 12f
+        val centerX = (canvasWidth - estimatedTextWidth) / 2
+
+        val danmaku = CanvasDanmakuItem(
+            text = text,
+            word = word,
+            color = color,
+            type = DanmakuType.TOP,
+            initialX = centerX,
+            initialY = lineHeight
+        )
+
+        danmaku.setDisplayDuration(durationMs)
+        _activeDanmakus.add(danmaku)
+    }
+
+    /**
+     * 添加底部静止弹幕
+     */
+    fun addBottomDanmaku(
+        text: String,
+        word: Word? = null,
+        color: Color = Color.White,
+        durationMs: Long = 3000L
+    ) {
+        if (!isEnabled || _activeDanmakus.size >= maxDanmakuCount) {
+            return
+        }
+
+        val estimatedTextWidth = text.length * 12f
+        val centerX = (canvasWidth - estimatedTextWidth) / 2
+
+        val danmaku = CanvasDanmakuItem(
+            text = text,
+            word = word,
+            color = color,
+            type = DanmakuType.BOTTOM,
+            initialX = centerX,
+            initialY = canvasHeight - lineHeight
+        )
+
+        danmaku.setDisplayDuration(durationMs)
+        _activeDanmakus.add(danmaku)
+    }
+
+    /**
+     * 添加自���义位置的静止弹幕（用于视频标注）
+     */
+    fun addAnnotationDanmaku(
+        text: String,
+        x: Float,
+        y: Float,
+        word: Word? = null,
+        color: Color = Color.White,
+        durationMs: Long = 5000L
+    ) {
+        if (!isEnabled || _activeDanmakus.size >= maxDanmakuCount) {
+            return
+        }
+
+        val danmaku = CanvasDanmakuItem(
+            text = text,
+            word = word,
+            color = color,
+            type = DanmakuType.ANNOTATION,
+            initialX = x,
+            initialY = y
+        )
+
+        danmaku.setDisplayDuration(durationMs)
+        _activeDanmakus.add(danmaku)
+    }
+
+    /**
+     * 添加相对位置的标注弹幕（基于百分比）
+     */
+    fun addAnnotationDanmakuRelative(
+        text: String,
+        xPercent: Float, // 0.0-1.0，表示在屏幕宽度的百分比位置
+        yPercent: Float, // 0.0-1.0，表示在屏幕高度的百分比位置
+        word: Word? = null,
+        color: Color = Color.White,
+        durationMs: Long = 5000L
+    ) {
+        val absoluteX = canvasWidth * xPercent
+        val absoluteY = canvasHeight * yPercent
+        addAnnotationDanmaku(text, absoluteX, absoluteY, word, color, durationMs)
     }
 
     /**
@@ -240,7 +353,7 @@ class DanmakuStateManager {
     }
 
     /**
-     * 加载一批定时弹幕数据
+     * 加载一批定时弹幕���据
      */
     fun loadTimedDanmakus(danmakus: List<TimelineSynchronizer.TimedDanmakuData>) {
         timelineSynchronizer?.loadTimedDanmakus(danmakus)

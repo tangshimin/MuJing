@@ -32,6 +32,10 @@ class CanvasDanmakuItem(
     // 是否暂停移动（用于鼠标悬停等交互）
     var isPaused by mutableStateOf(false)
 
+    // 静止弹幕相关属性
+    var displayDurationMs by mutableStateOf(3000L) // 默认显示3秒
+    var createdTimeMs by mutableStateOf(0L) // 创建时间
+
     /**
      * 更新弹幕位置
      */
@@ -41,9 +45,30 @@ class CanvasDanmakuItem(
                 DanmakuType.SCROLL -> {
                     x -= speed
                 }
-                DanmakuType.TOP, DanmakuType.BOTTOM -> {
-                    // 顶部和底部弹幕不移动位置
+                DanmakuType.TOP, DanmakuType.BOTTOM, DanmakuType.ANNOTATION -> {
+                    // 静止弹幕不移动位置，但需要处理显示时长
+                    updateStaticDanmakuLifetime()
                 }
+            }
+        }
+    }
+
+    /**
+     * 设置静止弹幕的显示时长
+     */
+    fun setDisplayDuration(durationMs: Long) {
+        displayDurationMs = durationMs
+        createdTimeMs = System.currentTimeMillis()
+    }
+
+    /**
+     * 更新静止弹幕的生命周期
+     */
+    private fun updateStaticDanmakuLifetime() {
+        if (type == DanmakuType.TOP || type == DanmakuType.BOTTOM || type == DanmakuType.ANNOTATION) {
+            val currentTime = System.currentTimeMillis()
+            if (createdTimeMs > 0 && currentTime - createdTimeMs > displayDurationMs) {
+                isActive = false // 超时后标记为不活跃
             }
         }
     }
@@ -54,7 +79,11 @@ class CanvasDanmakuItem(
     fun isVisible(canvasWidth: Float): Boolean {
         return when (type) {
             DanmakuType.SCROLL -> x + textWidth >= 0 && x <= canvasWidth
-            DanmakuType.TOP, DanmakuType.BOTTOM -> true
+            DanmakuType.TOP, DanmakuType.BOTTOM, DanmakuType.ANNOTATION -> {
+                // 静止弹幕和标注弹幕在显示时长内都可见
+                isActive && (createdTimeMs == 0L ||
+                        System.currentTimeMillis() - createdTimeMs <= displayDurationMs)
+            }
         }
     }
 
@@ -90,7 +119,8 @@ class CanvasDanmakuItem(
  * 弹幕类型枚举
  */
 enum class DanmakuType {
-    SCROLL,  // 滚动弹幕
-    TOP,     // 顶部弹幕
-    BOTTOM   // 底部弹幕
+    SCROLL,     // 滚动弹幕
+    TOP,        // 顶部弹幕
+    BOTTOM,     // 底部弹幕
+    ANNOTATION  // 标注弹幕（任意位置）
 }

@@ -80,6 +80,12 @@ private fun DrawScope.drawDanmakuItems(
             if (item.textWidth == 0f) {
                 val measured = textMeasurer.measure(item.text, textStyle)
                 item.textWidth = measured.size.width.toFloat()
+
+                // 对于静止弹幕，重新计算居中位置（仅限顶部和底部弹幕）
+                if (item.type == DanmakuType.TOP || item.type == DanmakuType.BOTTOM) {
+                    item.x = (canvasWidth - item.textWidth) / 2
+                }
+                // 标注弹幕保持原始位置，不需要重新计算
             }
 
             // 绘制完整文字 - 取消 maxLines 限制，让文字在一行内完全显示
@@ -94,8 +100,8 @@ private fun DrawScope.drawDanmakuItems(
                 softWrap = false  // 禁止软换行，强制在一行显示
             )
 
-            // 如果弹幕移出屏幕，标记为不活跃
-            if (item.x + item.textWidth < 0) {
+            // 移除滚动弹幕的边界检查逻辑（静止弹幕由时间控制生命周期）
+            if (item.type == DanmakuType.SCROLL && item.x + item.textWidth < 0) {
                 item.isActive = false
             }
         }
