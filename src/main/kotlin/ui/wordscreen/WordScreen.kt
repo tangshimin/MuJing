@@ -60,12 +60,10 @@ import ui.components.Toolbar
 import ui.dialog.*
 import ui.wordscreen.MemoryStrategy.*
 import util.computeVideoSize
-import util.createTransferHandler
 import util.rememberMonospace
 import util.shouldStartDragAndDrop
 import java.awt.Rectangle
 import java.awt.datatransfer.DataFlavor
-import java.awt.dnd.DropTargetDragEvent
 import java.io.File
 import java.nio.file.Paths
 import java.time.Duration
@@ -3164,44 +3162,4 @@ fun getMediaInfoFromExternalCaption(externalCaptions: MutableList<ExternalCaptio
     }
 }
 
-/**  设置处理拖放文件的函数
- *  @param window  主窗口
- *  @param appState 应用程序的全局状态
- *  @param wordScreenState 单词记忆界面的状态
- *  @param showVideoPlayer 显示视频播放器
- *  @param setVideoPath 设置视频路径
- *  @param setVideoVocabulary 设置视频对应的词库
- * */
-@OptIn(ExperimentalSerializationApi::class)
-fun setWindowTransferHandler(
-    window: ComposeWindow,
-    appState: AppState,
-    wordScreenState: WordScreenState,
-    showVideoPlayer:(Boolean) -> Unit,
-    setVideoPath:(String) -> Unit,
-    setVideoVocabulary:(String) -> Unit
-){
-    window.transferHandler = createTransferHandler(
-        showWrongMessage = { message ->
-            JOptionPane.showMessageDialog(window, message)
-        },
-        parseImportFile = {files ->
-            val file = files.first()
-            if (file.extension == "json") {
-                if (wordScreenState.vocabularyPath != file.absolutePath) {
-                    val index = appState.findVocabularyIndex(file)
-                    appState.changeVocabulary(file,wordScreenState,index)
-                } else {
-                    JOptionPane.showMessageDialog(window, "词库已打开")
-                }
 
-            } else if (file.extension == "mkv" || file.extension == "mp4") {
-                showVideoPlayer(true)
-                setVideoPath(file.absolutePath)
-                setVideoVocabulary(wordScreenState.vocabularyPath)
-            } else {
-                JOptionPane.showMessageDialog(window, "文件格式不支持")
-            }
-        }
-    )
-}
