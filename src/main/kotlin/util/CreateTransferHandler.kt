@@ -1,7 +1,10 @@
 package util
 
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.draganddrop.DragAndDropEvent
 import java.awt.datatransfer.DataFlavor
 import java.awt.datatransfer.UnsupportedFlavorException
+import java.awt.dnd.DropTargetDragEvent
 import java.io.File
 import java.io.IOException
 import javax.swing.TransferHandler
@@ -50,4 +53,14 @@ fun createTransferHandler(
             return true
         }
     }
+}
+
+
+
+@OptIn(ExperimentalComposeUiApi::class)
+fun shouldStartDragAndDrop(event: DragAndDropEvent):Boolean{
+    var isSupport: Boolean
+    val dropEvent = event.nativeEvent as DropTargetDragEvent
+    isSupport = dropEvent.isDataFlavorSupported(DataFlavor.javaFileListFlavor)
+    return isSupport
 }

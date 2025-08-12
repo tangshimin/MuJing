@@ -62,8 +62,10 @@ import ui.wordscreen.MemoryStrategy.*
 import util.computeVideoSize
 import util.createTransferHandler
 import util.rememberMonospace
+import util.shouldStartDragAndDrop
 import java.awt.Rectangle
 import java.awt.datatransfer.DataFlavor
+import java.awt.dnd.DropTargetDragEvent
 import java.io.File
 import java.nio.file.Paths
 import java.time.Duration
@@ -135,9 +137,7 @@ fun WordScreen(
     Box(Modifier
         .background(MaterialTheme.colors.background)
         .dragAndDropTarget(
-            shouldStartDragAndDrop = {event ->
-                true
-            },
+            shouldStartDragAndDrop = { shouldStartDragAndDrop(it) },
             target = dropTarget
         )
     ) { ->
