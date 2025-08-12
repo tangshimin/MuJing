@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -43,6 +44,10 @@ import event.EventBus
 import event.PlayerEventType
 import icons.ArrowDown
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.flow
+import player.danmaku.CanvasDanmakuContainer
+import player.danmaku.DanmakuStateManager
+import player.danmaku.TimelineSynchronizer
 import theme.LocalCtrl
 import tts.rememberAzureTTS
 import uk.co.caprica.vlcj.player.base.MediaPlayer
@@ -141,7 +146,6 @@ fun VideoPlayer(
     /** 当前显示的字幕内容 */
     var caption by remember { mutableStateOf("") }
 
-    var tempCaption by remember { mutableStateOf("") }
 
     /** 是否手动跳转字幕。
      * 用于重复播放当前字幕，播放上一句字幕，播放下一句字幕,
@@ -200,6 +204,21 @@ fun VideoPlayer(
     val scope = rememberCoroutineScope()
 
     val azureTTS = rememberAzureTTS()
+
+    // 创建媒体时间流
+    val mediaTimeFlow = remember {
+        flow {
+            while (true) {
+                if (isPlaying) {
+                    // 获取当前播放时间（毫秒）
+                    val currentTimeMs =videoPlayer.status().time()
+                    emit(currentTimeMs)
+                }
+                delay(100) // 每100ms更新一次时间
+            }
+        }
+    }
+
 
     /** 播放 */
     val play: () -> Unit = {
@@ -465,22 +484,44 @@ fun VideoPlayer(
             ) {
 
                 if(state.videoPath.isNotEmpty()){
-                    // 视频渲染
-                    CustomCanvas(
-                        modifier =  Modifier
-                            .fillMaxSize()
-                            .background(Color.Black)
-                            .align(Alignment.Center)
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onTap = { play() }, // 单击调用 play 函数
-                                    onDoubleTap = {
-                                        fullscreen()
-                                    } // 双击切换全屏
-                                )
-                            },
-                        surface = surface
-                    )
+
+                    Box(modifier =  Modifier
+                        .fillMaxSize()){
+                        // 视频渲染
+                        CustomCanvas(
+                            modifier =  Modifier
+                                .fillMaxSize()
+                                .background(Color.Black)
+                                .align(Alignment.Center)
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onTap = { play() }, // 单击调用 play 函数
+                                        onDoubleTap = {
+                                            fullscreen()
+                                        } // 双击切换全屏
+                                    )
+                                },
+                            surface = surface
+                        )
+                        // 弹幕渲染
+                        if (state.danmakuVisible) {
+                            // 弹幕显示区域
+                            CanvasDanmakuContainer(
+                                modifier = Modifier.fillMaxSize(),
+                                fontSize = 20,
+                                speed = 2f,
+                                maxDanmakuCount = 50,
+                                mediaTimeFlow = mediaTimeFlow,
+                                onDanmakuManagerCreated = { manager ->
+                                    state.danmakuManager = manager
+                                },
+                                onTimelineSynchronizerCreated = { synchronizer ->
+                                    state.timelineSynchronizer = synchronizer
+                                }
+                            )
+                        }
+                    }
+
 
                 }else{
                     // 如果没有视频路径，则显示一个黑色背景
@@ -646,13 +687,12 @@ fun VideoPlayer(
                             Row(verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Start,
                             ){
-                            var enableDanmaku by remember { mutableStateOf(false) }
+
                                 // 单词弹幕按钮
                                 DanmakuButton(
-                                    isEnabled = enableDanmaku,
+                                    isEnabled = state.danmakuVisible,
                                     onCheckedChange = {
-//                                        state.showDanmaku = it
-                                        enableDanmaku = it
+                                        state.danmakuVisible = it
                                         // 点击后清除焦点
                                         focusManager.clearFocus()
                                     }
@@ -860,6 +900,13 @@ fun VideoPlayer(
                         showDropdownMenu = false
                     }) {
                         Text("打开视频",color = MaterialTheme.colors.onSurface)
+                    }
+
+                    DropdownMenuItem(onClick = {
+                        showVocabularyPicker = true
+                        showDropdownMenu = false
+                    }) {
+                        Text("打开词库",color = MaterialTheme.colors.onSurface)
                     }
                 }
             }

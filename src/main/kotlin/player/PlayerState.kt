@@ -1,6 +1,7 @@
 package player
 
 import androidx.compose.runtime.*
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import data.MutableVocabulary
 import data.loadMutableVocabulary
@@ -13,6 +14,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import player.danmaku.DanmakuStateManager
+import player.danmaku.TimelineSynchronizer
 import state.getSettingsDirectory
 import java.io.File
 import java.time.LocalDateTime
@@ -31,6 +34,10 @@ class PlayerState(playerData: PlayerData) {
     var vocabulary by  mutableStateOf<MutableVocabulary?>(null)
     /** 与视频关联的词库地址，用于保存词库，因为看视频时可以查看单词详情，如果觉得太简单了可以删除或加入到熟悉词库 */
     var vocabularyPath by mutableStateOf("")
+
+
+    var danmakuManager by  mutableStateOf<DanmakuStateManager?>(null)
+    var timelineSynchronizer by  mutableStateOf<TimelineSynchronizer?>(null)
 
     var showSequence by mutableStateOf(playerData.showSequence)
     var danmakuVisible by mutableStateOf(playerData.danmakuVisible)
@@ -66,6 +73,7 @@ class PlayerState(playerData: PlayerData) {
             vocabularyPath = it
             val newVocabulary = loadMutableVocabulary(it)
             vocabulary = newVocabulary
+            timelineSynchronizer?.loadTimedDanmakusFromVocabulary(videoPath,    it, newVocabulary)
         }else{
             JOptionPane.showMessageDialog(null,"先打开视频，再拖放词库。")
         }
