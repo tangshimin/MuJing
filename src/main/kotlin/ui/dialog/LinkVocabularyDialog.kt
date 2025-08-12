@@ -1,6 +1,7 @@
 package ui.dialog
 
 import androidx.compose.foundation.*
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -37,7 +38,8 @@ import state.AppState
 import state.getResourcesFile
 import ui.edit.computeNameMap
 import ui.window.windowBackgroundFlashingOnCloseFixHack
-import util.createTransferHandler
+import util.createDragAndDropTarget
+import util.shouldStartDragAndDrop
 import java.io.File
 import java.util.*
 import javax.swing.JFileChooser
@@ -295,26 +297,19 @@ fun LinkVocabularyDialog(
         ),
     ) {
         windowBackgroundFlashingOnCloseFixHack()
-        //设置窗口的拖放处理函数
-        LaunchedEffect(Unit){
-            val transferHandler = createTransferHandler(
-                showWrongMessage = { message ->
-                    JOptionPane.showMessageDialog(window, message)
-                },
-                parseImportFile = { files ->
-                    val file = files.first()
-                    scope.launch {
-                        if (file.extension == "json") {
-                            handleInputFile(file)
-                        } else {
-                            JOptionPane.showMessageDialog(window, "词库的格式不正确")
-                        }
 
-
+        // 拖放处理函数
+        val dropTarget = remember {
+            createDragAndDropTarget { files ->
+                val file = files.first()
+                scope.launch {
+                    if (file.extension == "json") {
+                        handleInputFile(file)
+                    } else {
+                        JOptionPane.showMessageDialog(window, "词库的格式不正确")
                     }
                 }
-            )
-            window.transferHandler = transferHandler
+            }
         }
 
 
@@ -356,6 +351,10 @@ fun LinkVocabularyDialog(
             Surface(
                 elevation = 5.dp,
                 shape = RectangleShape,
+                modifier = Modifier.dragAndDropTarget(
+                    shouldStartDragAndDrop =shouldStartDragAndDrop,
+                    target = dropTarget
+                )
             ) {
                 Box(Modifier.fillMaxSize()) {
                     Divider(Modifier.align(Alignment.TopCenter))

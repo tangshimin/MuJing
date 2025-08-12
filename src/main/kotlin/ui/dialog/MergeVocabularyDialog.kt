@@ -1,6 +1,7 @@
 package ui.dialog
 
 import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
@@ -23,7 +24,8 @@ import data.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ui.window.windowBackgroundFlashingOnCloseFixHack
-import util.createTransferHandler
+import util.createDragAndDropTarget
+import util.shouldStartDragAndDrop
 import java.io.File
 import java.util.*
 import java.util.concurrent.FutureTask
@@ -88,42 +90,40 @@ fun MergeVocabularyDialog(
             fileName = it
         }
 
-        //设置窗口的拖放处理函数
-        LaunchedEffect(Unit){
-            val transferHandler = createTransferHandler(
-                singleFile = false,
-                showWrongMessage = { message ->
-                    JOptionPane.showMessageDialog(window, message)
-                },
-                parseImportFile = { files ->
-                    scope.launch {
-                        for (file in files) {
-                            if (file.extension == "json") {
-                                if (selectedFileList.size + 1 < 101) {
-                                    if (!selectedFileList.contains(file)) {
-                                        selectedFileList.add(file)
-                                    }
-                                } else {
-                                    isOutOfRange = true
+
+
+        // 拖放处理函数
+        val dropTarget = remember {
+            createDragAndDropTarget { files ->
+                scope.launch {
+                    for (file in files) {
+                        if (file.extension == "json") {
+                            if (selectedFileList.size + 1 < 101) {
+                                if (!selectedFileList.contains(file)) {
+                                    selectedFileList.add(file)
                                 }
-
                             } else {
-                                JOptionPane.showMessageDialog(window, "词库的格式不对")
+                                isOutOfRange = true
                             }
-                        }
-                        mergeEnabled = selectedFileList.size > 1
-                        // 导入了新的词库，重置总计单词的数量。
-                        updateSize(0)
-                    }
-                }
-            )
 
-            window.transferHandler = transferHandler
+                        } else {
+                            JOptionPane.showMessageDialog(window, "词库的格式不对")
+                        }
+                    }
+                    mergeEnabled = selectedFileList.size > 1
+                    // 导入了新的词库，重置总计单词的数量。
+                    updateSize(0)
+                }
+            }
         }
 
         Surface(
             elevation = 5.dp,
             shape = RectangleShape,
+            modifier = Modifier.dragAndDropTarget(
+                shouldStartDragAndDrop =shouldStartDragAndDrop,
+                target = dropTarget
+            )
         ) {
 
             Box {

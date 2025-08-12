@@ -3,6 +3,7 @@ package ui.dialog
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.*
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -66,6 +67,7 @@ import ui.components.BuiltInVocabularyMenu
 import ui.components.SaveButton
 import ui.dialog.FilterState.*
 import ui.edit.SaveOtherVocabulary
+import ui.subtitlescreen.OpenMode
 import ui.window.windowBackgroundFlashingOnCloseFixHack
 import util.*
 import java.awt.Desktop
@@ -508,16 +510,12 @@ fun GenerateVocabularyDialog(
             }
         }
 
-        //设置窗口的拖放处理函数
-        LaunchedEffect(Unit) {
-            val transferHandler = createTransferHandler(
-                singleFile = false,
-                showWrongMessage = { message ->
-                    JOptionPane.showMessageDialog(window, message)
-                },
-                parseImportFile = { parseImportFile(it) }
-            )
-            window.transferHandler = transferHandler
+
+        // 拖放处理函数
+        val dropTarget = remember {
+            createDragAndDropTarget { files ->
+                parseImportFile(files)
+            }
         }
 
         /** 全选 */
@@ -732,7 +730,13 @@ fun GenerateVocabularyDialog(
         }
 
 
-        Box(Modifier.fillMaxSize().background(MaterialTheme.colors.background)) {
+        Box(Modifier.fillMaxSize()
+            .background(MaterialTheme.colors.background)
+            .dragAndDropTarget(
+                shouldStartDragAndDrop =shouldStartDragAndDrop,
+                target = dropTarget
+            )
+        ) {
             Column(
                 Modifier.fillMaxWidth()
                     .padding(bottom = 60.dp)

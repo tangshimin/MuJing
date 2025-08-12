@@ -1,5 +1,6 @@
 package ui.dialog
 
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.runtime.*
@@ -14,7 +15,8 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.*
 import ui.window.windowBackgroundFlashingOnCloseFixHack
-import util.createTransferHandler
+import util.createDragAndDropTarget
+import util.shouldStartDragAndDrop
 import java.io.File
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
@@ -48,14 +50,18 @@ fun FamiliarDialog(
         /** 熟悉词库 */
         val familiarVocabulary = loadMutableVocabularyByName("FamiliarVocabulary")
 
-        /** 导入词库 */
+
         /** 导入词库 */
         val import:(List<File>) -> Unit = { files ->
             if(files.size>100){
-                JOptionPane.showMessageDialog(null,"一次最多导入 100 个词库")
+                JOptionPane.showMessageDialog(window,"一次最多导入 100 个词库")
             }else{
                 files.forEach { file ->
                     processingFile = file.nameWithoutExtension
+                    if(file.extension != "json") {
+                        JOptionPane.showMessageDialog(window,"文件 ${file.name} 不是一个有效的词库文件")
+                        return@forEach
+                    }
                     val vocabulary = loadVocabulary(file.absolutePath)
                     vocabulary.wordList.forEach { word ->
                         val index = familiarVocabulary.wordList.indexOf(word)
@@ -117,7 +123,7 @@ fun FamiliarDialog(
                     importing = false
                 }catch(e:Exception){
                     e.printStackTrace()
-                    JOptionPane.showMessageDialog(null,"保存词库失败,错误信息：\n${e.message}")
+                    JOptionPane.showMessageDialog(window,"保存词库失败,错误信息：\n${e.message}")
                     close()
                 }
 
@@ -146,23 +152,21 @@ fun FamiliarDialog(
                 fileChooser.removeChoosableFileFilter(fileFilter)
         }
 
-        /**  处理拖放文件的函数 */
-        /**  处理拖放文件的函数 */
-        val transferHandler = createTransferHandler(
-            singleFile = false,
-            showWrongMessage = { message ->
-                JOptionPane.showMessageDialog(window, message)
-            },
-            parseImportFile = { files ->
-                    importing = true
-                    import(files)
+        // 拖放处理函数
+        val dropTarget = remember {
+            createDragAndDropTarget { files ->
+                importing = true
+                import(files)
             }
-        )
-        window.transferHandler = transferHandler
+        }
 
         Surface(
             elevation = 5.dp,
             shape = RectangleShape,
+            modifier = Modifier.dragAndDropTarget(
+                shouldStartDragAndDrop =shouldStartDragAndDrop,
+                target = dropTarget
+            )
         ) {
             Box{
                 Divider(Modifier.align(Alignment.TopCenter))

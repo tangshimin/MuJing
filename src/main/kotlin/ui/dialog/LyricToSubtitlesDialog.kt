@@ -1,5 +1,6 @@
 package ui.dialog
 
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.OutlinedButton
@@ -20,7 +21,8 @@ import kotlinx.coroutines.launch
 import lyric.FileManager
 import lyric.SongLyric
 import ui.window.windowBackgroundFlashingOnCloseFixHack
-import util.createTransferHandler
+import util.createDragAndDropTarget
+import util.shouldStartDragAndDrop
 import java.io.File
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
@@ -63,28 +65,21 @@ fun LyricToSubtitlesDialog(
             songLyric.song.clear()
         }
 
-        //设置窗口的拖放处理函数
-        LaunchedEffect(Unit){
-            val transferHandler = createTransferHandler(
-                singleFile = true,
-                showWrongMessage = { message ->
-                    JOptionPane.showMessageDialog(window, message)
-                },
-                parseImportFile = { files ->
-                    scope.launch {
-                        val file = files.first()
-                        if (file.extension == "lrc") {
-                            setFile(file)
-                        } else {
-                            JOptionPane.showMessageDialog(window, "格式不支持")
-                        }
 
+        // 拖放处理函数
+        val dropTarget = remember {
+            createDragAndDropTarget { files ->
+                scope.launch {
+                    val file = files.first()
+                    if (file.extension == "lrc") {
+                        setFile(file)
+                    } else {
+                        JOptionPane.showMessageDialog(window, "格式不支持")
                     }
-                }
-            )
-            window.transferHandler = transferHandler
-        }
 
+                }
+            }
+        }
 
 
         /** 打开文件对话框 */
@@ -153,6 +148,10 @@ fun LyricToSubtitlesDialog(
         Surface(
             elevation = 5.dp,
             shape = RectangleShape,
+            modifier = Modifier.dragAndDropTarget(
+                shouldStartDragAndDrop =shouldStartDragAndDrop,
+                target = dropTarget
+            )
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center,

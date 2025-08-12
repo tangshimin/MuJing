@@ -2,6 +2,7 @@ package ui.dialog
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -20,7 +21,8 @@ import androidx.compose.ui.window.rememberDialogState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ui.window.windowBackgroundFlashingOnCloseFixHack
-import util.createTransferHandler
+import util.createDragAndDropTarget
+import util.shouldStartDragAndDrop
 import java.io.File
 import java.util.concurrent.FutureTask
 import javax.swing.JFileChooser
@@ -64,14 +66,10 @@ fun TextFormatDialog(
             saveList.clear()
         }
 
-        /**  处理拖放文件的函数 */
-        /**  处理拖放文件的函数 */
-        val transferHandler = createTransferHandler(
-            singleFile = true,
-            showWrongMessage = { message ->
-                JOptionPane.showMessageDialog(window, message)
-            },
-            parseImportFile = { files ->
+
+        // 拖放处理函数
+        val dropTarget = remember {
+            createDragAndDropTarget { files ->
                 scope.launch {
                     val file = files.first()
                     if (file.extension == "txt") {
@@ -82,8 +80,7 @@ fun TextFormatDialog(
 
                 }
             }
-        )
-        window.transferHandler = transferHandler
+        }
 
 
         /** 打开文件对话框 */
@@ -170,6 +167,10 @@ fun TextFormatDialog(
         Surface(
             elevation = 5.dp,
             shape = RectangleShape,
+            modifier = Modifier.dragAndDropTarget(
+                shouldStartDragAndDrop =shouldStartDragAndDrop,
+                target = dropTarget
+            )
         ) {
             Column {
                 Divider()
