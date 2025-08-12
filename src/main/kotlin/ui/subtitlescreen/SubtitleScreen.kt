@@ -17,9 +17,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.draganddrop.DragAndDropEvent
-import androidx.compose.ui.draganddrop.DragAndDropTarget
-import androidx.compose.ui.draganddrop.awtTransferable
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -41,11 +38,11 @@ import ui.components.RemoveButton
 import ui.components.Toolbar
 import ui.wordscreen.playSound
 import util.computeMediaType
+import util.createDragAndDropTarget
 import util.parseSubtitles
 import util.shouldStartDragAndDrop
 import java.awt.Rectangle
 import java.awt.Toolkit
-import java.awt.datatransfer.DataFlavor
 import java.io.File
 import java.util.concurrent.FutureTask
 import java.util.regex.Pattern
@@ -570,15 +567,8 @@ fun SubtitleScreen(
 
     // 拖放处理函数
     val dropTarget = remember {
-        object : DragAndDropTarget {
-            override fun onDrop(event: DragAndDropEvent): Boolean {
-                // 处理拖放事件
-                val transferable = event.awtTransferable
-                // 获取拖放的文件列表，并过滤出 File 类型，避免类型转换警告和异常
-                val files = (transferable.getTransferData(DataFlavor.javaFileListFlavor) as? List<*>)?.filterIsInstance<File>() ?: emptyList()
-                parseImportFile(files, OpenMode.Drag)
-                return true
-            }
+        createDragAndDropTarget { files ->
+            parseImportFile(files, OpenMode.Drag)
         }
     }
 

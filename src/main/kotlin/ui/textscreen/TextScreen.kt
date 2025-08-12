@@ -1,7 +1,7 @@
 package ui.textscreen
 
-import theme.LocalCtrl
 import androidx.compose.foundation.*
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -40,15 +40,17 @@ import kotlinx.coroutines.launch
 import player.isMacOS
 import player.isWindows
 import state.GlobalState
-import ui.components.Toolbar
+import theme.LocalCtrl
 import ui.components.MacOSTitle
+import ui.components.RemoveButton
+import ui.components.Toolbar
 import ui.dialog.FormatDialog
 import ui.subtitlescreen.OpenMode
-import util.createTransferHandler
 import ui.subtitlescreen.videoFormatList
-import ui.components.RemoveButton
 import ui.wordscreen.playSound
+import util.createDragAndDropTarget
 import util.rememberMonospace
+import util.shouldStartDragAndDrop
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -211,20 +213,20 @@ fun TextScreen(
         }
     }
 
-    //设置窗口的拖放处理函数
-    LaunchedEffect(Unit){
-        val transferHandler = createTransferHandler(
-            singleFile = true,
-            showWrongMessage = { message ->
-                JOptionPane.showMessageDialog(window, message)
-            },
-            parseImportFile = { parseImportFile(it, OpenMode.Drag) }
-        )
-        window.transferHandler = transferHandler
+
+    // 拖放处理函数
+    val dropTarget = remember {
+        createDragAndDropTarget { files ->
+            parseImportFile(files, OpenMode.Drag)
+        }
     }
 
     Box(Modifier.fillMaxSize()
         .background(MaterialTheme.colors.background)
+        .dragAndDropTarget(
+            shouldStartDragAndDrop =shouldStartDragAndDrop,
+            target = dropTarget
+        )
         .focusRequester(focusRequester)
         .onKeyEvent(boxKeyEvent)
         .focusable()){
