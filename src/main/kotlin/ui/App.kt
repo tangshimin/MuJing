@@ -66,7 +66,6 @@ import util.computeVideoBounds
 import java.awt.Desktop
 import java.awt.Rectangle
 import java.io.File
-import java.lang.management.ManagementFactory
 import javax.swing.JOptionPane
 
 
@@ -224,8 +223,7 @@ fun App(
                                     wordScreenState = wordState,
                                     videoBounds = videoBounds,
                                     showPlayer = { playerState.showPlayerWindow = it },
-                                    setVideoPath = playerState.videoPathChanged,
-                                    setVideoVocabulary = playerState.vocabularyPathChanged,
+                                    openVideo = playerState.openVideo,
                                     showContext = { playerState.showContext(it) }
                                 )
                             }

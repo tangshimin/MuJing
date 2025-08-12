@@ -11,11 +11,8 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import player.danmaku.DanmakuStateManager
-import player.danmaku.TimelineSynchronizer
 import state.getSettingsDirectory
 import java.io.File
 import java.time.LocalDateTime
@@ -36,8 +33,6 @@ class PlayerState(playerData: PlayerData) {
     var vocabularyPath by mutableStateOf("")
 
 
-    var danmakuManager by  mutableStateOf<DanmakuStateManager?>(null)
-    var timelineSynchronizer by  mutableStateOf<TimelineSynchronizer?>(null)
 
     var showSequence by mutableStateOf(playerData.showSequence)
     var danmakuVisible by mutableStateOf(playerData.danmakuVisible)
@@ -73,12 +68,25 @@ class PlayerState(playerData: PlayerData) {
             vocabularyPath = it
             val newVocabulary = loadMutableVocabulary(it)
             vocabulary = newVocabulary
-            timelineSynchronizer?.loadTimedDanmakusFromVocabulary(videoPath,    it, newVocabulary)
         }else{
             JOptionPane.showMessageDialog(null,"先打开视频，再拖放词库。")
         }
     }
 
+    /** 在记忆单词界面拖放一个视频，当前的词库会被当成弹幕显示 */
+    val openVideo:(String, String) -> Unit = { videoPath, danmakuPath ->
+        // 打开视频播放器窗口
+        showPlayerWindow = true
+        // 设置视频路径和开始时间
+        this.videoPath = videoPath
+        startTime = "00:00:00"
+        // 如果视频的路径和词库对应的视频路径不一致怎么办？
+        // 这里不处理，VideoPlayer 加载弹幕的函数会处理。
+        // 设置词库路径
+        vocabularyPath = danmakuPath
+        // 加载词库
+        vocabulary = loadMutableVocabulary(danmakuPath)
+    }
 
 
     fun savePlayerState() {

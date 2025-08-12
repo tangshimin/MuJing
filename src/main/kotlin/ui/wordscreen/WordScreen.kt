@@ -3,6 +3,7 @@ package ui.wordscreen
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.*
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -17,6 +18,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.draganddrop.DragAndDropEvent
+import androidx.compose.ui.draganddrop.DragAndDropTarget
+import androidx.compose.ui.draganddrop.awtTransferable
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
@@ -59,6 +63,7 @@ import util.computeVideoSize
 import util.createTransferHandler
 import util.rememberMonospace
 import java.awt.Rectangle
+import java.awt.datatransfer.DataFlavor
 import java.io.File
 import java.nio.file.Paths
 import java.time.Duration
@@ -90,26 +95,52 @@ fun WordScreen(
     wordScreenState: WordScreenState,
     videoBounds: Rectangle,
     showPlayer :(Boolean) -> Unit,
-    setVideoPath:(String) -> Unit,
-    setVideoVocabulary:(String) -> Unit,
+    openVideo: (String, String) -> Unit,
     showContext :(MediaInfo) -> Unit
 ) {
 
+    // 拖放处理函数
+    val dropTarget = remember {
+        object : DragAndDropTarget {
+            override fun onDrop(event: DragAndDropEvent): Boolean {
+                // 处理拖放事件
+                val transferable = event.awtTransferable
+                val files = transferable.getTransferData(DataFlavor.javaFileListFlavor) as List<File>
+                if(files.isNotEmpty()){
+                    val file = files[0]
+                    if(file.isDirectory){
+                        JOptionPane.showMessageDialog(window, "不能拖放目录，请拖放文件。")
+                        return false
+                    }
+                    if(file.extension == "json"){
+                        // 如果是词库文件，打开词库
+                        if (wordScreenState.vocabularyPath != file.absolutePath) {
+                            val index = appState.findVocabularyIndex(file)
+                            appState.changeVocabulary(file,wordScreenState,index)
+                        } else {
+                            JOptionPane.showMessageDialog(window, "词库已打开")
+                        }
+                    }else if(file.extension == "mkv" || file.extension == "mp4" ){
+                        openVideo(file.absolutePath, wordScreenState.vocabularyPath)
+                    }else{
+                        JOptionPane.showMessageDialog(window, "只支持拖放词库文件或视频文件。")
+                    }
+                    return true
+                }
 
-    //设置窗口的拖放处理函数
-    LaunchedEffect(Unit){
-        setWindowTransferHandler(
-            window = window,
-            appState = appState,
-            wordScreenState = wordScreenState,
-            showVideoPlayer = showPlayer,
-            setVideoPath = setVideoPath,
-            setVideoVocabulary = setVideoVocabulary
-        )
+                return false
+            }
+        }
     }
-
-    Box(Modifier.background(MaterialTheme.colors.background)) {
-        ->
+    Box(Modifier
+        .background(MaterialTheme.colors.background)
+        .dragAndDropTarget(
+            shouldStartDragAndDrop = {event ->
+                true
+            },
+            target = dropTarget
+        )
+    ) { ->
         /** 单词输入框的焦点请求器*/
         val wordFocusRequester = remember { FocusRequester() }
         /** 当前正在记忆的单词 */

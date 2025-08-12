@@ -16,10 +16,7 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
 import androidx.compose.runtime.*
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -45,7 +42,6 @@ import event.PlayerEventType
 import icons.ArrowDown
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.flow
 import player.danmaku.CanvasDanmakuContainer
 import player.danmaku.DanmakuStateManager
 import player.danmaku.TimelineSynchronizer
@@ -208,6 +204,9 @@ fun VideoPlayer(
 
     // 创建媒体时间流
     val mediaTimeFlow = remember { MutableStateFlow(0L) }
+
+    var danmakuManager by remember { mutableStateOf<DanmakuStateManager?>(null) }
+    var timelineSynchronizer by remember {mutableStateOf<TimelineSynchronizer?>(null)  }
 
 
     /** 播放 */
@@ -503,10 +502,10 @@ fun VideoPlayer(
                                 maxDanmakuCount = 50,
                                 mediaTimeFlow = mediaTimeFlow,
                                 onDanmakuManagerCreated = { manager ->
-                                    state.danmakuManager = manager
+                                    danmakuManager = manager
                                 },
                                 onTimelineSynchronizerCreated = { synchronizer ->
-                                    state.timelineSynchronizer = synchronizer
+                                    timelineSynchronizer = synchronizer
                                 }
                             )
                         }
@@ -660,6 +659,8 @@ fun VideoPlayer(
                                         subtitleTrackList.clear()
                                         extSubList.clear()
                                         currentSubtitleTrack = 0
+                                        // 清理弹幕
+                                        timelineSynchronizer?.clear()
                                     }
                                 )
                                 // 音量
@@ -964,6 +965,22 @@ fun VideoPlayer(
                     updateCaptionIndex()
                 }
 
+            }
+        }
+
+        /** 加载弹幕 */
+        LaunchedEffect(timelineSynchronizer,videoPath){
+            if(videoPath.isNotEmpty() && timelineSynchronizer != null){
+                withContext(Dispatchers.Default){
+                    if(state.vocabularyPath.isNotEmpty() && state.vocabulary != null){
+                        timelineSynchronizer?.loadTimedDanmakusFromVocabulary(
+                            videoPath,
+                            state.vocabularyPath,
+                            state.vocabulary
+                        )
+                    }
+
+                }
             }
         }
 
