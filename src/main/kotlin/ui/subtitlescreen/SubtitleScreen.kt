@@ -1,6 +1,7 @@
 package ui.subtitlescreen
 
 import androidx.compose.foundation.*
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -13,8 +14,12 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.North
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.draganddrop.DragAndDropEvent
+import androidx.compose.ui.draganddrop.DragAndDropTarget
+import androidx.compose.ui.draganddrop.awtTransferable
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
@@ -36,10 +41,11 @@ import ui.components.RemoveButton
 import ui.components.Toolbar
 import ui.wordscreen.playSound
 import util.computeMediaType
-import util.createTransferHandler
 import util.parseSubtitles
+import util.shouldStartDragAndDrop
 import java.awt.Rectangle
 import java.awt.Toolkit
+import java.awt.datatransfer.DataFlavor
 import java.io.File
 import java.util.concurrent.FutureTask
 import java.util.regex.Pattern
@@ -52,7 +58,7 @@ import javax.swing.filechooser.FileSystemView
 /** 支持的视频类型 */
 val videoFormatList = listOf("mp4","mkv")
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun SubtitleScreen(
     subtitlesState: SubtitlesState,
@@ -561,21 +567,28 @@ fun SubtitleScreen(
         }
     }
 
-    //设置窗口的拖放处理函数
-    LaunchedEffect(Unit){
-        val transferHandler = createTransferHandler(
-            singleFile = false,
-            showWrongMessage = { message ->
-                JOptionPane.showMessageDialog(window, message)
-            },
-            parseImportFile = { parseImportFile(it, OpenMode.Drag) }
-        )
-        window.transferHandler = transferHandler
+
+    // 拖放处理函数
+    val dropTarget = remember {
+        object : DragAndDropTarget {
+            override fun onDrop(event: DragAndDropEvent): Boolean {
+                // 处理拖放事件
+                val transferable = event.awtTransferable
+                // 获取拖放的文件列表，并过滤出 File 类型，避免类型转换警告和异常
+                val files = (transferable.getTransferData(DataFlavor.javaFileListFlavor) as? List<*>)?.filterIsInstance<File>() ?: emptyList()
+                parseImportFile(files, OpenMode.Drag)
+                return true
+            }
+        }
     }
 
     Box(
         Modifier.fillMaxSize()
             .background(MaterialTheme.colors.background)
+            .dragAndDropTarget(
+                shouldStartDragAndDrop =shouldStartDragAndDrop,
+                target = dropTarget
+            )
             .focusRequester(focusRequester)
             .onKeyEvent(boxKeyEvent)
             .focusable()

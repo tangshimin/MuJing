@@ -55,7 +55,9 @@ fun createTransferHandler(
     }
 }
 
-
+val shouldStartDragAndDrop: (startEvent: DragAndDropEvent) -> Boolean = { event ->
+    shouldStartDragAndDrop(event)
+}
 
 @OptIn(ExperimentalComposeUiApi::class)
 fun shouldStartDragAndDrop(event: DragAndDropEvent):Boolean{
