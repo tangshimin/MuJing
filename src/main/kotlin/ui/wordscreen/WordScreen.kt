@@ -107,7 +107,8 @@ fun WordScreen(
             override fun onDrop(event: DragAndDropEvent): Boolean {
                 // 处理拖放事件
                 val transferable = event.awtTransferable
-                val files = transferable.getTransferData(DataFlavor.javaFileListFlavor) as List<File>
+                // 获取拖放的文件列表，并过滤出 File 类型，避免类型转换警告和异常
+                val files = (transferable.getTransferData(DataFlavor.javaFileListFlavor) as? List<*>)?.filterIsInstance<File>() ?: emptyList()
                 if(files.isNotEmpty()){
                     val file = files[0]
                     if(file.isDirectory){
@@ -137,7 +138,7 @@ fun WordScreen(
     Box(Modifier
         .background(MaterialTheme.colors.background)
         .dragAndDropTarget(
-            shouldStartDragAndDrop = { shouldStartDragAndDrop(it) },
+            shouldStartDragAndDrop =shouldStartDragAndDrop,
             target = dropTarget
         )
     ) { ->
