@@ -44,6 +44,7 @@ import event.EventBus
 import event.PlayerEventType
 import icons.ArrowDown
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flow
 import player.danmaku.CanvasDanmakuContainer
 import player.danmaku.DanmakuStateManager
@@ -206,18 +207,7 @@ fun VideoPlayer(
     val azureTTS = rememberAzureTTS()
 
     // 创建媒体时间流
-    val mediaTimeFlow = remember {
-        flow {
-            while (true) {
-                if (isPlaying) {
-                    // 获取当前播放时间（毫秒）
-                    val currentTimeMs =videoPlayer.status().time()
-                    emit(currentTimeMs)
-                }
-                delay(100) // 每100ms更新一次时间
-            }
-        }
-    }
+    val mediaTimeFlow = remember { MutableStateFlow(0L) }
 
 
     /** 播放 */
@@ -986,6 +976,9 @@ fun VideoPlayer(
                         val startText = timeFormat(hours, minutes, seconds)
                         timeText = "$startText / $durationText"
                     }
+
+                    // 更新时间流
+                    mediaTimeFlow.value = newTime
                 }
 
                 override fun mediaPlayerReady(mediaPlayer: MediaPlayer) {
