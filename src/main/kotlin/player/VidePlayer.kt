@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -47,18 +48,13 @@ import player.danmaku.CanvasDanmakuContainer
 import player.danmaku.DanmakuStateManager
 import player.danmaku.TimelineSynchronizer
 import theme.LocalCtrl
+import theme.rememberDarkThemeSelectionColors
 import tts.rememberAzureTTS
-import ui.subtitlescreen.OpenMode
 import ui.wordscreen.rememberPronunciation
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
-import util.createDragAndDropTarget
-import util.findSubtitleFiles
-import util.getSubtitleLangLabel
-import util.parseSubtitles
-import util.readCaptionList
-import util.shouldStartDragAndDrop
+import util.*
 import java.awt.Component
 import java.awt.Cursor
 import java.awt.Point
@@ -92,16 +88,21 @@ fun AnimatedVideoPlayer(
             targetOffsetY = { fullHeight -> fullHeight } // 向下方退出
         )
     ) {
-        VideoPlayer(
-            state = state,
-            audioSet = audioSet,
-            audioVolume = audioVolume,
-            videoVolume = videoVolume,
-            videoVolumeChanged = videoVolumeChanged,
-            windowState = windowState,
-            close = close,
-            eventBus = eventBus
-        )
+        CompositionLocalProvider(
+            LocalTextSelectionColors provides rememberDarkThemeSelectionColors()
+        ){
+            VideoPlayer(
+                state = state,
+                audioSet = audioSet,
+                audioVolume = audioVolume,
+                videoVolume = videoVolume,
+                videoVolumeChanged = videoVolumeChanged,
+                windowState = windowState,
+                close = close,
+                eventBus = eventBus
+            )
+        }
+
     }
 }
 

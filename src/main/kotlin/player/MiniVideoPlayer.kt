@@ -3,6 +3,7 @@ package player
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -31,6 +32,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import state.getSettingsDirectory
 import theme.LocalCtrl
+import theme.rememberDarkThemeSelectionColors
 import ui.wordscreen.replaceSeparator
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
@@ -196,159 +198,82 @@ fun MiniVideoPlayer(
                 onPlayingStateChanged(true) // 通知外部恢复状态改变
             }
         }
-        Box(modifier.size(size).background(Color.Black).shadow(10.dp, shape = RoundedCornerShape(10.dp))
-            .focusRequester(focusRequester)
-            .onKeyEvent{ keyEvent ->
-                // 处理键盘事件
-                val isModifierPressed = if(isMacOS()) keyEvent.isMetaPressed else  keyEvent.isCtrlPressed
 
-                if (keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp) { // 空格键
-                    play()
-                    true // 事件已处理
-                }else if (isModifierPressed && keyEvent.key == Key.G && keyEvent.type == KeyEventType.KeyUp) { // 空格键
-                    showContext() // 显示语境
-                    true // 事件已处理
-                } else {
-                    false // 事件未处理
+        CompositionLocalProvider(
+            LocalTextSelectionColors provides rememberDarkThemeSelectionColors()
+        ){
+            Box(modifier.size(size).background(Color.Black).shadow(10.dp, shape = RoundedCornerShape(10.dp))
+                .focusRequester(focusRequester)
+                .onKeyEvent{ keyEvent ->
+                    // 处理键盘事件
+                    val isModifierPressed = if(isMacOS()) keyEvent.isMetaPressed else  keyEvent.isCtrlPressed
+
+                    if (keyEvent.key == Key.Spacebar && keyEvent.type == KeyEventType.KeyUp) { // 空格键
+                        play()
+                        true // 事件已处理
+                    }else if (isModifierPressed && keyEvent.key == Key.G && keyEvent.type == KeyEventType.KeyUp) { // 空格键
+                        showContext() // 显示语境
+                        true // 事件已处理
+                    } else {
+                        false // 事件未处理
+                    }
                 }
-            }
-        ) {
+            ) {
 
-            CustomCanvas(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(Color.Black)
-                    .align(Alignment.Center),
-                surface = surface
-            )
+                CustomCanvas(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black)
+                        .align(Alignment.Center),
+                    surface = surface
+                )
 
 
-            Column(modifier = Modifier.align(Alignment.BottomCenter),
-                verticalArrangement = Arrangement.Top,
-                horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(modifier = Modifier.align(Alignment.BottomCenter),
+                    verticalArrangement = Arrangement.Top,
+                    horizontalAlignment = Alignment.CenterHorizontally) {
 
-                // 简化的字幕显示 - 直接显示已知的字幕内容
-                if (mediaInfo.caption.content.isNotEmpty() && showCaption) {
-                    SelectionContainer {
+                    // 简化的字幕显示 - 直接显示已知的字幕内容
+                    if (mediaInfo.caption.content.isNotEmpty() && showCaption) {
+                        SelectionContainer {
+                            Text(
+                                text = mediaInfo.caption.content,
+                                color = Color.White,
+                                style = MaterialTheme.typography.h5,
+                                modifier = Modifier
+                                    .background(Color.Black.copy(alpha = 0.7f))
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    .shadow(4.dp, shape = RoundedCornerShape(8.dp))
+                            )
+                        }
+                    }
+
+
+                    // 控制区
+                    Row(verticalAlignment = Alignment.CenterVertically){
+
+                        // 当前时间和总时间
                         Text(
-                            text = mediaInfo.caption.content,
+                            text = "$currentTime / $videoDuration",
                             color = Color.White,
-                            style = MaterialTheme.typography.h5,
-                            modifier = Modifier
-                                .background(Color.Black.copy(alpha = 0.7f))
-                                .padding(horizontal = 16.dp, vertical = 8.dp)
-                                .shadow(4.dp, shape = RoundedCornerShape(8.dp))
+                            modifier = Modifier.padding(8.dp),
+                            style = MaterialTheme.typography.subtitle2
                         )
-                    }
-                }
 
-
-                // 控制区
-                Row(verticalAlignment = Alignment.CenterVertically){
-
-                    // 当前时间和总时间
-                    Text(
-                        text = "$currentTime / $videoDuration",
-                        color = Color.White,
-                        modifier = Modifier.padding(8.dp),
-                        style = MaterialTheme.typography.subtitle2
-                    )
-
-                    TooltipArea(
-                        tooltip = {
-                            Surface(
-                                elevation = 4.dp,
-                                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
-                                shape = RectangleShape
-                            ) {
-                                val text = if (isPlaying) "暂停" else "播放"
-                                Text(
-                                    text = text,
-                                    color = MaterialTheme.colors.onSurface,
-                                    modifier = Modifier.padding(10.dp)
-                                )
-                            }
-                        },
-                        delayMillis = 100,
-                        tooltipPlacement = TooltipPlacement.ComponentRect(
-                            anchor = Alignment.TopCenter,
-                            alignment = Alignment.TopCenter,
-                            offset = DpOffset.Zero
-                        )
-                    ) {
-                        // 播放/暂停按钮
-                        IconButton(onClick = play){
-                            Icon(
-                                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = if (isPlaying) "Pause" else "Play",
-                                tint = Color.White
-                            )
-                        }
-                    }
-
-
-                    // 按钮间隔
-                    Spacer(Modifier.width(8.dp))
-
-                    TooltipArea(
-                        tooltip = {
-                            Surface(
-                                elevation = 4.dp,
-                                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
-                                shape = RectangleShape
-                            ) {
-                                Text(
-                                    text = "停止",
-                                    color =MaterialTheme.colors.onSurface,
-                                    modifier = Modifier.padding(10.dp)
-                                )
-                            }
-                        },
-                        delayMillis = 100,
-                        tooltipPlacement = TooltipPlacement.ComponentRect(
-                            anchor = Alignment.TopCenter,
-                            alignment = Alignment.TopCenter,
-                            offset = DpOffset.Zero
-                        )
-                    ) {
-                        // 停止按钮
-                        IconButton(onClick = {
-                            if(videoPlayer.status().isPlaying){
-                                videoPlayer.controls().pause()
-                            }
-                            stop()
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Stop,
-                                contentDescription = "Stop",
-                                tint = Color.White
-                            )
-                        }
-                    }
-
-                    // 按钮间隔
-                    Spacer(Modifier.width(8.dp))
-                    if(showContextButton){
                         TooltipArea(
                             tooltip = {
                                 Surface(
                                     elevation = 4.dp,
-                                    border = BorderStroke(1.dp,MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                                     shape = RectangleShape
                                 ) {
-                                    val ctrl = LocalCtrl.current
-                                    val shortcut = if (isMacOS()) "$ctrl G" else "$ctrl+G"
-                                    Row(modifier = Modifier.padding(10.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ){
-                                        Text(
-                                            text = "查看语境 ",
-                                            color =MaterialTheme.colors.onSurface,
-                                        )
-                                        Text(text =shortcut,
-                                            color =MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
-                                        )
-                                    }                                }
+                                    val text = if (isPlaying) "暂停" else "播放"
+                                    Text(
+                                        text = text,
+                                        color = MaterialTheme.colors.onSurface,
+                                        modifier = Modifier.padding(10.dp)
+                                    )
+                                }
                             },
                             delayMillis = 100,
                             tooltipPlacement = TooltipPlacement.ComponentRect(
@@ -357,31 +282,29 @@ fun MiniVideoPlayer(
                                 offset = DpOffset.Zero
                             )
                         ) {
-                            IconButton(onClick = showContext) {
+                            // 播放/暂停按钮
+                            IconButton(onClick = play){
                                 Icon(
-                                    imageVector = Icons.Outlined.Navigation,
-                                    contentDescription = "导航到字幕的具体语境",
+                                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                    contentDescription = if (isPlaying) "Pause" else "Play",
                                     tint = Color.White
                                 )
                             }
                         }
 
-                    }
 
-
-                    Spacer(Modifier.width(8.dp))
-                    // 设置按钮
-                    Box {
+                        // 按钮间隔
+                        Spacer(Modifier.width(8.dp))
 
                         TooltipArea(
                             tooltip = {
                                 Surface(
                                     elevation = 4.dp,
-                                    border = BorderStroke(1.dp,MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                                     shape = RectangleShape
                                 ) {
                                     Text(
-                                        text = "设置",
+                                        text = "停止",
                                         color =MaterialTheme.colors.onSurface,
                                         modifier = Modifier.padding(10.dp)
                                     )
@@ -394,47 +317,132 @@ fun MiniVideoPlayer(
                                 offset = DpOffset.Zero
                             )
                         ) {
-                            IconButton(onClick = {settingsExpanded = true}){
+                            // 停止按钮
+                            IconButton(onClick = {
+                                if(videoPlayer.status().isPlaying){
+                                    videoPlayer.controls().pause()
+                                }
+                                stop()
+                            }) {
                                 Icon(
-                                    imageVector = Icons.Default.Settings,
-                                    contentDescription = "Settings",
+                                    imageVector = Icons.Default.Stop,
+                                    contentDescription = "Stop",
                                     tint = Color.White
                                 )
                             }
                         }
 
-                        DropdownMenu(
-                            expanded = settingsExpanded,
-                            offset = DpOffset(x = (-60).dp, y = (-10).dp),
-                            onDismissRequest = {
-                                settingsExpanded = false
-                                focusRequester.requestFocus()
-                            },
-                        ) {
-                            DropdownMenuItem(onClick = { }) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    Text(
-                                        text = "显示字幕",
-                                        color =MaterialTheme.colors.onBackground,
+                        // 按钮间隔
+                        Spacer(Modifier.width(8.dp))
+                        if(showContextButton){
+                            TooltipArea(
+                                tooltip = {
+                                    Surface(
+                                        elevation = 4.dp,
+                                        border = BorderStroke(1.dp,MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                        shape = RectangleShape
+                                    ) {
+                                        val ctrl = LocalCtrl.current
+                                        val shortcut = if (isMacOS()) "$ctrl G" else "$ctrl+G"
+                                        Row(modifier = Modifier.padding(10.dp),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                        ){
+                                            Text(
+                                                text = "查看语境 ",
+                                                color =MaterialTheme.colors.onSurface,
+                                            )
+                                            Text(text =shortcut,
+                                                color =MaterialTheme.colors.onSurface.copy(alpha = 0.5f)
+                                            )
+                                        }                                }
+                                },
+                                delayMillis = 100,
+                                tooltipPlacement = TooltipPlacement.ComponentRect(
+                                    anchor = Alignment.TopCenter,
+                                    alignment = Alignment.TopCenter,
+                                    offset = DpOffset.Zero
+                                )
+                            ) {
+                                IconButton(onClick = showContext) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Navigation,
+                                        contentDescription = "导航到字幕的具体语境",
+                                        tint = Color.White
                                     )
-                                    Switch(checked = showCaption,
-                                        onCheckedChange = {
-                                            showCaption = it
-                                            saveShowCaptionState(it) // 保存状态变化
-                                        })
                                 }
                             }
+
                         }
 
+
+                        Spacer(Modifier.width(8.dp))
+                        // 设置按钮
+                        Box {
+
+                            TooltipArea(
+                                tooltip = {
+                                    Surface(
+                                        elevation = 4.dp,
+                                        border = BorderStroke(1.dp,MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                        shape = RectangleShape
+                                    ) {
+                                        Text(
+                                            text = "设置",
+                                            color =MaterialTheme.colors.onSurface,
+                                            modifier = Modifier.padding(10.dp)
+                                        )
+                                    }
+                                },
+                                delayMillis = 100,
+                                tooltipPlacement = TooltipPlacement.ComponentRect(
+                                    anchor = Alignment.TopCenter,
+                                    alignment = Alignment.TopCenter,
+                                    offset = DpOffset.Zero
+                                )
+                            ) {
+                                IconButton(onClick = {settingsExpanded = true}){
+                                    Icon(
+                                        imageVector = Icons.Default.Settings,
+                                        contentDescription = "Settings",
+                                        tint = Color.White
+                                    )
+                                }
+                            }
+
+                            DropdownMenu(
+                                expanded = settingsExpanded,
+                                offset = DpOffset(x = (-60).dp, y = (-10).dp),
+                                onDismissRequest = {
+                                    settingsExpanded = false
+                                    focusRequester.requestFocus()
+                                },
+                            ) {
+                                DropdownMenuItem(onClick = { }) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Text(
+                                            text = "显示字幕",
+                                            color =MaterialTheme.colors.onBackground,
+                                        )
+                                        Switch(checked = showCaption,
+                                            onCheckedChange = {
+                                                showCaption = it
+                                                saveShowCaptionState(it) // 保存状态变化
+                                            })
+                                    }
+                                }
+                            }
+
+                        }
+
+
                     }
-
-
                 }
             }
+
         }
 
 

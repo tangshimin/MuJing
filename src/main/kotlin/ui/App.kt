@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
@@ -46,6 +47,7 @@ import state.ScreenType
 import state.computeFontSize
 import state.rememberAppState
 import theme.CustomLocalProvider
+import theme.rememberCustomSelectionColors
 import theme.scrollbarStyle
 import theme.toAwt
 import ui.dialog.*
@@ -183,6 +185,7 @@ fun App(
                     // 和 Compose UI 有关的 LocalProvider 需要放在 MaterialTheme 里面,不然无效。
                     CompositionLocalProvider(
                         LocalScrollbarStyle provides scrollbarStyle(),
+                        LocalTextSelectionColors provides rememberCustomSelectionColors()
                     ){
                         appState.global.wordFontSize = computeFontSize(appState.global.wordTextStyle)
                         appState.global.detailFontSize = computeFontSize(appState.global.detailTextStyle)

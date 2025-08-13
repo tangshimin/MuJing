@@ -3,6 +3,7 @@ package theme
 import androidx.compose.foundation.LocalScrollbarStyle
 import androidx.compose.foundation.ScrollbarStyle
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.selection.TextSelectionColors
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -63,4 +64,44 @@ fun scrollbarStyle(): ScrollbarStyle {
         unhoverColor = if(MaterialTheme.colors.isLight) Color.Black.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.12f),
         hoverColor = if(MaterialTheme.colors.isLight) Color.Black.copy(alpha = 0.50f) else Color.White.copy(alpha = 0.50f)
     )
+}
+
+
+/**
+ * 自定义的文本选择颜色
+ * 主要用于文本选择时的背景和手柄颜色
+ * 根据主题自动调整颜色
+ */
+@Composable
+fun rememberCustomSelectionColors(): TextSelectionColors {
+    val isLight = MaterialTheme.colors.isLight
+    val primaryColor = MaterialTheme.colors.primary
+    return remember(isLight) {
+        val backgroundColor = if (isLight) {
+            // 浅色主题使用经典的亮蓝色
+            if (isMacOS()) Color(0xFFACCEF7) else Color(0xFF3390FF)
+        } else {
+            // 深色主题使用更暗、饱和度更低的蓝色
+            Color(0xFF29417F) // RGB(41, 65, 127)
+        }
+        TextSelectionColors(
+            handleColor = primaryColor, // 通常设置为主色调
+            backgroundColor = backgroundColor
+        )
+    }
+}
+
+/**
+ * 播放器一直使用的深色主题选择颜色
+ * 主要用于播放器的文本选择
+ */
+@Composable
+fun rememberDarkThemeSelectionColors(): TextSelectionColors {
+   val primaryColor = MaterialTheme.colors.primary
+    return remember {
+        TextSelectionColors(
+            handleColor = primaryColor, // 通常设置为主色调
+            backgroundColor = Color(0xFF29417F)
+        )
+    }
 }
