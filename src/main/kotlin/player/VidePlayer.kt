@@ -999,7 +999,7 @@ fun VideoPlayer(
         }
 
         /** 加载弹幕 */
-        LaunchedEffect(timelineSynchronizer,videoPath){
+        LaunchedEffect(timelineSynchronizer,videoPath,  state.vocabulary) {
             if(videoPath.isNotEmpty() && timelineSynchronizer != null){
                 withContext(Dispatchers.Default){
                     if(state.vocabularyPath.isNotEmpty() && state.vocabulary != null){
