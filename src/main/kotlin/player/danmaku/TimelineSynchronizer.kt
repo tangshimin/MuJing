@@ -77,6 +77,14 @@ class TimelineSynchronizer(
         val oldTime = currentTimeMs
         currentTimeMs = timeMs
 
+        // 检测是否在播放途中打开弹幕
+        if (currentIndex == 0 && oldTime != 0L) {
+            // 更新索引
+            currentIndex = findIndexForTime(timeMs)
+            processTimedDanmakus(timeMs)
+            return
+        }
+
         // 处理时间跳跃（快进、快退、拖拽进度条）
         if (timeMs < oldTime || timeMs - oldTime > 2000) {
             handleTimeJump(timeMs)
