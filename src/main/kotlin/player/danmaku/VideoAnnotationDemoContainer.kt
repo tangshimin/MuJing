@@ -172,16 +172,16 @@ fun VideoAnnotationDemoContainer(
                 )
             }
 
-            // 弹幕显示层
-            CanvasDanmakuContainer(
-                modifier = Modifier.fillMaxSize(),
-                fontSize = 16,
-                speed = 2f,
-                maxDanmakuCount = 20,
-                onDanmakuManagerCreated = { manager ->
-                    danmakuManager = manager
-                }
-            )
+//            // 弹幕显示层
+//            CanvasDanmakuContainer(
+//                modifier = Modifier.fillMaxSize(),
+//                fontSize = 16,
+//                speed = 2f,
+//                maxDanmakuCount = 20,
+//                onDanmakuManagerCreated = { manager ->
+//                    danmakuManager = manager
+//                }
+//            )
 
             // 标注模式的视觉提示
             if (isAnnotationMode) {

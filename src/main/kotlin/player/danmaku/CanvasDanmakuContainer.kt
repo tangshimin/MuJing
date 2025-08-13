@@ -9,9 +9,9 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
+import player.PlayerState
 import kotlin.random.Random
 
 /**
@@ -24,11 +24,14 @@ fun CanvasDanmakuContainer(
     fontFamily: FontFamily = FontFamily.Default,
     fontSize: Int = 18,
     isEnabled: Boolean = true,
+    playerState: PlayerState,
+    isPaused: Boolean = false,
     speed: Float = 3f,
     maxDanmakuCount: Int = 50,
     mediaTimeFlow: Flow<Long>? = null, // 媒体时间流
     onDanmakuManagerCreated: (DanmakuStateManager) -> Unit = {},
-    onTimelineSynchronizerCreated: (TimelineSynchronizer) -> Unit = {} // 时间轴同步器回调
+    onTimelineSynchronizerCreated: (TimelineSynchronizer) -> Unit = {}, // 时间轴同步器回调,
+    playAudio: (String) -> Unit ={}
 ) {
     val density = LocalDensity.current
     val lineHeight = with(density) { (fontSize + 8).dp.toPx() }
@@ -88,15 +91,32 @@ fun CanvasDanmakuContainer(
                 danmakuManager.setLineHeight(lineHeight)
             }
     ) {
-        CanvasDanmakuRenderer(
+
+
+        InteractiveDanmakuRenderer(
             danmakuItems = danmakuManager.activeDanmakus,
             fontFamily = fontFamily,
             fontSize = fontSize,
             speed = speed,
+            isPaused = isPaused,
+            playerState = playerState,
+            deleteWord = { danmaku ->
+                playerState.deleteWord(danmaku.word!!)
+              // 从弹幕管理器中删除
+                danmakuManager.removeDanmaku(danmaku)
+            },
+            addToFamiliar = { danmaku ->
+                playerState.addToFamiliar(danmaku.word!!)
+                // 从弹幕管理器中删除
+                danmakuManager.removeDanmaku(danmaku)
+            },
+            playAudio = playAudio,
             modifier = Modifier.fillMaxSize()
         )
     }
 }
+
+
 
 /**
  * 演示用的弹幕容器，包含复杂的测试弹幕
@@ -108,15 +128,15 @@ fun DemoDanmakuContainer(
 ) {
     var danmakuManager by remember { mutableStateOf<DanmakuStateManager?>(null) }
 
-    CanvasDanmakuContainer(
-        modifier = modifier,
-        fontSize = 18,
-        speed = 2.5f,
-        maxDanmakuCount = 40, // 增加最大弹幕数量以展示轨道管理
-        onDanmakuManagerCreated = { manager ->
-            danmakuManager = manager
-        }
-    )
+//    CanvasDanmakuContainer(
+//        modifier = modifier,
+//        fontSize = 18,
+//        speed = 2.5f,
+//        maxDanmakuCount = 40, // 增加最大弹幕数量以展示轨道管理
+//        onDanmakuManagerCreated = { manager ->
+//            danmakuManager = manager
+//        }
+//    )
 
     // 复杂的演示弹幕序列
     LaunchedEffect(danmakuManager) {

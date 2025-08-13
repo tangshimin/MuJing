@@ -47,8 +47,10 @@ import player.danmaku.DanmakuStateManager
 import player.danmaku.TimelineSynchronizer
 import theme.LocalCtrl
 import tts.rememberAzureTTS
+import ui.wordscreen.rememberPronunciation
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
+import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
 import util.findSubtitleFiles
 import util.getSubtitleLangLabel
 import util.parseSubtitles
@@ -124,7 +126,12 @@ fun VideoPlayer(
             videoPlayer.videoSurface().set(it)
         }
     }
-    
+
+    /** 音频播放组件 */
+    val audioPlayerComponent by remember{mutableStateOf(AudioPlayerComponent())}
+    val pronunciation = rememberPronunciation()
+
+
     /** 是否正在播放视频 */
     var isPlaying by remember { mutableStateOf(false) }
     /** 是否激活自动暂停 */
@@ -367,6 +374,25 @@ fun VideoPlayer(
        }
     }
 
+    /** 播放单词发音 */
+    val playAudio:(String) -> Unit = { word ->
+        val audioPath = getAudioPath(
+            word = word,
+            audioSet = audioSet,
+            addToAudioSet = {audioSet.add(it)},
+            pronunciation = pronunciation,
+            azureTTS = azureTTS,
+        )
+        playAudio(
+            word,
+            audioPath,
+            pronunciation = pronunciation,
+            audioVolume,
+            audioPlayerComponent,
+            changePlayerState = { },
+        )
+    }
+
 
     /** 重复播放当前字幕 */
     val  replayCaption: () -> Unit = {
@@ -501,12 +527,15 @@ fun VideoPlayer(
                                 speed = 2f,
                                 maxDanmakuCount = 50,
                                 mediaTimeFlow = mediaTimeFlow,
+                                isPaused = !isPlaying,
+                                playerState = state,
                                 onDanmakuManagerCreated = { manager ->
                                     danmakuManager = manager
                                 },
                                 onTimelineSynchronizerCreated = { synchronizer ->
                                     timelineSynchronizer = synchronizer
-                                }
+                                },
+                                playAudio = playAudio,
                             )
                         }
                     }

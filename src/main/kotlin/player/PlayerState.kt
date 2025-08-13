@@ -3,8 +3,15 @@ package player
 import androidx.compose.runtime.*
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
+import data.ExternalCaption
 import data.MutableVocabulary
+import data.VocabularyType
+import data.Word
+import data.deepCopy
+import data.getFamiliarVocabularyFile
 import data.loadMutableVocabulary
+import data.loadVocabulary
+import data.saveVocabulary
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -221,6 +228,65 @@ class PlayerState(playerData: PlayerData) {
                 val recentListFile = getRecentVideoFile()
                 recentListFile.writeText(json)
             }
+        }
+    }
+
+
+
+    /** 删除单词 */
+    val deleteWord: (Word) -> Unit = { word ->
+        vocabulary!!.wordList.remove(word)
+        vocabulary!!.size = vocabulary!!.wordList.size
+        try{
+            saveVocabulary(vocabulary!!.serializeVocabulary,vocabularyPath)
+        }catch (e:Exception){
+            // 回滚
+            vocabulary!!.wordList.add(word)
+            vocabulary!!.size = vocabulary!!.wordList.size
+            e.printStackTrace()
+            JOptionPane.showMessageDialog(null, "保存词库失败,错误信息:\n${e.message}")
+        }
+    }
+
+    /** 把单词加入到熟悉词库 */
+    val addToFamiliar: (Word) -> Unit = { word ->
+        val familiarWord = word.deepCopy()
+        val file = getFamiliarVocabularyFile()
+        val familiar = loadVocabulary(file.absolutePath)
+        // 如果当前词库是 MKV 或 SUBTITLES 类型的词库，需要把内置词库转换成外部词库。
+        if (vocabulary!!.type == VocabularyType.MKV ||
+            vocabulary!!.type == VocabularyType.SUBTITLES
+        ) {
+            familiarWord.captions.forEach { caption ->
+                val externalCaption = ExternalCaption(
+                    relateVideoPath = vocabulary!!.relateVideoPath,
+                    subtitlesTrackId = vocabulary!!.subtitlesTrackId,
+                    subtitlesName = vocabulary!!.name,
+                    start = caption.start,
+                    end = caption.end,
+                    content = caption.content
+                )
+                familiarWord.externalCaptions.add(externalCaption)
+            }
+            familiarWord.captions.clear()
+
+        }
+        if (!familiar.wordList.contains(familiarWord)) {
+            familiar.wordList.add(familiarWord)
+            familiar.size = familiar.wordList.size
+        }
+        if(familiar.name.isEmpty()){
+            familiar.name = "FamiliarVocabulary"
+        }
+        try{
+            saveVocabulary(familiar, file.absolutePath)
+            deleteWord(word)
+        }catch (e:Exception){
+            // 回滚
+            familiar.wordList.remove(familiarWord)
+            familiar.size = familiar.wordList.size
+            e.printStackTrace()
+            JOptionPane.showMessageDialog(null, "保存熟悉词库失败,错误信息:\n${e.message}")
         }
     }
 

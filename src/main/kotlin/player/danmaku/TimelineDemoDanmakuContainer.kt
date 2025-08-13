@@ -106,21 +106,21 @@ fun TimelineDemoDanmakuContainer(
         }
 
         // 弹幕显示区域
-        CanvasDanmakuContainer(
-            modifier = Modifier.fillMaxSize(),
-            fontSize = 20,
-            speed = 2f,
-            maxDanmakuCount = 30,
-            mediaTimeFlow = mediaTimeFlow,
-            onDanmakuManagerCreated = { manager ->
-                danmakuManager = manager
-            },
-            onTimelineSynchronizerCreated = { synchronizer ->
-                timelineSynchronizer = synchronizer
-                // 自动加载演示数据
-                loadDemoTimelineDanmakus(synchronizer)
-            }
-        )
+//        CanvasDanmakuContainer(
+//            modifier = Modifier.fillMaxSize(),
+//            fontSize = 20,
+//            speed = 2f,
+//            maxDanmakuCount = 30,
+//            mediaTimeFlow = mediaTimeFlow,
+//            onDanmakuManagerCreated = { manager ->
+//                danmakuManager = manager
+//            },
+//            onTimelineSynchronizerCreated = { synchronizer ->
+//                timelineSynchronizer = synchronizer
+//                // 自动加载演示数据
+//                loadDemoTimelineDanmakus(synchronizer)
+//            }
+//        )
     }
 }
 

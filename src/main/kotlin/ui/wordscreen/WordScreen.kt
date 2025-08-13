@@ -2895,7 +2895,10 @@ fun buildAnnotatedString(
 /** 删除按钮*/
 @Composable
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
-fun DeleteButton(onClick:()->Unit){
+fun DeleteButton(
+    onClick:()->Unit,
+    alignment: Alignment = Alignment.TopCenter,
+){
     TooltipArea(
         tooltip = {
             Surface(
@@ -2918,8 +2921,8 @@ fun DeleteButton(onClick:()->Unit){
         },
         delayMillis = 300,
         tooltipPlacement = TooltipPlacement.ComponentRect(
-            anchor = Alignment.TopCenter,
-            alignment = Alignment.TopCenter,
+            anchor = alignment,
+            alignment = alignment,
             offset = DpOffset.Zero
         )
     ) {
@@ -3028,6 +3031,7 @@ fun HardButton(
 @OptIn(ExperimentalFoundationApi::class)
 fun FamiliarButton(
     onClick: () -> Unit,
+    alignment: Alignment = Alignment.TopCenter,
 ){
     TooltipArea(
         tooltip = {
@@ -3051,8 +3055,8 @@ fun FamiliarButton(
         },
         delayMillis = 300,
         tooltipPlacement = TooltipPlacement.ComponentRect(
-            anchor = Alignment.TopCenter,
-            alignment = Alignment.TopCenter,
+            anchor = alignment,
+            alignment = alignment,
             offset = DpOffset.Zero
         )
     ) {
@@ -3098,7 +3102,10 @@ fun BookmarkButton(
 /** 复制按钮 */
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
-fun CopyButton(wordValue:String){
+fun CopyButton(
+    wordValue:String,
+    alignment: Alignment = Alignment.TopCenter,
+){
     TooltipArea(
         tooltip = {
             Surface(
@@ -3122,8 +3129,8 @@ fun CopyButton(wordValue:String){
         },
         delayMillis = 300,
         tooltipPlacement = TooltipPlacement.ComponentRect(
-            anchor = Alignment.TopCenter,
-            alignment = Alignment.TopCenter,
+            anchor = alignment,
+            alignment = alignment,
             offset = DpOffset.Zero
         )
     ) {

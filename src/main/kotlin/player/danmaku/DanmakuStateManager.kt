@@ -109,6 +109,25 @@ class DanmakuStateManager {
     }
 
     /**
+     * 移除指定的弹幕
+     */
+    fun removeDanmaku(danmaku: CanvasDanmakuItem) {
+        // 从活跃弹幕列表中移除
+        val removed = _activeDanmakus.remove(danmaku)
+
+        if (removed) {
+            // 释放轨道资源
+            trackManager.releaseTrack(danmaku)
+
+            // 标记弹幕为不活跃状态
+            danmaku.isActive = false
+
+            // 立即尝试处理等待队列中的弹幕
+            processWaitingQueue()
+        }
+    }
+
+    /**
      * 添加滚动弹幕（使用轨道管理）
      */
     private fun addScrollDanmaku(text: String, word: Word?, color: Color) {
@@ -226,7 +245,7 @@ class DanmakuStateManager {
     }
 
     /**
-     * 添加自���义位置的静止弹幕（用于视频标注）
+     * 添加自定义位置的静止弹幕（用于视频标注）
      */
     fun addAnnotationDanmaku(
         text: String,
@@ -353,7 +372,7 @@ class DanmakuStateManager {
     }
 
     /**
-     * 加载一批定时弹幕���据
+     * 加载一批定时弹幕数据
      */
     fun loadTimedDanmakus(danmakus: List<TimelineSynchronizer.TimedDanmakuData>) {
         timelineSynchronizer?.loadTimedDanmakus(danmakus)
