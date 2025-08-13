@@ -64,6 +64,7 @@ import java.io.File
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.concurrent.schedule
+import kotlin.text.removeSuffix
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -627,7 +628,7 @@ fun VideoPlayer(
                     if(caption.isNotEmpty()){
                         SelectionContainer {
                             Text(
-                                text = caption,
+                                text = caption.removeSuffix("\n"),
                                 color = Color.White,
                                 style = MaterialTheme.typography.h4,
                                 modifier = Modifier
