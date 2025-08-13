@@ -26,40 +26,42 @@ fun CustomCanvas(
     modifier: Modifier,
     surface: SkiaImageVideoSurface
 ){
+
     Canvas(
         modifier = modifier,
     ) {
-        surface.image.value?.let{ image ->
+        // 使用 withImage 安全地访问 Image 对象
+        surface.withImage { image ->
+            image?.let { img ->
+                // 获取Canvas的实际绘制区域尺寸
+                val canvasWidth = size.width
+                val canvasHeight = size.height
+                val imageWidth = img.width.toFloat()
+                val imageHeight = img.height.toFloat()
 
-            // 获取Canvas的实际绘制区域尺寸
-            val canvasWidth = size.width
-            val canvasHeight = size.height
-            val imageWidth = image.width.toFloat()
-            val imageHeight = image.height.toFloat()
+                // 计算缩放比例，确保图片适应 Canvas 且保持宽高比
+                val scale = minOf(canvasWidth / imageWidth, canvasHeight / imageHeight)
+                val scaledWidth = imageWidth * scale
+                val scaledHeight = imageHeight * scale
 
-            // 计算缩放比例，确保图片适应 Canvas 且保持宽高比
-            val scale = minOf(canvasWidth / imageWidth, canvasHeight / imageHeight)
-            val scaledWidth = imageWidth * scale
-            val scaledHeight = imageHeight * scale
+                // 计算居中位置
+                val xOffset = (canvasWidth - scaledWidth) / 2
+                val yOffset = (canvasHeight - scaledHeight) / 2
 
-            // 计算居中位置
-            val xOffset = (canvasWidth - scaledWidth) / 2
-            val yOffset = (canvasHeight - scaledHeight) / 2
+                drawIntoCanvas { canvas ->
+                    // 保存当前画布状态
+                    canvas.save()
 
-            drawIntoCanvas { canvas ->
-                // 保存当前画布状态
-                canvas.save()
+                    // 应用变换：先移动到目标位置，再缩放
+                    canvas.translate(xOffset, yOffset)
+                    canvas.scale(scale, scale)
+                    // 绘制图片
+                    canvas.nativeCanvas.drawImage(img, 0f, 0f)
 
-                // 应用变换：先移动到目标位置，再缩放
-                canvas.translate(xOffset, yOffset)
-                canvas.scale(scale, scale)
-                // 绘制图片
-                canvas.nativeCanvas.drawImage(image, 0f, 0f)
-
-                // 恢复画布状态
-                canvas.restore()
+                    // 恢复画布状态
+                    canvas.restore()
+                }
             }
         }
     }
-
 }
