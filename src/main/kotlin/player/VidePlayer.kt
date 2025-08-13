@@ -715,6 +715,7 @@ fun VideoPlayer(
                                         state.danmakuVisible = it
                                         // 点击后清除焦点
                                         focusManager.clearFocus()
+                                        state.savePlayerState()
                                     }
                                 )
 
