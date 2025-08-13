@@ -2,6 +2,7 @@ package player
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
+import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.draggable
@@ -47,14 +48,17 @@ import player.danmaku.DanmakuStateManager
 import player.danmaku.TimelineSynchronizer
 import theme.LocalCtrl
 import tts.rememberAzureTTS
+import ui.subtitlescreen.OpenMode
 import ui.wordscreen.rememberPronunciation
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
+import util.createDragAndDropTarget
 import util.findSubtitleFiles
 import util.getSubtitleLangLabel
 import util.parseSubtitles
 import util.readCaptionList
+import util.shouldStartDragAndDrop
 import java.awt.Component
 import java.awt.Cursor
 import java.awt.Point
@@ -279,6 +283,13 @@ fun VideoPlayer(
         }
     }
 
+    // 拖放处理
+    val dropTarget = remember {
+        createDragAndDropTarget { files ->
+            parseImportFile(files)
+        }
+    }
+
     /** 更新字幕索引 */
     val updateCaptionIndex:() -> Unit = {
         val newTime = videoPlayer.status().time()
@@ -416,6 +427,10 @@ fun VideoPlayer(
         shape = MaterialTheme.shapes.medium,  // 使用圆角形状
         modifier = Modifier.fillMaxSize()
             .pointerHoverIcon(playerCursor)
+            .dragAndDropTarget(
+                shouldStartDragAndDrop =shouldStartDragAndDrop,
+                target = dropTarget
+            )
             .onPointerEvent(PointerEventType.Enter) {
                 if (!controlBoxVisible) {
                     controlBoxVisible = true

@@ -4,7 +4,9 @@ import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.LocalScrollbarStyle
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.CircularProgressIndicator
@@ -198,96 +200,99 @@ fun App(
                                 vocabulary = wordState.vocabulary,
                             )
                         }
-                        when (appState.global.type) {
-                            ScreenType.WORD -> {
-                                title = computeTitle(wordState.vocabularyName,wordState.vocabulary.wordList.isNotEmpty())
 
-                                // 显示器缩放
-                                val density = LocalDensity.current.density
-                                // 视频播放器的位置，大小
-                                val videoBounds by remember (windowState,appState.openSidebar,density){
-                                    derivedStateOf {
-                                        if(wordState.isChangeVideoBounds){
-                                            Rectangle(wordState.playerLocationX,wordState.playerLocationY,wordState.playerWidth,wordState.playerHeight)
-                                        }else{
-                                            computeVideoBounds(windowState, appState.openSidebar,density)
+                        Box(Modifier.fillMaxSize().background(MaterialTheme.colors.background)){
+                            if(!playerState.showPlayerWindow){
+                                when (appState.global.type) {
+                                    ScreenType.WORD -> {
+                                        title = computeTitle(wordState.vocabularyName,wordState.vocabulary.wordList.isNotEmpty())
+
+                                        // 显示器缩放
+                                        val density = LocalDensity.current.density
+                                        // 视频播放器的位置，大小
+                                        val videoBounds by remember (windowState,appState.openSidebar,density){
+                                            derivedStateOf {
+                                                if(wordState.isChangeVideoBounds){
+                                                    Rectangle(wordState.playerLocationX,wordState.playerLocationY,wordState.playerWidth,wordState.playerHeight)
+                                                }else{
+                                                    computeVideoBounds(windowState, appState.openSidebar,density)
+                                                }
+                                            }
                                         }
+
+
+                                        WordScreen(
+                                            window = window,
+                                            title = title,
+                                            appState = appState,
+                                            wordScreenState = wordState,
+                                            videoBounds = videoBounds,
+                                            showPlayer = { playerState.showPlayerWindow = it },
+                                            openVideo = playerState.openVideo,
+                                            showContext = { playerState.showContext(it) }
+                                        )
+                                    }
+                                    ScreenType.SUBTITLES -> {
+                                        title = computeTitle(subtitlesState)
+                                        SubtitleScreen(
+                                            subtitlesState = subtitlesState,
+                                            globalState = appState.global,
+                                            saveSubtitlesState = { subtitlesState.saveTypingSubtitlesState() },
+                                            saveGlobalState = { appState.saveGlobalState() },
+                                            isOpenSettings = appState.openSidebar,
+                                            setIsOpenSettings = { appState.openSidebar = it },
+                                            window = window,
+                                            title = title,
+                                            playerWindow = appState.videoPlayerWindow,
+                                            videoVolume = appState.global.videoVolume,
+                                            futureFileChooser = appState.futureFileChooser,
+                                            openLoadingDialog = { appState.openLoadingDialog()},
+                                            closeLoadingDialog = { appState.loadingFileChooserVisible = false },
+                                            openSearch = {appState.openSearch()},
+                                            showPlayer = { playerState.showPlayerWindow = it },
+                                            colors = appState.colors
+                                        )
+                                    }
+
+                                    ScreenType.TEXT -> {
+                                        title = computeTitle(textState)
+                                        TextScreen(
+                                            title = title,
+                                            window = window,
+                                            globalState = appState.global,
+                                            saveGlobalState = { appState.saveGlobalState() },
+                                            textState = textState,
+                                            saveTextState = { textState.saveTypingTextState() },
+                                            isOpenSettings = appState.openSidebar,
+                                            setIsOpenSettings = {appState.openSidebar = it},
+                                            futureFileChooser = appState.futureFileChooser,
+                                            openLoadingDialog = { appState.openLoadingDialog()},
+                                            closeLoadingDialog = { appState.loadingFileChooserVisible = false },
+                                            openSearch = {appState.openSearch()},
+                                            showVideoPlayer = { playerState.showPlayerWindow = it },
+                                            setVideoPath = playerState.videoPathChanged,
+                                        )
                                     }
                                 }
-
-
-                                WordScreen(
-                                    window = window,
-                                    title = title,
-                                    appState = appState,
-                                    wordScreenState = wordState,
-                                    videoBounds = videoBounds,
-                                    showPlayer = { playerState.showPlayerWindow = it },
-                                    openVideo = playerState.openVideo,
-                                    showContext = { playerState.showContext(it) }
-                                )
                             }
-                            ScreenType.SUBTITLES -> {
-                                title = computeTitle(subtitlesState)
-                                SubtitleScreen(
-                                    subtitlesState = subtitlesState,
-                                    globalState = appState.global,
-                                    saveSubtitlesState = { subtitlesState.saveTypingSubtitlesState() },
-                                    saveGlobalState = { appState.saveGlobalState() },
-                                    isOpenSettings = appState.openSidebar,
-                                    setIsOpenSettings = { appState.openSidebar = it },
-                                    window = window,
-                                    title = title,
-                                    playerWindow = appState.videoPlayerWindow,
-                                    videoVolume = appState.global.videoVolume,
-                                    futureFileChooser = appState.futureFileChooser,
-                                    openLoadingDialog = { appState.openLoadingDialog()},
-                                    closeLoadingDialog = { appState.loadingFileChooserVisible = false },
-                                    openSearch = {appState.openSearch()},
-                                    showPlayer = { playerState.showPlayerWindow = it },
-                                    colors = appState.colors
-                                )
-                            }
-
-                            ScreenType.TEXT -> {
-                                title = computeTitle(textState)
-                                TextScreen(
-                                    title = title,
-                                    window = window,
-                                    globalState = appState.global,
-                                    saveGlobalState = { appState.saveGlobalState() },
-                                    textState = textState,
-                                    saveTextState = { textState.saveTypingTextState() },
-                                    isOpenSettings = appState.openSidebar,
-                                    setIsOpenSettings = {appState.openSidebar = it},
-                                    futureFileChooser = appState.futureFileChooser,
-                                    openLoadingDialog = { appState.openLoadingDialog()},
-                                    closeLoadingDialog = { appState.loadingFileChooserVisible = false },
-                                    openSearch = {appState.openSearch()},
-                                    showVideoPlayer = { playerState.showPlayerWindow = it },
-                                    setVideoPath = playerState.videoPathChanged,
-                                )
-                            }
+                            AnimatedVideoPlayer(
+                                state = playerState,
+                                audioSet = appState.localAudioSet,
+                                audioVolume = appState.global.audioVolume,
+                                videoVolume = appState.global.videoVolume,
+                                videoVolumeChanged = {
+                                    appState.global.videoVolume = it
+                                    appState.saveGlobalState()
+                                },
+                                visible = playerState.showPlayerWindow,
+                                windowState = windowState,
+                                close = {
+                                    playerState.showPlayerWindow = false
+                                    playerState.videoPath = ""
+                                },
+                                eventBus = eventBus,
+                            )
                         }
-
-
-                        AnimatedVideoPlayer(
-                            state = playerState,
-                            audioSet = appState.localAudioSet,
-                            audioVolume = appState.global.audioVolume,
-                            videoVolume = appState.global.videoVolume,
-                            videoVolumeChanged = {
-                                appState.global.videoVolume = it
-                                appState.saveGlobalState()
-                            },
-                            visible = playerState.showPlayerWindow,
-                            windowState = windowState,
-                            close = {
-                                playerState.showPlayerWindow = false
-                                playerState.videoPath = ""
-                            },
-                            eventBus = eventBus,
-                        )
 
                     }
 
