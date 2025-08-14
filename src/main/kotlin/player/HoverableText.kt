@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.platform.LocalDensity
@@ -17,9 +18,8 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
-import androidx.compose.ui.window.Window
-import androidx.compose.ui.window.application
 import data.Dictionary
+import player.danmaku.DisplayMode
 import player.danmaku.WordDetail
 
 @OptIn(ExperimentalComposeUiApi::class)
@@ -72,13 +72,11 @@ fun HoverableText(
                         isInPopup = false
                         expanded = false
                     }){
-                    Surface(
-                        modifier = Modifier
-                            .size(400.dp, 350.dp)
-                    ) {
+                    Box(modifier = Modifier.size(400.dp, 350.dp),) {
                         if(dictWord != null){
                             WordDetail(
                                 word =dictWord ,
+                                displayMode = DisplayMode.DICT,
                                 playerState = playerState,
                                 pointerExit = {},
                                 height = 350.dp,
@@ -90,13 +88,13 @@ fun HoverableText(
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
-                                    .background(Color.LightGray),
+                                    .background(MaterialTheme.colors.background),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
                                     text = "内置词典里面没有 \"$text\"",
                                     style = MaterialTheme.typography.body1,
-                                    color = Color.DarkGray
+                                    color = Color.White
                                 )
                             }
                         }
@@ -140,26 +138,6 @@ fun HoverableCaption(
                     }
                 }
             }
-        }
-    }
-}
-
-
-fun main() = application {
-    Window(
-        onCloseRequest = ::exitApplication,
-        title = "Hoverable Text Example"
-    ) {
-        Box(Modifier.fillMaxSize()) {
-            val caption = "命运最是弄人\n" +
-                    "Fate is a very humbling thing."
-
-            HoverableCaption(
-                caption = caption,
-                playAudio = {},
-                playerState = rememberPlayerState(),
-                modifier = Modifier.align(Alignment.Center)
-            )
         }
     }
 }

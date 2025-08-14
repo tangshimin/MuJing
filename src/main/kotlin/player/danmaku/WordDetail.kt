@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
@@ -68,11 +69,16 @@ import ui.wordscreen.CopyButton
 import ui.wordscreen.DeleteButton
 import ui.wordscreen.FamiliarButton
 
+enum class DisplayMode {
+    DICT,  // 词典模式
+    DANMAKU, // 弹幕模式
+}
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun WordDetail(
     word: Word,
+    displayMode: DisplayMode = DisplayMode.DANMAKU,
     playerState: PlayerState,
     height: Dp,
     pointerExit:() -> Unit = {},
@@ -85,7 +91,7 @@ fun WordDetail(
     val scope = rememberCoroutineScope()
     Surface(
         elevation = 4.dp,
-        shape = RectangleShape,
+        shape = RoundedCornerShape(12.dp), // 设置圆角半径为 12dp
     ) {
 
         Column(
@@ -155,12 +161,16 @@ fun WordDetail(
                             },
                             alignment = Alignment.BottomCenter
                         )
-                        DeleteButton(
-                            onClick = {
-                                deleteWord(word)
-                            },
-                            alignment = Alignment.BottomCenter
-                        )
+                        if(displayMode == DisplayMode.DANMAKU){
+
+                            DeleteButton(
+                                onClick = {
+                                    deleteWord(word)
+                                },
+                                alignment = Alignment.BottomCenter
+                            )
+                        }
+
                     }
 
                     Row(
