@@ -59,6 +59,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import data.Word
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -70,13 +71,13 @@ import ui.wordscreen.FamiliarButton
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun DanmakuDetail(
-    danmakuItem: CanvasDanmakuItem,
+fun WordDetail(
+    word: Word,
     playerState: PlayerState,
     height: Dp,
     pointerExit:() -> Unit = {},
-    deleteWord: (CanvasDanmakuItem) -> Unit = {},
-    addToFamiliar: (CanvasDanmakuItem) -> Unit = {},
+    deleteWord: (Word) -> Unit = {},
+    addToFamiliar: (Word) -> Unit = {},
     playAudio: (String) -> Unit ={}
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -97,17 +98,13 @@ fun DanmakuDetail(
                 }
                 .onKeyEvent { keyEvent ->
                     if (keyEvent.key == Key.Delete && keyEvent.isShiftPressed && keyEvent.type == KeyEventType.KeyUp) {
-                        if(danmakuItem.word != null){
-                            deleteWord(danmakuItem)
-                        }
+                        deleteWord(word)
                         true
                     } else if (keyEvent.key == Key.Y && keyEvent.isCtrlPressed && keyEvent.type == KeyEventType.KeyUp) {
-                        if(danmakuItem.word != null){
-                            addToFamiliar(danmakuItem)
-                        }
+                        addToFamiliar(word)
                         true
                     } else if (keyEvent.key == Key.C && keyEvent.isCtrlPressed && keyEvent.type == KeyEventType.KeyUp) {
-                        clipboardManager.setText(AnnotatedString(danmakuItem.text))
+                        clipboardManager.setText(AnnotatedString(word.value))
                         true
                     } else false
                 }
@@ -120,7 +117,7 @@ fun DanmakuDetail(
                     modifier = Modifier.fillMaxWidth().padding(top = 12.dp)
                 ) {
                     Text(
-                        text = danmakuItem.text,
+                        text = word.value,
                         style = MaterialTheme.typography.h5,
                         color = Color.White,
                     )
@@ -149,22 +146,18 @@ fun DanmakuDetail(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         CopyButton(
-                            wordValue = danmakuItem.text,
+                            wordValue = word.value,
                             alignment = Alignment.BottomCenter
                         )
                         FamiliarButton(
                             onClick = {
-                                if(danmakuItem.word != null){
-                                    addToFamiliar(danmakuItem)
-                                }
+                                addToFamiliar(word)
                             },
                             alignment = Alignment.BottomCenter
                         )
                         DeleteButton(
                             onClick = {
-                                if(danmakuItem.word != null){
-                                    deleteWord(danmakuItem)
-                                }
+                                deleteWord(word)
                             },
                             alignment = Alignment.BottomCenter
                         )
@@ -175,10 +168,10 @@ fun DanmakuDetail(
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        Text("英 ${danmakuItem.word?.ukphone}  美 ${danmakuItem.word?.usphone}")
+                        Text("英 ${word.ukphone}  美 ${word.usphone}")
                         IconButton(onClick = {
                             scope.launch(Dispatchers.IO) {
-                                playAudio(danmakuItem.text)
+                                playAudio(word.value)
                             }
                         }) {
                             Icon(
@@ -207,11 +200,11 @@ fun DanmakuDetail(
                     }
                     when (tabState) {
                         0 -> {
-                            TextBox(text = danmakuItem.word?.translation ?: "")
+                            TextBox(text = word.translation)
                         }
 
                         1 -> {
-                            TextBox(text = danmakuItem.word?.definition ?: "")
+                            TextBox(text = word.definition)
                         }
                     }
                 }
@@ -273,11 +266,11 @@ fun DanmakuDetail(
         LaunchedEffect(Unit) {
             focusRequester.requestFocus()
             if (playerState.autoCopy) {
-                clipboardManager.setText(AnnotatedString(danmakuItem.text))
+                clipboardManager.setText(AnnotatedString(word.value))
             }
             if (playerState.autoSpeak) {
                 scope.launch(Dispatchers.IO) {
-                    playAudio(danmakuItem.text)
+                    playAudio(word.value)
                 }
             }
         }

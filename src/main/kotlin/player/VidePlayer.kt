@@ -626,19 +626,16 @@ fun VideoPlayer(
                 ) {
                     // 显示字幕
                     if(caption.isNotEmpty()){
-                        CustomTextMenuProvider {
-                            SelectionContainer {
-                                Text(
-                                    text = caption.removeSuffix("\n"),
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.h4,
-                                    modifier = Modifier
-                                        .background(Color.Black.copy(alpha = 0.7f))
-                                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                                        .shadow(4.dp, shape = RoundedCornerShape(8.dp))
-                                )
-                            }
-                        }
+
+                        HoverableCaption(
+                            caption =caption.removeSuffix("\n"),
+                            playAudio = playAudio,
+                            playerState = state,
+                            modifier = Modifier
+                                .background(Color.Black.copy(alpha = 0.7f))
+                                .padding(horizontal = 16.dp, vertical = 8.dp)
+                                .shadow(4.dp, shape = RoundedCornerShape(8.dp))
+                        )
 
                     }
                     // 底部控制栏

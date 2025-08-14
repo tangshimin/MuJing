@@ -96,17 +96,17 @@ fun InteractiveDanmakuRenderer(
                 )
             ) {
 
-                DanmakuDetail(
-                    danmakuItem = hoveredItem!!,
+                WordDetail(
+                    word = hoveredItem?.word!!,
                     playerState =playerState,
                     pointerExit = {hoveredItem = null},
                     height = 350.dp,
                     deleteWord = {
-                        deleteWord(it)
+                        deleteWord(hoveredItem!!)
                         hoveredItem = null
                     },
                     addToFamiliar = {
-                        addToFamiliar(it)
+                        addToFamiliar(hoveredItem!!)
                         hoveredItem = null
                     },
                     playAudio = playAudio
