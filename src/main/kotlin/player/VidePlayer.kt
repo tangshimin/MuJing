@@ -602,15 +602,37 @@ fun VideoPlayer(
                             )
 
                         ) {
-                            // 关闭视频播放器
-                            Icon(
-                                Icons.Filled.ArrowDown,
-                                contentDescription = "Close Video Player",
-                                tint = Color.White,
-                                modifier = Modifier
-                                    .clickable(onClick = close)
-                                    .focusable(false)// 不让按钮自动获取焦点
-                            )
+
+                            if(isMacOS()){
+                                Icon(
+                                    Icons.Filled.ArrowDown,
+                                    contentDescription = "Close Video Player",
+                                    tint = Color.White,
+                                    modifier = Modifier
+                                )
+                            }else{
+                                Surface(
+                                    modifier = Modifier.size(40.dp),
+                                    elevation = 4.dp,
+                                    shape = RoundedCornerShape(8.dp),
+                                ){
+                                    Box(
+                                        contentAlignment = Alignment.Center,
+                                        modifier = Modifier.fillMaxSize()
+                                            .clickable{close()}
+
+                                    ){
+                                        Icon(
+                                            Icons.Filled.ArrowDown,
+                                            contentDescription = "Close Video Player",
+                                            tint = Color.White,
+//                                    modifier = Modifier.size(24.dp, 24.dp)
+                                        )
+                                    }
+
+                                }
+
+                            }
 
                         }
 
