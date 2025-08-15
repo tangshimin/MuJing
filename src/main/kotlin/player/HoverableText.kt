@@ -40,6 +40,10 @@ fun HoverableText(
             color = Color.White,
             style = MaterialTheme.typography.h4,
             modifier = Modifier
+                .background(
+                    if (expanded) Color(0xFF29417F) // 悬停时的背景颜色,使用经典的文本选择颜色
+                    else Color.Transparent
+                )
                 .onPointerEvent(PointerEventType.Enter) {
                     expanded = true
                 }
