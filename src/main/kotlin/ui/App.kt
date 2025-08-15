@@ -1,24 +1,24 @@
 package ui
 
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.LocalScrollbarStyle
-import androidx.compose.foundation.background
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalDensity
@@ -34,6 +34,7 @@ import data.getHardVocabularyFile
 import data.loadVocabulary
 import event.EventBus
 import event.PlayerEventType
+import icons.ArrowDown
 import io.ktor.utils.io.printStack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -189,8 +190,12 @@ fun App(
                     ){
                         appState.global.wordFontSize = computeFontSize(appState.global.wordTextStyle)
                         appState.global.detailFontSize = computeFontSize(appState.global.detailTextStyle)
-                        // 显示视频播放器的时候不显示菜单栏
-                        if(!playerState.showPlayerWindow){
+                        // windows 显示视频播放器的时候不显示菜单栏
+                        // macOS 一直显示菜单栏
+                        if(
+                            (isWindows() && !playerState.showPlayerWindow)
+                            || isMacOS()
+                            ){
                             WindowMenuBar(
                                 window = window,
                                 appState = appState,
