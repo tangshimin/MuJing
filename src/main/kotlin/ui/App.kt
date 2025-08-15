@@ -189,12 +189,16 @@ fun App(
                     ){
                         appState.global.wordFontSize = computeFontSize(appState.global.wordTextStyle)
                         appState.global.detailFontSize = computeFontSize(appState.global.detailTextStyle)
-                        WindowMenuBar(
-                            window = window,
-                            appState = appState,
-                            wordScreenState = wordState,
-                            close = {close()}
-                        )
+                        // 显示视频播放器的时候不显示菜单栏
+                        if(!playerState.showPlayerWindow){
+                            WindowMenuBar(
+                                window = window,
+                                appState = appState,
+                                wordScreenState = wordState,
+                                close = {close()}
+                            )
+                        }
+
                         MenuDialogs(appState)
                         if(appState.searching){
                             Search(
