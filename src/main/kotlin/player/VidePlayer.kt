@@ -568,54 +568,53 @@ fun VideoPlayer(
                 }
 
 
-                // 非全屏的时候才显示关闭按钮
-                if(windowState.placement != WindowPlacement.Fullscreen){
-                    if(isMacOS()){
-                        Row(Modifier
-                            .align (Alignment.TopStart)
-                            .padding(start = 72.dp, top = 8.dp)){
 
-
-                            TooltipArea(
-                                tooltip = {
-                                    Surface(
-                                        elevation = 4.dp,
-                                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
-                                        shape = RoundedCornerShape(4.dp)
-                                    ) {
-                                        val ctrl = LocalCtrl.current
-                                        val shortcut = if (isMacOS()) "$ctrl W" else "$ctrl+W"
-                                        Row(modifier = Modifier.padding(10.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ){
-                                            Text(text = "关闭播放器  ",color = MaterialTheme.colors.onSurface)
-                                            Text(text =shortcut,color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
-                                        }
-
+                if( // macOS 非全屏的时候才显示关闭按钮
+                    (isMacOS() &&  windowState.placement != WindowPlacement.Fullscreen)
+                    || isWindows()// windows 系统下总是显示关闭按钮
+                    ){
+                    Row(Modifier
+                        .align (Alignment.TopStart)
+                        .padding(start = 72.dp, top = 8.dp)){
+                        TooltipArea(
+                            tooltip = {
+                                Surface(
+                                    elevation = 4.dp,
+                                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                    shape = RoundedCornerShape(4.dp)
+                                ) {
+                                    val ctrl = LocalCtrl.current
+                                    val shortcut = if (isMacOS()) "$ctrl W" else "$ctrl+W"
+                                    Row(modifier = Modifier.padding(10.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ){
+                                        Text(text = "关闭播放器  ",color = MaterialTheme.colors.onSurface)
+                                        Text(text =shortcut,color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
                                     }
-                                },
-                                delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
-                                tooltipPlacement = TooltipPlacement.ComponentRect(
-                                    anchor = Alignment.BottomCenter,
-                                    alignment = Alignment.BottomCenter,
-                                    offset = DpOffset.Zero
-                                )
 
-                            ) {
-                                // 关闭视频播放器
-                                Icon(
-                                    Icons.Filled.ArrowDown,
-                                    contentDescription = "Close Video Player",
-                                    tint = Color.White,
-                                    modifier = Modifier
-                                        .clickable(onClick = close)
-                                        .focusable(false)// 不让按钮自动获取焦点
-                                )
-                            }
+                                }
+                            },
+                            delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+                            tooltipPlacement = TooltipPlacement.ComponentRect(
+                                anchor = Alignment.BottomCenter,
+                                alignment = Alignment.BottomCenter,
+                                offset = DpOffset.Zero
+                            )
+
+                        ) {
+                            // 关闭视频播放器
+                            Icon(
+                                Icons.Filled.ArrowDown,
+                                contentDescription = "Close Video Player",
+                                tint = Color.White,
+                                modifier = Modifier
+                                    .clickable(onClick = close)
+                                    .focusable(false)// 不让按钮自动获取焦点
+                            )
 
                         }
-                    }
 
+                    }
                 }
 
                 // 字幕显示和控制栏
