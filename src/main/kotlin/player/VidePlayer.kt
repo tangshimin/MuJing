@@ -609,6 +609,8 @@ fun VideoPlayer(
                                     contentDescription = "Close Video Player",
                                     tint = Color.White,
                                     modifier = Modifier
+                                        .clickable(onClick = close)
+                                        .focusable(false)
                                 )
                             }else{
                                 Surface(
