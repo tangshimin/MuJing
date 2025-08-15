@@ -1,5 +1,6 @@
 package ui.components
 
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Divider
@@ -25,7 +26,7 @@ fun MacOSTitle(
         text = title,
         textAlign = TextAlign.Center,
         color = MaterialTheme.colors.onBackground,
-        modifier = modifier.padding(top = 8.dp)
+        modifier = modifier.padding(top = 8.dp).fillMaxWidth()
     )
     Divider()
     LaunchedEffect(Unit){

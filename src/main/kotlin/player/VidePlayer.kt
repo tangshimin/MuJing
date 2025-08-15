@@ -22,6 +22,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -50,6 +51,7 @@ import player.danmaku.TimelineSynchronizer
 import theme.LocalCtrl
 import theme.rememberDarkThemeSelectionColors
 import tts.rememberAzureTTS
+import ui.components.MacOSTitle
 import ui.wordscreen.rememberPronunciation
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
@@ -78,7 +80,9 @@ fun AnimatedVideoPlayer(
     videoVolumeChanged: (Float) -> Unit,
     windowState: WindowState,
     close: () -> Unit,
-    eventBus: EventBus
+    eventBus: EventBus,
+    window: ComposeWindow,
+    title: String = "视频播放器"
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -100,7 +104,9 @@ fun AnimatedVideoPlayer(
                 videoVolumeChanged = videoVolumeChanged,
                 windowState = windowState,
                 close = close,
-                eventBus = eventBus
+                eventBus = eventBus,
+                window = window,
+                title = title
             )
         }
 
@@ -117,7 +123,9 @@ fun VideoPlayer(
     videoVolumeChanged: (Float) -> Unit,
     windowState: WindowState,
     close: () -> Unit,
-    eventBus: EventBus
+    eventBus: EventBus,
+    window: ComposeWindow,
+    title : String = "视频播放器"
 ){
 
     val videoPath = state.videoPath
@@ -638,6 +646,12 @@ fun VideoPlayer(
 
                         }
 
+                    }
+                }
+
+                if (isMacOS() && windowState.placement != WindowPlacement.Fullscreen) {
+                    Column (Modifier.align(Alignment.TopCenter)) {
+                        MacOSTitle(title = title, window = window)
                     }
                 }
 

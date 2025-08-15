@@ -278,23 +278,29 @@ fun App(
                                     }
                                 }
                             }
-                            AnimatedVideoPlayer(
-                                state = playerState,
-                                audioSet = appState.localAudioSet,
-                                audioVolume = appState.global.audioVolume,
-                                videoVolume = appState.global.videoVolume,
-                                videoVolumeChanged = {
-                                    appState.global.videoVolume = it
-                                    appState.saveGlobalState()
-                                },
-                                visible = playerState.showPlayerWindow,
-                                windowState = windowState,
-                                close = {
-                                    playerState.showPlayerWindow = false
-                                    playerState.videoPath = ""
-                                },
-                                eventBus = eventBus,
-                            )
+                            if(playerState.showPlayerWindow){
+                               title = computeTitle(playerState.videoPath)
+                                AnimatedVideoPlayer(
+                                    state = playerState,
+                                    audioSet = appState.localAudioSet,
+                                    audioVolume = appState.global.audioVolume,
+                                    videoVolume = appState.global.videoVolume,
+                                    videoVolumeChanged = {
+                                        appState.global.videoVolume = it
+                                        appState.saveGlobalState()
+                                    },
+                                    visible = playerState.showPlayerWindow,
+                                    windowState = windowState,
+                                    close = {
+                                        playerState.showPlayerWindow = false
+                                        playerState.videoPath = ""
+                                    },
+                                    eventBus = eventBus,
+                                    window = window,
+                                    title = title,
+                                )
+                            }
+
                         }
 
                     }
@@ -463,6 +469,14 @@ private fun computeTitle(textState: TextState) :String{
 
     }else {
         "抄写文本"
+    }
+}
+
+private fun computeTitle(videoPath: String) :String{
+   return  if(videoPath.isEmpty()){
+        "视频播放器"
+    }else{
+        File(videoPath).name
     }
 }
 
