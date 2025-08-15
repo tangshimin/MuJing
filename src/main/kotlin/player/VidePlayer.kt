@@ -1106,6 +1106,7 @@ fun VideoPlayer(
                     // 释放视频表面资源
                     surface.release()
                     videoPlayerComponent.release()
+                    audioPlayerComponent.release()
                     System.gc()
 
                 }catch (e: Exception) {
