@@ -659,35 +659,23 @@ fun VideoPlayer(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp)
                 ) {
-                    var pointerEnter by remember { mutableStateOf(false) }
+
                     // 显示字幕
                     if(caption.isNotEmpty()){
                         Box(
                             Modifier
-                                .onPointerEvent(PointerEventType.Enter){pointerEnter = true}
-                                .onPointerEvent(PointerEventType.Exit){pointerEnter = false}
+                                .onPointerEvent(PointerEventType.Enter){}
+                                .onPointerEvent(PointerEventType.Exit){}
                         ){
-                            if(!pointerEnter){
-                                Text(
-                                    text = caption.removeSuffix("\n"),
-                                    color = Color.White,
-                                    style = MaterialTheme.typography.h4,
-                                    modifier = Modifier
-                                        .background(Color.Black.copy(alpha = 0.7f))
-                                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                                        .shadow(4.dp, shape = RoundedCornerShape(8.dp))
-                                )
-                            }else{
-                                HoverableCaption(
-                                    caption =caption.removeSuffix("\n"),
-                                    playAudio = playAudio,
-                                    playerState = state,
-                                    modifier = Modifier
-                                        .background(Color.Black.copy(alpha = 0.7f))
-                                        .padding(horizontal = 16.dp, vertical = 8.dp)
-                                        .shadow(4.dp, shape = RoundedCornerShape(8.dp))
-                                )
-                            }
+                            HoverableCaption(
+                                caption =caption.removeSuffix("\n"),
+                                playAudio = playAudio,
+                                playerState = state,
+                                modifier = Modifier
+                                    .background(Color.Black.copy(alpha = 0.7f))
+                                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                                    .shadow(4.dp, shape = RoundedCornerShape(8.dp))
+                            )
 
                         }
 
