@@ -181,7 +181,8 @@ fun VideoPlayer(
     var showSubtitleMenu by remember{mutableStateOf(false)}
 
     /** 正在显示单词详情 */
-    var showingDetail by remember { mutableStateOf(false) }
+    var showDictPopup by remember { mutableStateOf(false) }
+    var isCaptionAreaHovered by remember { mutableStateOf(false) }
 
     /** 显示右键菜单 */
     var showDropdownMenu by remember { mutableStateOf(false) }
@@ -447,7 +448,10 @@ fun VideoPlayer(
                 }
             }
             .onPointerEvent(PointerEventType.Exit) {
-                if (isPlaying && !settingsExpanded && !showSubtitleMenu && !timeSliderPress && !audioSliderPress) {
+                if (isPlaying && !settingsExpanded && !showSubtitleMenu &&
+                    !timeSliderPress && !audioSliderPress && !isCaptionAreaHovered
+                    && !showDictPopup) {
+                    println("isPlaying: $isPlaying")
                     controlBoxVisible = false
                 }
             }
@@ -455,7 +459,10 @@ fun VideoPlayer(
                 controlBoxVisible = true
                 hideControlBoxTask?.cancel()
                 hideControlBoxTask = Timer("Hide ControlBox", false).schedule(10000) {
-                    controlBoxVisible = false
+                    // 只有在不处于字幕悬停状态时才隐藏控制栏
+                    if (!isCaptionAreaHovered && !showDictPopup) {
+                        controlBoxVisible = false
+                    }
                 }
             }
             .focusRequester(focusRequester)
@@ -660,21 +667,75 @@ fun VideoPlayer(
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp)
                 ) {
 
+                    var prevPlayState by remember { mutableStateOf<Boolean?>(null) }
+                    val pauseIfPlaying: () -> Unit = {
+                        if (videoPlayer.status().isPlayable && isPlaying) {
+                            videoPlayer.controls().pause()
+                            isPlaying = false
+                        }
+                    }
+
+                    val tryRestorePlayback: () -> Unit = {
+                        if (!isCaptionAreaHovered && !showDictPopup) {
+                            prevPlayState?.let { prev ->
+                                if (videoPlayer.status().isPlayable) {
+                                    if (prev && !videoPlayer.status().isPlaying) {
+                                        videoPlayer.controls().play()
+                                        isPlaying = true
+                                    } else if (!prev && videoPlayer.status().isPlaying) {
+                                        videoPlayer.controls().pause()
+                                        isPlaying = false
+                                    }
+                                }
+                                prevPlayState = null
+                            }
+                        }
+                    }
+
                     // 显示字幕
                     if(caption.isNotEmpty()){
+
                         Box(
                             Modifier
-                                .onPointerEvent(PointerEventType.Enter){}
-                                .onPointerEvent(PointerEventType.Exit){}
+
+                                .onPointerEvent(PointerEventType.Enter) {
+                                    isCaptionAreaHovered = true
+                                    if (prevPlayState == null) {
+                                        prevPlayState = isPlaying
+                                    }
+                                    pauseIfPlaying()
+                                }
+                                .onPointerEvent(PointerEventType.Exit) {
+                                    isCaptionAreaHovered = false
+                                    // 延时处理，避免在移动到 Popup 时误触发恢复
+                                    scope.launch {
+                                        delay(50) // 短暂延时，让 Popup 的 Enter 事件先触发
+                                        tryRestorePlayback()
+                                    }
+                                }
                         ){
                             HoverableCaption(
                                 caption =caption.removeSuffix("\n"),
                                 playAudio = playAudio,
                                 playerState = state,
                                 modifier = Modifier
-                                    .background(Color.Black.copy(alpha = 0.7f))
+                                    .background(if(isCaptionAreaHovered) Color(29,30,31) else Color.Black.copy(alpha = 0.7f))
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    .shadow(4.dp, shape = RoundedCornerShape(8.dp))
+                                    .shadow(4.dp, shape = RoundedCornerShape(8.dp)),
+                                onPopupHoverChanged = { hovering ->
+                                    showDictPopup = hovering
+                                    if (hovering) {
+                                        if (prevPlayState == null) {
+                                            prevPlayState = isPlaying
+                                        }
+                                        pauseIfPlaying()
+                                    } else {
+                                        scope.launch {
+                                            delay(50)
+                                            tryRestorePlayback()
+                                        }
+                                    }
+                                }
                             )
 
                         }

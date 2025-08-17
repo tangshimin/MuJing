@@ -19,6 +19,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import data.Dictionary
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import player.danmaku.DisplayMode
 import player.danmaku.WordDetail
 
@@ -28,11 +30,15 @@ fun HoverableText(
     text: String,
     playerState: PlayerState,
     playAudio:(String) -> Unit = {},
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onPopupHoverChanged: (Boolean) -> Unit = {}
+
 ) {
     var expanded by remember { mutableStateOf(false) }
     var isInPopup by remember { mutableStateOf(false) }
     val density = LocalDensity.current
+    val scope = rememberCoroutineScope()
+
 
     Box(modifier = Modifier) {
         Text(
@@ -48,9 +54,14 @@ fun HoverableText(
                     expanded = true
                 }
                 .onPointerEvent(PointerEventType.Exit) {
-                    if (!isInPopup) {
-                        expanded = false
+                    // 添加延时，让 Popup 的 Enter 事件有机会先执行
+                    scope.launch {
+                        delay(50)
+                        if (!isInPopup) {
+                            expanded = false
+                        }
                     }
+
                 }
         )
 
@@ -71,10 +82,12 @@ fun HoverableText(
                     .size(400.dp, 353.dp)
                     .onPointerEvent(PointerEventType.Enter) {
                         isInPopup = true
+                        onPopupHoverChanged(true)
                     }
                     .onPointerEvent(PointerEventType.Exit) {
                         isInPopup = false
                         expanded = false
+                        onPopupHoverChanged(false)
                     }){
                     Box(modifier = Modifier.size(400.dp, 350.dp),) {
                         if(dictWord != null){
@@ -117,7 +130,8 @@ fun HoverableCaption(
     caption: String,
     playAudio: (String) -> Unit,
     playerState: PlayerState,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onPopupHoverChanged: (Boolean) -> Unit = {}
 ) {
     Column(modifier) {
         caption.split("\n").forEach { line ->
@@ -131,7 +145,8 @@ fun HoverableCaption(
                             text = cleanWord,
                             playAudio = playAudio,
                             playerState = playerState,
-                            modifier = Modifier
+                            modifier = Modifier,
+                            onPopupHoverChanged = onPopupHoverChanged
                         )
                     }
                     if (otherChars.isNotEmpty()) {
