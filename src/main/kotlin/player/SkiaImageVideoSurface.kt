@@ -16,6 +16,7 @@ import uk.co.caprica.vlcj.player.embedded.videosurface.callback.BufferFormatCall
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.RenderCallback
 import uk.co.caprica.vlcj.player.embedded.videosurface.callback.format.RV32BufferFormat
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
@@ -67,7 +68,7 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
     private lateinit var pixmap: Pixmap
     private val skiaImage = mutableStateOf<Image?>(null)
     private val lock = ReentrantLock()
-    private val _isRenderingEnabled = mutableStateOf(true)
+    private val _isRenderingEnabled = AtomicBoolean(true)
 
 
     /**
@@ -82,7 +83,7 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
      * @param enabled true 表示启用渲染，false 表示暂停渲染（如最小化时）
      */
     fun setRenderingEnabled(enabled: Boolean) {
-        _isRenderingEnabled.value = enabled
+        _isRenderingEnabled.set(enabled)
     }
 
     fun release() {
@@ -136,7 +137,7 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
             displayWidth: Int,
             displayHeight: Int
         ) {
-            if (!_isRenderingEnabled.value) {
+            if (!_isRenderingEnabled.get()) {
                 return
             }
 
