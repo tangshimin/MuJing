@@ -67,8 +67,8 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
     private lateinit var pixmap: Pixmap
     private val skiaImage = mutableStateOf<Image?>(null)
     private val lock = ReentrantLock()
+    private val _isRenderingEnabled = mutableStateOf(true)
 
-    val image: State<Image?> = skiaImage
 
     /**
      * 安全地访问 Skia Image 对象。
@@ -76,6 +76,13 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
      */
     fun <R> withImage(block: (Image?) -> R): R = lock.withLock {
         block(skiaImage.value)
+    }
+    /**
+     * 设置是否启用视频渲染
+     * @param enabled true 表示启用渲染，false 表示暂停渲染（如最小化时）
+     */
+    fun setRenderingEnabled(enabled: Boolean) {
+        _isRenderingEnabled.value = enabled
     }
 
     fun release() {
@@ -129,7 +136,7 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
             displayWidth: Int,
             displayHeight: Int
         ) {
-            if (!mediaPlayer.status().isPlaying) {
+            if (!_isRenderingEnabled.value) {
                 return
             }
 

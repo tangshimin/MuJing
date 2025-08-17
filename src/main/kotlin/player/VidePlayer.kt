@@ -1187,7 +1187,16 @@ fun VideoPlayer(
             }
         }
 
-
+        // 窗口最小化时暂停视频渲染
+        LaunchedEffect(windowState.isMinimized,isPlaying) {
+            if(windowState.isMinimized || !isPlaying){
+                // 当窗口最小化时，暂停视频渲染
+                surface.setRenderingEnabled(false)
+            }else{
+                // 当窗口恢复时，继续渲染视频
+                surface.setRenderingEnabled(true)
+            }
+        }
     }
 }
 
