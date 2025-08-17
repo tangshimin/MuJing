@@ -451,7 +451,6 @@ fun VideoPlayer(
                 if (isPlaying && !settingsExpanded && !showSubtitleMenu &&
                     !timeSliderPress && !audioSliderPress && !isCaptionAreaHovered
                     && !showDictPopup) {
-                    println("isPlaying: $isPlaying")
                     controlBoxVisible = false
                 }
             }
