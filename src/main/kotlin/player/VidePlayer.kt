@@ -719,9 +719,9 @@ fun VideoPlayer(
                                 playAudio = playAudio,
                                 playerState = state,
                                 modifier = Modifier
-                                    .background(if(isCaptionAreaHovered) Color(29,30,31) else Color.Black.copy(alpha = 0.7f))
                                     .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    .shadow(4.dp, shape = RoundedCornerShape(8.dp)),
+                                    .shadow(4.dp, shape = RoundedCornerShape(8.dp))
+                                    .background(if(isCaptionAreaHovered) Color(29,30,31) else Color.Black.copy(alpha = 0.7f)),
                                 onPopupHoverChanged = { hovering ->
                                     showDictPopup = hovering
                                     if (hovering) {
