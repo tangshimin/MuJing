@@ -136,24 +136,55 @@ fun HoverableCaption(
     Column(modifier) {
         caption.split("\n").forEach { line ->
             Row {
-                line.split(" ").forEachIndexed { index, word ->
-                    val cleanWord = word.filter { it.isLetter() && it.code < 128 } // 只保留ASCII字母
-                    val otherChars = word.filter { !(it.isLetter() && it.code < 128) }
+                // 改进的分词逻辑
+                val words = line.split(Regex("\\s+")) // 按空格分割
+                words.forEachIndexed { index, rawWord ->
+                    if (rawWord.isNotEmpty()) {
+                        // 提取开头的标点符号
+                        val leadingPunctuation = rawWord.takeWhile { !it.isLetter() }
+                        val remaining = rawWord.drop(leadingPunctuation.length)
 
-                    if (cleanWord.isNotEmpty()) {
-                        HoverableText(
-                            text = cleanWord,
-                            playAudio = playAudio,
-                            playerState = playerState,
-                            modifier = Modifier,
-                            onPopupHoverChanged = onPopupHoverChanged
-                        )
-                    }
-                    if (otherChars.isNotEmpty()) {
-                        Text(otherChars,  color = Color.White,style = MaterialTheme.typography.h4)
-                    }
-                    if (index < line.split(" ").size - 1) {
-                        Text(" ",  color = Color.White,style = MaterialTheme.typography.h4)
+                        // 从剩余部分提取单词（字母、撇号、连字符）
+                        val wordPart = remaining.takeWhile { it.isLetter() || it == '\'' || it == '-' }
+                        val trailingPunctuation = remaining.drop(wordPart.length)
+
+                        // 渲染开头标点
+                        if (leadingPunctuation.isNotEmpty()) {
+                            Text(
+                                leadingPunctuation,
+                                color = Color.White,
+                                style = MaterialTheme.typography.h4
+                            )
+                        }
+
+                        // 渲染单词部分
+                        if (wordPart.isNotEmpty()) {
+                            HoverableText(
+                                text = wordPart,
+                                playAudio = playAudio,
+                                playerState = playerState,
+                                modifier = Modifier,
+                                onPopupHoverChanged = onPopupHoverChanged
+                            )
+                        }
+
+                        // 渲染结尾标点
+                        if (trailingPunctuation.isNotEmpty()) {
+                            Text(
+                                trailingPunctuation,
+                                color = Color.White,
+                                style = MaterialTheme.typography.h4
+                            )
+                        }
+
+                        // 添加空格（除了最后一个词）
+                        if (index < words.size - 1) {
+                            Text(
+                                " ",
+                                color = Color.White,
+                                style = MaterialTheme.typography.h4
+                            )
+                        }
                     }
                 }
             }
