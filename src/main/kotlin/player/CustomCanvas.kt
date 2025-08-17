@@ -1,7 +1,7 @@
 package player
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
@@ -14,6 +14,7 @@ import androidx.compose.ui.graphics.nativeCanvas
  *
  * @param modifier Compose 修饰符，用于定义 Canvas 的布局和样式
  * @param surface 视频表面对象，包含待渲染的视频图像帧
+ * @param showFps 是否显示帧率测试信息，默认为 false
  *
  * 功能特性：
  * - 自动适应 Canvas 尺寸，保持视频原始宽高比
@@ -24,15 +25,26 @@ import androidx.compose.ui.graphics.nativeCanvas
 @Composable
 fun CustomCanvas(
     modifier: Modifier,
-    surface: SkiaImageVideoSurface
+    surface: SkiaImageVideoSurface,
+    showFps: Boolean = false
 ){
+
+    val performanceMonitor = if (showFps) remember { PerformanceMonitor() } else null
+    var lastImageIdentity by remember { mutableStateOf<Any?>(null) }
 
     Canvas(
         modifier = modifier,
     ) {
+
+        val startTime = if (showFps) System.nanoTime() else 0
+
         // 使用 withImage 安全地访问 Image 对象
         surface.withImage { image ->
             image?.let { img ->
+                // 检查是否是新的图像帧
+                val currentIdentity = if (showFps) System.identityHashCode(img) else null
+                val isNewFrame = if (showFps) currentIdentity != lastImageIdentity else false
+
                 // 获取Canvas的实际绘制区域尺寸
                 val canvasWidth = size.width
                 val canvasHeight = size.height
@@ -60,6 +72,13 @@ fun CustomCanvas(
 
                     // 恢复画布状态
                     canvas.restore()
+                }
+
+                // 只在启用帧率测试且为新帧时记录
+                if (showFps && isNewFrame && performanceMonitor != null) {
+                    val renderTimeMs = (System.nanoTime() - startTime) / 1_000_000
+                    performanceMonitor.onFrameRendered(renderTimeMs)
+                    lastImageIdentity = currentIdentity
                 }
             }
         }
