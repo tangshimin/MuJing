@@ -146,29 +146,34 @@ fun WordDetail(
                 var tabState by remember { mutableStateOf(if (playerState.preferredChinese) 0 else 1) }
                 Column(Modifier.align(Alignment.Center)) {
 
-                    Row(
-                        verticalAlignment = Alignment.Top,
-                        horizontalArrangement = Arrangement.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        CopyButton(
-                            wordValue = word.value,
-                            alignment = Alignment.BottomCenter
-                        )
-                        FamiliarButton(
-                            onClick = {
-                                addToFamiliar(word)
-                            },
-                            alignment = Alignment.BottomCenter
-                        )
-                        if(displayMode == DisplayMode.DANMAKU){
-
-                            DeleteButton(
+                    // 单词移动到 tooltip 的时候 Popup 会消失
+                    var hasBug by remember { mutableStateOf(true) }
+                    if(!hasBug){
+                        Row(
+                            verticalAlignment = Alignment.Top,
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            CopyButton(
+                                wordValue = word.value,
+                                alignment = Alignment.BottomCenter
+                            )
+                            FamiliarButton(
                                 onClick = {
-                                    deleteWord(word)
+                                    addToFamiliar(word)
                                 },
                                 alignment = Alignment.BottomCenter
                             )
+                            if(displayMode == DisplayMode.DANMAKU){
+
+                                DeleteButton(
+                                    onClick = {
+                                        deleteWord(word)
+                                    },
+                                    alignment = Alignment.BottomCenter
+                                )
+                            }
+
                         }
 
                     }
