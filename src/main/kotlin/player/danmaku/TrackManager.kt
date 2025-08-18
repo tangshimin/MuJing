@@ -74,6 +74,10 @@ class TrackManager {
      * 检查轨道是否可用
      */
     private fun isTrackAvailable(trackIndex: Int, newDanmaku: CanvasDanmakuItem, canvasWidth: Float): Boolean {
+
+        // 第一条轨道和标题栏重叠了，不使用
+        if (trackIndex == 0) return false
+
         val trackInfo = tracks[trackIndex] ?: return true // 轨道为空，可用
 
         val lastDanmaku = trackInfo.danmaku
