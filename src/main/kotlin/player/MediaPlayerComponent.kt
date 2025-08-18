@@ -45,9 +45,22 @@ fun createMediaPlayerComponent2(): CallbackMediaPlayerComponent {
     embeddedVLCDiscovery()
 
     val args = mutableListOf(
-        "--quiet",  // --quiet 是关闭所有的日志。
         "--sub-language=en",// 使用视频播放器播放视频时，自动选择英语字幕
+        "--avcodec-hw=any",// 使用硬件加速解码
+        "--vout=auto",
     )
+
+    // 设置日志级别 (0=only errors and standard messages, 1=warnings, 2=debug)
+    if(isDevelopment()){
+        args.addAll(listOf(
+            "--verbose", "1"
+        ))
+    }else{
+        args.addAll(listOf(
+            "--quiet"
+        ))
+    }
+
     if(!cacheExists){
         args.add("--reset-plugins-cache")
     }
@@ -78,6 +91,11 @@ fun createMediaPlayerComponent2(): CallbackMediaPlayerComponent {
 }
 
 
+fun isDevelopment(): Boolean {
+    val property = "compose.application.resources.dir"
+    val dir = System.getProperty(property)
+    return dir == null
+}
 
 fun isMacOS(): Boolean {
     val os = System.getProperty("os.name", "generic").lowercase(Locale.ENGLISH)

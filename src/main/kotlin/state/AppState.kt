@@ -356,7 +356,6 @@ fun composeAppResource(path: String): File {
         if (!commonPath.exists() && isMacOS()) {
             val arch = System.getProperty("os.arch").lowercase()
             commonPath = if (arch == "arm" || arch == "aarch64") {
-                println("Using macOS ARM64 resources for $path")
                 File("resources/macos-arm64/$path")
             }else {
                 File("resources/macos-x64/$path")
