@@ -5,7 +5,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
-import util.monitorMemory
 
 /**
  * 自定义 Canvas 组件，用于渲染视频帧
@@ -36,8 +35,6 @@ fun CustomCanvas(
     Canvas(
         modifier = modifier,
     ) {
-
-        val startTime = if (showFps) System.nanoTime() else 0
 
         // 使用 withImage 安全地访问 Image 对象
         surface.withImage { image ->
@@ -77,8 +74,7 @@ fun CustomCanvas(
 
                 // 只在启用帧率测试且为新帧时记录
                 if (showFps && isNewFrame && performanceMonitor != null) {
-                    val renderTimeMs = (System.nanoTime() - startTime) / 1_000_000
-                    performanceMonitor.onFrameRendered(renderTimeMs)
+                    performanceMonitor.onFrameRendered("实际绘制到屏幕")
                     lastImageIdentity = currentIdentity
                 }
             }
@@ -88,27 +84,15 @@ fun CustomCanvas(
 
 class PerformanceMonitor {
     private var frameCount = 0L
-    private var dropFrameCount = 0L
     private var lastMonitorTime = System.currentTimeMillis()
 
-    fun onFrameRendered(renderTimeMs: Long) {
+    fun onFrameRendered(tag: String = "Canvas") {
         frameCount++
-
-        // 检测丢帧（渲染时间超过33ms，即低于30fps）
-        if (renderTimeMs > 33) {
-            dropFrameCount++
-        }
-
         val now = System.currentTimeMillis()
         if (now - lastMonitorTime >= 5000) { // 每5秒报告一次
             val fps = frameCount * 1000.0 / (now - lastMonitorTime)
-            val dropRate = dropFrameCount.toDouble() / frameCount * 100
-
-            println("FPS: $fps, Drop Rate: ${dropRate}%")
-            monitorMemory()
-
+            println("$tag 的 FPS: $fps")
             frameCount = 0
-            dropFrameCount = 0
             lastMonitorTime = now
         }
     }
