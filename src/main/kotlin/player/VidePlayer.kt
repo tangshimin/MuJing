@@ -625,26 +625,28 @@ fun VideoPlayer(
                                         .focusable(false)
                                 )
                             }else{
-                                Surface(
-                                    modifier = Modifier.size(40.dp),
-                                    elevation = 4.dp,
-                                    shape = RoundedCornerShape(8.dp),
-                                ){
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier.fillMaxSize()
-                                            .clickable{close()}
-
+                                if(controlBoxVisible){
+                                    Surface(
+                                        modifier = Modifier.size(40.dp),
+                                        elevation = 4.dp,
+                                        shape = RoundedCornerShape(8.dp),
                                     ){
-                                        Icon(
-                                            Icons.Filled.ArrowDown,
-                                            contentDescription = "Close Video Player",
-                                            tint = Color.White,
-//                                    modifier = Modifier.size(24.dp, 24.dp)
-                                        )
-                                    }
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier.fillMaxSize()
+                                                .clickable{close()}
 
+                                        ){
+                                            Icon(
+                                                Icons.Filled.ArrowDown,
+                                                contentDescription = "Close Video Player",
+                                                tint = Color.White,
+                                            )
+                                        }
+
+                                    }
                                 }
+
 
                             }
 
