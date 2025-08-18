@@ -739,6 +739,10 @@ fun VideoPlayer(
 
                         }
 
+                        // 如果控制栏不可见，则在字幕下方添加间隔
+                        if(!controlBoxVisible){
+                            Box(Modifier.fillMaxWidth().height(20.dp))
+                        }
 
                     }
                     // 底部控制栏
@@ -845,6 +849,7 @@ fun VideoPlayer(
                                     active = autoPauseActive,
                                     onCheckedChange = {
                                         state.autoPause = it
+                                        state.savePlayerState()
                                         // 点击后清除焦点
                                         focusManager.clearFocus()
                                     }
