@@ -5,6 +5,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
 import androidx.compose.ui.graphics.nativeCanvas
+import util.monitorMemory
 
 /**
  * 自定义 Canvas 组件，用于渲染视频帧
@@ -81,6 +82,34 @@ fun CustomCanvas(
                     lastImageIdentity = currentIdentity
                 }
             }
+        }
+    }
+}
+
+class PerformanceMonitor {
+    private var frameCount = 0L
+    private var dropFrameCount = 0L
+    private var lastMonitorTime = System.currentTimeMillis()
+
+    fun onFrameRendered(renderTimeMs: Long) {
+        frameCount++
+
+        // 检测丢帧（渲染时间超过33ms，即低于30fps）
+        if (renderTimeMs > 33) {
+            dropFrameCount++
+        }
+
+        val now = System.currentTimeMillis()
+        if (now - lastMonitorTime >= 5000) { // 每5秒报告一次
+            val fps = frameCount * 1000.0 / (now - lastMonitorTime)
+            val dropRate = dropFrameCount.toDouble() / frameCount * 100
+
+            println("FPS: $fps, Drop Rate: ${dropRate}%")
+            monitorMemory()
+
+            frameCount = 0
+            dropFrameCount = 0
+            lastMonitorTime = now
         }
     }
 }
