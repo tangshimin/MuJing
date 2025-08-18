@@ -698,7 +698,8 @@ fun VideoPlayer(
 
                         Box(
                             Modifier
-
+                                .shadow(4.dp, shape = RoundedCornerShape(8.dp))
+                                .background(if(isCaptionAreaHovered) Color(29,30,31) else Color.Black.copy(alpha = 0.7f))
                                 .onPointerEvent(PointerEventType.Enter) {
                                     isCaptionAreaHovered = true
                                     if (prevPlayState == null) {
@@ -719,10 +720,7 @@ fun VideoPlayer(
                                 caption =caption.removeSuffix("\n"),
                                 playAudio = playAudio,
                                 playerState = state,
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    .shadow(4.dp, shape = RoundedCornerShape(8.dp))
-                                    .background(if(isCaptionAreaHovered) Color(29,30,31) else Color.Black.copy(alpha = 0.7f)),
+                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                                 onPopupHoverChanged = { hovering ->
                                     showDictPopup = hovering
                                     if (hovering) {
