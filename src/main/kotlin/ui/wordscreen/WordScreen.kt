@@ -2897,8 +2897,9 @@ fun buildAnnotatedString(
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 fun DeleteButton(
     onClick:()->Unit,
-    alignment: Alignment = Alignment.TopCenter,
+    tooltipAlignment: Alignment = Alignment.TopCenter,
 ){
+    val offset = if(tooltipAlignment == Alignment.TopCenter) DpOffset(0.dp,0.dp) else DpOffset(0.dp,10.dp)
     TooltipArea(
         tooltip = {
             Surface(
@@ -2919,11 +2920,12 @@ fun DeleteButton(
                 }
             }
         },
+
         delayMillis = 300,
         tooltipPlacement = TooltipPlacement.ComponentRect(
-            anchor = alignment,
-            alignment = alignment,
-            offset = DpOffset.Zero
+            anchor = tooltipAlignment,
+            alignment = tooltipAlignment,
+            offset = offset
         )
     ) {
         IconButton(onClick = { onClick() },modifier = Modifier.onKeyEvent { keyEvent ->
@@ -3033,6 +3035,8 @@ fun FamiliarButton(
     onClick: () -> Unit,
     alignment: Alignment = Alignment.TopCenter,
 ){
+    val offset = if(alignment == Alignment.TopCenter) DpOffset(0.dp,0.dp) else DpOffset(0.dp,10.dp)
+    val text = if(alignment == Alignment.TopCenter) "移动到熟悉词库" else "添加到熟悉词库"
     TooltipArea(
         tooltip = {
             Surface(
@@ -3044,7 +3048,7 @@ fun FamiliarButton(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(10.dp)
                 ) {
-                    Text(text = "移动到熟悉词库  ")
+                    Text(text = "$text  ")
                     val ctrl = LocalCtrl.current
                     val shortcutText = if (isMacOS()) "$ctrl Y" else "$ctrl+Y"
                     CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
@@ -3057,7 +3061,7 @@ fun FamiliarButton(
         tooltipPlacement = TooltipPlacement.ComponentRect(
             anchor = alignment,
             alignment = alignment,
-            offset = DpOffset.Zero
+            offset = offset
         )
     ) {
         IconButton(onClick = { onClick() },modifier = Modifier.onKeyEvent { keyEvent ->
@@ -3106,6 +3110,8 @@ fun CopyButton(
     wordValue:String,
     alignment: Alignment = Alignment.TopCenter,
 ){
+    val offset = if(alignment == Alignment.TopCenter) DpOffset(0.dp,0.dp) else DpOffset(0.dp,10.dp)
+
     TooltipArea(
         tooltip = {
             Surface(
@@ -3131,7 +3137,7 @@ fun CopyButton(
         tooltipPlacement = TooltipPlacement.ComponentRect(
             anchor = alignment,
             alignment = alignment,
-            offset = DpOffset.Zero
+            offset
         )
     ) {
         val clipboardManager = LocalClipboardManager.current

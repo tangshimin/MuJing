@@ -45,7 +45,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isCtrlPressed
@@ -145,38 +144,33 @@ fun WordDetail(
             Box {
                 var tabState by remember { mutableStateOf(if (playerState.preferredChinese) 0 else 1) }
                 Column(Modifier.align(Alignment.Center)) {
+                    Row(
+                        verticalAlignment = Alignment.Top,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        CopyButton(
+                            wordValue = word.value,
+                            alignment = Alignment.BottomCenter
+                        )
+                        FamiliarButton(
+                            onClick = {
+                                addToFamiliar(word)
+                            },
+                            alignment = Alignment.BottomCenter
+                        )
+                        if(displayMode == DisplayMode.DANMAKU){
 
-                    // 单词移动到 tooltip 的时候 Popup 会消失
-                    var hasBug by remember { mutableStateOf(true) }
-                    if(!hasBug){
-                        Row(
-                            verticalAlignment = Alignment.Top,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            CopyButton(
-                                wordValue = word.value,
-                                alignment = Alignment.BottomCenter
-                            )
-                            FamiliarButton(
+                            DeleteButton(
                                 onClick = {
-                                    addToFamiliar(word)
+                                    deleteWord(word)
                                 },
-                                alignment = Alignment.BottomCenter
+                                tooltipAlignment =  Alignment.BottomCenter
                             )
-                            if(displayMode == DisplayMode.DANMAKU){
-
-                                DeleteButton(
-                                    onClick = {
-                                        deleteWord(word)
-                                    },
-                                    alignment = Alignment.BottomCenter
-                                )
-                            }
-
                         }
 
                     }
+
 
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
