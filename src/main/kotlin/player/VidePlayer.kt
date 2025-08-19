@@ -23,6 +23,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -937,9 +938,13 @@ fun VideoPlayer(
 
                                 val height = if(state.recentList.size > 10) 480.dp else (state.recentList.size * 48).dp
                                 Box(Modifier
-                                    .background(Color(0xFF111111))
                                     .fillMaxWidth()
-                                    .height(height)){
+                                    .height(height)
+                                    .shadow(elevation = 0.dp,shape = RoundedCornerShape(8.dp))
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(Color(0xFF111111))
+                                )
+                                {
                                     val stateVertical = rememberScrollState(0)
                                     Column(Modifier.verticalScroll(stateVertical)) {
                                        state.recentList.forEach { item ->
