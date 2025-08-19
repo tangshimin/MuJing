@@ -1549,48 +1549,7 @@ fun PlayerSettingsButton(
                     onKeepControlBoxVisible()
                 }
         ) {
-
-
-
-//            DropdownMenuItem(onClick = { }) {
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.SpaceBetween,
-//                    modifier = Modifier.fillMaxWidth()
-//                ) {
-//                    Text("单词定位弹幕",color = MaterialTheme.colors.onSurface)
-//                    Switch(checked = !playerState.showSequence, onCheckedChange = {
-//                        playerState.showSequence = !it
-//                        playerState.savePlayerState()
-//                    })
-//                }
-//            }
-//            DropdownMenuItem(onClick = { }) {
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.SpaceBetween,
-//                    modifier = Modifier.fillMaxWidth()
-//                ) {
-//                    Text("数字定位弹幕",color = MaterialTheme.colors.onSurface)
-//                    Switch(checked = playerState.showSequence, onCheckedChange = {
-//                        playerState.showSequence = it
-//                        playerState.savePlayerState()
-//                    })
-//                }
-//            }
-//            DropdownMenuItem(onClick = { }) {
-//                Row(
-//                    verticalAlignment = Alignment.CenterVertically,
-//                    horizontalArrangement = Arrangement.SpaceBetween,
-//                    modifier = Modifier.fillMaxWidth()
-//                ) {
-//                    Text("弹幕",color = MaterialTheme.colors.onSurface)
-//                    Switch(checked = playerState.danmakuVisible, onCheckedChange = {
-//                        playerState.danmakuVisible = !playerState.danmakuVisible
-//                        playerState.savePlayerState()
-//                    })
-//                }
-//            }
+            // 设置
         }
     }
 }
