@@ -639,6 +639,7 @@ fun VideoPlayer(
                                             contentAlignment = Alignment.Center,
                                             modifier = Modifier.fillMaxSize()
                                                 .clickable{close()}
+                                                .focusable(false)
 
                                         ){
                                             Icon(
@@ -1058,11 +1059,15 @@ fun VideoPlayer(
                         showSubtitlePicker = false
                     }
                 }
+                val focusManager = LocalFocusManager.current
 
                 // 右键菜单
                 CursorDropdownMenu(
                     expanded = showDropdownMenu,
-                    onDismissRequest = {showDropdownMenu = false},
+                    onDismissRequest = {
+                        showDropdownMenu = false
+                        focusManager.clearFocus()
+                    },
                 ){
                     DropdownMenuItem(onClick = {
                         showFilePicker = true
