@@ -582,9 +582,10 @@ fun VideoPlayer(
                 }
 
 
-
-                if( // 全屏的时候不显示关闭按钮
-                    (windowState.placement != WindowPlacement.Fullscreen)){
+                if( // macOS 全屏的时候不显示关闭按钮
+                    (isMacOS() && (windowState.placement != WindowPlacement.Fullscreen))
+                    || (isWindows() || isLinux()) // windows 的情况有些特殊，全屏的时候也显示关闭按钮。把鼠标从播放器移出就会消失。
+                    ){
                     Row(Modifier
                         .align (Alignment.TopStart)
                         .padding(start = 72.dp, top = 8.dp)){
