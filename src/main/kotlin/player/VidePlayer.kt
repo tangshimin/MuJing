@@ -958,15 +958,30 @@ fun VideoPlayer(
                                                     )
                                                 },
                                                 modifier = Modifier.clickable {
-                                                    if (File(item.path).exists()) {
-                                                        state.videoPath = item.path
-                                                        state.startTime = item.lastPlayedTime
-                                                        val newItem = item.copy(time = LocalDateTime.now().toString())
-                                                        state.saveToRecentList(newItem)
-                                                    }else{
-                                                        state.removeRecentItem(item)
-                                                        alert = true
+                                                    scope.launch (Dispatchers.Default){
+                                                        if (File(item.path).exists()) {
+                                                            videoPlayer.media().prepare(item.path)
+                                                            videoPlayer.controls().start()
+                                                            delay(100)
+                                                            val duration = videoPlayer.media().info().duration()
+                                                            videoPlayer.controls().stop()
+                                                            state.videoPath = item.path
+                                                            duration.milliseconds.toComponents { hours, minutes, seconds, _ ->
+                                                                val durationStr = timeFormat(hours, minutes, seconds)
+                                                                if(durationStr == item.lastPlayedTime){
+                                                                    state.startTime == "00:00:00"
+                                                                }else{
+                                                                    state.startTime = item.lastPlayedTime
+                                                                }
+                                                            }
+                                                            val newItem = item.copy(time = LocalDateTime.now().toString())
+                                                            state.saveToRecentList(newItem)
+                                                        }else{
+                                                            state.removeRecentItem(item)
+                                                            alert = true
+                                                        }
                                                     }
+
                                                 },
 
                                             )
