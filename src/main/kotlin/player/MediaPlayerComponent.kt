@@ -48,6 +48,9 @@ fun createMediaPlayerComponent2(): CallbackMediaPlayerComponent {
         "--sub-language=en",// 使用视频播放器播放视频时，自动选择英语字幕
         "--avcodec-hw=any",// 使用硬件加速解码
         "--vout=auto",
+        "--no-mouse-events",
+        "--no-keyboard-events",
+        "--no-video-title-show",
     )
 
     // 设置日志级别 (0=only errors and standard messages, 1=warnings, 2=debug)
