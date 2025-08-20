@@ -1128,11 +1128,7 @@ fun VideoPlayer(
                         // 如果有缓存的字幕，直接加载
                         timedCaption.setCaptionList(list)
                         val trackId = readTrackIdFromLastSubtitle()
-                        if(trackId !== null){
-                            currentSubtitleTrack = trackId
-                        }else{
-                            currentSubtitleTrack = -1
-                        }
+                        currentSubtitleTrack = if(trackId !== null)  trackId else -1
                     }
 
                     // 如果没有缓存就加载第一个内置字幕
