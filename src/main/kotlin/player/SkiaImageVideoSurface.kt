@@ -142,6 +142,12 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
             }
 
             lock.withLock {
+
+                // 确保 pixmap 已经初始化
+                if(!::pixmap.isInitialized){
+                    return
+                }
+
                 // 清理 Skia 资源
                 skiaImage.value?.close()
                 skiaImage.value = Image.makeFromPixmap(pixmap)
