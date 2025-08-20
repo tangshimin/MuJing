@@ -1018,6 +1018,9 @@ fun VideoPlayer(
                         }
                     }
                 }
+
+                val focusManager = LocalFocusManager.current
+
                 // 视频文件选择器
                 FilePicker(
                     show = showFilePicker || showVocabularyPicker || showSubtitlePicker,
@@ -1058,8 +1061,9 @@ fun VideoPlayer(
                         showVocabularyPicker = false
                         showSubtitlePicker = false
                     }
+                    // 清除焦点
+                    focusManager.clearFocus()
                 }
-                val focusManager = LocalFocusManager.current
 
                 // 右键菜单
                 CursorDropdownMenu(
