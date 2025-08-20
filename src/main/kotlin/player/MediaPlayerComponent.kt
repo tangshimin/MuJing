@@ -39,8 +39,9 @@ fun embeddedVLCDiscovery() {
  * 视频播放组件
  */
 fun createMediaPlayerComponent2(): CallbackMediaPlayerComponent {
+
+    // 防止字幕描述在 Windows 乱码
     System.setProperty("native.encoding", "UTF-8")
-    val cacheExists = getResourcesFile("VLC/plugins/plugins.dat").exists()
     // 如果是 Windows、macOS 就使用内置的 VLC 播放器
     embeddedVLCDiscovery()
 
@@ -64,6 +65,7 @@ fun createMediaPlayerComponent2(): CallbackMediaPlayerComponent {
         ))
     }
 
+    val cacheExists = getResourcesFile("VLC/plugins/plugins.dat").exists()
     if(!cacheExists){
         args.add("--reset-plugins-cache")
     }

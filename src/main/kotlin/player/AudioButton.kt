@@ -21,22 +21,12 @@ import androidx.compose.ui.unit.dp
 import data.Word
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.withLock
 import kotlinx.serialization.ExperimentalSerializationApi
 import state.AppState
-import state.getAudioDirectory
 import theme.LocalCtrl
 import tts.AzureTTS
-import tts.MSTTSpeech
-import tts.MacTTS
-import tts.UbuntuTTS
 import ui.wordscreen.WordScreenState
-import uk.co.caprica.vlcj.player.base.MediaPlayer
-import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
-import java.io.File
-import java.net.URL
 
 val LocalAudioPlayerComponent = staticCompositionLocalOf<AudioPlayerComponent> {
     error("LocalMediaPlayerComponent isn't provided")
@@ -44,6 +34,8 @@ val LocalAudioPlayerComponent = staticCompositionLocalOf<AudioPlayerComponent> {
 
 @Composable
 fun rememberAudioPlayerComponent(): AudioPlayerComponent = remember {
+    // 防止字幕描述在 Windows 乱码
+    System.setProperty("native.encoding", "UTF-8")
     embeddedVLCDiscovery()
     AudioPlayerComponent()
 }
