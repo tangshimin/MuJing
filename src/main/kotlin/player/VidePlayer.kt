@@ -1122,9 +1122,25 @@ fun VideoPlayer(
                 isPlaying = true
 
                 withContext(Dispatchers.IO){
-                    // 自动加载第一个内置字幕
-                    val list = readCaptionList(videoPath = videoPath, subtitleId = 0)
-                    timedCaption.setCaptionList(list)
+
+                    // 尝试读取已经提取到磁盘的字幕
+                    var list = readCachedSubtitle(videoPath)
+                    if(list.isNotEmpty()){
+                        // 如果有缓存的字幕，直接加载
+                        timedCaption.setCaptionList(list)
+                        val trackId = readTrackIdFromLastSubtitle()
+                        if(trackId !== null){
+                            currentSubtitleTrack = trackId
+                        }else{
+                            currentSubtitleTrack = -1
+                        }
+                    }
+
+                    // 如果没有缓存就加载第一个内置字幕
+                    if(list.isEmpty()){
+                        list = readCaptionList(videoPath = videoPath, subtitleId = 0)
+                        timedCaption.setCaptionList(list)
+                    }
 
                     // 自动探测外部字幕
                     val subtitleFiles =  findSubtitleFiles(videoPath)

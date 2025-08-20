@@ -5,6 +5,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowState
 import data.Caption
 import ffmpeg.findFFmpegPath
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.JsonPrimitive
 import net.bramp.ffmpeg.FFmpeg
 import net.bramp.ffmpeg.FFmpegExecutor
 import net.bramp.ffmpeg.builder.FFmpegBuilder
@@ -329,13 +334,24 @@ fun readCaptionList(
 ): List<PlayerCaption> {
     val captionList = mutableListOf<PlayerCaption>()
     val applicationDir = getSettingsDirectory()
-    val tempSrtPath = "$applicationDir/temp.srt"
+
+    // 确保 VideoPlayer 存在，如果不存在则创建
+    "$applicationDir/VideoPlayer".let { dir ->
+        File(dir).apply {
+            if (!exists()) {
+                mkdirs() // 确保目录存在
+            }
+        }
+    }
+    val subtitlePath = "$applicationDir/VideoPlayer/subtitle.srt"
+    val infoPath = "$applicationDir/VideoPlayer/last_subtitle.json"
+
     try {
         val ffmpeg = FFmpeg(findFFmpegPath())
         val builder = FFmpegBuilder()
             .setVerbosity(verbosity)
             .setInput(videoPath)
-            .addOutput(tempSrtPath)
+            .addOutput(subtitlePath)
             .addExtraArgs("-map", "0:s:$subtitleId")
             .done()
         val executor = FFmpegExecutor(ffmpeg)
@@ -343,17 +359,66 @@ fun readCaptionList(
         job.run()
         if (job.state == FFmpegJob.State.FINISHED) {
             println("extractSubtitle success")
-            captionList.addAll(parseSubtitles(tempSrtPath))
+            captionList.addAll(parseSubtitles(subtitlePath))
+            val json = Json {
+                prettyPrint = true
+                encodeDefaults = true
+            }
+            val info = SubtitleInfo(videoPath, subtitleId)
+            val jsonString =  json.encodeToString(info)
+            // 将字幕信息写入 JSON 文件
+            File(infoPath).writeText(jsonString)
         }
     } catch (e: Exception) {
         e.printStackTrace()
         // 发生异常时返回空列表
         return emptyList()
-    } finally {
-        File(tempSrtPath).delete()
     }
     return captionList
 }
+
+@Serializable
+data class SubtitleInfo(
+    val videoPath: String,
+    val trackID: Int
+)
+
+fun readCachedSubtitle(videoPath: String): List<PlayerCaption> {
+    val applicationDir = getSettingsDirectory()
+    val infoPath = "$applicationDir/VideoPlayer/last_subtitle.json"
+    val subtitlePath = "$applicationDir/VideoPlayer/subtitle.srt"
+    val infoFile = File(infoPath)
+    if (!infoFile.exists()) return emptyList()
+    return try {
+        val jsonString = infoFile.readText()
+        val json = Json { ignoreUnknownKeys }
+        val info = json.decodeFromString<SubtitleInfo>(jsonString)
+        if (info.videoPath == videoPath) {
+            parseSubtitles(subtitlePath)
+        } else {
+            emptyList()
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        emptyList()
+    }
+}
+
+fun readTrackIdFromLastSubtitle(): Int? {
+    val applicationDir = getSettingsDirectory()
+    val infoPath = "$applicationDir/VideoPlayer/last_subtitle.json"
+    val infoFile = File(infoPath)
+    if (!infoFile.exists()) return null
+    return try {
+        val jsonString = infoFile.readText()
+        val info = Json.decodeFromString<SubtitleInfo>(jsonString)
+        info.trackID
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}
+
 /**
  * 解析字幕文件并返回PlayerCaption列表
  *
