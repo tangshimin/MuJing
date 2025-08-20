@@ -1120,7 +1120,6 @@ fun VideoPlayer(
                 val startTime = convertTimeToSeconds(state.startTime)
                 videoPlayer.media().play(videoPath,":no-sub-autodetect-file",":start-time=${startTime}")
                 isPlaying = true
-
                 withContext(Dispatchers.IO){
 
                     // 尝试读取已经提取到磁盘的字幕
@@ -1226,6 +1225,10 @@ fun VideoPlayer(
                         // trackDescription.id() 是 vlc 内部的 ID 暂时不使用
                         subtitleTrackList.add(Pair(index - 1,trackDescription.description()))
                     }
+
+                    //不使用 VLC 渲染字幕
+                    videoPlayerComponent.mediaPlayer().subpictures().setTrack(-1)
+
                     // 更新音频轨道
                     mediaPlayer.audio().trackDescriptions().forEach { trackDescription ->
                         audioTrackList.add(Pair(trackDescription.id(),trackDescription.description()))
