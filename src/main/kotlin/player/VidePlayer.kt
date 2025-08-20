@@ -769,8 +769,12 @@ fun VideoPlayer(
                                 onValueChange = {
                                     timeProgress = it
                                     videoPlayerComponent.mediaPlayer().controls().setPosition(timeProgress)
-//                                    val newTime = videoPlayer.status().time()
-//                                    timedCaption.updateCurrentIndex(newTime)
+
+                                    val newTime = videoPlayer.status().time()
+                                    newTime.milliseconds.toComponents { hours, minutes, seconds, _ ->
+                                        val lastPlayed= timeFormat(hours,minutes,seconds)
+                                        state.updateLastPlayedTime(lastPlayed)
+                                    }
                                     updateCaptionIndex()
                                     if(state.autoPause){
                                         autoPauseActive = false
