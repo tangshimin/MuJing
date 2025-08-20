@@ -964,6 +964,7 @@ fun VideoPlayer(
                                                 },
                                                 modifier = Modifier.clickable {
                                                     scope.launch (Dispatchers.Default){
+                                                        val lastPlayedTime = item.lastPlayedTime
                                                         if (File(item.path).exists()) {
                                                             videoPlayer.media().prepare(item.path)
                                                             videoPlayer.controls().start()
@@ -973,10 +974,10 @@ fun VideoPlayer(
                                                             state.videoPath = item.path
                                                             duration.milliseconds.toComponents { hours, minutes, seconds, _ ->
                                                                 val durationStr = timeFormat(hours, minutes, seconds)
-                                                                if(durationStr == item.lastPlayedTime){
-                                                                    state.startTime == "00:00:00"
+                                                                if(durationStr == lastPlayedTime){
+                                                                    state.startTime = "00:00:00"
                                                                 }else{
-                                                                    state.startTime = item.lastPlayedTime
+                                                                    state.startTime = lastPlayedTime
                                                                 }
                                                             }
                                                             val newItem = item.copy(time = LocalDateTime.now().toString())
