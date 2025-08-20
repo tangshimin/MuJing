@@ -89,6 +89,10 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
     fun release() {
         lock.withLock {
             try{
+
+                // 停止渲染
+                _isRenderingEnabled.set(false)
+
                 // 释放当前的 Skia Image
                 skiaImage.value?.close()
                 skiaImage.value = null
@@ -137,17 +141,13 @@ class SkiaImageVideoSurface : VideoSurface(VideoSurfaceAdapters.getVideoSurfaceA
             displayWidth: Int,
             displayHeight: Int
         ) {
-            if (!_isRenderingEnabled.get()) {
-                return
-            }
+
 
             lock.withLock {
 
-                // 确保 pixmap 已经初始化
-                if(!::pixmap.isInitialized){
+                if (!_isRenderingEnabled.get()) {
                     return
                 }
-
                 // 清理 Skia 资源
                 skiaImage.value?.close()
                 skiaImage.value = Image.makeFromPixmap(pixmap)
