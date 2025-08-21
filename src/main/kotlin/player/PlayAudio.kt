@@ -1,7 +1,9 @@
 package player
 
 import data.Caption
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.withLock
@@ -15,12 +17,14 @@ import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
 import java.io.File
 import java.net.URL
+import java.util.concurrent.atomic.AtomicReference
 
 
 /**
  * * 用于播放音频的互斥锁，确保同一时间只能有一个音频在播放
  */
 private val audioPlaybackMutex = kotlinx.coroutines.sync.Mutex()
+private val currentJob = AtomicReference<Job?>(null)
 
 fun playAudio(
     word: String,
@@ -30,53 +34,54 @@ fun playAudio(
     audioPlayerComponent: AudioPlayerComponent,
     changePlayerState: (Boolean) -> Unit,
 ) {
-    if (pronunciation == "local TTS" || audioPath.isEmpty()) {
-        changePlayerState(true)
-        runBlocking {
-            launch(Dispatchers.IO) {
-                audioPlaybackMutex.withLock {
-                    if (isWindows()) {
-                        val speech = MSTTSpeech()
-                        speech.speak(word)
-                    } else if (isMacOS()) {
-                        MacTTS().speakAndWait(word)
-                    } else {
-                        UbuntuTTS().speakAndWait(word)
-                    }
+
+    // 取消前一个任务
+    currentJob.getAndSet(null)?.cancel()
+
+    val job = CoroutineScope(Dispatchers.IO).launch {
+        if (pronunciation == "local TTS" || audioPath.isEmpty()) {
+            audioPlaybackMutex.withLock {
+                changePlayerState(true)
+                if (isWindows()) {
+                    val speech = MSTTSpeech()
+                    speech.speak(word)
+                } else if (isMacOS()) {
+                    MacTTS().speakAndWait(word)
+                } else {
+                    UbuntuTTS().speakAndWait(word)
                 }
                 changePlayerState(false)
             }
-        }
-    } else if (audioPath.isNotEmpty()) {
-        changePlayerState(true)
 
-        runBlocking {
-            launch(Dispatchers.IO) {
-                audioPlaybackMutex.withLock {
-                    try {
-                        // 先停止当前播放
-                        audioPlayerComponent.mediaPlayer().controls().stop()
+        } else if (audioPath.isNotEmpty()) {
 
-                        audioPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(object : MediaPlayerEventAdapter() {
-                            override fun mediaPlayerReady(mediaPlayer: MediaPlayer) {
-                                mediaPlayer.audio().setVolume((volume * 100).toInt())
-                            }
+            audioPlaybackMutex.withLock {
+                changePlayerState(true)
+                try {
+                    // 先停止当前播放
+                    audioPlayerComponent.mediaPlayer().controls().stop()
 
-                            override fun finished(mediaPlayer: MediaPlayer) {
-                                changePlayerState(false)
-                                audioPlayerComponent.mediaPlayer().events().removeMediaPlayerEventListener(this)
-                            }
-                        })
+                    audioPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(object : MediaPlayerEventAdapter() {
+                        override fun mediaPlayerReady(mediaPlayer: MediaPlayer) {
+                            mediaPlayer.audio().setVolume((volume * 100).toInt())
+                        }
 
-                        audioPlayerComponent.mediaPlayer().media().play(audioPath)
-                    } catch (e: Exception) {
-                        changePlayerState(false)
-                        e.printStackTrace()
-                    }
+                        override fun finished(mediaPlayer: MediaPlayer) {
+                            changePlayerState(false)
+                            audioPlayerComponent.mediaPlayer().events().removeMediaPlayerEventListener(this)
+                        }
+                    })
+
+                    audioPlayerComponent.mediaPlayer().media().play(audioPath)
+                } catch (e: Exception) {
+                    changePlayerState(false)
+                    e.printStackTrace()
                 }
             }
+
         }
     }
+    currentJob.set(job)
 }
 
 
