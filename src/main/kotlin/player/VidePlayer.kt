@@ -1189,22 +1189,26 @@ fun VideoPlayer(
 
                     // 如果没有缓存的词就使用字幕生成一个词库
                     val cachedVocabulary =File( "$applicationDir/VideoPlayer/VideoVocabulary.json")
-                    if(!cachedVocabulary.exists() && subPath.isNotEmpty()){
-                        val words = parseSRT(
-                            pathName = subPath,
-                            setProgressText = { println(it) },
-                            enablePhrases = true
-                        )
-                        val newVocabulary = Vocabulary(
-                            name = "VideoPlayerVocabulary",
-                            type = VocabularyType.SUBTITLES,
-                            language = "English",
-                            size = words.size,
-                            relateVideoPath = videoPath,
-                            subtitlesTrackId = currentSubtitleTrack,
-                            wordList = words.toMutableList()
-                        )
-                        saveVocabulary(newVocabulary, cachedVocabulary.absolutePath)
+                    if(subPath.isNotEmpty()){
+                        // 先检查是否已经有一个词库没有就生成一个新的
+                        // 如果已经有了要检查视频路径是否一致，如果切换了视频就生成一个新的
+                        if(!cachedVocabulary.exists() || videoIsChanged(videoPath,cachedVocabulary.absolutePath)){
+                            val words = parseSRT(
+                                pathName = subPath,
+                                setProgressText = { println(it) },
+                                enablePhrases = true
+                            )
+                            val newVocabulary = Vocabulary(
+                                name = "VideoPlayerVocabulary",
+                                type = VocabularyType.SUBTITLES,
+                                language = "English",
+                                size = words.size,
+                                relateVideoPath = videoPath,
+                                subtitlesTrackId = currentSubtitleTrack,
+                                wordList = words.toMutableList()
+                            )
+                            saveVocabulary(newVocabulary, cachedVocabulary.absolutePath)
+                        }
                     }
 
                     // 新生成的词库需要和当前正在记忆的词库做一个交集运行
@@ -2235,4 +2239,15 @@ fun DanmakuButton(
 
         }
     }
+}
+
+
+/**
+ * 缓存词库对应的视频路径是否和正在播放视频路径一致
+ * @param videoPath 当前视频路径
+ * @param vocabularyPath 缓存词库路径
+ */
+private fun videoIsChanged(videoPath:String, vocabularyPath:String):Boolean{
+    val baseline = loadVocabulary(vocabularyPath)
+    return baseline.relateVideoPath != videoPath
 }
