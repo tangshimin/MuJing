@@ -709,19 +709,26 @@ fun VideoPlayer(
 
                     // 显示字幕
                     if(caption.isNotEmpty()){
+                        val enterJob = remember { mutableStateOf<Job?>(null) }
 
                         Box(
                             Modifier
                                 .shadow(4.dp, shape = RoundedCornerShape(8.dp))
                                 .background(if(isCaptionAreaHovered) Color(29,30,31) else Color.Black.copy(alpha = 0.7f))
                                 .onPointerEvent(PointerEventType.Enter) {
-                                    isCaptionAreaHovered = true
-                                    if (prevPlayState == null) {
-                                        prevPlayState = isPlaying
+                                    enterJob.value?.cancel() // 取消之前的 Job
+                                    enterJob.value = scope.launch {
+                                        delay(150) // 设置悬停最少停留时间为 150 毫秒
+                                        isCaptionAreaHovered = true
+                                        if (prevPlayState == null) {
+                                            prevPlayState = isPlaying
+                                        }
+                                        pauseIfPlaying()
                                     }
-                                    pauseIfPlaying()
+
                                 }
                                 .onPointerEvent(PointerEventType.Exit) {
+                                    enterJob.value?.cancel() // 取消之前的 Job
                                     isCaptionAreaHovered = false
                                     // 延时处理，避免在移动到 Popup 时误触发恢复
                                     scope.launch {
