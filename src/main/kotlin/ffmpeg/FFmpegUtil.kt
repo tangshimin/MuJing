@@ -8,6 +8,7 @@ import net.bramp.ffmpeg.job.FFmpegJob
 import player.isWindows
 import state.getResourcesFile
 import state.getSettingsDirectory
+import ui.dialog.replaceNewLine
 import java.io.File
 import javax.swing.JOptionPane
 
@@ -82,10 +83,10 @@ fun convertToSrt(
 
 /**
  * 匹配富文本标签的正则表达式
+ * 保留换行标签 <br />
  */
-const val RICH_TEXT_REGEX = "<(b|i|u|font|s|ruby|rt|rb|sub|sup).*?>|</(b|i|u|font|s|ruby|rt|rb|sub|sup)>"
 
-
+const val RICH_TEXT_REGEX = "</?(b|i|u|font|s|ruby|rt|rb|sub|sup)(\\s[^>]*)?>"
 /**
  * 移除 SRT 字幕里的富文本标签
  *使用 FFmpeg 提取 mov_text 字幕时，会保留这些富文本标签，但是我们只需要纯文本，所以需要移除这些标签。
@@ -105,7 +106,8 @@ const val RICH_TEXT_REGEX = "<(b|i|u|font|s|ruby|rt|rb|sub|sup).*?>|</(b|i|u|fon
 fun removeRichText(srtFile: File){
     var content = srtFile.readText()
     content = removeRichText(content)
-
+    // 把换行标签 <br /> 替换成 \n
+   content =  replaceNewLine(content)
     srtFile.writeText(content)
 }
 
@@ -117,6 +119,10 @@ fun removeRichText(content: String): String {
 
 fun hasRichText(srtFile: File): Boolean {
     val content = srtFile.readText()
+    val richTextRegex = Regex(RICH_TEXT_REGEX)
+        return richTextRegex.containsMatchIn(content)
+}
+fun hasRichText(content: String): Boolean {
     val richTextRegex = Regex(RICH_TEXT_REGEX)
         return richTextRegex.containsMatchIn(content)
 }

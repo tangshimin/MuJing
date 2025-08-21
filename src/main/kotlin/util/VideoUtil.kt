@@ -5,6 +5,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowState
 import data.Caption
 import ffmpeg.findFFmpegPath
+import ffmpeg.hasRichText
+import ffmpeg.removeRichText
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -496,6 +498,9 @@ fun parseSubtitles(subtitlesPath: String):List<PlayerCaption>{
             var maxLength = 0
             for (caption in captions.values) {
                 var content = removeLocationInfo(caption.content)
+                if(hasRichText(content)){
+                    content = removeRichText(content)
+                }
                 content = removeItalicSymbol(content)
                 content = replaceNewLine(content)
                 val newCaption = PlayerCaption(
