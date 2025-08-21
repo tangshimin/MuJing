@@ -151,7 +151,7 @@ class PlayerState(playerData: PlayerData) {
         } else {
             listOf()
         }
-        list = list.sortedByDescending { it.time }
+        list = list.sortedByDescending { it.dateTime }
         return list.toMutableStateList()
     }
 
@@ -168,8 +168,6 @@ class PlayerState(playerData: PlayerData) {
                     val json = encodeBuilder.encodeToString(recentList.toList())
                     getRecentVideoFile().writeText(json)
                 }
-
-
             }
         }
     }
@@ -191,8 +189,8 @@ class PlayerState(playerData: PlayerData) {
                     if (existingItem != null) {
                         recentList.remove(existingItem)
                     }
-//                    val newItem = RecentVideo(LocalDateTime.now().toString(), name, path)
-                    val newItem = recentVideo.copy(time = LocalDateTime.now().toString())
+                    // 更新播放日期
+                    val newItem = recentVideo.copy(dateTime = LocalDateTime.now().toString())
                     recentList.add(0, newItem)
                     if (recentList.size > 20) {
                         recentList.removeAt(20) // 保持最近列表最多20个
@@ -365,7 +363,7 @@ data class PlayerData(
 
 @Serializable
 data class RecentVideo(
-    val time: String,
+    val dateTime: String,
     val name: String,
     val path: String,
     var lastPlayedTime: String = "00:00:00"

@@ -975,11 +975,14 @@ fun VideoPlayer(
                                                     scope.launch (Dispatchers.Default){
                                                         val lastPlayedTime = item.lastPlayedTime
                                                         if (File(item.path).exists()) {
-                                                            videoPlayer.media().prepare(item.path)
-                                                            videoPlayer.controls().start()
+                                                            val playerComponent = createMediaPlayerComponent2()
+                                                            val mediaPlayer = playerComponent.mediaPlayer()
+                                                            mediaPlayer.media().prepare(item.path)
+                                                            mediaPlayer.controls().start()
                                                             delay(100)
-                                                            val duration = videoPlayer.media().info().duration()
-                                                            videoPlayer.controls().stop()
+                                                            val duration = mediaPlayer.media().info().duration()
+                                                            mediaPlayer.controls().stop()
+                                                            playerComponent.release()
                                                             state.videoPath = item.path
                                                             duration.milliseconds.toComponents { hours, minutes, seconds, _ ->
                                                                 val durationStr = timeFormat(hours, minutes, seconds)
@@ -989,7 +992,11 @@ fun VideoPlayer(
                                                                     state.startTime = lastPlayedTime
                                                                 }
                                                             }
-                                                            val newItem = item.copy(time = LocalDateTime.now().toString())
+
+                                                            val newItem = item.copy(
+                                                                dateTime = LocalDateTime.now().toString(),
+                                                                lastPlayedTime = lastPlayedTime
+                                                            )
                                                             state.saveToRecentList(newItem)
                                                         }else{
                                                             state.removeRecentItem(item)
@@ -1050,7 +1057,7 @@ fun VideoPlayer(
                                 // 提取 file 的名称
                                 val name = File(file.path).nameWithoutExtension
                                 val newItem = RecentVideo(
-                                    time = LocalDateTime.now().toString(),
+                                    dateTime = LocalDateTime.now().toString(),
                                     name = name,
                                     path = file.path,
                                     lastPlayedTime = "00:00:00",
