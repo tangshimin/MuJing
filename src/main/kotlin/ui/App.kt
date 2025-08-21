@@ -8,17 +8,14 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.platform.LocalDensity
@@ -34,7 +31,6 @@ import data.getHardVocabularyFile
 import data.loadVocabulary
 import event.EventBus
 import event.PlayerEventType
-import icons.ArrowDown
 import io.ktor.utils.io.printStack
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -121,7 +117,7 @@ fun App(
                     }
 
                     // 处理视频播放器的快捷键
-                    if(playerState.showPlayerWindow){
+                    if(playerState.visible){
                         if (it.key == Key.Spacebar && it.type == KeyEventType.KeyUp) {
                             scope.launch {
                                 eventBus.post(PlayerEventType.PLAY)
@@ -193,7 +189,7 @@ fun App(
                         // windows 显示视频播放器的时候不显示菜单栏
                         // macOS 一直显示菜单栏
                         if(
-                            (isWindows() && !playerState.showPlayerWindow)
+                            (isWindows() && !playerState.visible)
                             || isMacOS()
                             ){
                             WindowMenuBar(
@@ -214,7 +210,7 @@ fun App(
                         }
 
                         Box(Modifier.fillMaxSize().background(MaterialTheme.colors.background)){
-                            if(!playerState.showPlayerWindow){
+                            if(!playerState.visible){
                                 when (appState.global.type) {
                                     ScreenType.WORD -> {
                                         title = computeTitle(wordState.vocabularyName,wordState.vocabulary.wordList.isNotEmpty())
@@ -239,7 +235,7 @@ fun App(
                                             appState = appState,
                                             wordScreenState = wordState,
                                             videoBounds = videoBounds,
-                                            showPlayer = { playerState.showPlayerWindow = it },
+                                            showPlayer = {playerState.showPlayer(wordState)},
                                             openVideo = playerState.openVideo,
                                             showContext = { playerState.showContext(it) }
                                         )
@@ -261,7 +257,7 @@ fun App(
                                             openLoadingDialog = { appState.openLoadingDialog()},
                                             closeLoadingDialog = { appState.loadingFileChooserVisible = false },
                                             openSearch = {appState.openSearch()},
-                                            showPlayer = { playerState.showPlayerWindow = it },
+                                            showPlayer ={playerState.showPlayer(wordState)},
                                             colors = appState.colors
                                         )
                                     }
@@ -281,13 +277,13 @@ fun App(
                                             openLoadingDialog = { appState.openLoadingDialog()},
                                             closeLoadingDialog = { appState.loadingFileChooserVisible = false },
                                             openSearch = {appState.openSearch()},
-                                            showVideoPlayer = { playerState.showPlayerWindow = it },
+                                            showVideoPlayer = {playerState.showPlayer(wordState)},
                                             setVideoPath = playerState.videoPathChanged,
                                         )
                                     }
                                 }
                             }
-                            if(playerState.showPlayerWindow){
+                            if(playerState.visible){
                                title = computeTitle(playerState.videoPath)
                                 AnimatedVideoPlayer(
                                     state = playerState,
@@ -298,10 +294,10 @@ fun App(
                                         appState.global.videoVolume = it
                                         appState.saveGlobalState()
                                     },
-                                    visible = playerState.showPlayerWindow,
+                                    visible = playerState.visible,
                                     windowState = windowState,
                                     close = {
-                                        playerState.showPlayerWindow = false
+                                        playerState.visible = false
                                         playerState.videoPath = ""
                                     },
                                     eventBus = eventBus,

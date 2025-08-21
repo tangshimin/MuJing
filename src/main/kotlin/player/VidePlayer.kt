@@ -41,18 +41,26 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
+import data.MutableVocabulary
+import data.Vocabulary
+import data.VocabularyType
+import data.loadVocabulary
+import data.saveVocabulary
 import event.EventBus
 import event.PlayerEventType
 import icons.ArrowDown
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.serialization.ExperimentalSerializationApi
 import player.danmaku.CanvasDanmakuContainer
 import player.danmaku.DanmakuStateManager
 import player.danmaku.TimelineSynchronizer
+import state.getSettingsDirectory
 import theme.LocalCtrl
 import theme.rememberDarkThemeSelectionColors
 import tts.rememberAzureTTS
 import ui.components.MacOSTitle
+import ui.wordscreen.loadWordScreenVocabulary
 import ui.wordscreen.rememberPronunciation
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
@@ -67,7 +75,6 @@ import java.io.File
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.concurrent.schedule
-import kotlin.text.removeSuffix
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -114,7 +121,9 @@ fun AnimatedVideoPlayer(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class, ExperimentalMaterialApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class, ExperimentalMaterialApi::class,
+    ExperimentalSerializationApi::class
+)
 @Composable
 fun VideoPlayer(
     state: PlayerState,
@@ -1137,6 +1146,12 @@ fun VideoPlayer(
                         timedCaption.setCaptionList(list)
                     }
 
+                    val applicationDir = getSettingsDirectory()
+                    var subPath = ""
+                    if(list.isNotEmpty()){
+                        subPath = "$applicationDir/VideoPlayer/subtitle.srt"
+                    }
+
                     // 自动探测外部字幕
                     val subtitleFiles =  findSubtitleFiles(videoPath)
                     extSubList.clear()
@@ -1161,6 +1176,44 @@ fun VideoPlayer(
                             val captions = parseSubtitles(foundFile.absolutePath)
                             timedCaption.setCaptionList(captions)
                             extSubIndex = foundIndex
+                            subPath = foundFile.absolutePath
+                        }
+                    }
+
+                    // 如果没有缓存的词就使用字幕生成一个词库
+                    val cachedVocabulary =File( "$applicationDir/VideoPlayer/VideoVocabulary.json")
+                    if(!cachedVocabulary.exists() && subPath.isNotEmpty()){
+                        val words = parseSRT(
+                            pathName = subPath,
+                            setProgressText = { println(it) },
+                            enablePhrases = true
+                        )
+                        val newVocabulary = Vocabulary(
+                            name = "VideoPlayerVocabulary",
+                            type = VocabularyType.SUBTITLES,
+                            language = "English",
+                            size = words.size,
+                            relateVideoPath = videoPath,
+                            subtitlesTrackId = currentSubtitleTrack,
+                            wordList = words.toMutableList()
+                        )
+                        saveVocabulary(newVocabulary, cachedVocabulary.absolutePath)
+                    }
+
+                    // 新生成的词库需要和当前正在记忆的词库做一个交集运行
+                    if(subPath.isNotEmpty() && cachedVocabulary.exists()){
+                        val baseline = loadVocabulary(cachedVocabulary.absolutePath)
+                        val comparison = loadWordScreenVocabulary()
+                        comparison?.let {
+                            val matched =  matchVocabulary(
+                                baseline = baseline,
+                                comparison = comparison,
+                                matchLemma = true
+                            )
+                            val matchedPath = "$applicationDir/VideoPlayer/MatchedVocabulary.json"
+                            saveVocabulary(matched, matchedPath)
+                            state.vocabularyPath = matchedPath
+                            state.vocabulary = MutableVocabulary(matched)
                         }
                     }
 

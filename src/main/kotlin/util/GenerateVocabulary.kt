@@ -6,6 +6,7 @@ import com.matthewn4444.ebml.UnSupportSubtitlesException
 import com.matthewn4444.ebml.subtitles.SSASubtitles
 import data.Caption
 import data.Dictionary
+import data.Vocabulary
 import data.Word
 import ffmpeg.convertToSrt
 import ffmpeg.extractSubtitles
@@ -31,6 +32,7 @@ import org.slf4j.LoggerFactory
 import state.getSettingsDirectory
 import subtitleFile.FormatSRT
 import subtitleFile.TimedTextObject
+import ui.dialog.getWordLemma
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -793,4 +795,65 @@ fun removeLocationInfo(content: String): String {
     val pattern = Pattern.compile("\\{.*\\}")
     val matcher = pattern.matcher(content)
     return matcher.replaceAll("")
+}
+
+
+/**
+ * 对比两个词汇表，返回它们的交集词汇表。
+ *
+ * @param baseline 基准词汇表，作为对比的基础。
+ * @param comparison 需要与基准词汇表对比的词汇表。
+ * @param matchLemma 是否按词元（lemma）进行匹配。如果为 true，则以词元为单位进行对比，否则以单词本身为单位。
+ * @return 包含交集单词的新词汇表，词汇表类型、语言等信息继承自基准词汇表。
+ */
+fun matchVocabulary(
+    baseline: Vocabulary,
+    comparison: Vocabulary,
+    matchLemma: Boolean,
+): Vocabulary {
+
+    val result = Vocabulary(
+        name = "",
+        type = baseline.type,
+        language = baseline.language,
+        size = 0,
+        relateVideoPath = baseline.relateVideoPath,
+        subtitlesTrackId = baseline.subtitlesTrackId,
+        wordList = mutableListOf()
+    )
+
+    if (matchLemma) {
+        val baselineLemma = mutableMapOf<String,Word>()
+        val comparisonLemma = mutableListOf<String>()
+        baseline.wordList.forEach { word ->
+            val lemma = getWordLemma(word)
+            baselineLemma[lemma] = word
+        }
+
+        comparison.wordList.forEach { word ->
+            val lemma = getWordLemma(word)
+            if (!comparisonLemma.contains(lemma)) {
+                comparisonLemma.add(lemma)
+            }
+        }
+
+        comparisonLemma.forEach { lemma ->
+            if (baselineLemma.contains(lemma)) {
+                // 基准词库有，对比词库也有
+                // 这里把基准词库里的单词加入结果
+                val word = baselineLemma[lemma]
+                word?.let {
+                    result.wordList.add(it)
+                }
+            }
+        }
+    } else {
+        baseline.wordList.forEach { word ->
+            if (comparison.wordList.contains(word)) {
+                result.wordList.add(word)
+            }
+        }
+    }
+    result.size = result.wordList.size
+    return result
 }

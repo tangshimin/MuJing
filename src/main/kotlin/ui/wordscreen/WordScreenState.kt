@@ -2,14 +2,15 @@ package ui.wordscreen
 
 import androidx.compose.runtime.*
 import com.formdev.flatlaf.FlatLightLaf
+import data.Vocabulary
 import data.Word
 import data.loadMutableVocabulary
+import data.loadVocabulary
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import state.getResourcesFile
@@ -446,4 +447,17 @@ private fun loadWordState(): WordScreenState {
 private fun getWordSettingsFile(): File {
     val settingsDir = getSettingsDirectory()
     return File(settingsDir, "TypingWordSettings.json")
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+fun loadWordScreenVocabulary(): Vocabulary?{
+    val wordScreenSettings = getWordSettingsFile()
+    if(wordScreenSettings.exists()){
+        val decodeFormat = Json { ignoreUnknownKeys = true }
+        val wordScreenData = decodeFormat.decodeFromString<WordScreenData>(wordScreenSettings.readText())
+        val vPath = wordScreenData.vocabularyPath
+        val vocabulary = loadVocabulary(vPath)
+        return vocabulary
+    }
+    return null
 }

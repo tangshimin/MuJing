@@ -21,6 +21,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import state.getSettingsDirectory
+import ui.wordscreen.WordScreenState
 import java.io.File
 import java.time.LocalDateTime
 import javax.swing.JOptionPane
@@ -29,7 +30,7 @@ import javax.swing.JOptionPane
 class PlayerState(playerData: PlayerData) {
 
     /** 显示视频播放器 */
-    var showPlayerWindow by  mutableStateOf(false)
+    var visible by  mutableStateOf(false)
     /** 播放器 > 视频地址 */
     var videoPath by mutableStateOf("")
     var startTime by mutableStateOf("00:00:00")
@@ -39,6 +40,9 @@ class PlayerState(playerData: PlayerData) {
     /** 与视频关联的词库地址，用于保存词库，因为看视频时可以查看单词详情，如果觉得太简单了可以删除或加入到熟悉词库 */
     var vocabularyPath by mutableStateOf("")
 
+    /** 记忆单词界面正在记忆的词库 */
+    var wordScreenVocabulary by mutableStateOf<MutableVocabulary?>(null)
+    var wordScreenVocabularyPath by mutableStateOf("")
 
 
     var showSequence by mutableStateOf(playerData.showSequence)
@@ -51,13 +55,23 @@ class PlayerState(playerData: PlayerData) {
     var showCaptionList by mutableStateOf(false)
     var recentList = readRecentList()
 
+    /** 从记忆单词界面调用的查看语境功能 */
     val showContext :(MediaInfo) -> Unit = { mediaInfo ->
         // 显示视频播放器窗口
-        showPlayerWindow = true
+        visible = true
         // 设置视频路径和开始时间
         videoPath = mediaInfo.mediaPath
         startTime = mediaInfo.caption.start
         showCaptionList = true
+    }
+
+    /** 从工具栏打开视频播放器 */
+    val showPlayer :(WordScreenState) -> Unit = { wordScreenState ->
+        // 显示视频播放器窗口
+        visible = true
+        // 设置记忆单词界面的词库
+        wordScreenVocabulary = wordScreenState.vocabulary
+        wordScreenVocabularyPath = wordScreenState.vocabularyPath
     }
 
     /** 设置视频地址的函数，放到这里是因为记忆单词窗口可以接受拖放的视频，然后打开视频播放器 */
@@ -83,7 +97,7 @@ class PlayerState(playerData: PlayerData) {
     /** 在记忆单词界面拖放一个视频，当前的词库会被当成弹幕显示 */
     val openVideo:(String, String) -> Unit = { videoPath, danmakuPath ->
         // 打开视频播放器窗口
-        showPlayerWindow = true
+        visible = true
         // 设置视频路径和开始时间
         this.videoPath = videoPath
         startTime = "00:00:00"
@@ -235,14 +249,29 @@ class PlayerState(playerData: PlayerData) {
 
     /** 删除单词 */
     val deleteWord: (Word) -> Unit = { word ->
+        // 先从视频词库中删除单词
         vocabulary!!.wordList.remove(word)
         vocabulary!!.size = vocabulary!!.wordList.size
+        // 再从记忆单词界面的词库中删除单词
+        wordScreenVocabulary?.let {
+            wordScreenVocabulary!!.wordList.remove(word)
+            wordScreenVocabulary!!.size = wordScreenVocabulary!!.wordList.size
+        }
+        // 最后保存词库
         try{
             saveVocabulary(vocabulary!!.serializeVocabulary,vocabularyPath)
+            wordScreenVocabulary?.let {
+                saveVocabulary(wordScreenVocabulary!!.serializeVocabulary,wordScreenVocabularyPath)
+
+            }
         }catch (e:Exception){
             // 回滚
             vocabulary!!.wordList.add(word)
             vocabulary!!.size = vocabulary!!.wordList.size
+            wordScreenVocabulary?.let {
+                wordScreenVocabulary!!.wordList.add(word)
+                wordScreenVocabulary!!.size = wordScreenVocabulary!!.wordList.size
+            }
             e.printStackTrace()
             JOptionPane.showMessageDialog(null, "保存词库失败,错误信息:\n${e.message}")
         }
@@ -292,10 +321,6 @@ class PlayerState(playerData: PlayerData) {
 
 }
 
-enum class SkipMode {
-    TIME,     // 时间模式
-    SUBTITLE  // 字幕模式
-}
 private fun getPlayerSettingsFile(): File {
     val settingsDir = getSettingsDirectory()
     return File(settingsDir, "PlayerSettings.json")
