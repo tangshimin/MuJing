@@ -1,6 +1,8 @@
 package player
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.hoverable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -17,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import data.Dictionary
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import player.danmaku.DisplayMode
@@ -39,6 +42,8 @@ fun HoverableText(
 
 
     Box(modifier = Modifier) {
+        val interactionSource = remember { MutableInteractionSource()}
+        val hoverJob = remember { mutableStateOf<Job?>(null) }
         Text(
             text = text,
             color = Color.White,
@@ -48,10 +53,16 @@ fun HoverableText(
                     if (expanded) Color(0xFF29417F) // 悬停时的背景颜色,使用经典的文本选择颜色
                     else Color.Transparent
                 )
+                .hoverable(interactionSource)
                 .onPointerEvent(PointerEventType.Enter) {
-                    expanded = true
+                    hoverJob.value?.cancel() // 取消之前的 Job
+                    hoverJob.value = scope.launch {
+                        delay(300) // 设置悬停最少停留时间为 300 毫秒
+                        expanded = true
+                    }
                 }
                 .onPointerEvent(PointerEventType.Exit) {
+                    hoverJob.value?.cancel() // 取消悬停的 Job
                     // 添加延时，让 Popup 的 Enter 事件有机会先执行
                     scope.launch {
                         delay(50)
