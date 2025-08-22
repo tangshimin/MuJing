@@ -767,7 +767,14 @@ fun VideoPlayer(
                                         }
                                     }
                                 },
-                                addWord = state.addWord,
+                                addWord ={
+                                    if(it.captions.size<3){
+                                        val playerCaption= timedCaption.getCurrentPlayerCaption()
+                                        val dataCaption = playerCaption.toDataCaption()
+                                        it.captions.add(dataCaption)
+                                    }
+                                    state.addWord(it)
+                                },
                                 addToFamiliar =state.addToFamiliar
                             )
 
@@ -1637,7 +1644,7 @@ val PointerIcon.Companion.None: PointerIcon
         return PointerIcon(transparentCursor)
     }
 
-private fun timeFormat(hours: Long, minutes: Int, seconds: Int): String {
+fun timeFormat(hours: Long, minutes: Int, seconds: Int): String {
     val h = if (hours < 10) "0$hours" else "$hours"
     val m = if (minutes < 10) "0$minutes" else "$minutes"
     val s = if (seconds < 10) "0$seconds" else "$seconds"

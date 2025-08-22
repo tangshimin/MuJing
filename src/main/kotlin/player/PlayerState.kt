@@ -275,6 +275,134 @@ class PlayerState(playerData: PlayerData) {
         }
     }
 
+    /**
+     * 将单词添加到当前正在记忆的词库。
+     *
+     * 根据当前词库的类型和状态，执行以下操作：
+     * 1. 如果当前词库为空，初始化词库的基础信息并添加单词。
+     * 2. 如果当前词库是熟悉词库或困难词库，不允许添加单词。
+     * 3. 如果当前词库是视频词库或字幕词库：
+     *    - 如果词库对应的视频路径与当前播放的视频路径不一致，将词库转换为文档类型并添加单词。
+     *    - 如果路径一致，直接添加单词。
+     * 4. 如果当前词库是文档类型，将单词的内部字幕转换为外部字幕后添加。
+     *
+     * 添加完成后，会更新词库的大小并尝试保存词库到磁盘。
+     * 如果保存失败，会回滚操作并提示错误信息。
+     *
+     * @param word 要添加的单词。
+     */
+    fun addWord(word : Word) {
+        val newWord = word.deepCopy()
+        if(wordScreenVocabulary != null && wordScreenVocabularyPath.isNotEmpty()){
+            // wordScreenVocabulary 正常情况下不会为 NULL，最少也是一个空的词库，而且没有持久化到磁盘。
+            if(wordScreenVocabulary?.wordList?.isEmpty() == true){
+                // 记忆单词界面打开了，但是词库是空的，什么有效信息都没有，需用重置词库的基础信息
+                wordScreenVocabulary!!.wordList.add(newWord)
+                wordScreenVocabulary!!.name = File(videoPath).name
+                wordScreenVocabulary!!.type == VocabularyType.SUBTITLES
+                wordScreenVocabulary!!.relateVideoPath = videoPath
+                wordScreenVocabulary!!.subtitlesTrackId = -1
+                wordScreenVocabulary!!.size = wordScreenVocabulary!!.wordList.size
+
+            }
+            if( wordScreenVocabulary!!.wordList.isNotEmpty()){
+
+                // 记忆单词界面打开的词库是熟悉词库或困难词库，不添加
+                if(wordScreenVocabulary!!.name == "FamiliarVocabulary" ||
+                    wordScreenVocabulary!!.name == "HardVocabulary"){
+                    JOptionPane.showMessageDialog(null,"正在记忆的词库是 $wordScreenVocabulary.name, 无法添加单词。")
+                    return
+                }
+
+                // 如果正在记忆的是视频词库或字幕词库
+                if(wordScreenVocabulary!!.type == VocabularyType.MKV ||
+                    wordScreenVocabulary!!.type == VocabularyType.SUBTITLES){
+                    // 判断这个词库对应的视频路径和当前播放的视频路径是否一致
+                    // 如果不一致，把词库转换成 DOCUMENT 类型，因为这个词库不再对应一个视频了，而是多个视频。
+                    if(wordScreenVocabulary!!.relateVideoPath != videoPath){
+                        wordScreenVocabulary!!.type = VocabularyType.DOCUMENT
+                        wordScreenVocabulary!!.relateVideoPath = ""
+                        wordScreenVocabulary!!.subtitlesTrackId = -1
+                        wordScreenVocabulary!!.wordList.forEach { word ->
+                            // 把内部字幕转换成外部字幕
+                            word.captions.forEach { caption ->
+                                val externalCaption = ExternalCaption(
+                                    relateVideoPath = wordScreenVocabulary!!.relateVideoPath,
+                                    subtitlesTrackId = -1,
+                                    subtitlesName = wordScreenVocabulary!!.name,
+                                    start = caption.start,
+                                    end = caption.end,
+                                    content = caption.content
+                                )
+                                word.externalCaptions.add(externalCaption)
+                            }
+                            word.captions.clear()
+                        }
+                        // 把内置字幕转换成外部字幕
+                        newWord.captions.forEach { caption ->
+                            val externalCaption = ExternalCaption(
+                                relateVideoPath = videoPath,
+                                subtitlesTrackId = -1,
+                                subtitlesName = wordScreenVocabulary!!.name,// 视频的文件名
+                                start = caption.start,
+                                end = caption.end,
+                                content = caption.content
+                            )
+                            newWord.externalCaptions.add(externalCaption)
+                        }
+                        newWord.captions.clear()
+
+                        if (!wordScreenVocabulary!!.wordList.contains(newWord)) {
+                            wordScreenVocabulary!!.wordList.add(newWord)
+                        }
+                    }else{
+                        // 视频路径一致，直接添加单词
+                        if (!wordScreenVocabulary!!.wordList.contains(newWord)) {
+                            wordScreenVocabulary!!.wordList.add(newWord)
+                        }
+                    }
+
+                }else{
+                    // 正在记忆的词库是 DOCUMENT 词库，需要把单词的内部字幕转换成外部字幕
+                    newWord.captions.forEach { caption ->
+                        val externalCaption = ExternalCaption(
+                            relateVideoPath = videoPath,
+                            subtitlesTrackId = -1,
+                            subtitlesName = wordScreenVocabulary!!.name,// 视频的文件名
+                            start = caption.start,
+                            end = caption.end,
+                            content = caption.content
+                        )
+                        newWord.externalCaptions.add(externalCaption)
+                    }
+                    newWord.captions.clear()
+                    if (!wordScreenVocabulary!!.wordList.contains(newWord)) {
+                        wordScreenVocabulary!!.wordList.add(newWord)
+                        word.externalCaptions.forEach { caption ->
+                            println("单词 ${word.value} 的外部字幕: ${caption.content}")
+                        }
+                    }
+                }
+                // 更新词库大小
+                wordScreenVocabulary!!.size = wordScreenVocabulary!!.wordList.size
+
+                // 保存词库
+                try{
+                    saveVocabulary(wordScreenVocabulary!!.serializeVocabulary,wordScreenVocabularyPath)
+
+                }catch (e:Exception){
+                    // 回滚
+                    wordScreenVocabulary!!.wordList.remove(newWord)
+                    wordScreenVocabulary!!.size = wordScreenVocabulary!!.wordList.size
+                    e.printStackTrace()
+                    JOptionPane.showMessageDialog(null, "保存词库失败,错误信息:\n${e.message}")
+                }
+            }
+
+        }
+
+    }
+
     /** 把单词加入到熟悉词库 */
     val addToFamiliar: (Word) -> Unit = { word ->
         val familiarWord = word.deepCopy()

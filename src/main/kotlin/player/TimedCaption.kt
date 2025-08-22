@@ -3,6 +3,7 @@ package player
 import androidx.compose.runtime.*
 import data.Caption
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * 字幕显示界面专用的定时字幕管理器
@@ -453,6 +454,24 @@ data class PlayerCaption(var start: Long, var end: Long, var content: String) {
     }
 }
 
+fun PlayerCaption.toDataCaption(): Caption {
+    fun Long.toFormattedTime(): String {
+        var formattedTime = ""
+        this.milliseconds.toComponents { hours, minutes, seconds, _ ->
+            formattedTime = timeFormat(hours, minutes, seconds)
+        }
+        return formattedTime
+    }
+
+    return Caption(
+        start = this.start.toFormattedTime(),
+        end = this.end.toFormattedTime(),
+        content = this.content
+    )
+}
+
+
+
 /**
  * 视频播放器专用的定时字幕管理器
  *
@@ -601,6 +620,11 @@ class VideoPlayerTimedCaption{
         }
         return ""
     }
+
+    fun getCurrentPlayerCaption():PlayerCaption{
+        return currentCaption
+    }
+
     fun getCurrentCaptionTime(): Long {
         return currentCaption.start
     }
