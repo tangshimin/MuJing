@@ -874,19 +874,19 @@ fun matchVocabulary(
  *
  * @param videoPath 当前视频的路径。
  * @param subPath 当前视频对应的字幕文件路径。
- * @param currentSubtitleTrack 当前选择的字幕轨道 ID。
+ * @param trackId 当前选择的字幕轨道 ID。
  * @param state 当前播放器的状态对象，用于存储生成的词汇表路径和内容。
  */
 fun generateMatchedVocabulary(
     videoPath: String,
     subPath: String,
-    currentSubtitleTrack: Int,
+    trackId: Int,
     state: PlayerState
 ) {
     val applicationDir = getSettingsDirectory()
     val cachedVocabulary = File("$applicationDir/VideoPlayer/VideoVocabulary.json")
     if (subPath.isNotEmpty() && File(subPath).exists()) {
-        if (!cachedVocabulary.exists() || videoIsChanged(videoPath, cachedVocabulary.absolutePath)) {
+        if (!cachedVocabulary.exists() || subIsChanged(videoPath, cachedVocabulary.absolutePath,trackId)) {
             val words = parseSRT(
                 pathName = subPath,
                 setProgressText = { println(it) },
@@ -895,10 +895,10 @@ fun generateMatchedVocabulary(
             val newVocabulary = Vocabulary(
                 name = "VideoPlayerVocabulary",
                 type = VocabularyType.SUBTITLES,
-                language = "English",
+                language = "",
                 size = words.size,
                 relateVideoPath = videoPath,
-                subtitlesTrackId = currentSubtitleTrack,
+                subtitlesTrackId = trackId,
                 wordList = words.toMutableList()
             )
             saveVocabulary(newVocabulary, cachedVocabulary.absolutePath)
@@ -927,7 +927,10 @@ fun generateMatchedVocabulary(
  * @param videoPath 当前视频路径
  * @param vocabularyPath 缓存词库路径
  */
-fun videoIsChanged(videoPath:String, vocabularyPath:String):Boolean{
-    val baseline = loadVocabulary(vocabularyPath)
-    return baseline.relateVideoPath != videoPath
+fun subIsChanged(videoPath:String,
+                 vocabularyPath:String,
+                 trackId: Int):Boolean{
+    val cachedVocabulary = loadVocabulary(vocabularyPath)
+
+    return cachedVocabulary.relateVideoPath != videoPath || cachedVocabulary.subtitlesTrackId != trackId
 }

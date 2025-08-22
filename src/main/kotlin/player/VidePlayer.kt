@@ -329,7 +329,7 @@ fun VideoPlayer(
                     generateMatchedVocabulary(
                         videoPath = videoPath,
                         subPath =subPath,
-                        currentSubtitleTrack = currentSubtitleTrack,
+                        trackId = currentSubtitleTrack,
                         state = state,
                     )
                 }
@@ -359,7 +359,7 @@ fun VideoPlayer(
             generateMatchedVocabulary(
                 videoPath = videoPath,
                 subPath = file.absolutePath,
-                currentSubtitleTrack = currentSubtitleTrack,
+                trackId = currentSubtitleTrack,
                 state = state,
             )
         }
@@ -1208,7 +1208,7 @@ fun VideoPlayer(
                     generateMatchedVocabulary(
                         videoPath = videoPath,
                         subPath = subPath,
-                        currentSubtitleTrack = currentSubtitleTrack,
+                        trackId = currentSubtitleTrack,
                         state = state,
                     )
 
