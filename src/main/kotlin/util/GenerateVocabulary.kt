@@ -6,8 +6,12 @@ import com.matthewn4444.ebml.UnSupportSubtitlesException
 import com.matthewn4444.ebml.subtitles.SSASubtitles
 import data.Caption
 import data.Dictionary
+import data.MutableVocabulary
 import data.Vocabulary
+import data.VocabularyType
 import data.Word
+import data.loadVocabulary
+import data.saveVocabulary
 import ffmpeg.convertToSrt
 import ffmpeg.extractSubtitles
 import ffmpeg.hasRichText
@@ -29,10 +33,12 @@ import org.apache.pdfbox.pdmodel.encryption.InvalidPasswordException
 import org.apache.pdfbox.text.PDFTextStripper
 import org.mozilla.universalchardet.UniversalDetector
 import org.slf4j.LoggerFactory
+import player.PlayerState
 import state.getSettingsDirectory
 import subtitleFile.FormatSRT
 import subtitleFile.TimedTextObject
 import ui.dialog.getWordLemma
+import ui.wordscreen.loadWordScreenVocabulary
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
@@ -856,4 +862,72 @@ fun matchVocabulary(
     }
     result.size = result.wordList.size
     return result
+}
+
+
+/**
+ * 使用字幕生成一个和正在记忆的单词相匹配的词库
+ *
+ * 该函数会根据提供的视频路径和字幕路径，解析字幕文件并生成词汇表。如果缓存的词汇表已存在且与当前视频一致，
+ * 则直接加载缓存的词汇表；否则重新解析字幕并生成新的词汇表。最后，将生成的词汇表与当前词汇屏幕的词汇表进行匹配，
+ * 并保存匹配结果。
+ *
+ * @param videoPath 当前视频的路径。
+ * @param subPath 当前视频对应的字幕文件路径。
+ * @param currentSubtitleTrack 当前选择的字幕轨道 ID。
+ * @param state 当前播放器的状态对象，用于存储生成的词汇表路径和内容。
+ */
+fun generateMatchedVocabulary(
+    videoPath: String,
+    subPath: String,
+    currentSubtitleTrack: Int,
+    state: PlayerState
+) {
+    val applicationDir = getSettingsDirectory()
+    val cachedVocabulary = File("$applicationDir/VideoPlayer/VideoVocabulary.json")
+    if (subPath.isNotEmpty() && File(subPath).exists()) {
+        if (!cachedVocabulary.exists() || videoIsChanged(videoPath, cachedVocabulary.absolutePath)) {
+            val words = parseSRT(
+                pathName = subPath,
+                setProgressText = { println(it) },
+                enablePhrases = true
+            )
+            val newVocabulary = Vocabulary(
+                name = "VideoPlayerVocabulary",
+                type = VocabularyType.SUBTITLES,
+                language = "English",
+                size = words.size,
+                relateVideoPath = videoPath,
+                subtitlesTrackId = currentSubtitleTrack,
+                wordList = words.toMutableList()
+            )
+            saveVocabulary(newVocabulary, cachedVocabulary.absolutePath)
+        }
+    }
+
+    if (cachedVocabulary.exists()) {
+        val baseline = loadVocabulary(cachedVocabulary.absolutePath)
+        val comparison = loadWordScreenVocabulary()
+        comparison?.let {
+            val matched = matchVocabulary(
+                baseline = baseline,
+                comparison = comparison,
+                matchLemma = true
+            )
+            val matchedPath = "$applicationDir/VideoPlayer/MatchedVocabulary.json"
+            saveVocabulary(matched, matchedPath)
+            state.vocabularyPath = matchedPath
+            state.vocabulary = MutableVocabulary(matched)
+        }
+    }
+}
+
+/**
+ * 缓存词库对应的视频路径是否和正在播放视频路径一致
+ * @param videoPath 当前视频路径
+ * @param vocabularyPath 缓存词库路径
+ */
+fun videoIsChanged(videoPath:String, vocabularyPath:String):Boolean{
+    val baseline = loadVocabulary(vocabularyPath)
+    return baseline.relateVideoPath != videoPath
 }

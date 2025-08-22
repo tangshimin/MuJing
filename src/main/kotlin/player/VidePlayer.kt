@@ -41,11 +41,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
-import data.MutableVocabulary
-import data.Vocabulary
-import data.VocabularyType
-import data.loadVocabulary
-import data.saveVocabulary
 import event.EventBus
 import event.PlayerEventType
 import icons.ArrowDown
@@ -60,7 +55,6 @@ import theme.LocalCtrl
 import theme.rememberDarkThemeSelectionColors
 import tts.rememberAzureTTS
 import ui.components.MacOSTitle
-import ui.wordscreen.loadWordScreenVocabulary
 import ui.wordscreen.rememberPronunciation
 import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
@@ -329,6 +323,16 @@ fun VideoPlayer(
             if(trackId  != -1){
                 val list = readCaptionList(videoPath = videoPath, subtitleId = trackId)
                 timedCaption.setCaptionList(list)
+                if(list.isNotEmpty()){
+                    val applicationDir = getSettingsDirectory()
+                    val subPath = "$applicationDir/VideoPlayer/subtitle.srt"
+                    generateMatchedVocabulary(
+                        videoPath = videoPath,
+                        subPath =subPath,
+                        currentSubtitleTrack = currentSubtitleTrack,
+                        state = state,
+                    )
+                }
             }else{
                 // 禁用字幕
                 println("禁用字幕 clear timedCaption")
@@ -351,6 +355,13 @@ fun VideoPlayer(
             extSubIndex = index
             // 更新字幕索引
             updateCaptionIndex()
+
+            generateMatchedVocabulary(
+                videoPath = videoPath,
+                subPath = file.absolutePath,
+                currentSubtitleTrack = currentSubtitleTrack,
+                state = state,
+            )
         }
     }
 
@@ -1194,46 +1205,13 @@ fun VideoPlayer(
                         }
                     }
 
-                    // 如果没有缓存的词就使用字幕生成一个词库
-                    val cachedVocabulary =File( "$applicationDir/VideoPlayer/VideoVocabulary.json")
-                    if(subPath.isNotEmpty()){
-                        // 先检查是否已经有一个词库没有就生成一个新的
-                        // 如果已经有了要检查视频路径是否一致，如果切换了视频就生成一个新的
-                        if(!cachedVocabulary.exists() || videoIsChanged(videoPath,cachedVocabulary.absolutePath)){
-                            val words = parseSRT(
-                                pathName = subPath,
-                                setProgressText = { println(it) },
-                                enablePhrases = true
-                            )
-                            val newVocabulary = Vocabulary(
-                                name = "VideoPlayerVocabulary",
-                                type = VocabularyType.SUBTITLES,
-                                language = "English",
-                                size = words.size,
-                                relateVideoPath = videoPath,
-                                subtitlesTrackId = currentSubtitleTrack,
-                                wordList = words.toMutableList()
-                            )
-                            saveVocabulary(newVocabulary, cachedVocabulary.absolutePath)
-                        }
-                    }
+                    generateMatchedVocabulary(
+                        videoPath = videoPath,
+                        subPath = subPath,
+                        currentSubtitleTrack = currentSubtitleTrack,
+                        state = state,
+                    )
 
-                    // 新生成的词库需要和当前正在记忆的词库做一个交集运行
-                    if(subPath.isNotEmpty() && cachedVocabulary.exists()){
-                        val baseline = loadVocabulary(cachedVocabulary.absolutePath)
-                        val comparison = loadWordScreenVocabulary()
-                        comparison?.let {
-                            val matched =  matchVocabulary(
-                                baseline = baseline,
-                                comparison = comparison,
-                                matchLemma = true
-                            )
-                            val matchedPath = "$applicationDir/VideoPlayer/MatchedVocabulary.json"
-                            saveVocabulary(matched, matchedPath)
-                            state.vocabularyPath = matchedPath
-                            state.vocabulary = MutableVocabulary(matched)
-                        }
-                    }
 
                     // 更新字幕索引
                     updateCaptionIndex()
@@ -2249,12 +2227,3 @@ fun DanmakuButton(
 }
 
 
-/**
- * 缓存词库对应的视频路径是否和正在播放视频路径一致
- * @param videoPath 当前视频路径
- * @param vocabularyPath 缓存词库路径
- */
-private fun videoIsChanged(videoPath:String, vocabularyPath:String):Boolean{
-    val baseline = loadVocabulary(vocabularyPath)
-    return baseline.relateVideoPath != videoPath
-}
