@@ -766,7 +766,9 @@ fun VideoPlayer(
                                             tryRestorePlayback()
                                         }
                                     }
-                                }
+                                },
+                                addWord = state.addWord,
+                                addToFamiliar =state.addToFamiliar
                             )
 
                         }

@@ -2911,11 +2911,13 @@ fun DeleteButton(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(10.dp)
                 ) {
-                    Text(text = "删除单词  ")
+                    Text(text = "删除单词")
                     val ctrl = LocalCtrl.current
-                    val shortcutText = if (isMacOS()) "$ctrl Delete" else "$ctrl+Delete"
+                    val shortcutText = if (isMacOS()) "  $ctrl Delete" else "  $ctrl+Delete"
+                    // 在视频播放器不显示快捷键
+                    val text = if(tooltipAlignment == Alignment.TopCenter) shortcutText else ""
                     CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
-                        Text(text = shortcutText)
+                        Text(text = text)
                     }
                 }
             }
@@ -2942,6 +2944,52 @@ fun DeleteButton(
         }
     }
 }
+
+/** 添加单词按钮 */
+@Composable
+@OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
+fun AddButton(
+    onClick:()->Unit,
+    tooltipAlignment: Alignment = Alignment.TopCenter,
+){
+
+    val offset = if(tooltipAlignment == Alignment.TopCenter) DpOffset(0.dp,0.dp) else DpOffset(0.dp,10.dp)
+    TooltipArea(
+        tooltip = {
+            Surface(
+                elevation = 4.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                shape = RectangleShape
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(10.dp)
+                ) {
+                    Text(text = "添加单词")
+
+                }
+            }
+        },
+
+        delayMillis = 300,
+        tooltipPlacement = TooltipPlacement.ComponentRect(
+            anchor = tooltipAlignment,
+            alignment = tooltipAlignment,
+            offset = offset
+        )
+    ) {
+        IconButton(onClick = { onClick() },modifier = Modifier) {
+            Icon(
+                icons.AddNotes,
+                contentDescription = "Localized description",
+                tint = MaterialTheme.colors.onBackground
+            )
+        }
+    }
+
+}
+
+
 /** 编辑按钮*/
 @Composable
 @OptIn(ExperimentalFoundationApi::class)
@@ -3033,10 +3081,10 @@ fun HardButton(
 @OptIn(ExperimentalFoundationApi::class)
 fun FamiliarButton(
     onClick: () -> Unit,
-    alignment: Alignment = Alignment.TopCenter,
+    tooltipAlignment: Alignment = Alignment.TopCenter,
 ){
-    val offset = if(alignment == Alignment.TopCenter) DpOffset(0.dp,0.dp) else DpOffset(0.dp,10.dp)
-    val text = if(alignment == Alignment.TopCenter) "移动到熟悉词库" else "添加到熟悉词库"
+    val offset = if(tooltipAlignment == Alignment.TopCenter) DpOffset(0.dp,0.dp) else DpOffset(0.dp,10.dp)
+    val text = if(tooltipAlignment == Alignment.TopCenter) "移动到熟悉词库" else "添加到熟悉词库"
     TooltipArea(
         tooltip = {
             Surface(
@@ -3048,19 +3096,21 @@ fun FamiliarButton(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.padding(10.dp)
                 ) {
-                    Text(text = "$text  ")
+                    Text(text = text)
                     val ctrl = LocalCtrl.current
-                    val shortcutText = if (isMacOS()) "$ctrl Y" else "$ctrl+Y"
+                    val shortcutText = if (isMacOS()) "  $ctrl Y" else "  $ctrl+Y"
+                    // 在视频播放器不显示快捷键
+                    val shortcut = if(tooltipAlignment == Alignment.TopCenter) shortcutText else ""
                     CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
-                        Text(text = shortcutText)
+                        Text(text = shortcut)
                     }
                 }
             }
         },
         delayMillis = 300,
         tooltipPlacement = TooltipPlacement.ComponentRect(
-            anchor = alignment,
-            alignment = alignment,
+            anchor = tooltipAlignment,
+            alignment = tooltipAlignment,
             offset = offset
         )
     ) {
@@ -3108,9 +3158,9 @@ fun BookmarkButton(
 @OptIn(ExperimentalFoundationApi::class)
 fun CopyButton(
     wordValue:String,
-    alignment: Alignment = Alignment.TopCenter,
+    tooltipAlignment: Alignment = Alignment.TopCenter,
 ){
-    val offset = if(alignment == Alignment.TopCenter) DpOffset(0.dp,0.dp) else DpOffset(0.dp,10.dp)
+    val offset = if(tooltipAlignment == Alignment.TopCenter) DpOffset(0.dp,0.dp) else DpOffset(0.dp,10.dp)
 
     TooltipArea(
         tooltip = {
@@ -3126,8 +3176,10 @@ fun CopyButton(
                     Text(text = "复制  ")
                     val ctrl = LocalCtrl.current
                     val shortcutText = if (isMacOS()) "$ctrl C" else "$ctrl+C"
+                    // 在视频播放器不显示快捷键
+                    val shortcut = if(tooltipAlignment == Alignment.TopCenter) shortcutText else ""
                     CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
-                        Text(text = shortcutText)
+                        Text(text = shortcut)
                     }
                 }
 
@@ -3135,8 +3187,8 @@ fun CopyButton(
         },
         delayMillis = 300,
         tooltipPlacement = TooltipPlacement.ComponentRect(
-            anchor = alignment,
-            alignment = alignment,
+            anchor = tooltipAlignment,
+            alignment = tooltipAlignment,
             offset
         )
     ) {

@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isMetaPressed
 import androidx.compose.ui.input.key.isShiftPressed
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
@@ -64,6 +65,7 @@ import data.Word
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import player.PlayerState
+import ui.wordscreen.AddButton
 import ui.wordscreen.CopyButton
 import ui.wordscreen.DeleteButton
 import ui.wordscreen.FamiliarButton
@@ -82,6 +84,7 @@ fun WordDetail(
     height: Dp,
     pointerExit:() -> Unit = {},
     deleteWord: (Word) -> Unit = {},
+    addWord: (Word) -> Unit = {},
     addToFamiliar: (Word) -> Unit = {},
     playAudio: (String) -> Unit ={}
 ) {
@@ -151,20 +154,21 @@ fun WordDetail(
                     ) {
                         CopyButton(
                             wordValue = word.value,
-                            alignment = Alignment.BottomCenter
+                            tooltipAlignment = Alignment.BottomCenter
                         )
                         FamiliarButton(
-                            onClick = {
-                                addToFamiliar(word)
-                            },
-                            alignment = Alignment.BottomCenter
+                            onClick = { addToFamiliar(word) },
+                            tooltipAlignment = Alignment.BottomCenter
                         )
                         if(displayMode == DisplayMode.DANMAKU){
 
                             DeleteButton(
-                                onClick = {
-                                    deleteWord(word)
-                                },
+                                onClick = { deleteWord(word) },
+                                tooltipAlignment =  Alignment.BottomCenter
+                            )
+                        }else{
+                            AddButton(
+                                onClick = {addWord(word)},
                                 tooltipAlignment =  Alignment.BottomCenter
                             )
                         }

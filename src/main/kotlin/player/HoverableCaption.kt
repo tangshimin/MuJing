@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
 import androidx.compose.ui.window.PopupProperties
 import data.Dictionary
+import data.Word
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -32,7 +33,9 @@ fun HoverableText(
     playerState: PlayerState,
     playAudio:(String) -> Unit = {},
     modifier: Modifier = Modifier,
-    onPopupHoverChanged: (Boolean) -> Unit = {}
+    onPopupHoverChanged: (Boolean) -> Unit = {},
+    addWord: (Word) -> Unit = {},
+    addToFamiliar: (Word) -> Unit = {},
 
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -106,8 +109,8 @@ fun HoverableText(
                                 playerState = playerState,
                                 pointerExit = {},
                                 height = 350.dp,
-                                deleteWord = {},
-                                addToFamiliar = {},
+                                addWord = addWord,
+                                addToFamiliar = addToFamiliar,
                                 playAudio =playAudio ,
                             )
                         }else{
@@ -140,7 +143,9 @@ fun HoverableCaption(
     playAudio: (String) -> Unit,
     playerState: PlayerState,
     modifier: Modifier = Modifier,
-    onPopupHoverChanged: (Boolean) -> Unit = {}
+    onPopupHoverChanged: (Boolean) -> Unit = {},
+    addWord: (Word) -> Unit = {},
+    addToFamiliar: (Word) -> Unit = {},
 ) {
     Column(modifier) {
         caption.split("\n").forEach { line ->
@@ -173,7 +178,9 @@ fun HoverableCaption(
                                 playAudio = playAudio,
                                 playerState = playerState,
                                 modifier = Modifier,
-                                onPopupHoverChanged = onPopupHoverChanged
+                                onPopupHoverChanged = onPopupHoverChanged,
+                                addWord = addWord,
+                                addToFamiliar = addToFamiliar,
                             )
                         }
 
