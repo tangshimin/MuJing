@@ -17,6 +17,7 @@ import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
 import java.io.File
 import java.net.URL
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 
 
@@ -25,6 +26,7 @@ import java.util.concurrent.atomic.AtomicReference
  */
 private val audioPlaybackMutex = kotlinx.coroutines.sync.Mutex()
 private val currentJob = AtomicReference<Job?>(null)
+private var currentListener: MediaPlayerEventAdapter? = null
 
 fun playAudio(
     word: String,
@@ -40,45 +42,59 @@ fun playAudio(
 
     val job = CoroutineScope(Dispatchers.IO).launch {
         if (pronunciation == "local TTS" || audioPath.isEmpty()) {
-            audioPlaybackMutex.withLock {
-                changePlayerState(true)
-                if (isWindows()) {
-                    val speech = MSTTSpeech()
-                    speech.speak(word)
-                } else if (isMacOS()) {
-                    MacTTS().speakAndWait(word)
-                } else {
-                    UbuntuTTS().speakAndWait(word)
+                audioPlaybackMutex.withLock {
+                    changePlayerState(true)
+                    try{
+                        if (isWindows()) {
+                            val speech = MSTTSpeech()
+                            speech.speak(word)
+                        } else if (isMacOS()) {
+                            MacTTS().speakAndWait(word)
+                        } else {
+                            UbuntuTTS().speakAndWait(word)
+                        }
+                    }catch (e:Exception){
+                        e.printStackTrace()
+                    }finally {
+                        changePlayerState(false)
+                    }
                 }
-                changePlayerState(false)
-            }
+
 
         } else if (audioPath.isNotEmpty()) {
 
             audioPlaybackMutex.withLock {
                 changePlayerState(true)
                 try {
-                    // 先停止当前播放
-                    audioPlayerComponent.mediaPlayer().controls().stop()
-
-                    audioPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(object : MediaPlayerEventAdapter() {
+                    // 移除之前的监听器
+                    currentListener?.let {
+                        audioPlayerComponent.mediaPlayer().events().removeMediaPlayerEventListener(it)
+                    }
+                    // 创建新的监听器
+                    currentListener = object : MediaPlayerEventAdapter() {
                         override fun mediaPlayerReady(mediaPlayer: MediaPlayer) {
                             mediaPlayer.audio().setVolume((volume * 100).toInt())
                         }
-
                         override fun finished(mediaPlayer: MediaPlayer) {
                             changePlayerState(false)
                             audioPlayerComponent.mediaPlayer().events().removeMediaPlayerEventListener(this)
                         }
-                    })
+
+                        override fun error(mediaPlayer: MediaPlayer?) {
+                            changePlayerState(false)
+                            audioPlayerComponent.mediaPlayer().events().removeMediaPlayerEventListener(this)
+                        }
+                    }
+                    // 添加新的监听器
+                    audioPlayerComponent.mediaPlayer().events().addMediaPlayerEventListener(currentListener)
 
                     audioPlayerComponent.mediaPlayer().media().play(audioPath)
                 } catch (e: Exception) {
-                    changePlayerState(false)
                     e.printStackTrace()
+                }finally {
+                    changePlayerState(false)
                 }
             }
-
         }
     }
     currentJob.set(job)
