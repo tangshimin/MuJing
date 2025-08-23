@@ -31,6 +31,7 @@ import state.AppState
 import theme.createColors
 import theme.isSystemDarkMode
 import theme.toAwt
+import tts.rememberAzureTTS
 import ui.flatlaf.updateFlatLaf
 import ui.window.windowBackgroundFlashingOnCloseFixHack
 import ui.wordscreen.*
@@ -93,6 +94,18 @@ fun SettingsDialog(
                                     Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
                                 }
                             }
+                            Row(
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .clickable { currentPage = "AudioSettings" }
+                                    .fillMaxWidth()
+                                    .height(48.dp)) {
+                                Text("发音设置", modifier = Modifier.padding(start = 16.dp))
+                                if (currentPage == "AudioSettings") {
+                                    Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                                }
+                            }
 
                             Row(
                                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -114,6 +127,9 @@ fun SettingsDialog(
                             }
                             "TextStyle" -> {
                                 SettingTextStyle(state,wordScreenState)
+                            }
+                            "AudioSettings" -> {
+                                AudioSettingsPage(wordScreenState)
                             }
                             "Other" -> {
                                 OtherSettings(state)
@@ -712,10 +728,27 @@ fun SettingTheme(
 
 @OptIn(ExperimentalSerializationApi::class)
 @Composable
+fun AudioSettingsPage(wordScreenState: WordScreenState) {
+    val scope = rememberCoroutineScope()
+    val azureTTS = rememberAzureTTS()
+
+    Box(Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter){
+        AudioSettings(
+            modifier = Modifier.padding(top = 20.dp, end = 50.dp),
+            wordScreenState = wordScreenState,
+            scope = scope,
+            azureTTS = azureTTS
+        )
+    }
+}
+
+@OptIn(ExperimentalSerializationApi::class)
+@Composable
 fun OtherSettings(appState: AppState) {
     Box(Modifier.fillMaxSize(),
         contentAlignment = Alignment.TopCenter){
-        Row(modifier = Modifier.fillMaxWidth().padding(top = 20.dp),
+        Row(modifier = Modifier.fillMaxWidth().padding(top = 20.dp,end = 50.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center){
             Text("显示输入次数")
