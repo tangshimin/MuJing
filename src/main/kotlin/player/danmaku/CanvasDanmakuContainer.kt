@@ -31,7 +31,8 @@ fun CanvasDanmakuContainer(
     mediaTimeFlow: Flow<Long>? = null, // 媒体时间流
     onDanmakuManagerCreated: (DanmakuStateManager) -> Unit = {},
     onTimelineSynchronizerCreated: (TimelineSynchronizer) -> Unit = {}, // 时间轴同步器回调,
-    playAudio: (String) -> Unit ={}
+    playAudio: (String) -> Unit ={},
+    onHoverChanged: (Boolean) -> Unit = {}
 ) {
     val density = LocalDensity.current
     val lineHeight = with(density) { (fontSize + 8).dp.toPx() }
@@ -111,6 +112,7 @@ fun CanvasDanmakuContainer(
                 danmakuManager.removeDanmaku(danmaku)
             },
             playAudio = playAudio,
+            onHoverChanged = onHoverChanged,
             modifier = Modifier.fillMaxSize()
         )
     }

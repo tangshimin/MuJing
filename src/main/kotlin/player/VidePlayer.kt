@@ -588,6 +588,9 @@ fun VideoPlayer(
                                     timelineSynchronizer = synchronizer
                                 },
                                 playAudio = playAudio,
+                                onHoverChanged = { isHovering ->
+                                    showDictPopup = isHovering
+                                }
                             )
                         }
                     }

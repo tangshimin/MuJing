@@ -31,7 +31,8 @@ fun InteractiveDanmakuRenderer(
     isPaused: Boolean = false,
     deleteWord: (CanvasDanmakuItem) -> Unit = {},
     addToFamiliar: (CanvasDanmakuItem) -> Unit = {},
-    playAudio: (String) -> Unit ={}
+    playAudio: (String) -> Unit ={},
+    onHoverChanged: (Boolean) -> Unit = {}
 ) {
 
     val density = LocalDensity.current
@@ -70,6 +71,7 @@ fun InteractiveDanmakuRenderer(
                         )
                         .onPointerEvent(PointerEventType.Enter) { event ->
                             hoveredItem = item
+                            onHoverChanged(true)
                             // 悬停时固定弹窗位置
                             popupOffset = IntOffset(
                                 x = (item.x - 200 * density.density).toInt(), // 向左偏移200dp
@@ -80,6 +82,7 @@ fun InteractiveDanmakuRenderer(
                         }
                         .onPointerEvent(PointerEventType.Exit) {
                             hoveredItem = null
+                            onHoverChanged(false)
                         }
                 )
             }
