@@ -48,11 +48,7 @@ fun DonateDialog(close: () -> Unit) {
                         selected = state == 0,
                         onClick = { state = 0 }
                     )
-                    Tab(
-                        text = { Text("支付宝") },
-                        selected = state == 1,
-                        onClick = { state = 1 }
-                    )
+
                 }
 
                 when (state) {
@@ -69,19 +65,7 @@ fun DonateDialog(close: () -> Unit) {
                             )
                         }
                     }
-                    1 -> {
-                        Row(
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth().padding(top = 75.dp)
-                        ) {
-                            Image(
-                                painter = painterResource("donate/Alipay.png"),
-                                contentDescription = "donate",
-                                modifier = Modifier.width(400.dp).height(400.dp)
-                            )
-                        }
-                    }
+
                 }
             }
         }
