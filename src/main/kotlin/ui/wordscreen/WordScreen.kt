@@ -751,7 +751,6 @@ fun MainContent(
                 }
 
                 (isCtrlPressed && it.key == Key.J && it.type == KeyEventType.KeyUp) -> {
-                    if (!isPlayingAudio) {
                         scope.launch (Dispatchers.IO){
                             val audioPath =  getAudioPath(
                                 word = currentWord.value,
@@ -770,7 +769,6 @@ fun MainContent(
                             )
                         }
 
-                    }
                     true
                 }
                 ((isCtrlPressed &&  (if(isMacOS()) it.isCtrlPressed else it.isAltPressed )) && it.key == Key.S && it.type == KeyEventType.KeyUp) -> {
@@ -1045,7 +1043,7 @@ fun MainContent(
                                     }
                                 }
 //                                // 再播放一次单词发音
-                                if (!isPlayingAudio && wordScreenState.playTimes == 2) {
+                                if (wordScreenState.playTimes == 2) {
                                     scope.launch (Dispatchers.IO){
                                         val audioPath =  getAudioPath(
                                             word = currentWord.value,
@@ -1089,7 +1087,7 @@ fun MainContent(
                                 }
 
                                 // 再播放一次单词发音
-                                if (!isPlayingAudio && wordScreenState.playTimes == 2) {
+                                if (wordScreenState.playTimes == 2) {
                                     scope.launch (Dispatchers.IO){
                                         val audioPath =  getAudioPath(
                                             word = currentWord.value,
