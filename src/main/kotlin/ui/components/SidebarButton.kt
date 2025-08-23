@@ -82,8 +82,10 @@ fun SidebarButton(
                         .clickable { setIsOpen(!isOpen) }) {
 
                     val tint = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
+
+                    val sidebar = if (isMacOS()) icons.SidebarMacOS else icons.DockToRight
                     Icon(
-                        if (isOpen) Icons.Filled.ArrowBack else icons.DockToRight,
+                        if (isOpen) Icons.Filled.ArrowBack else sidebar,
                         contentDescription = "Localized description",
                         tint = tint,
                         modifier = Modifier.clickable { setIsOpen(!isOpen) }
