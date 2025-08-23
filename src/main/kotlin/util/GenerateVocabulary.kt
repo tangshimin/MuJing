@@ -905,7 +905,7 @@ fun generateMatchedVocabulary(
         }
     }
 
-    if (cachedVocabulary.exists()) {
+    if (cachedVocabulary.exists() && state.wordScreenVocabularyPath.isNotEmpty()) {
         val baseline = loadVocabulary(cachedVocabulary.absolutePath)
         val comparison = loadWordScreenVocabulary()
         comparison?.let {
