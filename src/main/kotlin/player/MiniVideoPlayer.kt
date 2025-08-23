@@ -550,6 +550,9 @@ fun MiniVideoPlayer(
             val start = convertTimeToSeconds(caption.start)
             val end = convertTimeToSeconds(caption.end)
 
+            println("mediaPath:${mediaInfo.mediaPath}")
+
+
             // 使用内部字幕轨道,通常是从 MKV 生成的词库
             if(mediaInfo.trackId != -1){
                 println("使用内部字幕轨道: ${mediaInfo.trackId}")

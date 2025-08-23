@@ -648,8 +648,8 @@ fun MainContent(
                 )
                 if(resolvedPath != ""){
                     mediaInfo.mediaPath = resolvedPath
-                    isPlaying = true
                     playMedia = mediaInfo
+                    isPlaying = true
                 }else{
                     //TODO 需要提示用户视频文件不存在
                     val message = if(mediaInfo.mediaPath.isEmpty())"视频地址为空" else "视频地址错误"
@@ -1601,7 +1601,19 @@ fun MainContent(
                 setPlayingIndex = {plyingIndex = it},
                 volume = appState.global.videoVolume,
                 setIsPlaying = { isPlaying = it },
-                setPlayingMedia = {playMedia = it},
+                setPlayingMedia = {
+                    val resolvedPath =  resolveMediaPath(
+                        it.mediaPath,
+                        wordScreenState.getVocabularyDir()
+                    )
+                    if(resolvedPath != "") {
+                        it.mediaPath = resolvedPath
+                        playMedia = it
+                    }else{
+                        JOptionPane.showMessageDialog(window,"关联的视频文件不存在，可能已经被移动或删除")
+                    }
+
+                },
                 word = currentWord,
                 bounds = videoBounds,
                 textFieldValueList = listOf(wordScreenState.captionsTextFieldValue1,wordScreenState.captionsTextFieldValue2,wordScreenState.captionsTextFieldValue3),
