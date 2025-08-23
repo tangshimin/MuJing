@@ -1006,10 +1006,32 @@ fun WordScreenSidebar(
                                             },
                                             modifier = Modifier.width(120.dp).height(40.dp)
                                         ) {
-                                            Text("播放一次")
-                                            if( wordScreenState.playTimes == 1){
-                                                RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                            TooltipArea(
+                                                tooltip = {
+                                                    Surface(
+                                                        elevation = 4.dp,
+                                                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                                        shape = RectangleShape
+                                                    ) {
+                                                        val tooltip =  "切换单词后，自动播放一次"
+                                                        Text(text = tooltip, modifier = Modifier.padding(10.dp))
+                                                    }
+                                                },
+                                                delayMillis = 300,
+                                                tooltipPlacement = TooltipPlacement.ComponentRect(
+                                                    anchor = Alignment.CenterEnd,
+                                                    alignment = Alignment.CenterEnd,
+                                                    offset = DpOffset(10.dp, 0.dp)
+                                                )
+                                            ) {
+                                                Row(verticalAlignment = Alignment.CenterVertically){
+                                                    Text("播放一次")
+                                                    if( wordScreenState.playTimes == 1){
+                                                        RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                                    }
+                                                }
                                             }
+
                                         }
                                         DropdownMenuItem(
                                             onClick = {
@@ -1020,10 +1042,32 @@ fun WordScreenSidebar(
                                             },
                                             modifier = Modifier.width(120.dp).height(40.dp)
                                         ) {
-                                            Text("播放多次")
-                                            if( wordScreenState.playTimes == 2){
-                                                RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                            TooltipArea(
+                                                tooltip = {
+                                                    Surface(
+                                                        elevation = 4.dp,
+                                                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                                        shape = RectangleShape
+                                                    ) {
+                                                        val tooltip =  "会在拼写成功后自动播放，拼写失败后自动播放"
+                                                        Text(text = tooltip, modifier = Modifier.padding(10.dp))
+                                                    }
+                                                },
+                                                delayMillis = 300,
+                                                tooltipPlacement = TooltipPlacement.ComponentRect(
+                                                    anchor = Alignment.CenterEnd,
+                                                    alignment = Alignment.CenterEnd,
+                                                    offset = DpOffset(10.dp, 0.dp)
+                                                )
+                                            ) {
+                                               Row(verticalAlignment = Alignment.CenterVertically){
+                                                   Text("播放多次")
+                                                   if( wordScreenState.playTimes == 2){
+                                                       RadioButton(selected = true, onClick = {},Modifier.padding(start = 10.dp))
+                                                   }
+                                               }
                                             }
+
                                         }
                                     }
 
