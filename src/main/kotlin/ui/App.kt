@@ -237,7 +237,10 @@ fun App(
                                             videoBounds = videoBounds,
                                             showPlayer = {playerState.showPlayer(wordState)},
                                             openVideo = playerState.openVideo,
-                                            showContext = { playerState.showContext(it) }
+                                            showContext = {
+                                                playerState.showPlayer(wordState)
+                                                playerState.showContext(it)
+                                            }
                                         )
                                     }
                                     ScreenType.SUBTITLES -> {
