@@ -156,7 +156,8 @@ fun MiniVideoPlayer(
     showContextButton:Boolean = false, //
     showContext :() -> Unit= {},
     isLooping: Boolean = false, // 添加循环播放参数
-    onLoopRestart: () -> Unit = {} // 添加循环重启回调
+    onLoopRestart: () -> Unit = {}, // 添加循环重启回调
+    showTitle: Boolean = false,
 ) {
 
     if(mediaInfo != null) {
@@ -227,6 +228,19 @@ fun MiniVideoPlayer(
                         .align(Alignment.Center),
                     surface = surface
                 )
+                // 显示标题
+                if(showTitle){
+                    Box(modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .background(Color.Black.copy(alpha = 0.7f))
+                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                    ) {
+                        Text(
+                            text = mediaInfo.mediaPath.substringAfterLast(File.separator),
+                            color = MaterialTheme.colors.onBackground,
+                        )
+                    }
+                }
 
 
                 Column(modifier = Modifier.align(Alignment.BottomCenter),
@@ -460,34 +474,9 @@ fun MiniVideoPlayer(
             }
         }
 
-        /**
-         *  只在需要循环播放时启动 10 毫秒的协程来检测循环播放，
-         *  实现基于时间监听的循环播放功能，避免 VLC 内部循环导致的崩溃问题。
-         */
-//        LaunchedEffect(isLooping) {
-//            if (isLooping) {
-//                while (isActive) {
-//                    val time = videoPlayer.status().time()
-//
-//                    // 检查是否需要循环播放，并且没有正在进行循环重启
-//                    if (videoPlayer.status().isPlaying && time >= endTimeMillis) {
-//                        println("循环播放: 基于时间监听 - 当前时间 ${time}ms >= 结束时间 ${endTimeMillis}ms")
-//                        // 安全地重置到开始时间
-//                        videoPlayer.controls().setTime(startTimeMillis)
-//                        println("循环播放: 重置到开始时间 ${startTimeMillis}ms")
-//                        // 调用循环重启回调
-//                        onLoopRestart()
-//                    }
-//
-//                    delay(10)
-//                }
-//            }
-//        }
-
         DisposableEffect(Unit) {
             // 事件监听器
             val eventListener = object : MediaPlayerEventAdapter() {
-
                 override fun timeChanged(mediaPlayer: MediaPlayer?, newTime: Long) {
                     // 更新当前时间
                     currentTime = String.format(
@@ -550,12 +539,8 @@ fun MiniVideoPlayer(
             val start = convertTimeToSeconds(caption.start)
             val end = convertTimeToSeconds(caption.end)
 
-            println("mediaPath:${mediaInfo.mediaPath}")
-
-
             // 使用内部字幕轨道,通常是从 MKV 生成的词库
             if(mediaInfo.trackId != -1){
-                println("使用内部字幕轨道: ${mediaInfo.trackId}")
                 videoPlayer.media()
                     .play(mediaInfo.mediaPath, ":sub-track=${mediaInfo.trackId}", ":start-time=$start", ":stop-time=$end")
             }else if(externalSubtitlesVisible){
@@ -569,7 +554,6 @@ fun MiniVideoPlayer(
             focusRequester.requestFocus()
 
             onDispose {
-                println("MiniVideoPlayer 组件被销毁，释放资源")
                 if(videoPlayer.status().isPlaying) {
                     videoPlayer.controls().stop()
                 }

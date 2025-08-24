@@ -1763,7 +1763,8 @@ fun MainContent(
                         focusRequest(plyingIndex)
                     } },
                     mediaInfo = playMedia,
-                    externalSubtitlesVisible = wordScreenState.externalSubtitlesVisible
+                    externalSubtitlesVisible = wordScreenState.externalSubtitlesVisible,
+                    showTitle = true
                 )
             }
 
