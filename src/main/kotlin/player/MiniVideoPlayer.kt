@@ -22,6 +22,8 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.pointer.PointerEventType
+import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -205,6 +207,8 @@ fun MiniVideoPlayer(
         ){
             Box(modifier.size(size).background(Color.Black).shadow(10.dp, shape = RoundedCornerShape(10.dp))
                 .focusRequester(focusRequester)
+                // 消耗鼠标事件，阻止鼠标事件传播到下面的窗口，如果不加这一行，移动鼠标会触发下面窗口 button 的 tooltip 显示
+                .onPointerEvent(PointerEventType.Move){}
                 .onKeyEvent{ keyEvent ->
                     // 处理键盘事件
                     val isModifierPressed = if(isMacOS()) keyEvent.isMetaPressed else  keyEvent.isCtrlPressed
