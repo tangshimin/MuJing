@@ -20,6 +20,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.KeyEvent
@@ -90,6 +91,7 @@ fun Word(
     typingResult: List<Pair<Char, Boolean>>,
     checkTyping: (String) -> Unit,
     focusRequester: FocusRequester,
+    updateFocusState: (Boolean) -> Unit,
     textFieldKeyEvent: (KeyEvent) -> Boolean,
     showMenu: (Boolean) -> Unit,
 ) {
@@ -141,6 +143,9 @@ fun Word(
                             .padding(bottom = bottom)
                             .align(Alignment.Center)
                             .focusRequester(focusRequester)
+                            .onFocusChanged{ focusState ->
+                                updateFocusState(focusState.isFocused)
+                            }
                             .onKeyEvent { textFieldKeyEvent(it) }
                     )
                 }

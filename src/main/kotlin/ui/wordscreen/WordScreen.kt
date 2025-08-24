@@ -31,6 +31,7 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -456,6 +457,14 @@ fun MainContent(
         /** 第三条字幕输入框的焦点请求器 */
         val focusRequester3 = remember { FocusRequester() }
 
+        /** 当前单词输入框是否有焦点 */
+        var wordFocused by remember { mutableStateOf(false) }
+
+        /** 是否应该跳转到单词输入框,
+         * 播放字幕片段后，通过这个属性决定是否把焦点切换到单词
+         * */
+        var shouldJumpToWord by remember { mutableStateOf(false) }
+
         /** 等宽字体*/
         val monospace  = rememberMonospace()
 
@@ -661,6 +670,10 @@ fun MainContent(
                     println("resolveMediaPath error: $message")
                 }
             }
+
+            // 如果现在焦点在单词输入框，播放完字幕后，跳回单词输入框
+            shouldJumpToWord = wordFocused
+
         }
 
         /** 显示本章节已经完成对话框 */
@@ -1523,6 +1536,7 @@ fun MainContent(
                         typingResult = wordScreenState.wordTypingResult,
                         checkTyping = { checkWordInput(it) },
                         focusRequester = wordFocusRequester,
+                        updateFocusState = {wordFocused = it},
                         textFieldKeyEvent = {wordKeyEvent(it)},
                         showMenu = {activeMenu = it}
                     )
@@ -1734,7 +1748,11 @@ fun MainContent(
                     size = videoPlayerSize,
                     stop = {
                         isPlaying = false
+                        if(shouldJumpToWord){
+                            wordFocusRequester.requestFocus()
+                        }else{
                         focusRequest(plyingIndex)
+                        }
                     },
                     volume = appState.global.videoVolume,
                     externalPlayingState = isPlaying,
