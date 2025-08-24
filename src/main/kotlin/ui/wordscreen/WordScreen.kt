@@ -1524,7 +1524,7 @@ fun MainContent(
                         checkTyping = { checkWordInput(it) },
                         focusRequester = wordFocusRequester,
                         textFieldKeyEvent = {wordKeyEvent(it)},
-                        showMenu = {activeMenu = true}
+                        showMenu = {activeMenu = it}
                     )
                 }
 

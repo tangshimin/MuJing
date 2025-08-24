@@ -91,9 +91,10 @@ fun Word(
     checkTyping: (String) -> Unit,
     focusRequester: FocusRequester,
     textFieldKeyEvent: (KeyEvent) -> Boolean,
-    showMenu: () -> Unit,
+    showMenu: (Boolean) -> Unit,
 ) {
 
+    var hideMenuTask : TimerTask? by remember{ mutableStateOf(null) }
 
     val wordValue = word.value
         Row(
@@ -111,9 +112,13 @@ fun Word(
                 .width(intrinsicSize = IntrinsicSize.Max)
                 .height(intrinsicSize = IntrinsicSize.Max)
                 .padding(start = 50.dp)
-                .onPointerEvent(PointerEventType.Enter) {
+                .onPointerEvent(PointerEventType.Move) {
                     if (!isDictation) {
-                        showMenu()
+                        showMenu(true)
+                        hideMenuTask?.cancel()
+                        hideMenuTask = Timer("hideMenu", false).schedule(5000) {
+                            showMenu(false)
+                        }
                     }
                 }) {
                 val fontSize = global.wordFontSize
