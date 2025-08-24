@@ -44,6 +44,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import data.*
+import event.EventBus
+import event.WordScreenEventType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -96,7 +98,8 @@ fun WordScreen(
     videoBounds: Rectangle,
     showPlayer :(Boolean) -> Unit,
     openVideo: (String, String) -> Unit,
-    showContext :(MediaInfo) -> Unit
+    showContext :(MediaInfo) -> Unit,
+    eventBus: EventBus
 ) {
 
     // 拖放处理函数
@@ -194,6 +197,7 @@ fun WordScreen(
                         window = window,
                         openVocabulary = { showFilePicker = true },
                         showContext = showContext,
+                        eventBus = eventBus
                     )
                 } else {
                     VocabularyEmpty(
@@ -416,7 +420,8 @@ fun MainContent(
     wordFocusRequester:FocusRequester,
     window: ComposeWindow,
     openVocabulary: () -> Unit,
-    showContext:(MediaInfo) -> Unit
+    showContext:(MediaInfo) -> Unit,
+    eventBus: EventBus
 ){
     var nextButtonVisible by remember{ mutableStateOf(false) }
         /** 协程构建器 */
@@ -658,183 +663,6 @@ fun MainContent(
             }
         }
 
-        /** 处理全局快捷键的回调函数 */
-        val globalKeyEvent: (KeyEvent) -> Boolean = {
-            // isCtrlPressed
-            // macOS 下是 Command 键, windows 下是 Ctrl 键
-            val isCtrlPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
-            // 删除功能的修饰键
-            val isDeleteModifierPressed = if(isMacOS()) it.isMetaPressed else  it.isShiftPressed
-            // 删除键在不同的平台上有不同的键值
-            val deleteKey = if(isMacOS()) Key.Backspace else Key.Delete
-            when {
-                (isCtrlPressed && it.isShiftPressed && it.key == Key.A && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        wordFocusRequester.requestFocus()
-                    }
-                    true
-                }
-                (isCtrlPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        appState.openSearch()
-                    }
-                    true
-                }
-                (isCtrlPressed && it.key == Key.O && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        openVocabulary()
-                    }
-                    true
-                }
-                (isCtrlPressed && it.key == Key.P && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        wordScreenState.phoneticVisible = !wordScreenState.phoneticVisible
-                        wordScreenState.saveWordScreenState()
-                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
-                            dictationState.phoneticVisible = wordScreenState.phoneticVisible
-                            dictationState.saveDictationState()
-                        }
-
-                    }
-                    true
-                }
-                (isCtrlPressed && it.key == Key.L && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        wordScreenState.morphologyVisible = !wordScreenState.morphologyVisible
-                        wordScreenState.saveWordScreenState()
-                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
-                            dictationState.morphologyVisible = wordScreenState.morphologyVisible
-                            dictationState.saveDictationState()
-                        }
-                    }
-                    true
-                }
-                (isCtrlPressed && it.key == Key.E && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        wordScreenState.definitionVisible = !wordScreenState.definitionVisible
-                        wordScreenState.saveWordScreenState()
-                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
-                            dictationState.definitionVisible = wordScreenState.definitionVisible
-                            dictationState.saveDictationState()
-                        }
-                    }
-                    true
-                }
-                (isCtrlPressed && (if(isMacOS()) it.key == Key.R else it.key == Key.H) && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        wordScreenState.sentencesVisible = !wordScreenState.sentencesVisible
-                        wordScreenState.saveWordScreenState()
-                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
-                            dictationState.sentencesVisible = wordScreenState.sentencesVisible
-                            dictationState.saveDictationState()
-                        }
-                    }
-                    true
-                }
-                (isCtrlPressed && it.key == Key.K && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        wordScreenState.translationVisible = !wordScreenState.translationVisible
-                        wordScreenState.saveWordScreenState()
-                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
-                            dictationState.translationVisible = wordScreenState.translationVisible
-                            dictationState.saveDictationState()
-                        }
-                    }
-                    true
-                }
-                (isCtrlPressed && it.key == Key.V && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        wordScreenState.wordVisible = !wordScreenState.wordVisible
-                        wordScreenState.saveWordScreenState()
-                    }
-                    true
-                }
-
-                (isCtrlPressed && it.key == Key.J && it.type == KeyEventType.KeyUp) -> {
-                        scope.launch (Dispatchers.IO){
-                            val audioPath =  getAudioPath(
-                                word = currentWord.value,
-                                audioSet = appState.localAudioSet,
-                                addToAudioSet = { appState.localAudioSet.add(it) },
-                                pronunciation = wordScreenState.pronunciation,
-                                azureTTS = azureTTS
-                            )
-                            playAudio(
-                                word = currentWord.value,
-                                audioPath = audioPath,
-                                pronunciation =  wordScreenState.pronunciation,
-                                volume = appState.global.audioVolume,
-                                audioPlayerComponent = audioPlayerComponent,
-                                changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
-                            )
-                        }
-
-                    true
-                }
-                ((isCtrlPressed &&  (if(isMacOS()) it.isCtrlPressed else it.isAltPressed )) && it.key == Key.S && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        appState.openSidebar = !appState.openSidebar
-                    }
-                    true
-                }
-                (isCtrlPressed && it.key == Key.S && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        wordScreenState.subtitlesVisible = !wordScreenState.subtitlesVisible
-                        wordScreenState.saveWordScreenState()
-                        if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
-                            dictationState.subtitlesVisible = wordScreenState.subtitlesVisible
-                            dictationState.saveDictationState()
-                        }
-                    }
-                    true
-                }
-
-                (isCtrlPressed && it.key == Key.I && it.type == KeyEventType.KeyUp) -> {
-                    if(!it.isShiftPressed){
-                        scope.launch {
-                            bookmarkClick()
-                        }
-                        showBookmark = true
-                        true
-                    }else false
-                }
-                (isCtrlPressed && it.key == Key.Y && it.type == KeyEventType.KeyUp) -> {
-                    if(wordScreenState.vocabulary.name == "FamiliarVocabulary"){
-                        JOptionPane.showMessageDialog(window, "不能把熟悉词库的单词添加到熟悉词库")
-                    }else{
-                        showFamiliarDialog = true
-                    }
-                    true
-                }
-                (isDeleteModifierPressed && it.key == deleteKey && it.type == KeyEventType.KeyUp) -> {
-                    scope.launch {
-                        showDeleteDialog = true
-                    }
-                    true
-                }
-                (isCtrlPressed &&  it.key == Key.One && it.type == KeyEventType.KeyUp) -> {
-                    if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest ){
-                        handleMediaPlay(1)
-                    }
-                    true
-                }
-                (isCtrlPressed && it.key == Key.Two && it.type == KeyEventType.KeyUp) -> {
-                    if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest){
-                        handleMediaPlay(2)
-                    }
-                    true
-                }
-                (isCtrlPressed &&  it.key == Key.Three && it.type == KeyEventType.KeyUp) -> {
-                    if(wordScreenState.memoryStrategy != Dictation && wordScreenState.memoryStrategy != DictationTest){
-                        handleMediaPlay(3)
-                    }
-                    true
-                }
-                else -> false
-            }
-
-        }
-
         /** 显示本章节已经完成对话框 */
         var showChapterFinishedDialog by remember { mutableStateOf(false) }
 
@@ -928,9 +756,180 @@ fun MainContent(
                 wordFocusRequester.requestFocus()
             }
         }
+
+        // 处理EventBus事件
+        LaunchedEffect(currentWord) {
+            eventBus.events.collect { event ->
+                if (event is WordScreenEventType) {
+                    when (event) {
+                        WordScreenEventType.FOCUS_ON_WORD -> {
+                            wordFocusRequester.requestFocus()
+                        }
+                        WordScreenEventType.NEXT_WORD -> {
+                            toNext()
+                        }
+
+                        WordScreenEventType.PREVIOUS_WORD -> {
+                            previous()
+                        }
+
+                        WordScreenEventType.OPEN_SIDEBAR -> {
+                            appState.openSidebar = !appState.openSidebar
+                        }
+
+                        WordScreenEventType.OPEN_VOCABULARY -> {
+                            openVocabulary()
+                        }
+                        WordScreenEventType.SHOW_WORD -> {
+                            wordScreenState.wordVisible = !wordScreenState.wordVisible
+                            launch (Dispatchers.IO){
+                            wordScreenState.saveWordScreenState()
+                            }
+                        }
+
+                        WordScreenEventType.SHOW_PRONUNCIATION -> {
+                            wordScreenState.phoneticVisible = !wordScreenState.phoneticVisible
+                            launch (Dispatchers.IO){
+                                wordScreenState.saveWordScreenState()
+                                if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
+                                    dictationState.phoneticVisible = wordScreenState.phoneticVisible
+                                    dictationState.saveDictationState()
+                                }
+                            }
+
+                        }
+
+                        WordScreenEventType.SHOW_LEMMA -> {
+                            wordScreenState.morphologyVisible = !wordScreenState.morphologyVisible
+                            launch (Dispatchers.IO){
+                                wordScreenState.saveWordScreenState()
+                                if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
+                                    dictationState.morphologyVisible = wordScreenState.morphologyVisible
+                                    dictationState.saveDictationState()
+                                }
+                            }
+
+                        }
+
+                        WordScreenEventType.SHOW_DEFINITION -> {
+                            wordScreenState.definitionVisible = !wordScreenState.definitionVisible
+                            launch (Dispatchers.IO){
+                                wordScreenState.saveWordScreenState()
+                                if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
+                                    dictationState.definitionVisible = wordScreenState.definitionVisible
+                                    dictationState.saveDictationState()
+                                }
+                            }
+
+                        }
+
+                        WordScreenEventType.SHOW_TRANSLATION -> {
+                            wordScreenState.translationVisible = !wordScreenState.translationVisible
+                            launch (Dispatchers.IO){
+                                wordScreenState.saveWordScreenState()
+                                if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
+                                    dictationState.translationVisible = wordScreenState.translationVisible
+                                    dictationState.saveDictationState()
+                                }
+                            }
+
+                        }
+
+                        WordScreenEventType.SHOW_SENTENCES -> {
+                            wordScreenState.sentencesVisible = !wordScreenState.sentencesVisible
+                            launch (Dispatchers.IO){
+                                wordScreenState.saveWordScreenState()
+                                if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
+                                    dictationState.sentencesVisible = wordScreenState.sentencesVisible
+                                    dictationState.saveDictationState()
+                                }
+                            }
+
+                        }
+
+                        WordScreenEventType.SHOW_SUBTITLES -> {
+                            wordScreenState.subtitlesVisible = !wordScreenState.subtitlesVisible
+                            launch (Dispatchers.IO){
+                                wordScreenState.saveWordScreenState()
+                                if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
+                                    dictationState.subtitlesVisible = wordScreenState.subtitlesVisible
+                                    dictationState.saveDictationState()
+                                }
+                            }
+
+                        }
+
+                        WordScreenEventType.OPEN_SEARCH -> {
+                            appState.openSearch()
+                        }
+
+                        WordScreenEventType.PLAY_AUDIO -> {
+                            val audioPath = getAudioPath(
+                                word = currentWord.value,
+                                audioSet = appState.localAudioSet,
+                                addToAudioSet = { appState.localAudioSet.add(it) },
+                                pronunciation = wordScreenState.pronunciation,
+                                azureTTS = azureTTS
+                            )
+                            playAudio(
+                                word = currentWord.value,
+                                audioPath = audioPath,
+                                pronunciation = wordScreenState.pronunciation,
+                                volume = appState.global.audioVolume,
+                                audioPlayerComponent = audioPlayerComponent,
+                                changePlayerState = { isPlaying -> isPlayingAudio = isPlaying },
+                            )
+                        }
+
+                        WordScreenEventType.DELETE_WORD -> {
+                            showDeleteDialog = true
+                        }
+
+                        WordScreenEventType.ADD_TO_FAMILIAR -> {
+                            if(wordScreenState.vocabulary.name == "FamiliarVocabulary"){
+                                JOptionPane.showMessageDialog(window, "不能把熟悉词库的单词添加到熟悉词库")
+                            }else{
+                                showFamiliarDialog = true
+                            }
+                        }
+
+                        WordScreenEventType.ADD_TO_DIFFICULT -> {
+                            scope.launch {
+                                bookmarkClick()
+                                showBookmark = true
+                            }
+                        }
+
+                        WordScreenEventType.COPY_WORD -> {
+                            scope.launch {
+                            clipboardManager.setText(AnnotatedString(currentWord.value))
+                            }
+                        }
+
+                        WordScreenEventType.PLAY_FIRST_CAPTION -> {
+                            scope.launch (Dispatchers.Default){
+                                handleMediaPlay(1)
+                            }
+                        }
+
+                        WordScreenEventType.PLAY_SECOND_CAPTION -> {
+                            scope.launch (Dispatchers.Default){
+                            handleMediaPlay(2)
+                            }
+                        }
+
+                        WordScreenEventType.PLAY_THIRD_CAPTION -> {
+                            scope.launch (Dispatchers.Default){
+                            handleMediaPlay(3)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         Box(
             modifier = Modifier.fillMaxSize()
-                .onKeyEvent { globalKeyEvent(it) }
                 .onPointerEvent(PointerEventType.Move){nextButtonVisible = true}
                 .onPointerEvent(PointerEventType.Exit){nextButtonVisible = false}
         ) {
@@ -1415,13 +1414,7 @@ fun MainContent(
                         previous()
                         true
                     }
-                    (isCtrlPressed && it.key == Key.C && it.type == KeyEventType.KeyUp) -> {
-                        if(!it.isShiftPressed){
-                            clipboardManager.setText(AnnotatedString(currentWord.value))
-                            true
-                        }else false
 
-                    }
                     (isCtrlPressed && it.isShiftPressed && it.key == Key.K && it.type == KeyEventType.KeyUp) -> {
                         jumpToCaptions()
                         true
@@ -1588,7 +1581,7 @@ fun MainContent(
                             previous()
                             true
                         }
-                        else -> globalKeyEvent(it)
+                        else -> false
                     }
                 }
             Captions(

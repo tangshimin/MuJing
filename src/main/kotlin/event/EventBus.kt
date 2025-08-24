@@ -27,3 +27,30 @@ enum class PlayerEventType {
     REPEAT_CAPTION,// 重复字幕
     AUTO_PAUSE, // 自动暂停
 }
+
+/**
+ * 记忆单词界面的键盘事件类型
+ */
+enum class WordScreenEventType {
+    NEXT_WORD, // 下一个单词
+    PREVIOUS_WORD, // 上一个单词
+    OPEN_SIDEBAR, // 打开侧边栏
+    SHOW_WORD, // 显示单词
+    SHOW_PRONUNCIATION, // 显示音标
+    SHOW_LEMMA, // 显示词形
+    SHOW_DEFINITION, // 显示英文释义
+    SHOW_TRANSLATION, // 显示中文释义
+    SHOW_SENTENCES, // 显示例句
+    SHOW_SUBTITLES, // 显示字幕
+    PLAY_AUDIO, // 播放音频
+    OPEN_SEARCH, // 打开搜索
+    OPEN_VOCABULARY, // 打开词库
+    DELETE_WORD, // 删除单词
+    ADD_TO_FAMILIAR, // 加入熟词库
+    ADD_TO_DIFFICULT, // 加入困难词库
+    COPY_WORD, // 复制单词
+    PLAY_FIRST_CAPTION, // 播放第一句字幕
+    PLAY_SECOND_CAPTION, // 播放第二句字幕
+    PLAY_THIRD_CAPTION, // 播放第三句字幕
+    FOCUS_ON_WORD, // 聚焦到单词
+}

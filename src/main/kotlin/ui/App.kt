@@ -1,7 +1,10 @@
 package ui
 
 import androidx.compose.animation.ExperimentalAnimationApi
-import androidx.compose.foundation.*
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.LocalScrollbarStyle
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -17,7 +20,8 @@ import androidx.compose.ui.InternalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.input.key.*
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyShortcut
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.DpSize
@@ -30,8 +34,8 @@ import data.getFamiliarVocabularyFile
 import data.getHardVocabularyFile
 import data.loadVocabulary
 import event.EventBus
-import event.PlayerEventType
-import io.ktor.utils.io.printStack
+import event.handleWindowKeyEvent
+import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.launchIn
@@ -109,73 +113,7 @@ fun App(
                 icon = painterResource("logo/logo.png"),
                 state = windowState,
                 onCloseRequest = {close() },
-                onKeyEvent = { it ->
-                    val isModifierPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
-                    if (isModifierPressed && it.key == Key.Comma && it.type == KeyEventType.KeyUp) {
-                        appState.openSettings = true
-                        true
-                    }
-
-                    // 处理视频播放器的快捷键
-                    if(playerState.visible){
-                        if (it.key == Key.Spacebar && it.type == KeyEventType.KeyUp) {
-                            scope.launch {
-                                eventBus.post(PlayerEventType.PLAY)
-                            }
-                            true
-                        }else if (it.key == Key.Escape && it.type == KeyEventType.KeyUp) {
-                                scope.launch {
-                                    eventBus.post(PlayerEventType.ESC)
-                                }
-                            true
-                        }else if (it.key == Key.F && it.type == KeyEventType.KeyUp) {
-                            scope.launch {
-                                    eventBus.post(PlayerEventType.FULL_SCREEN)
-                                }
-
-                            true
-                        }else if (isModifierPressed && it.key == Key.W && it.type == KeyEventType.KeyUp) {
-                            scope.launch {
-                                eventBus.post(PlayerEventType.CLOSE_PLAYER)
-                            }
-                            true
-                        }else if (it.key == Key.DirectionLeft && it.type == KeyEventType.KeyUp) {
-                            scope.launch {
-                                eventBus.post(PlayerEventType.DIRECTION_LEFT)
-                            }
-                            true
-                        }else if (it.key == Key.DirectionRight && it.type == KeyEventType.KeyUp) {
-                            scope.launch {
-                                eventBus.post(PlayerEventType.DIRECTION_RIGHT)
-                            }
-                            true
-                        }else if (it.key == Key.A && it.type == KeyEventType.KeyUp) {
-                            scope.launch {
-                                eventBus.post(PlayerEventType.PREVIOUS_CAPTION)
-                            }
-                            true
-                        }else if (it.key == Key.S && it.type == KeyEventType.KeyUp) {
-                            scope.launch {
-                                eventBus.post(PlayerEventType.REPEAT_CAPTION)
-                            }
-                            true
-                        }else if (it.key == Key.D && it.type == KeyEventType.KeyUp) {
-                            scope.launch {
-                                eventBus.post(PlayerEventType.NEXT_CAPTION)
-                            }
-                            true
-                        }else if (it.key == Key.P && it.type == KeyEventType.KeyUp) {
-                            scope.launch {
-                                eventBus.post(PlayerEventType.AUTO_PAUSE)
-                            }
-                            true
-                        }
-                        false
-                    }else{
-                        false // 返回 false 让 Compose 继续处理事件
-                    }
-
-                }
+                onKeyEvent = { handleWindowKeyEvent(it,eventBus, appState, playerState, scope ) },
             ) {
 
                 MaterialTheme(colors = appState.colors) {
@@ -240,7 +178,8 @@ fun App(
                                             showContext = {
                                                 playerState.showPlayer(wordState)
                                                 playerState.showContext(it)
-                                            }
+                                            },
+                                            eventBus = eventBus
                                         )
                                     }
                                     ScreenType.SUBTITLES -> {
