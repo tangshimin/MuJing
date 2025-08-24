@@ -2812,9 +2812,9 @@ fun Caption(
                         val ctrl = LocalCtrl.current
                         val plus = if (isMacOS()) "" else "+"
                         val shortcutText: Any = when (index) {
-                            0 -> "$ctrl+$plus 1"
-                            1 -> "$ctrl+$plus 2"
-                            2 -> "$ctrl+$plus 3"
+                            0 -> "$ctrl$plus 1"
+                            1 -> "$ctrl$plus 2"
+                            2 -> "$ctrl$plus 3"
                             else -> println("字幕数量超出范围")
                         }
                         Row(modifier = Modifier.padding(10.dp)){
