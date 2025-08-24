@@ -606,10 +606,6 @@ fun VideoPlayer(
                 }
 
 
-                if( // macOS 全屏的时候不显示关闭按钮
-                    (isMacOS() && (windowState.placement != WindowPlacement.Fullscreen))
-                    || (isWindows() || isLinux()) // windows 的情况有些特殊，全屏的时候也显示关闭按钮。把鼠标从播放器移出就会消失。
-                    ){
                     Row(Modifier
                         .align (Alignment.TopStart)
                         .padding(start = 72.dp, top = 8.dp)){
@@ -640,7 +636,8 @@ fun VideoPlayer(
 
                         ) {
 
-                            if(isMacOS()){
+                            // 非全屏的时候显示一个关闭 Icon
+                            if(isMacOS() && (windowState.placement != WindowPlacement.Fullscreen)){
                                 Icon(
                                     Icons.Filled.ArrowDown,
                                     contentDescription = "Close Video Player",
@@ -650,6 +647,7 @@ fun VideoPlayer(
                                         .focusable(false)
                                 )
                             }else{
+
                                 if(controlBoxVisible){
                                     Surface(
                                         modifier = Modifier.size(40.dp),
@@ -673,6 +671,7 @@ fun VideoPlayer(
                                         }
 
                                     }
+
                                 }
 
 
@@ -681,7 +680,7 @@ fun VideoPlayer(
                         }
 
                     }
-                }
+
 
                 if (isMacOS() && windowState.placement != WindowPlacement.Fullscreen) {
                     Column (Modifier.align(Alignment.TopCenter)) {
