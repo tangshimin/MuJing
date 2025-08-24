@@ -152,7 +152,7 @@ fun WordScreenSidebar(
                 }
                 Divider()
                 val ctrl = LocalCtrl.current
-
+                val wordText = if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation) "显示下划线" else "显示单词"
                 TooltipArea(
                     tooltip = {
                         Surface(
@@ -163,7 +163,7 @@ fun WordScreenSidebar(
                             val ctrl = LocalCtrl.current
                             val shortcutText = if (isMacOS()) "$ctrl V" else "$ctrl+V"
                             Row(modifier = Modifier.padding(10.dp)){
-                                Text(text = "显示单词  " )
+                                Text(text = "$wordText  " )
                                 CompositionLocalProvider(LocalContentAlpha provides 0.5f) {
                                     Text(text = shortcutText)
                                 }
@@ -181,6 +181,11 @@ fun WordScreenSidebar(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.fillMaxWidth().clickable {
+                            if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
+                                dictationState.showUnderline = !dictationState.showUnderline
+                                dictationState.saveDictationState()
+                            }
+
                             scope.launch {
                                 wordScreenState.wordVisible = !wordScreenState.wordVisible
                                 wordScreenState.saveWordScreenState()
@@ -188,13 +193,21 @@ fun WordScreenSidebar(
                         }.padding(start = 16.dp, end = 8.dp)
                     ) {
 
-                        Text("显示单词", color = MaterialTheme.colors.onBackground)
-
+                        Text(wordText, color = MaterialTheme.colors.onBackground)
+                        val checked = if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
+                            dictationState.showUnderline
+                        }else{
+                            wordScreenState.wordVisible
+                        }
                         Spacer(Modifier.width(15.dp))
                         Switch(
                             colors = SwitchDefaults.colors(checkedThumbColor = MaterialTheme.colors.primary),
-                            checked = wordScreenState.wordVisible,
+                            checked = checked,
                             onCheckedChange = {
+                                if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation || wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ){
+                                    dictationState.showUnderline = it
+                                    dictationState.saveDictationState()
+                                }
                                 scope.launch {
                                     wordScreenState.wordVisible = it
                                     wordScreenState.saveWordScreenState()

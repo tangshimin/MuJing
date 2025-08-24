@@ -21,6 +21,7 @@ import javax.swing.JOptionPane
 @ExperimentalSerializationApi
 @Serializable
 data class DataDictationState(
+    val showUnderline: Boolean = false,
     val phoneticVisible: Boolean = false,
     val morphologyVisible: Boolean = false,
     val definitionVisible: Boolean = false,
@@ -34,6 +35,12 @@ data class DataDictationState(
  */
 @OptIn(ExperimentalSerializationApi::class)
 class DictationState(dataDictationState: DataDictationState){
+
+    /**
+     * 显示下划线
+     */
+    var showUnderline by mutableStateOf(true)
+
     /**
      * 音标组件的可见性
      */
@@ -69,6 +76,7 @@ class DictationState(dataDictationState: DataDictationState){
         runBlocking {
             launch (Dispatchers.IO){
                 val dataDictationState = DataDictationState(
+                    showUnderline,
                     phoneticVisible,
                     morphologyVisible,
                     definitionVisible,

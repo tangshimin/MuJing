@@ -74,6 +74,7 @@ fun Word(
     word: Word,
     global: GlobalState,
     isDictation:Boolean,
+    showUnderline:Boolean,
     wordVisible:Boolean,
     pronunciation: String,
     azureTTS: AzureTTS,
@@ -183,19 +184,36 @@ fun Word(
                         }
                         val remainChars = wordValue.substring(typingResult.size)
                         if (isDictation) {
-                            withStyle(
-                                style = SpanStyle(
-                                    color = MaterialTheme.colors.onBackground,
-                                    fontSize = fontSize,
-                                    letterSpacing =  global.letterSpacing,
-                                    fontFamily = fontFamily,
-                                )
-                            ) {
-                                repeat(remainChars.length) {
-                                    append(" ")
-                                }
+                            if(showUnderline){
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = MaterialTheme.colors.onBackground,
+                                        fontSize = fontSize,
+                                        letterSpacing =  global.letterSpacing,
+                                        fontFamily = fontFamily,
+                                    )
+                                ) {
+                                    repeat(remainChars.length) {
+                                        append("_")
+                                    }
 
+                                }
+                            }else{
+                                withStyle(
+                                    style = SpanStyle(
+                                        color = MaterialTheme.colors.onBackground,
+                                        fontSize = fontSize,
+                                        letterSpacing =  global.letterSpacing,
+                                        fontFamily = fontFamily,
+                                    )
+                                ) {
+                                    repeat(remainChars.length) {
+                                        append(" ")
+                                    }
+
+                                }
                             }
+
                         } else {
                             if (wordVisible) {
                                 withStyle(

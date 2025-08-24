@@ -783,7 +783,11 @@ fun MainContent(
                         WordScreenEventType.SHOW_WORD -> {
                             wordScreenState.wordVisible = !wordScreenState.wordVisible
                             launch (Dispatchers.IO){
-                            wordScreenState.saveWordScreenState()
+                                wordScreenState.saveWordScreenState()
+                                if(wordScreenState.memoryStrategy== Dictation || wordScreenState.memoryStrategy== DictationTest ){
+                                    dictationState.showUnderline = !dictationState.showUnderline
+                                    dictationState.saveDictationState()
+                                }
                             }
                         }
 
@@ -1509,6 +1513,7 @@ fun MainContent(
                         isPlaying = isPlayingAudio,
                         setIsPlaying = { isPlayingAudio = it },
                         isDictation = (wordScreenState.memoryStrategy == Dictation ||wordScreenState.memoryStrategy == DictationTest),
+                        showUnderline = dictationState.showUnderline,
                         fontFamily = monospace,
                         audioSet = appState.localAudioSet,
                         addToAudioSet = {appState.localAudioSet.add(it) },
