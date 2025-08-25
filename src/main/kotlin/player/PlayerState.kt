@@ -449,12 +449,12 @@ class PlayerState(playerData: PlayerData) {
 
 private fun getPlayerSettingsFile(): File {
     val settingsDir = getSettingsDirectory()
-    return File(settingsDir, "PlayerSettings.json")
+    return File(settingsDir, "/VideoPlayer/PlayerSettings.json")
 }
 
 private fun getRecentVideoFile(): File {
     val settingsDir = getSettingsDirectory()
-    return File(settingsDir, "RecentVideo.json")
+    return File(settingsDir, "/VideoPlayer/RecentVideo.json")
 }
 
 @OptIn(ExperimentalSerializationApi::class)

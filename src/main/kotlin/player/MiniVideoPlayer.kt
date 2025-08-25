@@ -673,5 +673,5 @@ private fun loadShowCaptionState(): Boolean {
 
 private fun settingsFile(): File {
     val settingsDir = getSettingsDirectory()
-    return File(settingsDir, "MiniPlayerSettings.json")
+    return File(settingsDir, "/VideoPlayer/MiniPlayerSettings.json")
 }
