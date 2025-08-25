@@ -1291,7 +1291,13 @@ fun VideoPlayer(
                     }
                 }
 
-                override fun finished(mediaPlayer: MediaPlayer?) {
+                override fun finished(mediaPlayer: MediaPlayer) {
+                    // 更新最后播放时间
+                    val duration = mediaPlayer.media().info().duration()
+                    duration.milliseconds.toComponents { hours, minutes, seconds, _ ->
+                        val lastPlayed= timeFormat(hours,minutes,seconds)
+                        state.updateLastPlayedTime(lastPlayed)
+                    }
                     isPlaying = false
                 }
             }
