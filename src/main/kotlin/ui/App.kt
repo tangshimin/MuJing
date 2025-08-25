@@ -238,10 +238,6 @@ fun App(
                                     },
                                     visible = playerState.visible,
                                     windowState = windowState,
-                                    close = {
-                                        playerState.visible = false
-                                        playerState.videoPath = ""
-                                    },
                                     eventBus = eventBus,
                                     window = window,
                                     title = title,

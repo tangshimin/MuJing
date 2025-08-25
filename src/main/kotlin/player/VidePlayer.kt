@@ -81,7 +81,6 @@ fun AnimatedVideoPlayer(
     videoVolume: Float,
     videoVolumeChanged: (Float) -> Unit,
     windowState: WindowState,
-    close: () -> Unit,
     eventBus: EventBus,
     window: ComposeWindow,
     title: String = "视频播放器"
@@ -98,6 +97,17 @@ fun AnimatedVideoPlayer(
         CompositionLocalProvider(
             LocalTextSelectionColors provides rememberDarkThemeSelectionColors()
         ){
+
+            val close = {
+                state.visible = false
+                state.videoPath = ""
+                // 退出全屏
+                if(!isMacOS() && windowState.placement == WindowPlacement.Fullscreen){
+                    windowState.placement = WindowPlacement.Floating
+                }
+
+            }
+
             VideoPlayer(
                 state = state,
                 audioSet = audioSet,
