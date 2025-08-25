@@ -31,7 +31,6 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
 import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -472,6 +471,8 @@ fun MainContent(
 
         val clipboardManager = LocalClipboardManager.current
 
+        var alert by remember { mutableStateOf(CustomAlert()) }
+
         /** 是否正在播放单词发音 */
         var isPlayingAudio by remember { mutableStateOf(false) }
         /** 删除当前单词 */
@@ -655,20 +656,9 @@ fun MainContent(
             }
 
             if(mediaInfo != null){
-                // 验证视频文件的路径
-                val resolvedPath =  resolveMediaPath(
-                    mediaInfo.mediaPath,
-                    wordScreenState.getVocabularyDir()
-                )
-                if(resolvedPath != ""){
-                    mediaInfo.mediaPath = resolvedPath
-                    playMedia = mediaInfo
-                    isPlaying = true
-                }else{
-                    //TODO 需要提示用户视频文件不存在
-                    val message = if(mediaInfo.mediaPath.isEmpty())"视频地址为空" else "视频地址错误"
-                    println("resolveMediaPath error: $message")
-                }
+                playMedia = mediaInfo
+                isPlaying = true
+
             }
 
             // 如果现在焦点在单词输入框，播放完字幕后，跳回单词输入框
@@ -770,7 +760,7 @@ fun MainContent(
             }
         }
 
-        // 处理EventBus事件
+        // 处理键盘事件
         LaunchedEffect(currentWord) {
             eventBus.events.collect { event ->
                 if (event is WordScreenEventType) {
@@ -1611,19 +1601,7 @@ fun MainContent(
                 setPlayingIndex = {plyingIndex = it},
                 volume = appState.global.videoVolume,
                 setIsPlaying = { isPlaying = it },
-                setPlayingMedia = {
-                    val resolvedPath =  resolveMediaPath(
-                        it.mediaPath,
-                        wordScreenState.getVocabularyDir()
-                    )
-                    if(resolvedPath != "") {
-                        it.mediaPath = resolvedPath
-                        playMedia = it
-                    }else{
-                        JOptionPane.showMessageDialog(window,"关联的视频文件不存在，可能已经被移动或删除")
-                    }
-
-                },
+                setPlayingMedia = { playMedia = it },
                 word = currentWord,
                 bounds = videoBounds,
                 textFieldValueList = listOf(wordScreenState.captionsTextFieldValue1,wordScreenState.captionsTextFieldValue2,wordScreenState.captionsTextFieldValue3),
@@ -1737,12 +1715,29 @@ fun MainContent(
             }
         }
 
-            if(isPlaying){
+            // 视频播放器
+            if(isPlaying && playMedia != null){
                 val videoPlayerSize by remember(appState.global.size){
                     derivedStateOf {
                         computeVideoSize(appState.global.size)
                     }
                 }
+
+                // 验证视频文件的路径
+                val resolvedPath =  resolveMediaPath(
+                    playMedia!!.mediaPath,
+                    wordScreenState.getVocabularyDir()
+                )
+                if(resolvedPath != ""){
+                    playMedia!!.mediaPath = resolvedPath
+                }else{
+                    alert.message = if(playMedia!!.mediaPath.isEmpty())"视频地址为空" else "视频地址错误,视频可能已经被移动或删除"
+                    alert.title = "无法播放视频"
+                    alert.isError = true
+                    alert.visible = true
+
+                }
+
                 MiniVideoPlayer(
                     modifier = Modifier.align(Alignment.Center),
                     size = videoPlayerSize,
@@ -1751,7 +1746,7 @@ fun MainContent(
                         if(shouldJumpToWord){
                             wordFocusRequester.requestFocus()
                         }else{
-                        focusRequest(plyingIndex)
+                            focusRequest(plyingIndex)
                         }
                     },
                     volume = appState.global.videoVolume,
@@ -1841,6 +1836,35 @@ fun MainContent(
         }
 
 
+    }
+
+        if(alert.visible){
+            val titleColor = if(alert.isError) MaterialTheme.colors.error else MaterialTheme.colors.onSurface
+            AlertDialog(
+                onDismissRequest = { alert.clear() },
+                title = { Text(alert.title,color = titleColor) },
+                text = { Text(alert.message,color = MaterialTheme.colors.onSurface) },
+                confirmButton = {
+                    OutlinedButton(onClick = { alert.clear() }) {
+                        Text("确定",color = MaterialTheme.colors.onSurface)
+                    }
+                },
+                modifier = Modifier.background(MaterialTheme.colors.surface),
+            )
+        }
+}
+
+class CustomAlert(){
+    var visible: Boolean by mutableStateOf(false)
+    var message: String by mutableStateOf("")
+    var isError: Boolean by mutableStateOf(false)
+    var title:String by mutableStateOf("")
+
+    fun clear(){
+        visible = false
+        message = ""
+        isError = false
+        title = ""
     }
 }
 

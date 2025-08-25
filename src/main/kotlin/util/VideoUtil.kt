@@ -180,7 +180,7 @@ fun computeVideoSize(
     // 在 Compose 中使用 DpSize 和 dp 单位时，不需要手动处理 density
     // dp 单位已经会根据系统的缩放设置自动进行适配
 
-    println("最终计算的视频窗口大小: $size")
+//    println("最终计算的视频窗口大小: $size")
     return size
 }
 
