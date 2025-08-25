@@ -664,8 +664,8 @@ fun VideoPlayer(
                                     Surface(
                                         modifier = Modifier.size(40.dp),
                                         elevation = 0.dp,
-                                        color =  Color(0xFF202020).copy(alpha = 0.5f),
-                                        border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                                        color =  Color.Black.copy(alpha = 0.5f),
+                                        border = BorderStroke((0.5).dp, Color.White.copy(alpha = 0.12f)),
                                         shape = RoundedCornerShape(8.dp),
                                     ){
                                         Box(
