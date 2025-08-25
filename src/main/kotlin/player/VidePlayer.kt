@@ -101,10 +101,12 @@ fun AnimatedVideoPlayer(
             val close = {
                 state.visible = false
                 state.videoPath = ""
+                state.showCaptionList = false
                 // 退出全屏
                 if(!isMacOS() && windowState.placement == WindowPlacement.Fullscreen){
                     windowState.placement = WindowPlacement.Floating
                 }
+
 
             }
 
