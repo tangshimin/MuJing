@@ -245,7 +245,8 @@ fun VideoPlayer(
 
     var danmakuManager by remember { mutableStateOf<DanmakuStateManager?>(null) }
     var timelineSynchronizer by remember {mutableStateOf<TimelineSynchronizer?>(null)  }
-
+    /** Windows 的全屏要特殊处理 */
+    var isWindowsFullscreen by remember { mutableStateOf(false) }
 
     /** 播放 */
     val play: () -> Unit = {
@@ -267,12 +268,28 @@ fun VideoPlayer(
             println("VideoPath is Empty")
         }
     }
+
+
     /** 全屏 */
     val fullscreen:() -> Unit = {
-        windowState.placement = if (windowState.placement == WindowPlacement.Fullscreen) {
-            WindowPlacement.Floating
-        } else {
-            WindowPlacement.Fullscreen
+        if(isMacOS()){
+            if (windowState.placement == WindowPlacement.Fullscreen) {
+                windowState.placement =  WindowPlacement.Floating
+            } else {
+                windowState.placement =   WindowPlacement.Fullscreen
+            }
+        }else{
+            isWindowsFullscreen = !isWindowsFullscreen
+            FullScreenManager.toggle( window.windowHandle)
+            if(isWindowsFullscreen){
+                // 全屏时隐藏标题栏
+                window.rootPane.putClientProperty("JRootPane.useWindowDecorations", false)
+                window.rootPane.putClientProperty("JRootPane.menuBarEmbedded", false)
+            }else{
+                // 退出全屏时显示标题栏
+                window.rootPane.putClientProperty("JRootPane.useWindowDecorations", true)
+                window.rootPane.putClientProperty("JRootPane.menuBarEmbedded", true)
+            }
         }
     }
 
@@ -946,9 +963,15 @@ fun VideoPlayer(
                                     onKeepControlBoxVisible = { controlBoxVisible = true }
                                 )
 
+                                val isFullscreen = if(isWindows()){
+                                    isWindowsFullscreen
+                                }else{
+                                    windowState.placement == WindowPlacement.Fullscreen
+                                }
+
                                 // 全屏按钮
                                 FullScreenButton(
-                                    isFullscreen = windowState.placement == WindowPlacement.Fullscreen,
+                                    isFullscreen = isFullscreen,
                                     onToggleFullscreen = {
                                         fullscreen()
                                         focusManager.clearFocus() // 点击后清除焦点
