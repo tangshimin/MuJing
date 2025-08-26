@@ -343,9 +343,40 @@ fun tokenizeText(
     // 过滤掉常用的标点符号
     wordList.forEach { word ->
         if (!filterList.contains(word)) {
-            result.add(word)
+            var tempWord = word
+            // 丢弃单个字符和连字符的组合里的连字符
+            // 例如 -y,-d, y-, d-, 不是常用单词，但是内置词典里面有
+            if(tempWord.startsWith("-") && tempWord.length == 2){
+                tempWord  =  tempWord.substring(1)
+                println(tempWord)
+            }else if(tempWord.endsWith("-") && tempWord.length == 2){
+                tempWord =  tempWord.substring(0,word.length-1)
+                println(tempWord)
+            }
+            result.add(tempWord)
         }
     }
+
+    // 处理特殊单词 gonna
+    if (text.contains(" gonna ")) {
+        var needRemoveGon = false
+        var needRemoveNa = false
+        result.forEach { word ->
+            // 分词分出 gon 但实际上文本里没有 gon
+            if (word == "gon" && !Regex("""\bgon\b""").containsMatchIn(text)) {
+                needRemoveGon = true
+            }
+            // 分词分出 na 但实际上文本里没有 na
+            if (word == "na" && !Regex("""\bna\b""").containsMatchIn(text)) {
+                needRemoveNa = true
+            }
+        }
+        result.add("gonna")
+        if (needRemoveGon) result.remove("gon")
+        if (needRemoveNa) result.remove("na")
+    }
+
+
     return result
 }
 
@@ -371,7 +402,6 @@ fun parseSRT(
     val orderList = mutableListOf<String>()
     try {
         // 加载分词模型
-
         val tokenModel = loadModelResource("opennlp/opennlp-en-ud-ewt-tokens-1.0-1.9.3.bin").use { inputStream ->
             TokenizerModel(inputStream)
         }
