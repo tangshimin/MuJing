@@ -637,7 +637,7 @@ fun VideoPlayer(
 
                     Row(Modifier
                         .align (Alignment.TopStart)
-                        .padding(start = 72.dp, top = 8.dp)){
+                        .padding(start = 72.dp, top = if(isMacOS())0.dp else 8.dp)){
                         TooltipArea(
                             tooltip = {
                                 Surface(
@@ -679,7 +679,7 @@ fun VideoPlayer(
 
                                 if(controlBoxVisible){
                                     Surface(
-                                        modifier = Modifier.size(40.dp),
+                                        modifier = Modifier.size(38.dp),
                                         elevation = 0.dp,
                                         color =  Color.Black.copy(alpha = 0.5f),
                                         border = BorderStroke((0.5).dp, Color.White.copy(alpha = 0.12f)),
