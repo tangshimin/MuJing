@@ -24,6 +24,8 @@ import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.PointerEventType
 import androidx.compose.ui.input.pointer.onPointerEvent
+import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -160,6 +162,7 @@ fun MiniVideoPlayer(
     isLooping: Boolean = false, // 添加循环播放参数
     onLoopRestart: () -> Unit = {}, // 添加循环重启回调
     showTitle: Boolean = false,
+    settingOffset: DpOffset = DpOffset(x = (-50).dp, y = (0).dp)// 设置菜单偏移,这个默认值时在弹窗中显示的偏移
 ) {
 
     if(mediaInfo != null) {
@@ -429,7 +432,7 @@ fun MiniVideoPlayer(
 
                             DropdownMenu(
                                 expanded = settingsExpanded,
-                                offset = DpOffset(x = (-60).dp, y = (-10).dp),
+                                offset = settingOffset,
                                 onDismissRequest = {
                                     settingsExpanded = false
                                     focusRequester.requestFocus()

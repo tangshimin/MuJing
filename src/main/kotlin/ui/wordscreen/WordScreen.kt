@@ -1759,7 +1759,8 @@ fun MainContent(
                     } },
                     mediaInfo = playMedia,
                     externalSubtitlesVisible = wordScreenState.externalSubtitlesVisible,
-                    showTitle = true
+                    showTitle = true,
+                    settingOffset = DpOffset((-56).dp,(-96).dp)
                 )
             }
 
