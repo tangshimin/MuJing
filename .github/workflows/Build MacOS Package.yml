@@ -27,7 +27,7 @@ jobs:
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'zulu'
+          distribution: 'jetbrains'
           java-version: '21'
 
       # Check out current repository
