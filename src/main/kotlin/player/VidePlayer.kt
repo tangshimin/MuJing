@@ -517,7 +517,7 @@ fun VideoPlayer(
             .focusRequester(focusRequester)
             .focusable(enabled = true)
     ) {
-
+        // 快捷键
         LaunchedEffect(Unit){
 
             eventBus.events.collect { event ->
@@ -535,12 +535,24 @@ fun VideoPlayer(
                     }else if(event == PlayerEventType.DIRECTION_LEFT) {
                      // 左方向键
                         if (videoPlayer.status().isPlayable) {
-                            videoPlayer.controls().skipTime(-5000) // 快退 5 秒
+                            if (isPlaying) {
+                                videoPlayer.controls().skipTime(-5000) // 快退 5 秒
+                            } else {
+                                val newTime = videoPlayer.status().time() - 5000
+                                videoPlayer.controls().setTime(newTime.coerceAtLeast(0)) // 设置时间
+                                surface.setRenderingEnabled(true) // 确保渲染启用
+                            }
                         }
                     }else if(event == PlayerEventType.DIRECTION_RIGHT) {
                         // 右方向键
                         if (videoPlayer.status().isPlayable) {
-                            videoPlayer.controls().skipTime(5000) // 快进 5 秒
+                            if (isPlaying) {
+                                videoPlayer.controls().skipTime(5000) // 快进 5 秒
+                            } else {
+                                val newTime = videoPlayer.status().time() + 5000
+                                videoPlayer.controls().setTime(newTime.coerceAtMost(videoDuration)) // 设置时间
+                                surface.setRenderingEnabled(true) // 确保渲染启用
+                            }
                         }
 
                     }else if(event == PlayerEventType.PREVIOUS_CAPTION) {
