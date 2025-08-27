@@ -1026,16 +1026,40 @@ fun VideoPlayer(
                                     val stateVertical = rememberScrollState(0)
                                     Column(Modifier.verticalScroll(stateVertical)) {
                                        state.recentList.forEach { item ->
-                                            ListItem(
+                                           var hovered by remember { mutableStateOf(false) }
+                                           ListItem(
                                                 text = { Text(item.name, color = MaterialTheme.colors.onSurface) },
                                                 trailing = {
-                                                    Text(
-                                                        text = item.lastPlayedTime,
-                                                        color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
-                                                        fontSize = 12.sp
-                                                    )
+                                                    Row(verticalAlignment = Alignment.CenterVertically){
+                                                        Text(
+                                                            text = item.lastPlayedTime,
+                                                            color = MaterialTheme.colors.onSurface.copy(alpha = 0.6f),
+                                                            fontSize = 12.sp
+                                                        )
+                                                       if(hovered){
+                                                           Icon(
+                                                               Icons.Filled.Close,
+                                                               contentDescription = "Remove",
+                                                               tint = MaterialTheme.colors.onSurface.copy(alpha = 0.9f),
+                                                               modifier = Modifier
+                                                                   .padding(start = 4.dp)
+                                                                   .size(20.dp)
+                                                                   .clickable {
+                                                                       state.removeRecentItem(item)
+                                                                   }
+                                                           )
+                                                       }else{
+                                                           // 占位
+                                                           Box(Modifier.padding(start = 4.dp).size(20.dp))
+                                                       }
+
+                                                    }
+
                                                 },
-                                                modifier = Modifier.clickable {
+                                                modifier = Modifier
+                                                    .onPointerEvent(PointerEventType.Enter) { hovered = true }
+                                                    .onPointerEvent(PointerEventType.Exit) { hovered = false }
+                                                    .clickable {
                                                     scope.launch (Dispatchers.Default){
                                                         val lastPlayedTime = item.lastPlayedTime
                                                         if (File(item.path).exists()) {
