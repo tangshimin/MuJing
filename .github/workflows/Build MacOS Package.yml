@@ -2,9 +2,7 @@ name: Build MacOS Package
 
 on:
   workflow_dispatch: # Manual trigger
-  push: # Tag-based trigger
-    tags:
-      - '*'
+
 
 jobs:
   create-mac-package:
