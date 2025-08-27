@@ -771,7 +771,13 @@ fun VideoPlayer(
                                         if (prevPlayState == null) {
                                             prevPlayState = isPlaying
                                         }
-                                        pauseIfPlaying()
+
+                                        // 只有在有字幕时才暂停播放
+                                        // 有时候鼠标移动慢了，过了 150 毫秒字幕已经消失了
+                                        if(caption.isNotEmpty()){
+                                            pauseIfPlaying()
+                                        }
+
                                     }
 
                                 }
