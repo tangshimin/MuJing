@@ -111,13 +111,7 @@ fun AboutDialog(
                                     url =  "https://github.com/tangshimin/MuJing"
                                 )
                             }
-                            Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)){
-                                Text("用户反馈地址：   ")
-                                LinkText(
-                                    text = "https://support.qq.com/products/594079/",
-                                    url =  "https://support.qq.com/products/594079/"
-                                )
-                            }
+
                             Row(modifier = Modifier.fillMaxWidth().padding(top = 10.dp)){
                                 Text("邮箱：                ",modifier = Modifier.padding(end = 1.dp))
                                 LinkText(
