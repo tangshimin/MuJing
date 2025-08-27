@@ -169,7 +169,7 @@ fun AboutDialog(
                                 Dependency(
                                     name = "VLCJ",
                                     url = "https://github.com/caprica/vlcj",
-                                    version = "4.7.2",
+                                    version = "4.11.0",
                                     license = GPL3,
                                 )
                                 Dependency(
@@ -187,7 +187,7 @@ fun AboutDialog(
                                 Dependency(
                                     name = "FlatLaf",
                                     url = "https://github.com/JFormDesigner/FlatLaf",
-                                    version = "3.1",
+                                    version = "3.6.1",
                                     license = Apache2,
                                 )
 
@@ -219,17 +219,11 @@ fun AboutDialog(
 
                                 Dependency(
                                     name = "Compose Multiplatform",
-                                    url = "https://github.com/JetBrains/compose-jb",
-                                    version = "1.4.0",
+                                    url = "https://github.com/JetBrains/compose-multiplatform",
+                                    version = "1.9.0-beta03",
                                     license = Apache2,
                                 )
 
-                                Dependency(
-                                    name = "jetbrains compose material3",
-                                    url = "https://github.com/JetBrains/compose-multiplatform",
-                                    version = "1.0.1",
-                                    license = Apache2,
-                                )
 
                                 Dependency(
                                     name = "material-icons-extended",
@@ -241,7 +235,7 @@ fun AboutDialog(
                                 Dependency(
                                     name = "kotlin",
                                     url = "https://github.com/JetBrains/kotlin",
-                                    version = "1.8.0",
+                                    version = "2.2.0",
                                     license = Apache2,
                                 )
 
@@ -254,7 +248,7 @@ fun AboutDialog(
                                 Dependency(
                                     name = "kotlinx-serialization-json",
                                     url = "https://github.com/Kotlin/kotlinx.serialization",
-                                    version = "1.8.0",
+                                    version = "2.2.0",
                                     license = Apache2,
                                 )
                                 Dependency(
