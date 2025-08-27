@@ -1657,55 +1657,58 @@ fun PlayerSettingsButton(
     playerState: PlayerState,
     onKeepControlBoxVisible: () -> Unit
 ) {
-    Box {
-
-        TooltipArea(
-            tooltip = {
-                Surface(
-                    elevation = 4.dp,
-                    border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
-                    shape = RectangleShape
-                ) {
-                    Text(
-                        text = "设置",
-                        color = MaterialTheme.colors.onSurface,
-                        modifier = Modifier.padding(10.dp)
+    val settingsEnabled = false
+    if(settingsEnabled){
+        Box {
+            TooltipArea(
+                tooltip = {
+                    Surface(
+                        elevation = 4.dp,
+                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                        shape = RectangleShape
+                    ) {
+                        Text(
+                            text = "设置",
+                            color = MaterialTheme.colors.onSurface,
+                            modifier = Modifier.padding(10.dp)
+                        )
+                    }
+                },
+                delayMillis = 100,
+                tooltipPlacement = TooltipPlacement.ComponentRect(
+                    anchor = Alignment.TopCenter,
+                    alignment = Alignment.TopCenter,
+                    offset = DpOffset.Zero
+                )
+            ) {
+                IconButton(onClick = { onSettingsExpandedChanged(true) }) {
+                    Icon(
+                        Icons.Filled.Settings,
+                        contentDescription = "Localized description",
+                        tint = Color.White,
                     )
                 }
-            },
-            delayMillis = 100,
-            tooltipPlacement = TooltipPlacement.ComponentRect(
-                anchor = Alignment.TopCenter,
-                alignment = Alignment.TopCenter,
-                offset = DpOffset.Zero
-            )
-        ) {
-            IconButton(onClick = { onSettingsExpandedChanged(true) }) {
-                Icon(
-                    Icons.Filled.Settings,
-                    contentDescription = "Localized description",
-                    tint = Color.White,
-                )
+            }
+
+            DropdownMenu(
+                expanded = settingsExpanded,
+                offset = DpOffset(x = (-60).dp, y = 0.dp),
+                onDismissRequest = {
+                    onSettingsExpandedChanged(false)
+                    onKeepControlBoxVisible()
+                },
+                modifier = Modifier
+                    .onPointerEvent(PointerEventType.Enter) {
+                        onKeepControlBoxVisible()
+                    }
+                    .onPointerEvent(PointerEventType.Exit) {
+                        onKeepControlBoxVisible()
+                    }
+            ) {
+                // 设置
             }
         }
 
-        DropdownMenu(
-            expanded = settingsExpanded,
-            offset = DpOffset(x = (-60).dp, y = 0.dp),
-            onDismissRequest = {
-                onSettingsExpandedChanged(false)
-                onKeepControlBoxVisible()
-            },
-            modifier = Modifier
-                .onPointerEvent(PointerEventType.Enter) {
-                    onKeepControlBoxVisible()
-                }
-                .onPointerEvent(PointerEventType.Exit) {
-                    onKeepControlBoxVisible()
-                }
-        ) {
-            // 设置
-        }
     }
 }
 
