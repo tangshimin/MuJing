@@ -477,11 +477,14 @@ fun AboutDialog(
                             Row(horizontalArrangement = Arrangement.Start){
                                 Text("感谢 ")
                                 LinkText(
+                                    text = "RealKai42",
+                                    url = "https://github.com/RealKai42"
+                                )
+                                Text(" 开源的 ")
+                                LinkText(
                                     text = "qwerty-learner",
                                     url = "https://github.com/Kaiyiwing/qwerty-learner"
                                 )
-                                Text("的所有贡献者，让我有机会把我曾经放弃的一个 app，又找到新的方式实现。")
-
                             }
                             Row{
                                 Text("感谢 ")
@@ -489,7 +492,7 @@ fun AboutDialog(
                                     text = "skywind3000",
                                     url = "https://github.com/skywind3000"
                                 )
-                                Text("开源")
+                                Text(" 开源的 ")
                                 LinkText(
                                     text = "ECDICT",
                                     url = "https://github.com/skywind3000/ECDICT"
