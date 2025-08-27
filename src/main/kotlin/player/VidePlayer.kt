@@ -641,7 +641,7 @@ fun VideoPlayer(
                     }
                 }
 
-                Row(Modifier
+                Box(Modifier
                     .align (Alignment.TopStart)
                     .padding(start = 72.dp, top = if(isMacOS())0.dp else 8.dp)
                 ){
@@ -687,7 +687,9 @@ fun VideoPlayer(
 
                             if(controlBoxVisible){
                                 Surface(
-                                    modifier = Modifier.size(38.dp),
+                                    modifier = Modifier
+                                        .padding(top = if(isMacOS())16.dp else 0.dp) // macOS 全屏模式时顶部有 16 dp 不可点击区域
+                                        .size(38.dp),
                                     elevation = 0.dp,
                                     color =  Color.Black.copy(alpha = 0.5f),
                                     border = BorderStroke((0.5).dp, Color.White.copy(alpha = 0.12f)),
