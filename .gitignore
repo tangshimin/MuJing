@@ -46,5 +46,8 @@ bin/
 
 ### 缓存的单词发音数据 ###
 /audio
+
+
 /wix311/
 /resources/windows/VLC/plugins/plugins.dat
+/.kotlin/
