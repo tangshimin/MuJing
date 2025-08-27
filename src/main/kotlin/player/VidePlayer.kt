@@ -213,7 +213,7 @@ fun VideoPlayer(
     var showSubtitlePicker by remember{mutableStateOf(false)}
 
     /** 支持的视频类型 */
-    val videoFormatList = remember{ mutableStateListOf("mp4","mkv") }
+    val videoFormatList = remember { mutableStateListOf("mp4", "mkv", "avi", "mov", "flv", "wmv", "webm", "ts", "m4v", "3gp", "mpeg", "mpg") }
 
     /** 内部字幕轨道列表 */
     val subtitleTrackList = remember{mutableStateListOf<Pair<Int,String>>()}
