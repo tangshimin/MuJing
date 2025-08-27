@@ -321,8 +321,7 @@ fun FeaturesPage(){
                 Spacer(Modifier.width(200.dp))
             }
 
-            Text("以弹幕的形式复习单词。播放电影时，添加用电影生成的词库到播放器，单词会以弹幕的形式出现。要查看某个单词的中文解释，只需要输入单词或对应的数字就可以查看。" +
-                    "打开弹幕的快捷方式：如果正在记忆某个由视频或字幕生成的词库，把视频拖放到记忆单词界面，就可以快速的打开视频和弹幕。\n\n")
+            Text("以弹幕的形式复习单词。播放视频时,播放器会自动生成一个词库与正在记忆的单词匹配，如果匹配成功正在记忆的单词会以弹幕的形式出现。\n\n")
             Row(
                 horizontalArrangement = Arrangement.Center,
                 modifier = Modifier.fillMaxWidth()){
