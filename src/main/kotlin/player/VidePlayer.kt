@@ -712,8 +712,8 @@ fun VideoPlayer(
 
 
                 if (isMacOS() && windowState.placement != WindowPlacement.Fullscreen) {
-                    Column (Modifier.align(Alignment.TopCenter)) {
-                        MacOSTitle(title = title, window = window)
+                    Column (Modifier.align(Alignment.TopCenter).background(Color.Black)) {
+                        MacOSTitle(title = title, window = window, modifier = Modifier.height(38.dp))
                     }
                 }
 
