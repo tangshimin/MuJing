@@ -60,18 +60,13 @@ import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
 import util.*
-import java.awt.Component
-import java.awt.Cursor
-import java.awt.Point
-import java.awt.Toolkit
+import java.awt.*
 import java.awt.image.BufferedImage
 import java.io.File
 import java.time.LocalDateTime
 import java.util.*
 import kotlin.concurrent.schedule
 import kotlin.time.Duration.Companion.milliseconds
-import java.awt.Robot
-import java.awt.event.KeyEvent
 
 
 @Composable
@@ -1277,10 +1272,26 @@ fun VideoPlayer(
                             state.savePlayerState()
                         }
                         PlayerEventType.DIRECTION_UP -> {
+                            scope.launch {
+                                // 音量增加
+                                val currentVolume = videoPlayerComponent.mediaPlayer().audio().volume().toFloat()
+                                val volume =(currentVolume + 5f).coerceAtMost(100f)
+                                videoVolumeChanged(volume)
+                                videoPlayerComponent.mediaPlayer().audio().setVolume(volume.toInt())
 
+                                state.showNotification("音量: ${volume.toInt()}", NotificationType.ACTION)
+                            }
                         }
                         PlayerEventType.DIRECTION_DOWN -> {
+                            scope.launch {
+                                // 音量减少
+                                val currentVolume = videoPlayerComponent.mediaPlayer().audio().volume().toFloat()
+                                val volume =(currentVolume - 5f).coerceAtLeast(0f)
+                                videoVolumeChanged(volume)
+                                videoPlayerComponent.mediaPlayer().audio().setVolume(volume.toInt())
 
+                                state.showNotification("音量: ${volume.toInt()}", NotificationType.ACTION)
+                            }
                         }
 
 

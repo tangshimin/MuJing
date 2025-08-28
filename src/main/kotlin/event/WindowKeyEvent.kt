@@ -73,6 +73,18 @@ fun handleWindowKeyEvent(
                 }
                 true
             }
+            it.key == Key.DirectionUp && it.type == KeyEventType.KeyUp -> {
+                scope.launch {
+                    eventBus.post(PlayerEventType.DIRECTION_UP)
+                }
+                true
+            }
+            it.key == Key.DirectionDown && it.type == KeyEventType.KeyUp -> {
+                scope.launch {
+                    eventBus.post(PlayerEventType.DIRECTION_DOWN)
+                }
+                true
+            }
             it.key == Key.A && it.type == KeyEventType.KeyUp -> {
                 scope.launch {
                     eventBus.post(PlayerEventType.PREVIOUS_CAPTION)
