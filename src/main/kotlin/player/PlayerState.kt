@@ -25,6 +25,7 @@ import ui.wordscreen.WordScreenState
 import java.io.File
 import java.time.LocalDateTime
 import javax.swing.JOptionPane
+import kotlinx.coroutines.*
 
 @OptIn(ExperimentalSerializationApi::class)
 class PlayerState(playerData: PlayerData) {
@@ -56,6 +57,11 @@ class PlayerState(playerData: PlayerData) {
 
     var showCaptionList by mutableStateOf(false)
     var recentList = readRecentList()
+    
+    /** 通知消息 */
+    var notificationMessage by mutableStateOf("")
+    var showNotification by mutableStateOf(false)
+    private var notificationJob: Job? = null
 
     /** 从记忆单词界面调用的查看语境功能 */
     val showContext :(MediaInfo) -> Unit = { mediaInfo ->
@@ -226,6 +232,18 @@ class PlayerState(playerData: PlayerData) {
         }
     }
 
+    /** 显示通知消息 */
+    fun showNotification(message: String) {
+        notificationJob?.cancel()
+        notificationMessage = message
+        showNotification = true
+        
+        notificationJob = CoroutineScope(Dispatchers.Main).launch {
+            delay(3000) // 3秒后自动隐藏
+            showNotification = false
+        }
+    }
+
     /**
      * 从最近播放列表中移除无效视频条目。
      *
@@ -252,6 +270,7 @@ class PlayerState(playerData: PlayerData) {
 
     /** 删除单词 */
     val deleteWord: (Word) -> Unit = { word ->
+
         // 先从视频词库中删除单词
         vocabulary!!.wordList.remove(word)
         vocabulary!!.size = vocabulary!!.wordList.size
@@ -262,11 +281,18 @@ class PlayerState(playerData: PlayerData) {
         }
         // 最后保存词库
         try{
-            saveVocabulary(vocabulary!!.serializeVocabulary,vocabularyPath)
-            wordScreenVocabulary?.let {
-                saveVocabulary(wordScreenVocabulary!!.serializeVocabulary,wordScreenVocabularyPath)
 
-            }
+           if(wordScreenVocabularyPath.isNotEmpty()){
+               saveVocabulary(vocabulary!!.serializeVocabulary,vocabularyPath)
+               wordScreenVocabulary?.let {
+                   saveVocabulary(wordScreenVocabulary!!.serializeVocabulary,wordScreenVocabularyPath)
+                   showNotification("已删除单词: ${word.value}")
+               }
+           }else{
+                showNotification("记忆单词界面还没有设置词库，无法保存。")
+           }
+
+
         }catch (e:Exception){
             // 回滚
             vocabulary!!.wordList.add(word)
@@ -276,7 +302,7 @@ class PlayerState(playerData: PlayerData) {
                 wordScreenVocabulary!!.size = wordScreenVocabulary!!.wordList.size
             }
             e.printStackTrace()
-            JOptionPane.showMessageDialog(null, "保存词库失败,错误信息:\n${e.message}")
+            showNotification("删除单词失败: ${word.value}\n错误信息:${e.message}")
         }
     }
 
@@ -297,11 +323,19 @@ class PlayerState(playerData: PlayerData) {
      * @param word 要添加的单词。
      */
     fun addWord(word : Word) {
+
+        if(wordScreenVocabularyPath.isEmpty()){
+            // 先这样写，后面再优化
+            showNotification("添加失败，\n要先在记忆单词界面选择一个词库，\n否则无法使用这个功能。\n")
+            return
+        }
+
         val newWord = word.deepCopy()
         if(wordScreenVocabulary != null && wordScreenVocabularyPath.isNotEmpty()){
             // wordScreenVocabulary 正常情况下不会为 NULL，最少也是一个空的词库，而且没有持久化到磁盘。
             if(wordScreenVocabulary?.wordList?.isEmpty() == true){
                 // 记忆单词界面打开了，但是词库是空的，什么有效信息都没有，需用重置词库的基础信息
+                // 这里还有一个问题 wordScreenVocabularyPath 还未设置，所以这段代码不会被执行
                 wordScreenVocabulary!!.wordList.add(newWord)
                 wordScreenVocabulary!!.name = File(videoPath).name
                 wordScreenVocabulary!!.type == VocabularyType.SUBTITLES
@@ -315,7 +349,7 @@ class PlayerState(playerData: PlayerData) {
                 // 记忆单词界面打开的词库是熟悉词库或困难词库，不添加
                 if(wordScreenVocabulary!!.name == "FamiliarVocabulary" ||
                     wordScreenVocabulary!!.name == "HardVocabulary"){
-                    JOptionPane.showMessageDialog(null,"正在记忆的词库是 $wordScreenVocabulary.name, 无法添加单词。")
+                    showNotification("单词记忆界面的词库是 ${wordScreenVocabulary!!.name}, 无法添加单词。")
                     return
                 }
 
@@ -357,14 +391,6 @@ class PlayerState(playerData: PlayerData) {
                         }
                         newWord.captions.clear()
 
-                        if (!wordScreenVocabulary!!.wordList.contains(newWord)) {
-                            wordScreenVocabulary!!.wordList.add(newWord)
-                        }
-                    }else{
-                        // 视频路径一致，直接添加单词
-                        if (!wordScreenVocabulary!!.wordList.contains(newWord)) {
-                            wordScreenVocabulary!!.wordList.add(newWord)
-                        }
                     }
 
                 }else{
@@ -381,26 +407,28 @@ class PlayerState(playerData: PlayerData) {
                         newWord.externalCaptions.add(externalCaption)
                     }
                     newWord.captions.clear()
-                    if (!wordScreenVocabulary!!.wordList.contains(newWord)) {
-                        wordScreenVocabulary!!.wordList.add(newWord)
-                        word.externalCaptions.forEach { caption ->
-                            println("单词 ${word.value} 的外部字幕: ${caption.content}")
-                        }
-                    }
                 }
+
+                if (!wordScreenVocabulary!!.wordList.contains(newWord)) {
+                    wordScreenVocabulary!!.wordList.add(newWord)
+                }else{
+                    showNotification("单词: ${newWord.value} 已经存在于词库:\n${wordScreenVocabulary!!.name} 中。")
+                    return
+                }
+
                 // 更新词库大小
                 wordScreenVocabulary!!.size = wordScreenVocabulary!!.wordList.size
 
                 // 保存词库
                 try{
                     saveVocabulary(wordScreenVocabulary!!.serializeVocabulary,wordScreenVocabularyPath)
-
+                    showNotification("已添加单词: ${newWord.value} 到正在记忆的词库")
                 }catch (e:Exception){
                     // 回滚
                     wordScreenVocabulary!!.wordList.remove(newWord)
                     wordScreenVocabulary!!.size = wordScreenVocabulary!!.wordList.size
                     e.printStackTrace()
-                    JOptionPane.showMessageDialog(null, "保存词库失败,错误信息:\n${e.message}")
+                    showNotification("添加单词失败: ${newWord.value}\n错误信息:${e.message}")
                 }
             }
 
@@ -409,45 +437,59 @@ class PlayerState(playerData: PlayerData) {
     }
 
     /** 把单词加入到熟悉词库 */
-    val addToFamiliar: (Word) -> Unit = { word ->
+    val addToFamiliar: (Word) -> Unit = addToFamiliar@{ word ->
+        if(vocabulary == null){
+            // 先这样写，后面再优化
+            showNotification("添加失败，\n要先在记忆单词界面选择一个词库，\n否则无法使用这个功能。\n")
+            return@addToFamiliar
+        }
+
         val familiarWord = word.deepCopy()
         val file = getFamiliarVocabularyFile()
         val familiar = loadVocabulary(file.absolutePath)
         // 如果当前词库是 MKV 或 SUBTITLES 类型的词库，需要把内置词库转换成外部词库。
-        if (vocabulary!!.type == VocabularyType.MKV ||
-            vocabulary!!.type == VocabularyType.SUBTITLES
-        ) {
-            familiarWord.captions.forEach { caption ->
-                val externalCaption = ExternalCaption(
-                    relateVideoPath = vocabulary!!.relateVideoPath,
-                    subtitlesTrackId = vocabulary!!.subtitlesTrackId,
-                    subtitlesName = vocabulary!!.name,
-                    start = caption.start,
-                    end = caption.end,
-                    content = caption.content
-                )
-                familiarWord.externalCaptions.add(externalCaption)
-            }
-            familiarWord.captions.clear()
-
+        familiarWord.captions.forEach { caption ->
+            val externalCaption = ExternalCaption(
+                relateVideoPath = vocabulary!!.relateVideoPath,
+                subtitlesTrackId = vocabulary!!.subtitlesTrackId,
+                subtitlesName = vocabulary!!.name,
+                start = caption.start,
+                end = caption.end,
+                content = caption.content
+            )
+            println("转换内置字幕为外部字幕: $externalCaption")
+            familiarWord.externalCaptions.add(externalCaption)
         }
+        familiarWord.captions.clear()
+
+
         if (!familiar.wordList.contains(familiarWord)) {
             familiar.wordList.add(familiarWord)
             familiar.size = familiar.wordList.size
+
+            if(familiar.name.isEmpty()){
+                familiar.name = "FamiliarVocabulary"
+            }
+
+            try{
+                saveVocabulary(familiar, file.absolutePath)
+                vocabulary?.let{
+                    deleteWord(word)
+                }
+
+                showNotification("已添加到熟悉词库: ${word.value}")
+            }catch (e:Exception){
+                // 回滚
+                familiar.wordList.remove(familiarWord)
+                familiar.size = familiar.wordList.size
+                e.printStackTrace()
+                showNotification("保存到熟悉词库失败: ${word.value}")
+            }
+        }else{
+            showNotification("熟悉词库已经存在单词: ${familiarWord.value}")
         }
-        if(familiar.name.isEmpty()){
-            familiar.name = "FamiliarVocabulary"
-        }
-        try{
-            saveVocabulary(familiar, file.absolutePath)
-            deleteWord(word)
-        }catch (e:Exception){
-            // 回滚
-            familiar.wordList.remove(familiarWord)
-            familiar.size = familiar.wordList.size
-            e.printStackTrace()
-            JOptionPane.showMessageDialog(null, "保存熟悉词库失败,错误信息:\n${e.message}")
-        }
+
+
     }
 
 }

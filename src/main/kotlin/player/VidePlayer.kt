@@ -737,8 +737,16 @@ fun VideoPlayer(
 
                 }
 
-
-
+                // 在这里显示通知
+                if (state.showNotification) {
+                    NotificationMessage(
+                        message = state.notificationMessage,
+                        onDismiss = { state.showNotification = false },
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(start = 10.dp,top = if(isMacOS())54.dp else 10.dp)
+                    )
+                }
 
                 // 字幕显示和控制栏
                 Column(
@@ -835,7 +843,14 @@ fun VideoPlayer(
                                     }
                                     state.addWord(it)
                                 },
-                                addToFamiliar =state.addToFamiliar
+                                addToFamiliar = {
+                                    if(it.captions.size<3){
+                                        val playerCaption= timedCaption.getCurrentPlayerCaption()
+                                        val dataCaption = playerCaption.toDataCaption()
+                                        it.captions.add(dataCaption)
+                                    }
+                                    state.addToFamiliar(it)
+                                }
                             )
 
                         }
@@ -2092,6 +2107,51 @@ fun CaptionList(
             }
         }
 
+    }
+}
+
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
+@Composable
+fun NotificationMessage(
+    message: String,
+    onDismiss: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+    ) {
+        Surface(
+            modifier = Modifier
+                .align(Alignment.TopStart)
+                .padding(8.dp),
+            elevation = 4.dp,
+            shape = RoundedCornerShape(8.dp),
+            color = MaterialTheme.colors.surface.copy(alpha = 0.9f),
+            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f))
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = message,
+                    color = MaterialTheme.colors.onSurface,
+                    style = MaterialTheme.typography.body2
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.size(16.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = "关闭通知",
+                        tint = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+                    )
+                }
+            }
+        }
     }
 }
 
