@@ -385,7 +385,10 @@ data class SubtitleInfo(
     val trackID: Int
 )
 
-fun readCachedSubtitle(videoPath: String): List<PlayerCaption> {
+fun readCachedSubtitle(
+    videoPath: String,
+    trackID: Int = 0,
+): List<PlayerCaption> {
     val applicationDir = getSettingsDirectory()
     val infoPath = "$applicationDir/VideoPlayer/last_subtitle.json"
     val subtitlePath = "$applicationDir/VideoPlayer/subtitle.srt"
@@ -395,7 +398,7 @@ fun readCachedSubtitle(videoPath: String): List<PlayerCaption> {
         val jsonString = infoFile.readText()
         val json = Json { ignoreUnknownKeys }
         val info = json.decodeFromString<SubtitleInfo>(jsonString)
-        if (info.videoPath == videoPath) {
+        if (info.videoPath == videoPath && info.trackID == trackID) {
             parseSubtitles(subtitlePath)
         } else {
             emptyList()

@@ -102,6 +102,7 @@ fun AnimatedVideoPlayer(
                 state.visible = false
                 state.videoPath = ""
                 state.showCaptionList = false
+                state.showContextTrackId = 0
                 // 退出全屏
                 if(!isMacOS() && windowState.placement == WindowPlacement.Fullscreen){
                     windowState.placement = WindowPlacement.Floating
@@ -900,6 +901,7 @@ fun VideoPlayer(
                                         isPlaying = false
                                         state.videoPath = ""
                                         state.startTime = "00:00:00"
+                                        state.showContextTrackId = 0
                                         caption = ""
                                         timeProgress = 0f
                                         timeText = ""
@@ -1251,7 +1253,7 @@ fun VideoPlayer(
                 withContext(Dispatchers.IO){
 
                     // 尝试读取已经提取到磁盘的字幕
-                    var list = readCachedSubtitle(videoPath)
+                    var list = readCachedSubtitle(videoPath,state.showContextTrackId)
                     if(list.isNotEmpty()){
                         // 如果有缓存的字幕，直接加载
                         timedCaption.setCaptionList(list)
@@ -1259,10 +1261,14 @@ fun VideoPlayer(
                         currentSubtitleTrack = if(trackId !== null)  trackId else -1
                     }
 
-                    // 如果没有缓存就加载第一个内置字幕
+                    // 如果没有缓存就加载内置字幕
+                    // 如果从查看语境功能进来，就使用语境字幕轨道，
+                    // 如果不是就使用默认字幕轨道 0,因为 showContextTrackId 默认是 0
                     if(list.isEmpty()){
-                        list = readCaptionList(videoPath = videoPath, subtitleId = 0)
+                        list = readCaptionList(videoPath = videoPath, subtitleId = state.showContextTrackId)
                         timedCaption.setCaptionList(list)
+                        // 更新当前字幕轨道
+                        currentSubtitleTrack = state.showContextTrackId
                     }
 
                     val applicationDir = getSettingsDirectory()

@@ -34,6 +34,8 @@ class PlayerState(playerData: PlayerData) {
     /** 播放器 > 视频地址 */
     var videoPath by mutableStateOf("")
     var startTime by mutableStateOf("00:00:00")
+    /** 记忆单词界面调用的查看语境功能时，显示哪个字幕轨道的字幕 */
+    var showContextTrackId by mutableStateOf(0)
 
     /** 与视频关联的词库，用于生成弹幕 */
     var vocabulary by  mutableStateOf<MutableVocabulary?>(null)
@@ -59,10 +61,13 @@ class PlayerState(playerData: PlayerData) {
     val showContext :(MediaInfo) -> Unit = { mediaInfo ->
         // 显示视频播放器窗口
         visible = true
+        showCaptionList = true
         // 设置视频路径和开始时间
         videoPath = mediaInfo.mediaPath
         startTime = mediaInfo.caption.start
-        showCaptionList = true
+        if(mediaInfo.trackId != -1){
+            showContextTrackId = mediaInfo.trackId
+        }
     }
 
     /** 从工具栏打开视频播放器 */
