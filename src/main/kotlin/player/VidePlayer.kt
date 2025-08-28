@@ -526,65 +526,6 @@ fun VideoPlayer(
             .focusRequester(focusRequester)
             .focusable(enabled = true)
     ) {
-        // 键盘快捷键
-        LaunchedEffect(Unit){
-
-            eventBus.events.collect { event ->
-                if (event is PlayerEventType) {
-                    if(event == PlayerEventType.PLAY) {
-                        play()
-                    }else if( event == PlayerEventType.ESC) {
-                      if(windowState.placement == WindowPlacement.Fullscreen){
-                            windowState.placement = WindowPlacement.Floating
-                      }
-                    }else if(event == PlayerEventType.OPEN_SEARCH){
-                        openSearch()
-                    } else if(event == PlayerEventType.FULL_SCREEN) {
-                       fullscreen()
-                    }else if(event == PlayerEventType.CLOSE_PLAYER) {
-                      close()
-                    }else if(event == PlayerEventType.DIRECTION_LEFT) {
-                     // 左方向键
-                        if (videoPlayer.status().isPlayable) {
-                            if (isPlaying) {
-                                videoPlayer.controls().skipTime(-5000) // 快退 5 秒
-                            } else {
-                                val newTime = videoPlayer.status().time() - 5000
-                                videoPlayer.controls().setTime(newTime.coerceAtLeast(0)) // 设置时间
-                                surface.setRenderingEnabled(true) // 确保渲染启用
-                            }
-                        }
-                    }else if(event == PlayerEventType.DIRECTION_RIGHT) {
-                        // 右方向键
-                        if (videoPlayer.status().isPlayable) {
-                            if (isPlaying) {
-                                videoPlayer.controls().skipTime(5000) // 快进 5 秒
-                            } else {
-                                val newTime = videoPlayer.status().time() + 5000
-                                videoPlayer.controls().setTime(newTime.coerceAtMost(videoDuration)) // 设置时间
-                                surface.setRenderingEnabled(true) // 确保渲染启用
-                            }
-                        }
-
-                    }else if(event == PlayerEventType.PREVIOUS_CAPTION) {
-                        // A 键 跳转到上一条字幕
-                        previousCaption()
-                    }else if(event == PlayerEventType.NEXT_CAPTION) {
-                        // D 键 跳转到下一条字幕
-                        nextCaption()
-                    }else if(event == PlayerEventType.REPEAT_CAPTION) {
-                        // S 键 重复当前字幕
-                        replayCaption()
-                    }else if(event == PlayerEventType.AUTO_PAUSE) {
-                        if(state.autoPause){
-                            autoPauseActive = false
-                        }
-                        state.autoPause = !state.autoPause
-                        state.savePlayerState()
-                    }
-                }
-            }
-        }
 
         LaunchedEffect(controlBoxVisible){
             playerCursor = if(controlBoxVisible) PointerIcon.Default else PointerIcon.None
@@ -1268,6 +1209,86 @@ fun VideoPlayer(
                 nextCaption =  nextCaption
             )
         }
+
+        // 键盘快捷键
+        LaunchedEffect(Unit){
+            eventBus.events.collect { event ->
+                if (event is PlayerEventType) {
+                    when (event) {
+                        PlayerEventType.PLAY -> {
+                            play()
+                        }
+                        PlayerEventType.ESC -> {
+                            if(windowState.placement == WindowPlacement.Fullscreen){
+                                windowState.placement = WindowPlacement.Floating
+                            }
+                        }
+                        PlayerEventType.OPEN_SEARCH -> {
+                            openSearch()
+                        }
+                        PlayerEventType.FULL_SCREEN -> {
+                            fullscreen()
+                        }
+                        PlayerEventType.CLOSE_PLAYER -> {
+                            close()
+                        }
+                        PlayerEventType.DIRECTION_LEFT -> {
+                            // 左方向键
+                            if (videoPlayer.status().isPlayable) {
+                                if (isPlaying) {
+                                    videoPlayer.controls().skipTime(-5000) // 快退 5 秒
+                                } else {
+                                    val newTime = videoPlayer.status().time() - 5000
+                                    videoPlayer.controls().setTime(newTime.coerceAtLeast(0)) // 设置时间
+                                    surface.setRenderingEnabled(true) // 确保渲染启用
+                                }
+                            }
+                        }
+                        PlayerEventType.DIRECTION_RIGHT -> {
+                            // 右方向键
+                            if (videoPlayer.status().isPlayable) {
+                                if (isPlaying) {
+                                    videoPlayer.controls().skipTime(5000) // 快进 5 秒
+                                } else {
+                                    val newTime = videoPlayer.status().time() + 5000
+                                    videoPlayer.controls().setTime(newTime.coerceAtMost(videoDuration)) // 设置时间
+                                    surface.setRenderingEnabled(true) // 确保渲染启用
+                                }
+                            }
+
+                        }
+                        PlayerEventType.PREVIOUS_CAPTION -> {
+                            // A 键 跳转到上一条字幕
+                            previousCaption()
+                        }
+                        PlayerEventType.NEXT_CAPTION -> {
+                            // D 键 跳转到下一条字幕
+                            nextCaption()
+                        }
+                        PlayerEventType.REPEAT_CAPTION -> {
+                            // S 键 重复当前字幕
+                            replayCaption()
+                        }
+                        PlayerEventType.AUTO_PAUSE -> {
+                            if(state.autoPause){
+                                autoPauseActive = false
+                            }
+                            state.autoPause = !state.autoPause
+                            state.savePlayerState()
+                        }
+                        PlayerEventType.DIRECTION_UP -> {
+
+                        }
+                        PlayerEventType.DIRECTION_DOWN -> {
+
+                        }
+
+
+                    }
+                }
+            }
+        }
+
 
         /** 打开视频后自动播放 */
         LaunchedEffect(videoPath) {
