@@ -375,6 +375,9 @@ fun TextScreen(
                             }
 
                             val textFieldKeyEvent: (KeyEvent) -> Boolean = { it: KeyEvent ->
+                                // 组合键，MacOS 使用 Meta 键，Windows 和 Linux 使用 Ctrl 键
+                                val isModifierPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
+
                                 when {
                                     ((it.key != Key.ShiftLeft && it.key != Key.ShiftRight) && it.type == KeyEventType.KeyDown) -> {
                                         playKeySound()
@@ -403,7 +406,7 @@ fun TextScreen(
                                         }
                                         true
                                     }
-                                    (it.isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) -> {
+                                    (isModifierPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) -> {
                                         scope.launch { selectable = !selectable }
                                         true
                                     }
@@ -556,13 +559,19 @@ fun TextScreen(
                                                 .padding(top = 2.5.dp,bottom = 2.5.dp)
                                                 .focusRequester(selectRequester)
                                                 .onKeyEvent {
-                                                    if (it.isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) {
-                                                        scope.launch { selectable = !selectable }
-                                                        true
-                                                    }else if (it.isCtrlPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) {
-                                                        scope.launch {openSearch() }
-                                                        true
-                                                    } else false
+                                                    // 组合键，MacOS 使用 Meta 键，Windows 和 Linux 使用 Ctrl 键
+                                                    val isModifierPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
+                                                    when {
+                                                        isModifierPressed && it.key == Key.B && it.type == KeyEventType.KeyUp -> {
+                                                            scope.launch { selectable = !selectable }
+                                                            true
+                                                        }
+                                                        isModifierPressed && it.key == Key.F && it.type == KeyEventType.KeyUp -> {
+                                                            scope.launch {openSearch() }
+                                                            true
+                                                        }
+                                                        else -> false
+                                                    }
                                                 }
                                         )
                                         LaunchedEffect(Unit) {

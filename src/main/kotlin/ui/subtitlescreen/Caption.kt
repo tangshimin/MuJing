@@ -299,14 +299,18 @@ fun SelectableText(
                 .height(32.dp)
                 .focusRequester(selectRequester)
                 .onKeyEvent {
-                    val isCtrlPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
-                    if (isCtrlPressed && it.key == Key.B && it.type == KeyEventType.KeyUp) {
-                        onDismissRequest()
-                        true
-                    }else if (it.isCtrlPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) {
-                        scope.launch {openSearch() }
-                        true
-                    } else false
+                    val isModifierPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
+                    when {
+                        isModifierPressed && it.key == Key.B && it.type == KeyEventType.KeyUp -> {
+                            onDismissRequest()
+                            true
+                        }
+                        isModifierPressed && it.key == Key.F && it.type == KeyEventType.KeyUp -> {
+                            scope.launch {openSearch() }
+                            true
+                        }
+                        else -> false
+                    }
                 }
         )
 

@@ -270,14 +270,18 @@ fun EditWordComposeContent(
     Box (Modifier
         .fillMaxSize()
         .onKeyEvent {
-        if(it.key == Key.Escape && it.type == KeyEventType.KeyUp){
-            close()
-            true
-        }else if(it.key == Key.S && it.isCtrlPressed && it.type == KeyEventType.KeyUp){
-            saveWord()
-            true
-
-        }else false
+            val isModifierPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
+            when (it.key) {
+                Key.Escape if it.type == KeyEventType.KeyUp -> {
+                    close()
+                    true
+                }
+                Key.S if isModifierPressed && it.type == KeyEventType.KeyUp -> {
+                    saveWord()
+                    true
+                }
+                else -> false
+            }
     }){
         val stateVertical = rememberScrollState(0)
         val scrollbarStyle =  LocalScrollbarStyle.current.copy(shape = if(isWindows()) RectangleShape else RoundedCornerShape(4.dp))
