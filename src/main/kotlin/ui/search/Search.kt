@@ -16,8 +16,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import data.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -46,10 +48,11 @@ fun Search(
     }
     val audioPlayer = LocalAudioPlayerComponent.current
     val keyEvent: (KeyEvent) -> Boolean = {
-        if (it.isCtrlPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) {
+        val isModifierPressed = if(isMacOS()) it.isMetaPressed else  it.isCtrlPressed
+        if (isModifierPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) {
             onDismissRequest()
             true
-        }else if (it.isCtrlPressed && it.key == Key.J && it.type == KeyEventType.KeyUp) {
+        }else if (isModifierPressed && it.key == Key.J && it.type == KeyEventType.KeyUp) {
             if (!isPlayingAudio && searchResult != null && searchResult!!.value.isNotEmpty()) {
                 scope.launch (Dispatchers.IO){
                     val audioPath = getAudioPath(
@@ -70,18 +73,16 @@ fun Search(
                 }
             }
             true
-        } else if (it.key == Key.Escape && it.type == KeyEventType.KeyUp) {
-            onDismissRequest()
-            true
         } else false
     }
 
     Popup(
         alignment = Alignment.Center,
-        focusable = true,
+        offset = IntOffset(0, 0),
         onDismissRequest = {onDismissRequest()},
-        onKeyEvent = {keyEvent(it)}
-    ) {
+        properties = PopupProperties(focusable = true),
+        onKeyEvent = {keyEvent(it)},
+    ){
 
         val focusRequester = remember { FocusRequester() }
         var input by remember { mutableStateOf("") }

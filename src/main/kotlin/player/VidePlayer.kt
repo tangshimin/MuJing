@@ -85,7 +85,8 @@ fun AnimatedVideoPlayer(
     windowState: WindowState,
     eventBus: EventBus,
     window: ComposeWindow,
-    title: String = "视频播放器"
+    title: String = "视频播放器",
+    openSearch: () -> Unit,
 ) {
     AnimatedVisibility(
         visible = visible,
@@ -123,7 +124,8 @@ fun AnimatedVideoPlayer(
                 close = close,
                 eventBus = eventBus,
                 window = window,
-                title = title
+                title = title,
+                openSearch = openSearch
             )
         }
 
@@ -144,7 +146,8 @@ fun VideoPlayer(
     close: () -> Unit,
     eventBus: EventBus,
     window: ComposeWindow,
-    title : String = "视频播放器"
+    title : String = "视频播放器",
+    openSearch: () -> Unit,
 ){
 
     val videoPath = state.videoPath
@@ -523,7 +526,7 @@ fun VideoPlayer(
             .focusRequester(focusRequester)
             .focusable(enabled = true)
     ) {
-        // 快捷键
+        // 键盘快捷键
         LaunchedEffect(Unit){
 
             eventBus.events.collect { event ->
@@ -534,7 +537,9 @@ fun VideoPlayer(
                       if(windowState.placement == WindowPlacement.Fullscreen){
                             windowState.placement = WindowPlacement.Floating
                       }
-                    }else if(event == PlayerEventType.FULL_SCREEN) {
+                    }else if(event == PlayerEventType.OPEN_SEARCH){
+                        openSearch()
+                    } else if(event == PlayerEventType.FULL_SCREEN) {
                        fullscreen()
                     }else if(event == PlayerEventType.CLOSE_PLAYER) {
                       close()

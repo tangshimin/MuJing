@@ -218,7 +218,7 @@ fun App(
                                             futureFileChooser = appState.futureFileChooser,
                                             openLoadingDialog = { appState.openLoadingDialog()},
                                             closeLoadingDialog = { appState.loadingFileChooserVisible = false },
-                                            openSearch = {appState.openSearch()},
+                                            openSearch = appState.openSearch,
                                             showVideoPlayer = {playerState.showPlayer(wordState)},
                                             setVideoPath = playerState.videoPathChanged,
                                         )
@@ -241,6 +241,7 @@ fun App(
                                     eventBus = eventBus,
                                     window = window,
                                     title = title,
+                                    openSearch = appState.openSearch,
                                 )
                             }
 

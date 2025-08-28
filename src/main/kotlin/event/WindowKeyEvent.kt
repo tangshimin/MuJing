@@ -42,6 +42,12 @@ fun handleWindowKeyEvent(
                 }
                 true
             }
+            isModifierPressed && it.key == Key.F && it.type == KeyEventType.KeyUp -> {
+                scope.launch {
+                    eventBus.post(PlayerEventType.OPEN_SEARCH)
+                }
+                true
+            }
             it.key == Key.F && it.type == KeyEventType.KeyUp -> {
                 scope.launch {
                     eventBus.post(PlayerEventType.FULL_SCREEN)
