@@ -60,6 +60,7 @@ class PlayerState(playerData: PlayerData) {
     
     /** 通知消息 */
     var notificationMessage by mutableStateOf("")
+    var notificationType by mutableStateOf(NotificationType.INFO)
     var showNotification by mutableStateOf(false)
     private var notificationJob: Job? = null
 
@@ -233,13 +234,19 @@ class PlayerState(playerData: PlayerData) {
     }
 
     /** 显示通知消息 */
-    fun showNotification(message: String) {
+    fun showNotification(
+        message: String,
+        type: NotificationType = NotificationType.INFO
+    ) {
         notificationJob?.cancel()
         notificationMessage = message
+        notificationType = type
         showNotification = true
-        
+
+        // 消息显示时间，信息类消息显示3秒，操作类消息显示1.5秒
+        val delay = if(type == NotificationType.INFO) 3000L else 1500L
         notificationJob = CoroutineScope(Dispatchers.Main).launch {
-            delay(3000) // 3秒后自动隐藏
+            delay(delay) // 3秒后自动隐藏
             showNotification = false
         }
     }
@@ -552,4 +559,9 @@ data class RecentVideo(
     override fun hashCode(): Int {
         return name.hashCode() + path.hashCode()
     }
+}
+
+enum class NotificationType {
+    INFO,
+    ACTION
 }

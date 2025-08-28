@@ -259,10 +259,11 @@ fun VideoPlayer(
             if (isPlaying) {
                 isPlaying = false
                 videoPlayerComponent.mediaPlayer().controls().pause()
+                state.showNotification("暂停", NotificationType.ACTION)
             } else {
                 isPlaying = true
                 videoPlayerComponent.mediaPlayer().controls().play()
-
+                state.showNotification("继续", NotificationType.ACTION)
                 // 播放时取消自动暂停
                 if(state.autoPause){
                     autoPauseActive = false
@@ -741,6 +742,7 @@ fun VideoPlayer(
                 if (state.showNotification) {
                     NotificationMessage(
                         message = state.notificationMessage,
+                        type = state.notificationType,
                         onDismiss = { state.showNotification = false },
                         modifier = Modifier
                             .align(Alignment.TopStart)
@@ -2114,6 +2116,7 @@ fun CaptionList(
 @Composable
 fun NotificationMessage(
     message: String,
+    type: NotificationType = NotificationType.INFO,
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -2129,29 +2132,47 @@ fun NotificationMessage(
             color = MaterialTheme.colors.surface.copy(alpha = 0.9f),
             border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f))
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = message,
-                    color = MaterialTheme.colors.onSurface,
-                    style = MaterialTheme.typography.body2
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                IconButton(
-                    onClick = onDismiss,
-                    modifier = Modifier.size(16.dp)
+            if(type == NotificationType.INFO){
+                Row(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Close,
-                        contentDescription = "关闭通知",
-                        tint = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+                    Text(
+                        text = message,
+                        color = MaterialTheme.colors.onSurface,
+                        style = MaterialTheme.typography.body2
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.size(16.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Close,
+                            contentDescription = "关闭通知",
+                            tint = MaterialTheme.colors.onSurface.copy(alpha = 0.7f)
+                        )
+                    }
+                }
+
+            }else{
+                // 显示刚刚执行的操作
+                Box(
+                    modifier = Modifier
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                ) {
+                    Text(
+                        text = message,
+                        color = MaterialTheme.colors.onSurface,
+                        style = MaterialTheme.typography.h6,
+                        modifier = Modifier.align(Alignment.Center)
                     )
                 }
             }
+
         }
+
     }
 }
 
