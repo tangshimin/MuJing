@@ -1977,6 +1977,7 @@ fun CaptionList(
                             .align(Alignment.BottomCenter)
                             .background(Color(0xFF1E1E1E))
                             .fillMaxWidth()
+                            .onPointerEvent(PointerEventType.Enter){}// 阻止鼠标穿透
                             .padding(bottom = 5.dp),
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
