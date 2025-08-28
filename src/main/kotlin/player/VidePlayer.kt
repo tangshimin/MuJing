@@ -70,6 +70,8 @@ import java.time.LocalDateTime
 import java.util.*
 import kotlin.concurrent.schedule
 import kotlin.time.Duration.Companion.milliseconds
+import java.awt.Robot
+import java.awt.event.KeyEvent
 
 
 @Composable
@@ -248,6 +250,8 @@ fun VideoPlayer(
     var timelineSynchronizer by remember {mutableStateOf<TimelineSynchronizer?>(null)  }
     /** Windows 的全屏要特殊处理 */
     var isWindowsFullscreen by remember { mutableStateOf(false) }
+    /** 保持屏幕常亮的协程任务 */
+    var keepScreenAwake by remember { mutableStateOf<Job?>(null) }
 
     /** 播放 */
     val play: () -> Unit = {
@@ -1464,9 +1468,12 @@ fun VideoPlayer(
             if(windowState.isMinimized || !isPlaying){
                 // 当窗口最小化时，暂停视频渲染
                 surface.setRenderingEnabled(false)
+                stopKeepingScreenAwake(keepScreenAwake)
             }else{
                 // 当窗口恢复时，继续渲染视频
                 surface.setRenderingEnabled(true)
+                 keepScreenAwake = keepScreenAwake(scope)
+
             }
         }
     }
@@ -2336,3 +2343,27 @@ fun DanmakuButton(
 }
 
 
+fun keepScreenAwake(scope: CoroutineScope): Job {
+    val robot = Robot()
+    return scope.launch(Dispatchers.IO) {
+        while (isActive) {
+            try {
+                // 获取当前鼠标位置
+                val mousePosition = java.awt.MouseInfo.getPointerInfo().location
+                val x = mousePosition.x
+                val y = mousePosition.y
+
+                // 模拟鼠标移动一个像素并回到原位置
+                robot.mouseMove(x + 1, y)
+                robot.mouseMove(x, y)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            delay(60000) // 每分钟执行一次
+        }
+    }
+}
+
+fun stopKeepingScreenAwake(job: Job?) {
+    job?.cancel()
+}
