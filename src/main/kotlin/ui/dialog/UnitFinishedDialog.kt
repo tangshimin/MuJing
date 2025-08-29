@@ -28,7 +28,7 @@ import ui.wordscreen.MemoryStrategy
 
 
 /**
- * 当前章节完成之后的对话框
+ * 当前单元完成之后的对话框
  * @param close 点击取消之后调用的回调函数
  * @param correctRate 正确率
  * @param isVocabularyFinished 是否整个词典的单词都已经学习完成
@@ -37,14 +37,14 @@ import ui.wordscreen.MemoryStrategy
  * @param enterDictation 进入听写模式后调用的回调函数
  * @param learnAgain 选择【重复本章】后调用的回调函数
  * @param reviewWrongWords 选择【复习错误单词】后调用的回调函数
- * @param nextChapter 选择【下一章】后调用的回调函数
+ * @param nextChapter 选择【下一单元】后调用的回调函数
  * @param resetIndex 选择【返回到第一章】后调用的回调函数，或者选择【随机重置词库】后调用的函数
  * boolean 为 true 表示要随机重置词库
  */
 @OptIn(ExperimentalFoundationApi::class)
 @ExperimentalComposeUiApi
 @Composable
-fun ChapterFinishedDialog(
+fun UnitFinishedDialog(
     close: () -> Unit,
     correctRate: Float,
     isVocabularyFinished: Boolean,
@@ -119,14 +119,14 @@ fun ChapterFinishedDialog(
                 ) {
 
                     val title = if (isVocabularyFinished) {
-                        "您已完成最后一个章节"
+                        "您已完成最后一个单元"
                     } else if (memoryStrategy == MemoryStrategy.Dictation) {
-                            "您已听写完本章节"
+                            "您已听写完本单元"
                     } else if (memoryStrategy == MemoryStrategy.DictationTest) {
-                            "您已测试完本章节"
+                            "您已测试完本单元"
                     } else if (isReviewWrong){
                         "您已复习完错误单词"
-                    }else "您已学习完本章节"
+                    }else "您已学习完本单元"
 
                     Text(text = title, color = MaterialTheme.colors.onBackground)
                 }
@@ -211,19 +211,19 @@ fun ChapterFinishedDialog(
                             OutlinedButton(onClick = {
                                 openReviewDialog()
                             }) {
-                                Text("(⏎)选择章节", color = textColor)
+                                Text("(⏎)选择单元", color = textColor)
                             }
                         }else if (isVocabularyFinished) {
                             OutlinedButton(onClick = {
                                 resetIndex(false)
                             }) {
-                                Text("(⏎)返回到第一章", color = textColor)
+                                Text("(⏎)返回到第一单元", color = textColor)
                             }
                         } else {
                             OutlinedButton(onClick = {
                                 nextChapter()
                             }) {
-                                Text("(⏎)下一章", color = textColor)
+                                Text("(⏎)下一单元", color = textColor)
                             }
                         }
                     }
@@ -249,7 +249,7 @@ fun ChapterFinishedDialog(
                         ) {
                             OutlinedButton(onClick = {
                                 learnAgain()
-                            }) { Text("(Shift+⏎)重复本章", color = textColor) }
+                            }) { Text("(Shift+⏎)重复本单元", color = textColor) }
                         }
                     }
                     Spacer(Modifier.width(15.dp))

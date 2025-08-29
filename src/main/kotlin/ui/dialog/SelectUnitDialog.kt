@@ -28,18 +28,18 @@ import ui.wordscreen.WordScreenState
 import ui.wordscreen.rememberDictationState
 
 /**
- * 选择章节
+ * 选择单元
  */
 @ExperimentalComposeUiApi
 @Composable
-fun SelectChapterDialog(
+fun SelectUnitDialog(
     close:() -> Unit,
     wordRequestFocus:() -> Unit,
     wordScreenState: WordScreenState,
     isMultiple:Boolean
 ) {
     DialogWindow(
-        title = if(isMultiple) "听写测试，可以选择多个章节" else "选择章节",
+        title = if(isMultiple) "听写测试，可以选择多个单元" else "选择单元",
         onCloseRequest = { close() },
         resizable = true,
         state = rememberDialogState(
@@ -112,7 +112,7 @@ fun SelectChapterDialog(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("选择了${selectedChapters.size}个章节  ", color = MaterialTheme.colors.onBackground)
+                            Text("选择了${selectedChapters.size}个单元  ", color = MaterialTheme.colors.onBackground)
                             Text("${selectedWords.value.size}", color = MaterialTheme.colors.primary)
                             Text(" 个单词", color = MaterialTheme.colors.onBackground)
                             Checkbox(
@@ -217,7 +217,7 @@ fun Chapters(
             val mod = size % 20
             if (mod != 0 && size > 20) count += 1
             if (size < 20) count = 1
-            val chapters = (1 until count + 1).map { "Chapter $it" }.toList()
+            val chapters = (1 until count + 1).map { "Unit $it" }.toList()
             val listState = rememberLazyGridState()
             LazyVerticalGrid(
                 columns = GridCells.Adaptive(144.dp),

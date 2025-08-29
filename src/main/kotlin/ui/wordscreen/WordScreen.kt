@@ -666,13 +666,13 @@ fun MainContent(
 
         }
 
-        /** 显示本章节已经完成对话框 */
+        /** 显示本单元已经完成对话框 */
         var showChapterFinishedDialog by remember { mutableStateOf(false) }
 
         /** 显示整个词库已经学习完成对话框 */
         var isVocabularyFinished by remember { mutableStateOf(false) }
 
-        /** 播放整个章节完成时音效 */
+        /** 播放整个单元完成时音效 */
         val playChapterFinished = {
             if (wordScreenState.isPlaySoundTips) {
                 playSound("audio/Success!!.wav", wordScreenState.soundTipsVolume)
@@ -1210,7 +1210,7 @@ fun MainContent(
                 rate
             }
 
-            /** 重复学习本章 */
+            /** 重复学习本单元 */
             val learnAgain: () -> Unit = {
                 decreaseIndex()
                 resetChapterTime()
@@ -1240,7 +1240,7 @@ fun MainContent(
                 }
             }
 
-            /** 下一章 */
+            /** 下一单元 */
             val nextChapter: () -> Unit = {
 
                 if (wordScreenState.memoryStrategy == NormalReviewWrong ||
@@ -1272,7 +1272,7 @@ fun MainContent(
             /** 从独立的听写测试再次进入到听写测试时，需要的单词 */
             val shuffleDictationReview:() -> Unit = {
                 var shuffledList = wordScreenState.reviewWords.shuffled()
-                // 如果打乱顺序的列表的第一个单词，和当前章节的最后一个词相等，就不会触发重组
+                // 如果打乱顺序的列表的第一个单词，和当前单元的最后一个词相等，就不会触发重组
                 while(shuffledList.first() == currentWord){
                     shuffledList = wordScreenState.reviewWords.shuffled()
                 }
@@ -1672,9 +1672,9 @@ fun MainContent(
                 )
             }
 
-            /** 显示独立的听写测试的选择章节对话框 */
+            /** 显示独立的听写测试的选择单元对话框 */
             var showChapterDialog by remember { mutableStateOf(false) }
-            /** 打开独立的听写测试的选择章节对话框 */
+            /** 打开独立的听写测试的选择单元对话框 */
             val openReviewDialog:() -> Unit = {
                 showChapterFinishedDialog = false
                 showChapterDialog = true
@@ -1682,7 +1682,7 @@ fun MainContent(
             }
 
             if(showChapterDialog){
-                SelectChapterDialog(
+                SelectUnitDialog(
                     close = {showChapterDialog = false},
                     wordScreenState = wordScreenState,
                     wordRequestFocus = {
@@ -1692,13 +1692,13 @@ fun MainContent(
                 )
             }
 
-            /** 关闭当前章节结束时跳出的对话框 */
+            /** 关闭当前单元结束时跳出的对话框 */
             val close: () -> Unit = {
                 showChapterFinishedDialog = false
                 if(isVocabularyFinished) isVocabularyFinished = false
             }
             if (showChapterFinishedDialog) {
-                ChapterFinishedDialog(
+                UnitFinishedDialog(
                     close = { close() },
                     isVocabularyFinished = isVocabularyFinished,
                     correctRate = correctRate(),

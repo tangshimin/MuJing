@@ -29,7 +29,7 @@ import state.AppState
 import theme.LocalCtrl
 import tts.AzureTTS
 import ui.dialog.AzureTTSDialog
-import ui.dialog.SelectChapterDialog
+import ui.dialog.SelectUnitDialog
 
 /**
  * 侧边菜单
@@ -91,7 +91,7 @@ fun WordScreenSidebar(
                             border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
                             shape = RectangleShape
                         ) {
-                            val tooltip =  "听写测试，可以选择多个章节"
+                            val tooltip =  "听写测试，可以选择多个单元"
                             Text(text = tooltip, modifier = Modifier.padding(10.dp))
                         }
                     },
@@ -117,7 +117,7 @@ fun WordScreenSidebar(
                             modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
                         )
                         if(showDictationDialog){
-                            SelectChapterDialog(
+                            SelectUnitDialog(
                                 close = {showDictationDialog = false},
                                 wordRequestFocus = wordRequestFocus,
                                 wordScreenState = wordScreenState,
@@ -133,7 +133,7 @@ fun WordScreenSidebar(
                     modifier = Modifier.fillMaxWidth().clickable { showChapterDialog = true }.padding(start = 16.dp, end = 8.dp)
                 ) {
 
-                    Text("选择章节", color = MaterialTheme.colors.onBackground)
+                    Text("选择单元", color = MaterialTheme.colors.onBackground)
                     Spacer(Modifier.width(15.dp))
                     Icon(
                         Icons.Filled.Apps,
@@ -142,7 +142,7 @@ fun WordScreenSidebar(
                             modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
                     )
                     if(showChapterDialog){
-                        SelectChapterDialog(
+                        SelectUnitDialog(
                             close = {showChapterDialog = false},
                             wordRequestFocus = wordRequestFocus,
                             wordScreenState = wordScreenState,
