@@ -681,12 +681,13 @@ fun VideoPlayer(
 
                 // 在这里显示通知
                 if (state.showNotification) {
+                    val alignment = if(state.notificationType == NotificationType.INFO) Alignment.TopStart else Alignment.Center
                     NotificationMessage(
                         message = state.notificationMessage,
                         type = state.notificationType,
                         onDismiss = { state.showNotification = false },
                         modifier = Modifier
-                            .align(Alignment.TopStart)
+                            .align(alignment)
                             .padding(start = 10.dp,top = if(isMacOS())54.dp else 10.dp)
                     )
                 }
@@ -1254,14 +1255,17 @@ fun VideoPlayer(
                         }
                         PlayerEventType.PREVIOUS_CAPTION -> {
                             // A 键 跳转到上一条字幕
+                            state.showNotification("上一条字幕", NotificationType.ACTION)
                             previousCaption()
                         }
                         PlayerEventType.NEXT_CAPTION -> {
                             // D 键 跳转到下一条字幕
+                            state.showNotification("下一条字幕", NotificationType.ACTION)
                             nextCaption()
                         }
                         PlayerEventType.REPEAT_CAPTION -> {
                             // S 键 重复当前字幕
+                            state.showNotification("重复当前字幕", NotificationType.ACTION)
                             replayCaption()
                         }
                         PlayerEventType.AUTO_PAUSE -> {
@@ -1488,6 +1492,7 @@ fun VideoPlayer(
                                     videoPlayer.controls().pause()
                                     isPlaying = false
                                     autoPauseActive = true
+                                    state.showNotification("自动暂停", NotificationType.ACTION)
                                 } else if(!autoPauseActive){
                                     caption = content
                                     // 播放结束，重复结束
@@ -2197,7 +2202,7 @@ fun NotificationMessage(
                 // 显示刚刚执行的操作
                 Box(
                     modifier = Modifier
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                        .padding(20.dp),
                 ) {
                     Text(
                         text = message,
