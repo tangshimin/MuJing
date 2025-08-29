@@ -105,6 +105,19 @@ fun DocumentWindow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
+                                .background( if(currentPage == "Danmaku")selectedColor else MaterialTheme.colors.background )
+                                .clickable { setCurrentPage("Danmaku") }) {
+                            Text("单词弹幕", modifier = Modifier.padding(start = 16.dp))
+                            if(currentPage == "Danmaku"){
+                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                            }
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
                                 .background( if(currentPage == "document")selectedColor else MaterialTheme.colors.background )
                                 .clickable {  setCurrentPage("document") }) {
                             Text("用文档生成词库", modifier = Modifier.padding(start = 16.dp))
@@ -138,19 +151,7 @@ fun DocumentWindow(
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
                             }
                         }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(48.dp)
-                                .background( if(currentPage == "Danmaku")selectedColor else MaterialTheme.colors.background )
-                                .clickable { setCurrentPage("Danmaku") }) {
-                            Text("如何打开单词弹幕", modifier = Modifier.padding(start = 16.dp))
-                            if(currentPage == "Danmaku"){
-                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
-                            }
-                        }
+
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -942,10 +943,11 @@ fun DanmakuPage(){
     Column (Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp)){
         Text(
            """
-              单词弹幕里的单词就是字幕词库里的单词，如果要打开单词弹幕要先使用字幕或视频里的内置字幕生成词库。
-              如果已经生成了字幕词库，打开视频播放器 > 打开视频 > 添加词库，就可以打开单词弹幕了。
+            单词弹幕功能详细介绍：
+                 - 播放视频时，播放器会自动生成一个词库与正在记忆的单词匹配，如果匹配成功正在记忆的单词会以弹幕的形式出现。
+                 - 弹幕显示规则：单词会在对应字幕出现的时间点显示。
+                 - 互动功能：鼠标悬停在弹幕上可暂停播放，点击弹幕可查看单词详情、播放发音，并可添加到生词本或熟悉词汇。
               
-              还有一种快捷打开单词弹幕的方法，如果正在记忆某个由视频生成的词库，把视频拖放到记忆单词界面，就可以快速的打开视频和弹幕。
            """.trimIndent()
         )
     }
