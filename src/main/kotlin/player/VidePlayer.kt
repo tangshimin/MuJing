@@ -207,7 +207,8 @@ fun VideoPlayer(
     /** 显示视频文件选择器 */
     var showFilePicker by remember {mutableStateOf(false)}
 
-    /** 显示词库文件选择器 */
+    /** 显示词库文件选择器*/
+    // TODO 不需要手动选择词库了，相关代码计划删除，现在暂时不删除
     var showVocabularyPicker by remember {mutableStateOf(false)}
 
     /** 显示字幕选择器 */
@@ -1181,13 +1182,6 @@ fun VideoPlayer(
                         showDropdownMenu = false
                     }) {
                         Text("打开视频",color = MaterialTheme.colors.onSurface)
-                    }
-
-                    DropdownMenuItem(onClick = {
-                        showVocabularyPicker = true
-                        showDropdownMenu = false
-                    }) {
-                        Text("打开词库",color = MaterialTheme.colors.onSurface)
                     }
                 }
             }
