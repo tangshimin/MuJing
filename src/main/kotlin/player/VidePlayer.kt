@@ -43,6 +43,7 @@ import androidx.compose.ui.window.WindowState
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import event.EventBus
 import event.PlayerEventType
+import ffmpeg.convertToSrt
 import icons.ArrowDown
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -384,18 +385,37 @@ fun VideoPlayer(
         println("设置了外部字幕，禁用内置字幕")
         currentSubtitleTrack = -2 // 禁用内置字幕
         scope.launch (Dispatchers.Default){
-            val captions = parseSubtitles(file.absolutePath)
-            timedCaption.setCaptionList(captions)
-            extSubIndex = index
-            // 更新字幕索引
-            updateCaptionIndex()
+            // 把 ASS 字幕转换成 SRT 字幕
+            if(file.extension == "ass"){
+                val applicationDir = getSettingsDirectory()
+                val srtFile = File("$applicationDir/temp.srt")
+                val result = convertToSrt(file.absolutePath, srtFile.absolutePath)
+                if(result == "finished"){
+                    println("字幕转换成功")
+                    val captions = parseSubtitles(srtFile.absolutePath)
+                    timedCaption.setCaptionList(captions)
+                }else{
+                    state.showNotification("字幕转换失败")
+                }
+                srtFile.delete()
+            }else{
+                val captions = parseSubtitles(file.absolutePath)
+                timedCaption.setCaptionList(captions)
+            }
 
-            generateMatchedVocabulary(
-                videoPath = videoPath,
-                subPath = file.absolutePath,
-                trackId = currentSubtitleTrack,
-                state = state,
-            )
+           if(timedCaption.isNotEmpty()){
+               extSubIndex = index
+               // 更新字幕索引
+               updateCaptionIndex()
+
+               generateMatchedVocabulary(
+                   videoPath = videoPath,
+                   subPath = file.absolutePath,
+                   trackId = currentSubtitleTrack,
+                   state = state,
+               )
+           }
+
         }
     }
 
@@ -1130,6 +1150,7 @@ fun VideoPlayer(
                     show = showFilePicker || showVocabularyPicker || showSubtitlePicker,
                     fileExtensions = when {
                         showVocabularyPicker -> if(isMacOS()) listOf("public.json") else listOf("json")
+                        showSubtitlePicker -> listOf("srt","ass")
                         else -> emptyList()
                     },
                     initialDirectory = ""

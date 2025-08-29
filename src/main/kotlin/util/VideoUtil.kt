@@ -10,8 +10,6 @@ import ffmpeg.removeRichText
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
-import kotlinx.serialization.json.JsonPrimitive
 import net.bramp.ffmpeg.FFmpeg
 import net.bramp.ffmpeg.FFmpegExecutor
 import net.bramp.ffmpeg.builder.FFmpegBuilder
@@ -532,12 +530,12 @@ fun parseSubtitles(subtitlesPath: String):List<PlayerCaption>{
 /**
  * 自动查找与视频文件关联的字幕文件
  *
- * 该函数会在视频文件所在目录及其下的 Subs 文件夹中查找所有 .srt 字幕文件，
+ * 该函数会在视频文件所在目录及其下的 Subs 文件夹中查找所有 .srt 和 .ass 字幕文件，
  * 并自动提取每个字幕文件的语言标签。语言标签的提取规则见 getSubtitleLangLabel。
  *
  * 查找逻辑：
- * 1. 查找与视频同目录下、以 baseName 开头的 .srt 文件，提取语言标签。
- * 2. 查找同目录下名为 Subs（不区分大小写）的子文件夹中的所有 .srt 文件，提取语言标签。
+ * 1. 查找与视频同目录下、以 baseName 开头的 .srt、.ass文件，提取语言标签。
+ * 2. 查找同目录下名为 Subs（不区分大小写）的子文件夹中的所有 .srt 和 .ass 文件，提取语言标签。
  *
  * @param videoPath 视频文件的完整路径
  * @return List<Pair<String, File>> 返回 (语言标签, 字幕文件) 的列表
@@ -550,21 +548,22 @@ fun findSubtitleFiles(videoPath: String): List<Pair<String,File>> {
     val dir = videoFile.parentFile ?: return emptyList()
     val result = mutableListOf<Pair<String,File>>()
 
-    // 1. 查找同目录下的 .srt 字幕
+    // 1. 查找同目录下的 .srt 和 .ass 字幕
     dir.listFiles { file ->
         file.isFile &&
                 file.name.startsWith(baseName) &&
-                file.name.endsWith(".srt", ignoreCase = true)
+                (file.name.endsWith(".srt", ignoreCase = true) || file.name.endsWith(".ass", ignoreCase = true))
     }?.forEach { file ->
-        val nameWithoutExt = file.name.removeSuffix(".srt")
-        var lang = nameWithoutExt.removePrefix(baseName)
+
+        val name = file.name
+        var lang = name.removePrefix(baseName)
         if (lang.startsWith("_")) lang = lang.removePrefix("_")
         if (lang.startsWith(".")) lang = lang.removePrefix(".")
         if (lang.isBlank()) lang = "subtitle"
         result.add(lang to file)
     }
 
-    // 2. 查找 Subs 子文件夹下的 .srt 字幕
+    // 2. 查找 Subs 子文件夹下的 .srt 和 .ass 字幕
     // 查找同目录下所有名为 Subs/ subs/ SUBS 等的文件夹
     val subsDirs = dir.listFiles { file ->
         file.isDirectory && file.name.equals("Subs", ignoreCase = true)
@@ -572,17 +571,18 @@ fun findSubtitleFiles(videoPath: String): List<Pair<String,File>> {
 
     for (subsDir in subsDirs) {
         subsDir.listFiles { file ->
-            file.isFile && file.name.endsWith(".srt", ignoreCase = true)
+            file.isFile && (file.name.endsWith(".srt", ignoreCase = true) || file.name.endsWith(".ass", ignoreCase = true))
         }?.forEach { file ->
-            val nameWithoutExt = file.name.removeSuffix(".srt")
-            if(nameWithoutExt.startsWith(baseName)){
-                var lang = nameWithoutExt.removePrefix(baseName)
+
+            val name = file.name
+            if(name.startsWith(baseName)){
+                var lang = name.removePrefix(baseName)
                 if (lang.startsWith("_")) lang = lang.removePrefix("_")
                 if (lang.startsWith(".")) lang = lang.removePrefix(".")
                 if (lang.isBlank()) lang = "subtitle"
                 result.add(lang to file)
             } else {
-                var lang = nameWithoutExt
+                var lang = name
                 if (lang.startsWith("_")) lang = lang.removePrefix("_")
                 if (lang.startsWith(".")) lang = lang.removePrefix(".")
                 result.add(lang to file)
