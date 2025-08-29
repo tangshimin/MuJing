@@ -645,30 +645,35 @@ fun VideoPlayer(
                         }else{
 
                             if(controlBoxVisible){
-                                Surface(
-                                    modifier = Modifier
-                                        .padding(top = if(isMacOS())16.dp else 0.dp) // macOS 全屏模式时顶部有 16 dp 不可点击区域
-                                        .size(38.dp),
-                                    elevation = 0.dp,
-                                    color =  Color.Black.copy(alpha = 0.5f),
-                                    border = BorderStroke((0.5).dp, Color.White.copy(alpha = 0.12f)),
-                                    shape = RoundedCornerShape(8.dp),
-                                ){
-                                    Box(
-                                        contentAlignment = Alignment.Center,
-                                        modifier = Modifier.fillMaxSize()
-                                            .clickable{close()}
-                                            .focusable(false)
 
+                                if((isMacOS() && state.showClose) || !isMacOS()){
+                                    Surface(
+                                        modifier = Modifier
+                                            .padding(top = if(isMacOS())16.dp else 0.dp) // macOS 全屏模式时顶部有 16 dp 不可点击区域
+                                            .size(38.dp),
+                                        elevation = 0.dp,
+                                        color =  Color.Black.copy(alpha = 0.5f),
+                                        border = BorderStroke((0.5).dp, Color.White.copy(alpha = 0.12f)),
+                                        shape = RoundedCornerShape(8.dp),
                                     ){
-                                        Icon(
-                                            Icons.Filled.ArrowDown,
-                                            contentDescription = "Close Video Player",
-                                            tint = Color.White,
-                                        )
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier.fillMaxSize()
+                                                .clickable{close()}
+                                                .focusable(false)
+
+                                        ){
+                                            Icon(
+                                                Icons.Filled.ArrowDown,
+                                                contentDescription = "Close Video Player",
+                                                tint = Color.White,
+                                            )
+                                        }
+
                                     }
 
                                 }
+
 
                             }
 
@@ -1747,7 +1752,7 @@ fun PlayerSettingsButton(
     playerState: PlayerState,
     onKeepControlBoxVisible: () -> Unit
 ) {
-    val settingsEnabled = false
+    val settingsEnabled = isMacOS()
     if(settingsEnabled){
         Box {
             TooltipArea(
@@ -1780,9 +1785,10 @@ fun PlayerSettingsButton(
                 }
             }
 
+            val offsetX = if(playerState.showCaptionList) (-95).dp else 80.dp
             DropdownMenu(
                 expanded = settingsExpanded,
-                offset = DpOffset(x = (-60).dp, y = 0.dp),
+                offset = DpOffset(x =offsetX, y = 0.dp),
                 onDismissRequest = {
                     onSettingsExpandedChanged(false)
                     onKeepControlBoxVisible()
@@ -1795,7 +1801,23 @@ fun PlayerSettingsButton(
                         onKeepControlBoxVisible()
                     }
             ) {
-                // 设置
+                DropdownMenuItem(onClick = { }) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "全屏时显示关闭按钮",
+                            color =MaterialTheme.colors.onBackground,
+                        )
+                        Switch(checked = playerState.showClose,
+                            onCheckedChange = {
+                                playerState.showClose = it
+                                playerState.savePlayerState()
+                            })
+                    }
+                }
             }
         }
 

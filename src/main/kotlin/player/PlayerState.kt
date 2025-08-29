@@ -54,6 +54,7 @@ class PlayerState(playerData: PlayerData) {
     var autoSpeak by mutableStateOf(playerData.autoSpeak)
     var preferredChinese by mutableStateOf(playerData.preferredChinese)
     var autoPause by mutableStateOf(playerData.autoPause)
+    var showClose by mutableStateOf(playerData.showClose)
 
     var showCaptionList by mutableStateOf(false)
     var recentList = readRecentList()
@@ -126,7 +127,7 @@ class PlayerState(playerData: PlayerData) {
         runBlocking {
             launch (Dispatchers.IO){
                 val playerData = PlayerData(
-                    showSequence, danmakuVisible, autoCopy, autoSpeak, preferredChinese, autoPause
+                    showSequence, danmakuVisible, autoCopy, autoSpeak, preferredChinese, autoPause,showClose
                 )
                 val encodeBuilder = Json {
                     prettyPrint = true
@@ -540,7 +541,8 @@ data class PlayerData(
     var autoCopy: Boolean = false,
     var autoSpeak: Boolean = true,
     var preferredChinese: Boolean = true,
-    var autoPause: Boolean = false
+    var autoPause: Boolean = false,
+    var showClose:Boolean = true
 )
 
 @Serializable
