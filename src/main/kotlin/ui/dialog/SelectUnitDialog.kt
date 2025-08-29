@@ -68,11 +68,11 @@ fun SelectUnitDialog(
                         count
                     }
                 }
-                val selectedChapters  = remember{
+                val selectedUnits  = remember{
                     if(isMultiple){
                         mutableStateListOf()
                     }else{
-                        mutableStateListOf(wordScreenState.chapter)
+                        mutableStateListOf(wordScreenState.unit)
                     }
                 }
 
@@ -80,19 +80,19 @@ fun SelectUnitDialog(
 
                 val selectAll = {
                     if(isSelectAll){
-                        selectedChapters.clear()
+                        selectedUnits.clear()
                         val list = (1 until chapterSize + 1).toList()
-                        selectedChapters.addAll(list)
+                        selectedUnits.addAll(list)
                     }else{
-                        selectedChapters.clear()
+                        selectedUnits.clear()
                     }
 
                 }
 
-                val selectedWords = remember(selectedChapters){
+                val selectedWords = remember(selectedUnits){
                     derivedStateOf {
                         val list = mutableStateListOf<Word>()
-                        selectedChapters.forEach { chapter ->
+                        selectedUnits.forEach { chapter ->
                             val start = chapter * 20 - 20
                             var end = chapter * 20
                             if(end > wordScreenState.vocabulary.wordList.size){
@@ -112,7 +112,7 @@ fun SelectUnitDialog(
                             verticalAlignment = Alignment.CenterVertically,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            Text("选择了${selectedChapters.size}个单元  ", color = MaterialTheme.colors.onBackground)
+                            Text("选择了${selectedUnits.size}个单元  ", color = MaterialTheme.colors.onBackground)
                             Text("${selectedWords.value.size}", color = MaterialTheme.colors.primary)
                             Text(" 个单词", color = MaterialTheme.colors.onBackground)
                             Checkbox(
@@ -131,19 +131,19 @@ fun SelectUnitDialog(
 
 
                 Row(modifier = Modifier.align(Alignment.Center).padding(top = 48.dp, bottom = 55.dp)) {
-                    Chapters(
-                        checkedChapters = selectedChapters,
+                    Units(
+                        checkedUnits = selectedUnits,
                         size = wordScreenState.vocabulary.size,
                         isMultiple = isMultiple,
-                        onChapterSelected = {
+                        onUnitSelected = {
                             if(!isMultiple){
-                                selectedChapters.clear()
-                                selectedChapters.add(it)
+                                selectedUnits.clear()
+                                selectedUnits.add(it)
                             }else{
-                                if(selectedChapters.contains(it)){
-                                    selectedChapters.remove(it)
+                                if(selectedUnits.contains(it)){
+                                    selectedUnits.remove(it)
                                 }else{
-                                    selectedChapters.add(it)
+                                    selectedUnits.add(it)
                                 }
                             }
                         },
@@ -152,7 +152,7 @@ fun SelectUnitDialog(
                 val dictationState = rememberDictationState()
                 Footer(
                     modifier = Modifier.align(Alignment.BottomCenter),
-                    confirmEnable = selectedChapters.isNotEmpty(),
+                    confirmEnable = selectedUnits.isNotEmpty(),
                     confirm = {
                         // 独立的听写测试，可以选择多个章节
                         if(isMultiple){
@@ -166,9 +166,9 @@ fun SelectUnitDialog(
                             wordScreenState.dictationIndex = 0
                         // 非独立的听写测试，只能选择一个章节
                         }else{
-                            val chapter = selectedChapters.first()
-                            if (chapter == 0) wordScreenState.chapter = 1
-                            wordScreenState.chapter = chapter
+                            val chapter = selectedUnits.first()
+                            if (chapter == 0) wordScreenState.unit = 1
+                            wordScreenState.unit = chapter
                             wordScreenState.index = (chapter - 1) * 20
                             wordScreenState.saveWordScreenState()
                             // 如果是独立的听写测试单词，又重新选择了章节，所以就取消独立的听写测试
@@ -203,10 +203,10 @@ fun SelectUnitDialog(
 
 
 @Composable
-fun Chapters(
+fun Units(
     size: Int,
-    checkedChapters: List<Int>,
-    onChapterSelected: (Int) -> Unit,
+    checkedUnits: List<Int>,
+    onUnitSelected: (Int) -> Unit,
     isMultiple:Boolean
 ) {
     if(size>0){
@@ -228,18 +228,18 @@ fun Chapters(
                 itemsIndexed(chapters) { index: Int, item: String ->
                     val chapter = index + 1
                     val checkedState = if(isMultiple){
-                        checkedChapters.contains(chapter)
+                        checkedUnits.contains(chapter)
                     }else{
-                        chapter == checkedChapters.first()
+                        chapter == checkedUnits.first()
                     }
 
                     val onClick:() -> Unit = {
                         if(isMultiple){
-                            onChapterSelected(chapter)
+                            onUnitSelected(chapter)
                         }else{
                             // 如果已经选择了这个章节，就取消选择这个章节，章节设置为0，
                             // 否则设置选择的章节
-                            onChapterSelected(if (checkedState) 0 else chapter)
+                            onUnitSelected(if (checkedState) 0 else chapter)
                         }
 
                     }

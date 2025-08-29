@@ -136,9 +136,9 @@ class WordScreenState(wordScreenData: WordScreenData) {
     var familiarVocabularyIndex by mutableStateOf(wordScreenData.hardVocabularyIndex)
 
     /**
-     * 当前单词的章节，从1开始
+     * 当前单词的单元，从1开始
      */
-    var chapter by mutableStateOf((wordScreenData.index / 20) + 1)
+    var unit by mutableStateOf((wordScreenData.index / 20) + 1)
 
     /**
      * 词库的名称
@@ -263,13 +263,13 @@ class WordScreenState(wordScreenData: WordScreenData) {
     - start = 3 * 20 -20, end = 3 * 20 - 1
      */
     fun generateDictationWords(currentWord: String): List<Word> {
-        val start = chapter * 20 - 20
-        var end = chapter * 20
+        val start = unit * 20 - 20
+        var end = unit * 20
         if(end > vocabulary.wordList.size){
             end = vocabulary.wordList.size
         }
         var list = vocabulary.wordList.subList(start, end).shuffled()
-        // 如果打乱顺序的列表的第一个单词，和当前章节的最后一个词相等，就不会触发重组
+        // 如果打乱顺序的列表的第一个单词，和当前单元的最后一个词相等，就不会触发重组
         while (list[0].value == currentWord) {
             list = vocabulary.wordList.subList(start, end).shuffled()
         }

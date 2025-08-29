@@ -200,7 +200,7 @@ class AppState {
             wordScreenState.vocabulary = newVocabulary
             wordScreenState.vocabularyName = vocabularyFile.nameWithoutExtension
             wordScreenState.vocabularyPath = vocabularyFile.absolutePath
-            wordScreenState.chapter = (index / 20) + 1
+            wordScreenState.unit = (index / 20) + 1
             wordScreenState.index = index
             vocabularyChanged = true
             wordScreenState.saveWordScreenState()

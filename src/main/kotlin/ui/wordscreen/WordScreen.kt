@@ -1254,7 +1254,7 @@ fun MainContent(
                 }
 
                 wordScreenState.index += 1
-                wordScreenState.chapter++
+                wordScreenState.unit++
                 resetUnitTime()
                 wordScreenState.memoryStrategy = Normal
                 wordScreenState.saveWordScreenState()
@@ -1400,7 +1400,7 @@ fun MainContent(
                 }
 
                 wordScreenState.index = 0
-                wordScreenState.chapter = 1
+                wordScreenState.unit = 1
                 wordScreenState.saveWordScreenState()
                 resetUnitTime()
                 showUnitFinishedDialog = false
