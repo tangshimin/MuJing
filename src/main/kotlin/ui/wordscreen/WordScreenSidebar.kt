@@ -151,8 +151,10 @@ fun WordScreenSidebar(
                     }
                 }
                 Divider()
-                val ctrl = LocalCtrl.current
-                val wordText = if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation) "显示下划线" else "显示单词"
+
+                val wordText = if(wordScreenState.memoryStrategy== MemoryStrategy.Dictation ||
+                    wordScreenState.memoryStrategy== MemoryStrategy.DictationTest ) "显示下划线" else "显示单词"
+
                 TooltipArea(
                     tooltip = {
                         Surface(
