@@ -667,13 +667,13 @@ fun MainContent(
         }
 
         /** 显示本单元已经完成对话框 */
-        var showChapterFinishedDialog by remember { mutableStateOf(false) }
+        var showUnitFinishedDialog by remember { mutableStateOf(false) }
 
         /** 显示整个词库已经学习完成对话框 */
         var isVocabularyFinished by remember { mutableStateOf(false) }
 
         /** 播放整个单元完成时音效 */
-        val playChapterFinished = {
+        val playUnitFinished = {
             if (wordScreenState.isPlaySoundTips) {
                 playSound("audio/Success!!.wav", wordScreenState.soundTipsVolume)
             }
@@ -685,10 +685,10 @@ fun MainContent(
          * 自己已经输入完成了，有一种期待，预测到了将会播放提示音。
          */
         val delayPlaySound:() -> Unit = {
-            Timer("playChapterFinishedSound", false).schedule(1000) {
-                playChapterFinished()
+            Timer("playUnitFinishedSound", false).schedule(1000) {
+                playUnitFinished()
             }
-            showChapterFinishedDialog = true
+            showUnitFinishedDialog = true
         }
 
 
@@ -709,12 +709,12 @@ fun MainContent(
                         when {
                             (wordScreenState.index == wordScreenState.vocabulary.size - 1) -> {
                                 isVocabularyFinished = true
-                                playChapterFinished()
-                                showChapterFinishedDialog = true
+                                playUnitFinished()
+                                showUnitFinishedDialog = true
                             }
                             ((wordScreenState.index + 1) % 20 == 0) -> {
-                                playChapterFinished()
-                                showChapterFinishedDialog = true
+                                playUnitFinished()
+                                showUnitFinishedDialog = true
                             }
                             else -> wordScreenState.index += 1
                         }
@@ -958,7 +958,7 @@ fun MainContent(
             var showEditWordDialog by remember { mutableStateOf(false) }
 
             /** 清空听写模式存储的错误单词 */
-            val resetChapterTime: () -> Unit = {
+            val resetUnitTime: () -> Unit = {
                 dictationWrongWords.clear()
             }
 
@@ -1213,9 +1213,9 @@ fun MainContent(
             /** 重复学习本单元 */
             val learnAgain: () -> Unit = {
                 decreaseIndex()
-                resetChapterTime()
+                resetUnitTime()
                 wordScreenState.saveWordScreenState()
-                showChapterFinishedDialog = false
+                showUnitFinishedDialog = false
                 isVocabularyFinished = false
             }
 
@@ -1236,12 +1236,12 @@ fun MainContent(
                         wordScreenState.wrongWords.addAll(reviewList)
                     }
                     wordScreenState.dictationIndex = 0
-                    showChapterFinishedDialog = false
+                    showUnitFinishedDialog = false
                 }
             }
 
             /** 下一单元 */
-            val nextChapter: () -> Unit = {
+            val nextUnit: () -> Unit = {
 
                 if (wordScreenState.memoryStrategy == NormalReviewWrong ||
                     wordScreenState.memoryStrategy == DictationTestReviewWrong
@@ -1255,10 +1255,10 @@ fun MainContent(
 
                 wordScreenState.index += 1
                 wordScreenState.chapter++
-                resetChapterTime()
+                resetUnitTime()
                 wordScreenState.memoryStrategy = Normal
                 wordScreenState.saveWordScreenState()
-                showChapterFinishedDialog = false
+                showUnitFinishedDialog = false
             }
 
 
@@ -1320,8 +1320,8 @@ fun MainContent(
                         }
                     }
                     wordFocusRequester.requestFocus()
-                    resetChapterTime()
-                    showChapterFinishedDialog = false
+                    resetUnitTime()
+                    showUnitFinishedDialog = false
                     isVocabularyFinished = false
                 }
             }
@@ -1402,8 +1402,8 @@ fun MainContent(
                 wordScreenState.index = 0
                 wordScreenState.chapter = 1
                 wordScreenState.saveWordScreenState()
-                resetChapterTime()
-                showChapterFinishedDialog = false
+                resetUnitTime()
+                showUnitFinishedDialog = false
                 isVocabularyFinished = false
             }
             val wordKeyEvent: (KeyEvent) -> Boolean = { it: KeyEvent ->
@@ -1460,7 +1460,7 @@ fun MainContent(
                     }
                     if (wordScreenState.memoryStrategy == Dictation) {
                         wordScreenState.showInfo()
-                        resetChapterTime()
+                        resetUnitTime()
                     }
 
                     if(wordScreenState.memoryStrategy == DictationTest) wordScreenState.memoryStrategy = Normal
@@ -1673,17 +1673,17 @@ fun MainContent(
             }
 
             /** 显示独立的听写测试的选择单元对话框 */
-            var showChapterDialog by remember { mutableStateOf(false) }
+            var showUnitDialog by remember { mutableStateOf(false) }
             /** 打开独立的听写测试的选择单元对话框 */
             val openReviewDialog:() -> Unit = {
-                showChapterFinishedDialog = false
-                showChapterDialog = true
-                resetChapterTime()
+                showUnitFinishedDialog = false
+                showUnitDialog = true
+                resetUnitTime()
             }
 
-            if(showChapterDialog){
+            if(showUnitDialog){
                 SelectUnitDialog(
-                    close = {showChapterDialog = false},
+                    close = {showUnitDialog = false},
                     wordScreenState = wordScreenState,
                     wordRequestFocus = {
                         wordFocusRequester.requestFocus()
@@ -1694,10 +1694,10 @@ fun MainContent(
 
             /** 关闭当前单元结束时跳出的对话框 */
             val close: () -> Unit = {
-                showChapterFinishedDialog = false
+                showUnitFinishedDialog = false
                 if(isVocabularyFinished) isVocabularyFinished = false
             }
-            if (showChapterFinishedDialog) {
+            if (showUnitFinishedDialog) {
                 UnitFinishedDialog(
                     close = { close() },
                     isVocabularyFinished = isVocabularyFinished,
@@ -1709,7 +1709,7 @@ fun MainContent(
                     enterDictation = { enterDictation() },
                     learnAgain = { learnAgain() },
                     reviewWrongWords = { reviewWrongWords() },
-                    nextChapter = { nextChapter() },
+                    nextUnit = { nextUnit() },
                     resetIndex = { resetIndex(it) }
                 )
             }

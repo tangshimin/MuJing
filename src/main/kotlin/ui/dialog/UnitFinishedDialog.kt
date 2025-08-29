@@ -37,7 +37,7 @@ import ui.wordscreen.MemoryStrategy
  * @param enterDictation 进入听写模式后调用的回调函数
  * @param learnAgain 选择【重复本章】后调用的回调函数
  * @param reviewWrongWords 选择【复习错误单词】后调用的回调函数
- * @param nextChapter 选择【下一单元】后调用的回调函数
+ * @param nextUnit 选择【下一单元】后调用的回调函数
  * @param resetIndex 选择【返回到第一章】后调用的回调函数，或者选择【随机重置词库】后调用的函数
  * boolean 为 true 表示要随机重置词库
  */
@@ -55,7 +55,7 @@ fun UnitFinishedDialog(
     enterDictation: () -> Unit,
     learnAgain: () -> Unit,
     reviewWrongWords: () -> Unit,
-    nextChapter: () -> Unit,
+    nextUnit: () -> Unit,
     resetIndex: (Boolean) -> Unit
 ) {
     val focusRequester = remember { FocusRequester() }
@@ -102,7 +102,7 @@ fun UnitFinishedDialog(
                                 if(memoryStrategy == MemoryStrategy.DictationTest || memoryStrategy == MemoryStrategy.DictationTestReviewWrong){
                                     openReviewDialog()
                                 }else if (isVocabularyFinished) resetIndex(false)
-                                else nextChapter()
+                                else nextUnit()
                                 true
                             }
                             else -> false
@@ -221,7 +221,7 @@ fun UnitFinishedDialog(
                             }
                         } else {
                             OutlinedButton(onClick = {
-                                nextChapter()
+                                nextUnit()
                             }) {
                                 Text("(⏎)下一单元", color = textColor)
                             }
