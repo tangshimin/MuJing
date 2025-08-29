@@ -591,7 +591,7 @@ fun findSubtitleFiles(videoPath: String): List<Pair<String,File>> {
         }
     }
 
-    return result
+    return result.sortedBy { it.first }
 
 }
 

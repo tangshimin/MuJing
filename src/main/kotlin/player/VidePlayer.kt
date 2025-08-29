@@ -1657,40 +1657,71 @@ fun SubtitleAndAudioSelector(
                                 modifier = Modifier.padding(start = 12.dp)
                             )
                         }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .clickable(onClick = {
+                                    onShowSubtitleMenuChanged(false)
+                                    onSubTrackChanged(-1)
+                                })
+                                .width(282.dp).height(40.dp)
+                        ){
+                            val color = if(currentSubtitleTrack == -1)
+                                MaterialTheme.colors.primary else Color.Transparent
+                            Spacer(Modifier
+                                .background(color)
+                                .height(16.dp)
+                                .width(2.dp)
+                            )
+                            Text(
+                                text = "关闭字幕",
+                                color = if(currentSubtitleTrack == -1)
+                                    MaterialTheme.colors.primary else  MaterialTheme.colors.onSurface,
+                                fontSize = 12.sp,
+                                modifier = Modifier.padding(start = 12.dp)
+                            )
+                        }
                         Divider()
                         Box(Modifier.width(282.dp).height(height)) {
                             val scrollState = rememberLazyListState()
                             LazyColumn(Modifier.fillMaxSize(), scrollState) {
                                 items(subtitleTrackList) { (trackId, description) ->
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .clickable(onClick = {
-                                                onShowSubtitleMenuChanged(false)
-                                                onSubTrackChanged(trackId)
-                                            })
-                                            .width(282.dp).height(40.dp)
-                                    ) {
-                                        val color = if(currentSubtitleTrack == trackId)
-                                            MaterialTheme.colors.primary else Color.Transparent
-                                        Spacer(Modifier
-                                            .background(color)
-                                            .height(16.dp)
-                                            .width(2.dp)
-                                        )
-                                        val desc = if(description == "Disable" && trackId == -1) "关闭字幕" else description
-                                        Text(
-                                            text = desc,
-                                            color = if(currentSubtitleTrack == trackId)
-                                                MaterialTheme.colors.primary else  MaterialTheme.colors.onSurface,
-                                            fontSize = 12.sp,
-                                            modifier = Modifier.padding(start = 10.dp)
-                                        )
-                                    }
 
+                                    if(description != "Disable" && trackId != -1){
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier
+                                                .clickable(onClick = {
+                                                    onShowSubtitleMenuChanged(false)
+                                                    onSubTrackChanged(trackId)
+                                                })
+                                                .width(282.dp).height(40.dp)
+                                        ) {
+                                            val color = if(currentSubtitleTrack == trackId)
+                                                MaterialTheme.colors.primary else Color.Transparent
+                                            Spacer(Modifier
+                                                .background(color)
+                                                .height(16.dp)
+                                                .width(2.dp)
+                                            )
+                                            Text(
+                                                text = description,
+                                                color = if(currentSubtitleTrack == trackId)
+                                                    MaterialTheme.colors.primary else  MaterialTheme.colors.onSurface,
+                                                fontSize = 12.sp,
+                                                modifier = Modifier.padding(start = 10.dp)
+                                            )
+
+
+                                        }
+                                    }
                                 }
 
+
                                 itemsIndexed(extSubList) { index,(lang,file) ->
+                                    if(subtitleTrackList.isNotEmpty() && index == 0){
+                                        Divider()
+                                    }
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier
