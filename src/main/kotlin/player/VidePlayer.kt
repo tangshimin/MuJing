@@ -782,6 +782,10 @@ fun VideoPlayer(
                                         // 有时候鼠标移动慢了，过了 150 毫秒字幕已经消失了
                                         if(caption.isNotEmpty()){
                                             pauseIfPlaying()
+                                            // 显示悬停暂停通知
+                                            if(prevPlayState == true) {
+                                                state.showNotification("暂停", NotificationType.ACTION)
+                                            }
                                         }
 
                                     }
