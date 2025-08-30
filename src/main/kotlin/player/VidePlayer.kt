@@ -1334,13 +1334,19 @@ fun VideoPlayer(
                 isPlaying = true
                 withContext(Dispatchers.IO){
 
+                    val cachedTrackId = readTrackIdFromLastSubtitle()
+                    val trackId = if(state.showContextTrackId != 0){
+                        state.showContextTrackId
+                    } else{
+                        cachedTrackId ?: 0
+                    }
+
                     // 尝试读取已经提取到磁盘的字幕
-                    var list = readCachedSubtitle(videoPath,state.showContextTrackId)
+                    var list = readCachedSubtitle(videoPath,trackId)
                     if(list.isNotEmpty()){
                         // 如果有缓存的字幕，直接加载
                         timedCaption.setCaptionList(list)
-                        val trackId = readTrackIdFromLastSubtitle()
-                        currentSubtitleTrack = if(trackId !== null)  trackId else -1
+                        currentSubtitleTrack = trackId
                     }
 
                     // 如果没有缓存就加载内置字幕
