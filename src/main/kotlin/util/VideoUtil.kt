@@ -15,6 +15,8 @@ import net.bramp.ffmpeg.FFmpegExecutor
 import net.bramp.ffmpeg.builder.FFmpegBuilder
 import net.bramp.ffmpeg.builder.FFmpegBuilder.Verbosity
 import net.bramp.ffmpeg.job.FFmpegJob
+import net.bramp.ffmpeg.progress.Progress
+import net.bramp.ffmpeg.progress.ProgressListener
 import org.mozilla.universalchardet.UniversalDetector
 import player.PlayerCaption
 import player.convertTimeToMilliseconds
@@ -325,12 +327,13 @@ fun parseSubtitles(
  * - 需要确保视频文件存在且包含字幕轨道
  * - subtitleId 超出范围时会返回空列表
  * - 函数会自动处理临时文件的清理
- * - 支持大多数常见的字幕格式（如 ASS、SSA、VTT 等）
+ * - 支持大多数常见的文本字幕格式（如 ASS、SSA、VTT 等）
  */
 fun readCaptionList(
     videoPath: String,
     subtitleId: Int,
-    verbosity: Verbosity = Verbosity.INFO
+    verbosity: Verbosity = Verbosity.INFO,
+    showMessage:(String)->Unit = {}
 ): List<PlayerCaption> {
     val captionList = mutableListOf<PlayerCaption>()
     val applicationDir = getSettingsDirectory()
@@ -345,7 +348,6 @@ fun readCaptionList(
     }
     val subtitlePath = "$applicationDir/VideoPlayer/subtitle.srt"
     val infoPath = "$applicationDir/VideoPlayer/last_subtitle.json"
-
     try {
         val ffmpeg = FFmpeg(findFFmpegPath())
         val builder = FFmpegBuilder()
@@ -357,6 +359,7 @@ fun readCaptionList(
         val executor = FFmpegExecutor(ffmpeg)
         val job = executor.createJob(builder)
         job.run()
+
         if (job.state == FFmpegJob.State.FINISHED) {
             println("extractSubtitle success")
             captionList.addAll(parseSubtitles(subtitlePath))
@@ -370,12 +373,83 @@ fun readCaptionList(
             File(infoPath).writeText(jsonString)
         }
     } catch (e: Exception) {
+
         e.printStackTrace()
-        // 发生异常时返回空列表
+        // BPS/PGS 等图形字幕会在这里被捕获
+        // 使用 ProcessBuilder 获取详细错误信息
+        val errorMessage = getFFmpegErrorMessage(videoPath, subtitleId, subtitlePath)
+        if (errorMessage.contains("Subtitle encoding currently only possible from text to text or bitmap to bitmap")) {
+            println("不支持图形字幕格式（BPS/PGS）")
+            showMessage("暂时不支持图形字幕格式（BPS/PGS）")
+        } else {
+            println("FFmpeg 执行异常: $errorMessage")
+            showMessage("字幕提取失败:\n$errorMessage")
+        }
         return emptyList()
     }
     return captionList
 }
+
+/**
+ * 使用 ProcessBuilder 直接执行 FFmpeg 并捕获错误信息
+ * 用于检测图形字幕等无法转换的情况
+ */
+private fun getFFmpegErrorMessage(videoPath: String, subtitleId: Int, outputPath: String): String {
+    val ffmpegPath = findFFmpegPath()
+    val command = listOf(
+        ffmpegPath,
+        "-i", videoPath,
+        "-map", "0:s:$subtitleId",
+        "-c:s", "srt",
+        "-y", // 覆盖输出文件
+        outputPath
+    )
+    
+    return try {
+        val processBuilder = ProcessBuilder(command)
+        processBuilder.redirectErrorStream(false) // 分别处理 stdout 和 stderr
+        val process = processBuilder.start()
+        
+        // 读取 stderr（FFmpeg 的主要输出都在 stderr）
+        val errorOutput = process.errorStream.bufferedReader().use { it.readText() }
+        
+        // 等待进程完成
+        process.waitFor()
+        
+        errorOutput
+    } catch (e: Exception) {
+        "Error executing FFmpeg: ${e.message}"
+    }
+}
+
+/**
+ * 检测字幕轨道的类型
+ * @param videoPath 视频文件路径
+ * @param subtitleId 字幕轨道ID
+ * @return "text" 表示文本字幕，"bitmap" 表示图形字幕，"unknown" 表示无法确定
+ */
+fun detectSubtitleType(videoPath: String, subtitleId: Int): String {
+    val applicationDir = getSettingsDirectory()
+    val tempSubtitlePath = "$applicationDir/VideoPlayer/temp_subtitle_check.srt"
+    
+    try {
+        val errorMessage = getFFmpegErrorMessage(videoPath, subtitleId, tempSubtitlePath)
+        
+        return when {
+            errorMessage.contains("Subtitle encoding currently only possible from text to text or bitmap to bitmap") -> "bitmap"
+            errorMessage.contains("Error opening output file") -> "bitmap"
+            File(tempSubtitlePath).exists() && File(tempSubtitlePath).length() > 0 -> "text"
+            else -> "unknown"
+        }
+    } catch (e: Exception) {
+        e.printStackTrace()
+        return "unknown"
+    } finally {
+        // 清理临时文件
+        File(tempSubtitlePath).delete()
+    }
+}
+
 
 @Serializable
 data class SubtitleInfo(

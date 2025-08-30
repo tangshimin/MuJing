@@ -356,7 +356,11 @@ fun VideoPlayer(
 
         scope.launch(Dispatchers.Default) {
             if(trackId  != -1){
-                val list = readCaptionList(videoPath = videoPath, subtitleId = trackId)
+                val list = readCaptionList(
+                    videoPath = videoPath,
+                    subtitleId = trackId,
+                    showMessage = {state.showNotification(it)}
+                )
                 timedCaption.setCaptionList(list)
                 if(list.isNotEmpty()){
                     val applicationDir = getSettingsDirectory()
