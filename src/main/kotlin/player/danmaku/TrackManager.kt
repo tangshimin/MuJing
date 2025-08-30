@@ -1,7 +1,6 @@
 package player.danmaku
 
 import androidx.compose.runtime.mutableStateListOf
-import kotlin.math.max
 
 /**
  * 弹幕轨道管理器
@@ -15,6 +14,9 @@ class TrackManager {
     private var canvasHeight = 0f
     private var lineHeight = 30f
     private var maxTracks = 0
+    
+    // 弹幕间距配置
+    private var minSafeDistance = 50f // 弹幕之间的最小安全距离（像素）
 
     /**
      * 轨道信息数据类
@@ -53,8 +55,10 @@ class TrackManager {
     fun assignTrack(danmaku: CanvasDanmakuItem, canvasWidth: Float): Int {
         if (tracks.isEmpty()) return -1
 
-        // 遍历所有轨道，找到可用的轨道
-        for (trackIndex in tracks.indices) {
+
+        val preferredTrackOrder = generatePreferredTrackOrder()
+        
+        for (trackIndex in preferredTrackOrder) {
             if (isTrackAvailable(trackIndex, danmaku, canvasWidth)) {
                 // 分配轨道
                 tracks[trackIndex] = TrackInfo(danmaku)
@@ -68,6 +72,22 @@ class TrackManager {
 
         // 没有找到可用轨道
         return -1
+    }
+    
+    /**
+     * 生成优先轨道顺序，从顶部开始向下扩展
+     */
+    private fun generatePreferredTrackOrder(): List<Int> {
+        if (tracks.isEmpty()) return emptyList()
+        
+        val result = mutableListOf<Int>()
+        
+        // 从顶部开始（跳过第0轨道，因为与标题栏重叠）
+        for (i in 1 until tracks.size) {
+            result.add(i)
+        }
+        
+        return result
     }
 
     /**
@@ -88,30 +108,68 @@ class TrackManager {
             return true
         }
 
+
+        // 特殊检查：如果两条弹幕的时间戳相同或非常接近，说明是同一批处理的
+        // 使用 timeMs 直接对比更准确
+        if (newDanmaku.timeMs != null && lastDanmaku.timeMs != null) {
+            val timeDiff = kotlin.math.abs(newDanmaku.timeMs - lastDanmaku.timeMs)
+            if (timeDiff < 100) { // 时间差小于100ms认为是同时处理的
+                // 对于同时处理的弹幕，它们不能在同一轨道
+                return false
+            }
+        }
+
         // 检查碰撞：计算新弹幕是否会与轨道上的最后一条弹幕碰撞
         return !willCollide(lastDanmaku, newDanmaku, canvasWidth)
     }
 
     /**
      * 检查两条弹幕是否会发生碰撞
+     * 使用安全距离来判断两个弹幕是否会重叠
      */
     private fun willCollide(existingDanmaku: CanvasDanmakuItem, newDanmaku: CanvasDanmakuItem, canvasWidth: Float): Boolean {
-        // 如果现有弹幕已经完全进入屏幕（右边缘离开屏幕右侧）
-        val existingRightEdge = existingDanmaku.x + existingDanmaku.textWidth
-        val newDanmakuSpeed = 3f // 假设弹幕速度，后续可以从参数传入
-        val existingSpeed = 3f
-
-        // 如果现有弹幕的速度大于等于新弹幕，且已经完全进入屏幕
-        if (existingSpeed >= newDanmakuSpeed && existingRightEdge < canvasWidth) {
-            return false // 不会碰撞
+        // 获取现有弹幕的当前位置和宽度
+        val existingX = existingDanmaku.x
+        val existingWidth = existingDanmaku.textWidth
+        val existingRightEdge = existingX + existingWidth
+        
+        // 新弹幕从屏幕右侧开始，需要估算其宽度
+        val newDanmakuWidth = estimateTextWidth(newDanmaku.text)
+        
+        // 如果现有弹幕已经完全移出屏幕，不会碰撞
+        if (existingRightEdge <= 0) {
+            return false
         }
-
-        // 简化的碰撞检测：如果现有弹幕的左边缘还没有完全离开屏幕右侧
-        if (existingDanmaku.x > canvasWidth * 0.7f) {
-            return true // 可能碰撞，等待更多空间
+        
+        // 使用安全距离进行简单有效的碰撞检测
+        // 如果现有弹幕还在屏幕右侧的安全区域内，认为会碰撞
+        val safeDistance = minSafeDistance + newDanmakuWidth
+        if (existingX > canvasWidth - safeDistance) {
+            return true
         }
-
+        
         return false
+    }
+    
+    
+    /**
+     * 估算文本宽度（更精确的估算）
+     */
+    private fun estimateTextWidth(text: String): Float {
+        // 更精确的字符宽度估算
+        var width = 0f
+        for (char in text) {
+            width += when {
+                char.isWhitespace() -> 8f // 空格
+                char in "ilI1!|." -> 8f  // 窄字符
+                char in "mwMW" -> 16f // 宽字符
+                char.code <= 127 -> 12f // 标准ASCII字符
+                else -> 20f // 中文字符（比之前更窄）
+            }
+        }
+        
+        // 添加一些边距，避免估算过小
+        return width + 10f
     }
 
     /**

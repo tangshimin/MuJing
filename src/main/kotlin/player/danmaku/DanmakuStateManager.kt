@@ -88,7 +88,8 @@ class DanmakuStateManager {
         text: String,
         word: Word? = null,
         color: Color = Color.White,
-        type: DanmakuType = DanmakuType.SCROLL
+        type: DanmakuType = DanmakuType.SCROLL,
+        timeMs: Long? = null // 弹幕的时间戳（可选）
     ) {
         if (!isEnabled || _activeDanmakus.size >= maxDanmakuCount) {
             return
@@ -96,7 +97,7 @@ class DanmakuStateManager {
 
         when (type) {
             DanmakuType.SCROLL -> {
-                addScrollDanmaku(text, word, color)
+                addScrollDanmaku(text, word, color, timeMs)
             }
             DanmakuType.TOP, DanmakuType.BOTTOM -> {
                 addStaticDanmaku(text, word, color, type)
@@ -130,12 +131,13 @@ class DanmakuStateManager {
     /**
      * 添加滚动弹幕（使用轨道管理）
      */
-    private fun addScrollDanmaku(text: String, word: Word?, color: Color) {
+    private fun addScrollDanmaku(text: String, word: Word?, color: Color, timeMs: Long? = null) {
         val danmaku = CanvasDanmakuItem(
             text = text,
             word = word,
             color = color,
             type = DanmakuType.SCROLL,
+            timeMs = timeMs,
             initialX = canvasWidth,
             initialY = 0f // Y坐标会由轨道管理器设置
         )
@@ -368,7 +370,7 @@ class DanmakuStateManager {
         type: DanmakuType = DanmakuType.SCROLL
     ) {
         timelineSynchronizer?.addTimedDanmaku(timeMs, text, word, color, type)
-            ?: addDanmaku(text, word, color, type) // 如果没有时间轴同步器，直接添加
+            ?: addDanmaku(text, word, color, type, timeMs) // 如果没有时间轴同步器，直接添加
     }
 
     /**

@@ -154,7 +154,8 @@ class TimelineSynchronizer(
                 text = danmaku.text,
                 word = danmaku.word,
                 color = danmaku.color,
-                type = danmaku.type
+                type = danmaku.type,
+                timeMs = danmaku.timeMs
             )
 
             currentIndex++

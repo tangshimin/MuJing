@@ -16,6 +16,7 @@ class CanvasDanmakuItem(
     val color: Color = Color.White,
     val type: DanmakuType = DanmakuType.SCROLL,
     val startTime: Float = 0f,
+    val timeMs: Long? = null, // 弹幕的时间戳（毫秒），用于碰撞检测
     initialX: Float = 0f,
     initialY: Float = 0f
 ) {
