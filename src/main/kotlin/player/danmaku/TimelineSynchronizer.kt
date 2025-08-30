@@ -139,11 +139,12 @@ class TimelineSynchronizer(
                 break
             }
 
-            // 如果屏幕上已经有这个单词弹幕了就不添加
+
             // 使用 A S D 键播放字幕时会触发多次添加弹幕，这里做个简单去重
             // 因为使用 A S D 添加的单词都是在列表的结尾，所以遍历从后往前
             for (i in danmakuManager.activeDanmakus.size - 1 downTo 0) {
-                if (danmakuManager.activeDanmakus[i].text == danmaku.text) {
+                if (danmakuManager.activeDanmakus[i].text == danmaku.text &&
+                    danmakuManager.activeDanmakus[i].timeMs == danmaku.timeMs) {
                     currentIndex++
                     return
                 }
