@@ -368,10 +368,14 @@ fun VideoPlayer(
                         state = state,
                     )
                 }
+                // 保存内部字幕偏好设置
+                saveSubtitlePreference(videoPath, "internal", trackId)
             }else{
                 // 禁用字幕
                 println("禁用字幕 clear timedCaption")
                 timedCaption.clear()
+                // 保存禁用字幕偏好设置
+                saveSubtitlePreference(videoPath, "disabled")
             }
             // 更新字幕索引
             updateCaptionIndex()
@@ -407,6 +411,9 @@ fun VideoPlayer(
                extSubIndex = index
                // 更新字幕索引
                updateCaptionIndex()
+
+               // 保存外部字幕偏好设置
+               saveSubtitlePreference(videoPath, "external", -1, file.absolutePath)
 
                generateMatchedVocabulary(
                    videoPath = videoPath,
@@ -1333,63 +1340,122 @@ fun VideoPlayer(
                 videoPlayer.media().play(videoPath,":no-sub-autodetect-file",":start-time=${startTime}")
                 isPlaying = true
                 withContext(Dispatchers.IO){
-
-                    val cachedTrackId = readTrackIdFromLastSubtitle()
-                    val trackId = if(state.showContextTrackId != 0){
-                        state.showContextTrackId
-                    } else{
-                        cachedTrackId ?: 0
-                    }
-
-                    // 尝试读取已经提取到磁盘的字幕
-                    var list = readCachedSubtitle(videoPath,trackId)
-                    if(list.isNotEmpty()){
-                        // 如果有缓存的字幕，直接加载
-                        timedCaption.setCaptionList(list)
-                        currentSubtitleTrack = trackId
-                    }
-
-                    // 如果没有缓存就加载内置字幕
-                    // 如果从查看语境功能进来，就使用语境字幕轨道，
-                    // 如果不是就使用默认字幕轨道 0,因为 showContextTrackId 默认是 0
-                    if(list.isEmpty()){
-                        list = readCaptionList(videoPath = videoPath, subtitleId = state.showContextTrackId)
-                        timedCaption.setCaptionList(list)
-                        // 更新当前字幕轨道
-                        currentSubtitleTrack = state.showContextTrackId
-                    }
-
-                    val applicationDir = getSettingsDirectory()
-                    var subPath = ""
-                    if(list.isNotEmpty()){
-                        subPath = "$applicationDir/VideoPlayer/subtitle.srt"
-                    }
-
+                    // 读取字幕偏好设置
+                    val subtitlePreference = readSubtitlePreference(videoPath)
+                    
                     // 自动探测外部字幕
-                    val subtitleFiles =  findSubtitleFiles(videoPath)
+                    val subtitleFiles = findSubtitleFiles(videoPath)
                     extSubList.clear()
                     extSubList.addAll(subtitleFiles)
-
-                    // 如果没有内置字幕，加载语言标签为英语的外部字幕
-                    if (list.isEmpty() && extSubList.isNotEmpty()) {
-                        var foundIndex = -1
-                        var foundFile: File? = null
-                        for ((idx, value) in subtitleFiles.withIndex()) {
-                            val (lang, file) = value
-                            if (lang == "en" || lang == "eng" || lang == "English" || lang == "english" || lang == "英文"
-                                || lang == "简体&英文" || lang == "繁体&英文"
-                                || lang == "英语" || lang == "英语（美国）" || lang == "英语（英国）"
-                            ) {
-                                foundIndex = idx
-                                foundFile = file
-                                break
+                    
+                    val applicationDir = getSettingsDirectory()
+                    var subPath = ""
+                    var list = emptyList<PlayerCaption>()
+                    
+                    // 根据偏好设置加载字幕
+                    when {
+                        // 如果从查看语境功能进来，优先使用语境字幕轨道
+                        state.showContextTrackId != 0 -> {
+                            list = readCaptionList(videoPath = videoPath, subtitleId = state.showContextTrackId)
+                            timedCaption.setCaptionList(list)
+                            currentSubtitleTrack = state.showContextTrackId
+                            if(list.isNotEmpty()) {
+                                subPath = "$applicationDir/VideoPlayer/subtitle.srt"
                             }
                         }
-                        if (foundFile != null) {
-                            val captions = parseSubtitles(foundFile.absolutePath)
-                            timedCaption.setCaptionList(captions)
-                            extSubIndex = foundIndex
-                            subPath = foundFile.absolutePath
+                        
+                        // 有字幕偏好设置，按偏好加载
+                        subtitlePreference != null -> {
+                            when (subtitlePreference.subtitleType) {
+                                "internal" -> {
+                                    // 加载内部字幕
+                                    list = readCachedSubtitle(videoPath, subtitlePreference.trackId)
+                                    if (list.isEmpty()) {
+                                        list = readCaptionList(videoPath = videoPath, subtitleId = subtitlePreference.trackId)
+                                    }
+                                    timedCaption.setCaptionList(list)
+                                    currentSubtitleTrack = subtitlePreference.trackId
+                                    if(list.isNotEmpty()) {
+                                        subPath = "$applicationDir/VideoPlayer/subtitle.srt"
+                                    }
+                                }
+                                "external" -> {
+                                    // 加载外部字幕
+                                    val externalFile = File(subtitlePreference.subtitlePath)
+                                    if (externalFile.exists()) {
+                                        // 在外部字幕列表中找到对应的索引
+                                        var foundIndex = -1
+                                        for ((idx, value) in subtitleFiles.withIndex()) {
+                                            val (_, file) = value
+                                            if (file.absolutePath == externalFile.absolutePath) {
+                                                foundIndex = idx
+                                                break
+                                            }
+                                        }
+                                        if (foundIndex >= 0) {
+                                            val captions = parseSubtitles(externalFile.absolutePath)
+                                            timedCaption.setCaptionList(captions)
+                                            extSubIndex = foundIndex
+                                            currentSubtitleTrack = -2 // 禁用内置字幕
+                                            subPath = externalFile.absolutePath
+                                        }
+                                    }
+                                }
+                                "disabled" -> {
+                                    // 禁用字幕
+                                    timedCaption.clear()
+                                    currentSubtitleTrack = -1
+                                }
+                            }
+                        }
+                        
+                        // 没有偏好设置，使用默认逻辑
+                        else -> {
+                            val cachedTrackId = readTrackIdFromLastSubtitle()
+                            val trackId = cachedTrackId ?: 0
+
+                            // 尝试读取已经提取到磁盘的字幕
+                            list = readCachedSubtitle(videoPath, trackId)
+                            if(list.isNotEmpty()){
+                                // 如果有缓存的字幕，直接加载
+                                timedCaption.setCaptionList(list)
+                                currentSubtitleTrack = trackId
+                                subPath = "$applicationDir/VideoPlayer/subtitle.srt"
+                            } else {
+                                // 如果没有缓存就加载内置字幕
+                                list = readCaptionList(videoPath = videoPath, subtitleId = 0)
+                                timedCaption.setCaptionList(list)
+                                currentSubtitleTrack = 0
+                                if(list.isNotEmpty()) {
+                                    subPath = "$applicationDir/VideoPlayer/subtitle.srt"
+                                }
+                                
+                                // 如果没有内置字幕，尝试加载英语外部字幕
+                                if (list.isEmpty() && extSubList.isNotEmpty()) {
+                                    var foundIndex = -1
+                                    var foundFile: File? = null
+                                    
+                                    for ((idx, value) in subtitleFiles.withIndex()) {
+                                        val (lang, file) = value
+                                        if (lang == "en" || lang == "eng" || lang == "English" || lang == "english" || lang == "英文"
+                                            || lang == "简体&英文" || lang == "繁体&英文"
+                                            || lang == "英语" || lang == "英语（美国）" || lang == "英语（英国）"
+                                        ) {
+                                            foundIndex = idx
+                                            foundFile = file
+                                            break
+                                        }
+                                    }
+                                    
+                                    if (foundFile != null) {
+                                        val captions = parseSubtitles(foundFile.absolutePath)
+                                        timedCaption.setCaptionList(captions)
+                                        extSubIndex = foundIndex
+                                        currentSubtitleTrack = -2 // 禁用内置字幕
+                                        subPath = foundFile.absolutePath
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -1399,7 +1465,6 @@ fun VideoPlayer(
                         trackId = currentSubtitleTrack,
                         state = state,
                     )
-
 
                     // 更新字幕索引
                     updateCaptionIndex()

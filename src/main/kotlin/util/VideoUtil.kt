@@ -383,6 +383,15 @@ data class SubtitleInfo(
     val trackID: Int
 )
 
+
+@Serializable
+data class SubtitlePreference(
+    val videoPath: String,
+    val subtitleType: String, // "internal" 或 "external" 或 "disabled"
+    val trackId: Int = -1, // 内部字幕轨道ID，仅当 subtitleType 为 "internal" 时有效
+    val subtitlePath: String = "" // 外部字幕路径，仅当 subtitleType 为 "external" 时有效
+)
+
 fun readCachedSubtitle(
     videoPath: String,
     trackID: Int = 0,
@@ -416,6 +425,59 @@ fun readTrackIdFromLastSubtitle(): Int? {
         val jsonString = infoFile.readText()
         val info = Json.decodeFromString<SubtitleInfo>(jsonString)
         info.trackID
+    } catch (e: Exception) {
+        e.printStackTrace()
+        null
+    }
+}
+
+
+/**
+ * 保存字幕偏好设置
+ */
+fun saveSubtitlePreference(
+    videoPath: String,
+    subtitleType: String,
+    trackId: Int = -1,
+    subtitlePath: String = ""
+) {
+    val applicationDir = getSettingsDirectory()
+    val infoPath = "$applicationDir/VideoPlayer/subtitle_preference.json"
+    val json = Json {
+        prettyPrint = true
+        encodeDefaults = true
+    }
+    val preference = SubtitlePreference(videoPath, subtitleType, trackId, subtitlePath)
+    val jsonString = json.encodeToString(preference)
+    File(infoPath).writeText(jsonString)
+}
+
+/**
+ * 读取字幕偏好设置
+ */
+fun readSubtitlePreference(videoPath: String): SubtitlePreference? {
+    val applicationDir = getSettingsDirectory()
+    val infoPath = "$applicationDir/VideoPlayer/subtitle_preference.json"
+    val infoFile = File(infoPath)
+    if (!infoFile.exists()) return null
+    return try {
+        val jsonString = infoFile.readText()
+        val json = Json { ignoreUnknownKeys = true }
+        val preference = json.decodeFromString<SubtitlePreference>(jsonString)
+        if (preference.videoPath == videoPath) {
+            // 如果是外部字幕，检查文件是否还存在
+            if (preference.subtitleType == "external" && preference.subtitlePath.isNotEmpty()) {
+                if (File(preference.subtitlePath).exists()) {
+                    preference
+                } else {
+                    null // 外部字幕文件不存在，返回null
+                }
+            } else {
+                preference
+            }
+        } else {
+            null
+        }
     } catch (e: Exception) {
         e.printStackTrace()
         null
