@@ -1139,7 +1139,7 @@ fun VideoPlayer(
                                 AlertDialog(
                                     onDismissRequest = { alert = false },
                                     title = { Text("错误",color = MaterialTheme.colors.error) },
-                                    text = { Text("读取文件地址时发生错误，已自动移除。",color = MaterialTheme.colors.onSurface) },
+                                    text = { Text("文件不存在，已从最近列表中移除。",color = MaterialTheme.colors.onSurface) },
                                     confirmButton = {
                                         OutlinedButton(onClick = { alert = false }) {
                                             Text("确定",color = MaterialTheme.colors.onSurface)
