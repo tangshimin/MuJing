@@ -60,6 +60,8 @@ dependencies {
     implementation ("net.java.dev.jna:jna-platform:5.14.0")
     implementation ("ch.qos.logback:logback-classic:1.4.14")
     implementation("net.bramp.ffmpeg:ffmpeg:0.8.0")
+    implementation("io.github.vinceglb:filekit-dialogs:0.10.0")
+    implementation("io.github.vinceglb:filekit-dialogs-compose:0.10.0")
 
     testImplementation(compose.desktop.uiTestJUnit4)
     testImplementation("org.junit.vintage:junit-vintage-engine:5.9.0")
@@ -97,7 +99,6 @@ compose.desktop {
             "-XX:+UseZGC",// ZGC 垃圾回收器
             "-XX:+ZUncommit",// ZGC 垃圾回收器的未使用内存归还功能
             "-XX:ZUncommitDelay=10", // ZGC 垃圾回收器的未使用内存归还延迟，单位为秒
-            "-XX:+UncommitMemory", // 把未使用的堆内存主动归还给操作系统
             "-Xms128m", // 设置初始堆大小
             "-Xmx1g", // 设置最大堆大小
             "-Dfile.encoding=UTF-8",

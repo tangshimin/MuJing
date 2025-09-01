@@ -528,7 +528,7 @@ class PlayerState(playerData: PlayerData) {
             val parentDir = currentVideoFile.parentFile
             
             if (parentDir != null && parentDir.exists()) {
-                val folderVideos = parentDir.listFiles { file ->
+                val items = parentDir.listFiles { file ->
                     file.isFile && 
                     videoFormatList.contains(file.extension.lowercase())
                 }?.map { file ->
@@ -537,11 +537,11 @@ class PlayerState(playerData: PlayerData) {
                         path = file.absolutePath,
                         lastPlayedTime = "00:00:00",
                         isCurrentlyPlaying = currentVideoPath == file.absolutePath,
-                        type = PlaylistItemType.FOLDER
+                        type = PlaylistItemType.DEFAULT
                     )
                 }?.sortedBy { it.name } ?: emptyList()
                 
-                playlistItems.addAll(folderVideos)
+                playlistItems.addAll(items)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -677,12 +677,11 @@ data class PlaylistItem(
     val path: String,
     val lastPlayedTime: String = "00:00:00",
     val isCurrentlyPlaying: Boolean = false,
-    val type: PlaylistItemType = PlaylistItemType.RECENT
+    val type: PlaylistItemType = PlaylistItemType.DEFAULT
 )
 
 enum class PlaylistItemType {
-    RECENT,     // 最近播放
-    FOLDER,     // 同文件夹视频
+    DEFAULT,     // 默认播放列表
     CUSTOM      // 自定义播放列表
 }
 

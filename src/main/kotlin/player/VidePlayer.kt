@@ -45,6 +45,10 @@ import event.EventBus
 import event.PlayerEventType
 import ffmpeg.convertToSrt
 import icons.ArrowDown
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.PickerResultLauncher
+import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -242,6 +246,61 @@ fun VideoPlayer(
     val scope = rememberCoroutineScope()
 
     val azureTTS = rememberAzureTTS()
+
+    // FileKit 文件选择器启动器
+    val filePickerLauncher = rememberFilePickerLauncher(
+        type = FileKitType.File(),
+        title = "选择视频文件",
+        onResult = { platformFile ->
+            if (platformFile != null) {
+                // 添加单个视频到播放列表
+                val file = platformFile.file
+                val playlistItem = PlaylistItem(
+                    name = file.nameWithoutExtension,
+                    path = file.absolutePath,
+                    lastPlayedTime = "00:00:00",
+                    isCurrentlyPlaying = false,
+                    type = PlaylistItemType.DEFAULT
+                )
+                state.playlist.add(playlistItem)
+                state.showNotification("已添加: ${file.nameWithoutExtension}")
+            }
+        }
+    )
+
+    // FileKit 文件夹选择器启动器
+    val directoryPickerLauncher = rememberDirectoryPickerLauncher(
+        title = "选择视频文件夹",
+        onResult = { platformFile ->
+            if (platformFile != null) {
+                // 检查是否是目录
+                val directory = platformFile.file
+                if (directory.isDirectory) {
+                    // 添加文件夹所有视频到播放列表
+                    val videoFormatList = listOf("mp4", "mkv", "avi", "mov", "flv", "wmv", "webm", "ts", "m4v", "3gp", "mpeg", "mpg")
+                    val videoFiles = directory.listFiles { f ->
+                        f.isFile && videoFormatList.contains(f.extension.lowercase())
+                    }?.sortedBy { it.name }
+
+                    if (videoFiles != null && videoFiles.isNotEmpty()) {
+                        videoFiles.forEach { videoFile ->
+                            val playlistItem = PlaylistItem(
+                                name = videoFile.nameWithoutExtension,
+                                path = videoFile.absolutePath,
+                                lastPlayedTime = "00:00:00",
+                                isCurrentlyPlaying = false,
+                                type = PlaylistItemType.DEFAULT
+                            )
+                            state.playlist.add(playlistItem)
+                        }
+                        state.showNotification("已添加 ${videoFiles.size} 个视频")
+                    } else {
+                        state.showNotification("文件夹中没有视频文件", NotificationType.ACTION)
+                    }
+                }
+            }
+        }
+    )
 
     // 创建媒体时间流
     val mediaTimeFlow = remember { MutableStateFlow(0L) }
@@ -1240,7 +1299,9 @@ fun VideoPlayer(
                 nextCaption =  nextCaption,
                 playerState = state,
                 listSelectedTab = state.listSelectedTab,
-                onListSelectedTabChanged = { state.listSelectedTab = it }
+                onListSelectedTabChanged = { state.listSelectedTab = it },
+                filePickerLauncher = filePickerLauncher,
+                directoryPickerLauncher = directoryPickerLauncher
             )
         }
 
@@ -2074,7 +2135,9 @@ fun CaptionAndVideoList(
     nextCaption:() -> Unit = {},
     playerState: PlayerState,
     listSelectedTab: Int,
-    onListSelectedTabChanged: (Int) -> Unit
+    onListSelectedTabChanged: (Int) -> Unit,
+    filePickerLauncher: PickerResultLauncher,
+    directoryPickerLauncher: PickerResultLauncher
 ){
     AnimatedVisibility(
         visible = show,
@@ -2084,11 +2147,18 @@ fun CaptionAndVideoList(
         /** 字幕列表宽度状态 */
         var subtitleListWidth by remember { mutableStateOf(400.dp) }
 
+        /** 当前选中的播放列表项索引 */
+        var selectedPlaylistIndex by remember { mutableStateOf(-1) }
+
         Column(Modifier
             .width(subtitleListWidth)
             .background(Color(0xFF1E1E1E))
         ) {
             val focusManager = LocalFocusManager.current
+
+            /** 显示添加视频选项菜单 */
+            var showAddOptionsMenu by remember { mutableStateOf(false) }
+
             // Tab标签页
             TabRow(
                 selectedTabIndex = listSelectedTab,
@@ -2223,7 +2293,9 @@ fun CaptionAndVideoList(
                             ) {
                                 if (playerState.playlist.isNotEmpty()) {
                                     LazyColumn(
-                                        modifier = Modifier.fillMaxSize(),
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(bottom = 60.dp), // 底部留白防止工具栏遮挡
                                         state = playlistState,
                                         verticalArrangement = Arrangement.spacedBy(4.dp),
                                     ) {
@@ -2234,16 +2306,32 @@ fun CaptionAndVideoList(
                                             Box(
                                                 modifier = Modifier
                                                     .fillMaxWidth()
-                                                    .background(background)
-                                                    .onClick {
-                                                        playerState.playPlaylistItem(index)
-                                                        focusManager.clearFocus()
-                                                    }
+                                                    .background(
+                                                        if (selectedPlaylistIndex == index) 
+                                                            Color.White.copy(alpha = 0.12f) 
+                                                        else 
+                                                            background
+                                                    )
                                                     .onPointerEvent(PointerEventType.Enter) {
                                                         background = Color.White.copy(alpha = 0.08f)
                                                     }
                                                     .onPointerEvent(PointerEventType.Exit) {
                                                         background = Color.Transparent
+                                                    }
+                                                    .pointerInput(Unit) {
+                                                        detectTapGestures(
+                                                            onTap = {
+                                                                // 单击选择
+                                                                selectedPlaylistIndex = index
+                                                                focusManager.clearFocus()
+                                                            },
+                                                            onDoubleTap = {
+                                                                // 双击播放
+                                                                playerState.playPlaylistItem(index)
+                                                                selectedPlaylistIndex = index
+                                                                focusManager.clearFocus()
+                                                            }
+                                                        )
                                                     }
                                             ) {
                                                 Column(
@@ -2432,15 +2520,46 @@ fun CaptionAndVideoList(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.Center,
                                     modifier = Modifier.fillMaxWidth()){
-                                    IconButton(onClick = {}){
-                                        Icon(
-                                            Icons.Filled.Add,
-                                            contentDescription = "添加视频",
-                                            tint = Color.White
-                                        )
+                                    Box {
+                                        IconButton(onClick = {
+                                            showAddOptionsMenu = true
+                                        }){
+                                            Icon(
+                                                Icons.Filled.Add,
+                                                contentDescription = "添加视频",
+                                                tint = Color.White
+                                            )
+                                        }
+                                        
+                                        // 添加视频选项下拉菜单
+                                        DropdownMenu(
+                                            expanded = showAddOptionsMenu,
+                                            onDismissRequest = { showAddOptionsMenu = false }
+                                        ) {
+                                            DropdownMenuItem(onClick = {
+                                                showAddOptionsMenu = false
+                                                filePickerLauncher.launch()
+                                            }) {
+                                                Text("添加文件", color = MaterialTheme.colors.onSurface)
+                                            }
+                                            DropdownMenuItem(onClick = {
+                                                showAddOptionsMenu = false
+                                                directoryPickerLauncher.launch()
+                                            }) {
+                                                Text("添加文件夹", color = MaterialTheme.colors.onSurface)
+                                            }
+                                        }
                                     }
 
-                                    IconButton(onClick = {}){
+                                    IconButton(onClick = {
+                                        // 移除选择的视频
+                                        if (selectedPlaylistIndex >= 0 && selectedPlaylistIndex < playerState.playlist.size) {
+                                            val removedItem = playerState.playlist[selectedPlaylistIndex]
+                                            playerState.playlist.removeAt(selectedPlaylistIndex)
+                                            playerState.showNotification("已移除: ${removedItem.name}")
+                                            selectedPlaylistIndex = -1
+                                        }
+                                    }){
                                         Icon(
                                             Icons.Filled.Remove,
                                             contentDescription = "移除视频",
@@ -2450,7 +2569,17 @@ fun CaptionAndVideoList(
 
 
 
-                                    OutlinedButton(onClick = {}){
+                                    OutlinedButton(onClick = {
+                                        // 清空播放列表
+                                        if (playerState.playlist.isNotEmpty()) {
+                                            playerState.playlist.clear()
+                                            selectedPlaylistIndex = -1
+                                            playerState.showNotification("已清空播放列表")
+                                        } else {
+                                            playerState.showNotification("播放列表已为空", NotificationType.ACTION)
+                                        }
+                                    }){
+
                                         Text(text = "清空",color = Color.White,)
                                     }
                                 }
