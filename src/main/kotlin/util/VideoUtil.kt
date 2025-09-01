@@ -4,6 +4,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowState
 import data.Caption
+import ffmpeg.convertToSrt
 import ffmpeg.findFFmpegPath
 import ffmpeg.hasRichText
 import ffmpeg.removeRichText
@@ -662,6 +663,26 @@ fun parseSubtitles(subtitlesPath: String):List<PlayerCaption>{
     return captionList
 }
 
+/**
+ * 处理 ASS 字幕文件转换和加载
+ */
+ fun loadAndConvertAssSubtitle(
+    file: File,
+    onSuccess: (List<PlayerCaption>) -> Unit,
+    onFailure: (String) -> Unit
+) {
+    val applicationDir = getSettingsDirectory()
+    val srtFile = File("$applicationDir/temp.srt")
+    val result = convertToSrt(file.absolutePath, srtFile.absolutePath)
+    if (result == "finished") {
+        println("字幕转换成功")
+        val captions = parseSubtitles(srtFile.absolutePath)
+        onSuccess(captions)
+    } else {
+        onFailure("字幕转换失败")
+    }
+    srtFile.delete()
+}
 
 /**
  * 自动查找与视频文件关联的字幕文件

@@ -43,7 +43,6 @@ import androidx.compose.ui.window.WindowState
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import event.EventBus
 import event.PlayerEventType
-import ffmpeg.convertToSrt
 import icons.ArrowDown
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.PickerResultLauncher
@@ -455,17 +454,15 @@ fun VideoPlayer(
         scope.launch (Dispatchers.Default){
             // 把 ASS 字幕转换成 SRT 字幕
             if(file.extension == "ass"){
-                val applicationDir = getSettingsDirectory()
-                val srtFile = File("$applicationDir/temp.srt")
-                val result = convertToSrt(file.absolutePath, srtFile.absolutePath)
-                if(result == "finished"){
-                    println("字幕转换成功")
-                    val captions = parseSubtitles(srtFile.absolutePath)
-                    timedCaption.setCaptionList(captions)
-                }else{
-                    state.showNotification("字幕转换失败")
-                }
-                srtFile.delete()
+                loadAndConvertAssSubtitle(
+                    file = file,
+                    onSuccess = { captions ->
+                        timedCaption.setCaptionList(captions)
+                    },
+                    onFailure = { errorMessage ->
+                        state.showNotification(errorMessage)
+                    }
+                )
             }else{
                 val captions = parseSubtitles(file.absolutePath)
                 timedCaption.setCaptionList(captions)
@@ -1466,17 +1463,15 @@ fun VideoPlayer(
                                         }
                                         // 即使没有在 subtitleFiles 中找到对应的索引，也要加载字幕文件
                                         if (externalFile.extension == "ass") {
-                                            val applicationDir = getSettingsDirectory()
-                                            val srtFile = File("$applicationDir/temp.srt")
-                                            val result = convertToSrt(externalFile.absolutePath, srtFile.absolutePath)
-                                            if (result == "finished") {
-                                                println("字幕转换成功")
-                                                val captions = parseSubtitles(srtFile.absolutePath)
-                                                timedCaption.setCaptionList(captions)
-                                                srtFile.delete()
-                                            } else {
-                                                state.showNotification("字幕转换失败")
-                                            }
+                                            loadAndConvertAssSubtitle(
+                                                file = externalFile,
+                                                onSuccess = { captions ->
+                                                    timedCaption.setCaptionList(captions)
+                                                },
+                                                onFailure = { errorMessage ->
+                                                    state.showNotification(errorMessage)
+                                                }
+                                            )
                                         } else {
                                             val captions = parseSubtitles(externalFile.absolutePath)
                                             timedCaption.setCaptionList(captions)
