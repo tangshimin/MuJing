@@ -155,11 +155,11 @@ fun HoverableCaption(
                 words.forEachIndexed { index, rawWord ->
                     if (rawWord.isNotEmpty()) {
                         // 提取开头的标点符号
-                        val leadingPunctuation = rawWord.takeWhile { !it.isLetterOrDigit() }
+                        val leadingPunctuation = rawWord.takeWhile { !(it in 'a'..'z' || it in 'A'..'Z' || it.isDigit()) }
                         val remaining = rawWord.drop(leadingPunctuation.length)
 
                         // 从剩余部分提取单词（字母、撇号、连字符）
-                        val wordPart = remaining.takeWhile { it.isLetterOrDigit() || it == '\'' || it == '-' }
+                        val wordPart = remaining.takeWhile { it in 'a'..'z' || it in 'A'..'Z' || it.isDigit() || it == '\'' || it == '-' }
                         val trailingPunctuation = remaining.drop(wordPart.length)
 
                         // 渲染开头标点
