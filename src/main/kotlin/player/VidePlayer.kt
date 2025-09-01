@@ -1464,13 +1464,26 @@ fun VideoPlayer(
                                                 break
                                             }
                                         }
-                                        if (foundIndex >= 0) {
+                                        // 即使没有在 subtitleFiles 中找到对应的索引，也要加载字幕文件
+                                        if (externalFile.extension == "ass") {
+                                            val applicationDir = getSettingsDirectory()
+                                            val srtFile = File("$applicationDir/temp.srt")
+                                            val result = convertToSrt(externalFile.absolutePath, srtFile.absolutePath)
+                                            if (result == "finished") {
+                                                println("字幕转换成功")
+                                                val captions = parseSubtitles(srtFile.absolutePath)
+                                                timedCaption.setCaptionList(captions)
+                                                srtFile.delete()
+                                            } else {
+                                                state.showNotification("字幕转换失败")
+                                            }
+                                        } else {
                                             val captions = parseSubtitles(externalFile.absolutePath)
                                             timedCaption.setCaptionList(captions)
-                                            extSubIndex = foundIndex
-                                            currentSubtitleTrack = -2 // 禁用内置字幕
-                                            subPath = externalFile.absolutePath
                                         }
+                                        extSubIndex = foundIndex
+                                        currentSubtitleTrack = -2 // 禁用内置字幕
+                                        subPath = externalFile.absolutePath
                                     }
                                 }
                                 "disabled" -> {
@@ -2938,3 +2951,4 @@ fun keepScreenAwake(scope: CoroutineScope): Job {
 fun stopKeepingScreenAwake(job: Job?) {
     job?.cancel()
 }
+
