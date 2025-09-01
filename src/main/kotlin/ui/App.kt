@@ -13,6 +13,7 @@ import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
+import androidx.compose.material.darkColors
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
@@ -48,6 +49,7 @@ import state.ScreenType
 import state.computeFontSize
 import state.rememberAppState
 import theme.CustomLocalProvider
+import theme.IDEADarkThemeOnBackground
 import theme.rememberCustomSelectionColors
 import theme.scrollbarStyle
 import theme.toAwt
@@ -227,22 +229,28 @@ fun App(
                             }
                             if(playerState.visible){
                                title = computeTitle(playerState.videoPath)
-                                AnimatedVideoPlayer(
-                                    state = playerState,
-                                    audioSet = appState.localAudioSet,
-                                    audioVolume = appState.global.audioVolume,
-                                    videoVolume = appState.global.videoVolume,
-                                    videoVolumeChanged = {
-                                        appState.global.videoVolume = it
-                                        appState.saveGlobalState()
-                                    },
-                                    visible = playerState.visible,
-                                    windowState = windowState,
-                                    eventBus = eventBus,
-                                    window = window,
-                                    title = title,
-                                    openSearch = appState.openSearch,
-                                )
+                                MaterialTheme(colors =  darkColors(
+                                    primary = appState.global.primaryColor,
+                                    onBackground = IDEADarkThemeOnBackground
+                                ) ) {
+                                    AnimatedVideoPlayer(
+                                        state = playerState,
+                                        audioSet = appState.localAudioSet,
+                                        audioVolume = appState.global.audioVolume,
+                                        videoVolume = appState.global.videoVolume,
+                                        videoVolumeChanged = {
+                                            appState.global.videoVolume = it
+                                            appState.saveGlobalState()
+                                        },
+                                        visible = playerState.visible,
+                                        windowState = windowState,
+                                        eventBus = eventBus,
+                                        window = window,
+                                        title = title,
+                                        openSearch = appState.openSearch,
+                                    )
+                                }
+
                             }
 
                         }
