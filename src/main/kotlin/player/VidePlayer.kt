@@ -252,6 +252,7 @@ fun VideoPlayer(
     var isWindowsFullscreen by remember { mutableStateOf(false) }
     /** 保持屏幕常亮的协程任务 */
     var keepScreenAwake by remember { mutableStateOf<Job?>(null) }
+    // 使用 PlayerState 中的 playlistSelectedTab 状态
 
     /** 播放 */
     val play: () -> Unit = {
@@ -1010,7 +1011,7 @@ fun VideoPlayer(
 
 
                                 // 字幕列表按钮
-                                CaptionListButton(
+                                ListButton(
                                     onClick = {
                                         state.showCaptionList = !state.showCaptionList
                                         focusManager.clearFocus() // 点击后清除焦点
@@ -1101,7 +1102,6 @@ fun VideoPlayer(
                                                             val duration = mediaPlayer.media().info().duration()
                                                             mediaPlayer.controls().stop()
                                                             playerComponent.release()
-                                                            state.videoPath = item.path
                                                             duration.milliseconds.toComponents { hours, minutes, seconds, _ ->
                                                                 val durationStr = timeFormat(hours, minutes, seconds)
                                                                 if(durationStr == lastPlayedTime){
@@ -1110,7 +1110,7 @@ fun VideoPlayer(
                                                                     state.startTime = lastPlayedTime
                                                                 }
                                                             }
-
+                                                            state.videoPathChanged(item.path)
                                                             val newItem = item.copy(
                                                                 dateTime = LocalDateTime.now().toString(),
                                                                 lastPlayedTime = lastPlayedTime
@@ -1222,7 +1222,7 @@ fun VideoPlayer(
                 }
             }
 
-            CaptionList(
+            CaptionAndVideoList(
                 show = state.showCaptionList ,
                 timedCaption = timedCaption,
                 play = {
@@ -1237,7 +1237,10 @@ fun VideoPlayer(
                 },
                 previousCaption = previousCaption,
                 replayCaption = replayCaption,
-                nextCaption =  nextCaption
+                nextCaption =  nextCaption,
+                playerState = state,
+                listSelectedTab = state.listSelectedTab,
+                onListSelectedTabChanged = { state.listSelectedTab = it }
             )
         }
 
@@ -2026,7 +2029,7 @@ fun VolumeControl(
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
-fun CaptionListButton(
+fun ListButton(
     onClick: () -> Unit
 ) {
     TooltipArea(
@@ -2037,7 +2040,7 @@ fun CaptionListButton(
                 shape = RectangleShape
             ) {
                 Text(
-                    text = "字幕列表",
+                    text = "字幕列表/播放列表",
                     color = MaterialTheme.colors.onSurface,
                     modifier = Modifier.padding(10.dp)
                 )
@@ -2062,13 +2065,16 @@ fun CaptionListButton(
 
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
-fun CaptionList(
+fun CaptionAndVideoList(
     show: Boolean,
     timedCaption: VideoPlayerTimedCaption,
     play: (Long) -> Unit,
     replayCaption:() -> Unit = {},
     previousCaption:() -> Unit = {},
-    nextCaption:() -> Unit = {}
+    nextCaption:() -> Unit = {},
+    playerState: PlayerState,
+    listSelectedTab: Int,
+    onListSelectedTabChanged: (Int) -> Unit
 ){
     AnimatedVisibility(
         visible = show,
@@ -2082,15 +2088,32 @@ fun CaptionList(
             .width(subtitleListWidth)
             .background(Color(0xFF1E1E1E))
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 8.dp, bottom = 8.dp),
-                horizontalArrangement = Arrangement.Center
-            ){
-                Text(
-                    text = "字幕列表",
-                    color = Color.White
+            val focusManager = LocalFocusManager.current
+            // Tab标签页
+            TabRow(
+                selectedTabIndex = listSelectedTab,
+                backgroundColor = Color(0xFF1E1E1E),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+
+                Tab(
+                    text = { Text("字幕列表", color = if (listSelectedTab == 0) MaterialTheme.colors.primary else Color.White) },
+                    selected = listSelectedTab == 0,
+                    onClick = {
+                        onListSelectedTabChanged(0)
+                        focusManager.clearFocus()
+                    },
+                    modifier = Modifier.height(38.dp)
+                )
+                Tab(
+                    text = { Text("播放列表", color = if (listSelectedTab == 1) MaterialTheme.colors.primary else Color.White) },
+                    selected = listSelectedTab == 1,
+                    onClick = {
+                        onListSelectedTabChanged(1)
+                        focusManager.clearFocus()
+                    },
+                    modifier = Modifier.height(38.dp)
+
                 )
             }
             Divider()
@@ -2105,194 +2128,336 @@ fun CaptionList(
                     }
                 )
                 Box{
-                    val listState = rememberLazyListState(0)
+                    // 为不同标签页创建状态
+                    val captionListState = rememberLazyListState(0)
+                    val playlistState = rememberLazyListState(0)
                     var lazyColumnHeight by remember{mutableStateOf(0)}
-                    // 字幕列表内容
-                    Column(
-                        modifier = Modifier
-                            .width(subtitleListWidth)
-                            .fillMaxHeight(), // 使用深灰色背景
-                    ){
-                        if(timedCaption.isNotEmpty()){
-                            LazyColumn(
+                    
+                    when (listSelectedTab) {
+                        0 -> {
+                            // 字幕列表内容
+                            
+                            Column(
                                 modifier = Modifier
-                                    .fillMaxSize()
-                                    .onGloballyPositioned { coordinates ->
-                                        lazyColumnHeight =coordinates.size.height
-                                    },
-                                state = listState,
-                                verticalArrangement = Arrangement.spacedBy(4.dp),
-                            ) {
-                                itemsIndexed(timedCaption.captionList) { index, caption ->
-                                    val focusManager = LocalFocusManager.current
-                                    var background by remember { mutableStateOf(Color.Transparent) }
-                                    Box(
+                                    .width(subtitleListWidth)
+                                    .fillMaxHeight()
+                            ){
+                                if(timedCaption.isNotEmpty()){
+                                    LazyColumn(
                                         modifier = Modifier
-                                            .fillMaxWidth()
-                                            .background(background)
-                                            .onClick(
-                                                onClick = {
-                                                    play(caption.start)
-                                                    focusManager.clearFocus() // 释放焦点
-                                                }
-                                            )
-                                            .onPointerEvent(PointerEventType.Enter) {
-                                                background = Color.White.copy(alpha = 0.08f) // 柔和的悬停色
+                                            .fillMaxSize()
+                                            .onGloballyPositioned { coordinates ->
+                                                lazyColumnHeight =coordinates.size.height
+                                            },
+                                        state = captionListState,
+                                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                                    ) {
+                                        itemsIndexed(timedCaption.captionList) { index, caption ->
 
-                                            }
-                                            .onPointerEvent(PointerEventType.Exit){
-                                                background = Color.Transparent // 鼠标移出时还原
-                                            }
-
-                                    ){
-                                        SelectionContainer {
-                                            Text(
-                                                text = caption.content.removeSuffix("\n"),
-                                                style = MaterialTheme.typography.subtitle1,
-                                                color = if(index == timedCaption.currentIndex) MaterialTheme.colors.primary else  Color.LightGray,
+                                            var background by remember { mutableStateOf(Color.Transparent) }
+                                            Box(
                                                 modifier = Modifier
-                                                    .align(Alignment.CenterStart)
-                                                    .padding(start = 16.dp, top = 4.dp, bottom = 4.dp)
-                                            )
-                                        }
+                                                    .fillMaxWidth()
+                                                    .background(background)
+                                                    .onClick(
+                                                        onClick = {
+                                                            play(caption.start)
+                                                            focusManager.clearFocus() // 释放焦点
+                                                        }
+                                                    )
+                                                    .onPointerEvent(PointerEventType.Enter) {
+                                                        background = Color.White.copy(alpha = 0.08f) // 柔和的悬停色
 
+                                                    }
+                                                    .onPointerEvent(PointerEventType.Exit){
+                                                        background = Color.Transparent // 鼠标移出时还原
+                                                    }
+
+                                            ){
+                                                SelectionContainer {
+                                                    Text(
+                                                        text = caption.content.removeSuffix("\n"),
+                                                        style = MaterialTheme.typography.subtitle1,
+                                                        color = if(index == timedCaption.currentIndex) MaterialTheme.colors.primary else  Color.LightGray,
+                                                        modifier = Modifier
+                                                            .align(Alignment.CenterStart)
+                                                            .padding(start = 16.dp, top = 4.dp, bottom = 4.dp)
+                                                    )
+                                                }
+
+                                            }
+                                        }
+                                    }
+                                }
+
+                                LaunchedEffect(timedCaption.currentIndex){
+                                    // 确保当前字幕在可见范围内
+                                    if(timedCaption.currentIndex >= 0 && timedCaption.currentIndex < captionListState.layoutInfo.totalItemsCount) {
+                                        val firstVisibleItem = captionListState.layoutInfo.visibleItemsInfo.firstOrNull()
+                                        val height = firstVisibleItem?.size ?: 0
+                                        val offset = -(lazyColumnHeight/2) + height
+                                        captionListState.scrollToItem(timedCaption.currentIndex,offset)
                                     }
                                 }
                             }
                         }
-
-                        LaunchedEffect(timedCaption.currentIndex){
-                            // 确保当前字幕在可见范围内
-                            if(timedCaption.currentIndex >= 0 && timedCaption.currentIndex < listState.layoutInfo.totalItemsCount) {
-                                val firstVisibleItem = listState.layoutInfo.visibleItemsInfo.firstOrNull()
-                                val height = firstVisibleItem?.size ?: 0
-                                val offset = -(lazyColumnHeight/2) + height
-                                listState.scrollToItem(timedCaption.currentIndex,offset)
+                        1 -> {
+                            // 播放列表内容
+                            LaunchedEffect(playerState.videoPath, listSelectedTab) {
+                                // 当切换到播放列表标签页且视频路径不为空时，检查是否需要加载播放列表
+                                if (listSelectedTab == 1 && playerState.videoPath.isNotEmpty()) {
+                                    // 只有当播放列表为空或者当前视频不在播放列表中时才重新加载
+                                    val shouldReload = playerState.playlist.isEmpty() || 
+                                                     playerState.playlist.none { it.path == playerState.videoPath }
+                                    
+                                    if (shouldReload) {
+                                        playerState.loadPlaylist(playerState.videoPath)
+                                    }
+                                }
+                            }
+                            
+                            Column(
+                                modifier = Modifier
+                                    .width(subtitleListWidth)
+                                    .fillMaxHeight()
+                            ) {
+                                if (playerState.playlist.isNotEmpty()) {
+                                    LazyColumn(
+                                        modifier = Modifier.fillMaxSize(),
+                                        state = playlistState,
+                                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                                    ) {
+                                        itemsIndexed(playerState.playlist) { index, playlistItem ->
+                                            val focusManager = LocalFocusManager.current
+                                            var background by remember { mutableStateOf(Color.Transparent) }
+                                            
+                                            Box(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .background(background)
+                                                    .onClick {
+                                                        playerState.playPlaylistItem(index)
+                                                        focusManager.clearFocus()
+                                                    }
+                                                    .onPointerEvent(PointerEventType.Enter) {
+                                                        background = Color.White.copy(alpha = 0.08f)
+                                                    }
+                                                    .onPointerEvent(PointerEventType.Exit) {
+                                                        background = Color.Transparent
+                                                    }
+                                            ) {
+                                                Column(
+                                                    modifier = Modifier
+                                                        .align(Alignment.CenterStart)
+                                                        .padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 16.dp)
+                                                ) {
+                                                    Row(
+                                                        verticalAlignment = Alignment.CenterVertically,
+                                                        modifier = Modifier.fillMaxWidth()
+                                                    ) {
+                                                        // 视频名称
+                                                        Text(
+                                                            text = playlistItem.name,
+                                                            style = MaterialTheme.typography.subtitle1,
+                                                            color = if (playlistItem.isCurrentlyPlaying) 
+                                                                MaterialTheme.colors.primary 
+                                                            else Color.LightGray,
+                                                            modifier = Modifier.weight(1f)
+                                                        )
+                                                    }
+                                                    
+                                                    // 上次播放时间
+                                                    if (playlistItem.lastPlayedTime != "00:00:00") {
+                                                        Text(
+                                                            text = "上次播放: ${playlistItem.lastPlayedTime}",
+                                                            fontSize = 10.sp,
+                                                            color = Color.Gray,
+                                                            modifier = Modifier.padding(top = 2.dp)
+                                                        )
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    // 空播放列表提示
+                                    Box(
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Text(
+                                                text = "播放列表为空",
+                                                style = MaterialTheme.typography.body1,
+                                                color = Color.Gray
+                                            )
+                                            Text(
+                                                text = "打开视频后会自动加载播放列表",
+                                                fontSize = 12.sp,
+                                                color = Color.Gray,
+                                                modifier = Modifier.padding(top = 4.dp)
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
 
                     VerticalScrollbar(
                         modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                        adapter = rememberScrollbarAdapter(scrollState = listState)
+                        adapter = rememberScrollbarAdapter(
+                            scrollState = if (listSelectedTab == 0) captionListState else playlistState
+                        )
                     )
+                    // 底部工具栏
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.BottomCenter)
+                                .background(Color(0xFF1E1E1E))
+                                .fillMaxWidth()
+                                .onPointerEvent(PointerEventType.Enter){}// 阻止鼠标穿透
+                                .padding(bottom = 5.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Divider(Modifier.padding(bottom = 10.dp))
+                            if (listSelectedTab == 0) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier.fillMaxWidth()){
+                                    TooltipArea(
+                                        tooltip = {
+                                            Surface(
+                                                elevation = 4.dp,
+                                                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                                shape = RoundedCornerShape(4.dp)
+                                            ) {
+                                                Row(modifier = Modifier.padding(10.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                ){
+                                                    Text(text = "上一条字幕 ",color = MaterialTheme.colors.onSurface)
+                                                    Text(text ="A",color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                                                }
+                                            }
+                                        },
+                                        delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+                                        tooltipPlacement = TooltipPlacement.ComponentRect(
+                                            anchor = Alignment.TopCenter,
+                                            alignment = Alignment.TopCenter,
+                                            offset = DpOffset.Zero
+                                        )
 
-                    // 底部的工具栏
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .background(Color(0xFF1E1E1E))
-                            .fillMaxWidth()
-                            .onPointerEvent(PointerEventType.Enter){}// 阻止鼠标穿透
-                            .padding(bottom = 5.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Divider(Modifier.padding(bottom = 10.dp))
-
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.Center,
-                            modifier = Modifier.fillMaxWidth()){
-                            TooltipArea(
-                                tooltip = {
-                                    Surface(
-                                        elevation = 4.dp,
-                                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
-                                        shape = RoundedCornerShape(4.dp)
                                     ) {
-                                        Row(modifier = Modifier.padding(10.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ){
-                                            Text(text = "上一条字幕 ",color = MaterialTheme.colors.onSurface)
-                                            Text(text ="A",color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                                        IconButton(onClick = previousCaption){
+                                            Icon(
+                                                imageVector = Icons.Filled.ArrowBackIos,
+                                                contentDescription = "Previous Caption",
+                                                tint = Color.White
+                                            )
                                         }
                                     }
-                                },
-                                delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
-                                tooltipPlacement = TooltipPlacement.ComponentRect(
-                                    anchor = Alignment.TopCenter,
-                                    alignment = Alignment.TopCenter,
-                                    offset = DpOffset.Zero
-                                )
+                                    TooltipArea(
+                                        tooltip = {
+                                            Surface(
+                                                elevation = 4.dp,
+                                                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                                shape = RoundedCornerShape(4.dp)
+                                            ) {
+                                                Row(modifier = Modifier.padding(10.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                ){
+                                                    Text(text = "重复播放 ",color = MaterialTheme.colors.onSurface)
+                                                    Text(text ="S",color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                                                }
+                                            }
+                                        },
+                                        delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+                                        tooltipPlacement = TooltipPlacement.ComponentRect(
+                                            anchor = Alignment.TopCenter,
+                                            alignment = Alignment.TopCenter,
+                                            offset = DpOffset.Zero
+                                        )
 
-                            ) {
-                                IconButton(onClick = previousCaption){
-                                    Icon(
-                                        imageVector = Icons.Filled.ArrowBackIos,
-                                        contentDescription = "Previous Caption",
-                                        tint = Color.White
-                                    )
-                                }
-                            }
-                            TooltipArea(
-                                tooltip = {
-                                    Surface(
-                                        elevation = 4.dp,
-                                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
-                                        shape = RoundedCornerShape(4.dp)
                                     ) {
-                                        Row(modifier = Modifier.padding(10.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ){
-                                            Text(text = "重复播放 ",color = MaterialTheme.colors.onSurface)
-                                            Text(text ="S",color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                                        IconButton(onClick = replayCaption){
+                                            Icon(
+                                                imageVector = Icons.Filled.Replay,
+                                                contentDescription = "Replay Caption",
+                                                tint = Color.White
+                                            )
+                                        }
+
+                                    }
+
+                                    TooltipArea(
+                                        tooltip = {
+                                            Surface(
+                                                elevation = 4.dp,
+                                                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                                shape = RoundedCornerShape(4.dp)
+                                            ) {
+                                                Row(modifier = Modifier.padding(10.dp),
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                ){
+                                                    Text(text = "下一条字幕 ",color = MaterialTheme.colors.onSurface)
+                                                    Text(text ="D",color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                                                }
+                                            }
+                                        },
+                                        delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+                                        tooltipPlacement = TooltipPlacement.ComponentRect(
+                                            anchor = Alignment.TopCenter,
+                                            alignment = Alignment.TopCenter,
+                                            offset = DpOffset.Zero
+                                        )
+
+                                    ) {
+                                        IconButton(onClick = nextCaption){
+                                            Icon(
+                                                imageVector = Icons.Filled.ArrowForwardIos,
+                                                contentDescription = "Next Caption",
+                                                tint = Color.White
+                                            )
                                         }
                                     }
-                                },
-                                delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
-                                tooltipPlacement = TooltipPlacement.ComponentRect(
-                                    anchor = Alignment.TopCenter,
-                                    alignment = Alignment.TopCenter,
-                                    offset = DpOffset.Zero
-                                )
 
-                            ) {
-                                IconButton(onClick = replayCaption){
-                                    Icon(
-                                        imageVector = Icons.Filled.Replay,
-                                        contentDescription = "Replay Caption",
-                                        tint = Color.White
-                                    )
+
                                 }
-
-                            }
-
-                            TooltipArea(
-                                tooltip = {
-                                    Surface(
-                                        elevation = 4.dp,
-                                        border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
-                                        shape = RoundedCornerShape(4.dp)
-                                    ) {
-                                        Row(modifier = Modifier.padding(10.dp),
-                                            verticalAlignment = Alignment.CenterVertically,
-                                        ){
-                                            Text(text = "下一条字幕 ",color = MaterialTheme.colors.onSurface)
-                                            Text(text ="D",color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
-                                        }
+                            }else{
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center,
+                                    modifier = Modifier.fillMaxWidth()){
+                                    IconButton(onClick = {}){
+                                        Icon(
+                                            Icons.Filled.Add,
+                                            contentDescription = "添加视频",
+                                            tint = Color.White
+                                        )
                                     }
-                                },
-                                delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
-                                tooltipPlacement = TooltipPlacement.ComponentRect(
-                                    anchor = Alignment.TopCenter,
-                                    alignment = Alignment.TopCenter,
-                                    offset = DpOffset.Zero
-                                )
 
-                            ) {
-                                IconButton(onClick = nextCaption){
-                                    Icon(
-                                        imageVector = Icons.Filled.ArrowForwardIos,
-                                        contentDescription = "Next Caption",
-                                        tint = Color.White
-                                    )
+                                    IconButton(onClick = {}){
+                                        Icon(
+                                            Icons.Filled.Remove,
+                                            contentDescription = "移除视频",
+                                            tint = Color.White
+                                        )
+                                    }
+
+
+
+                                    OutlinedButton(onClick = {}){
+                                        Text(text = "清空",color = Color.White,)
+                                    }
                                 }
                             }
-
 
                         }
-                    }
+
                 }
 
             }

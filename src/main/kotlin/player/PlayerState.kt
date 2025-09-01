@@ -59,6 +59,12 @@ class PlayerState(playerData: PlayerData) {
     var showCaptionList by mutableStateOf(false)
     var recentList = readRecentList()
     
+    /** 播放列表状态 */
+    var playlist = mutableStateListOf<PlaylistItem>()
+    var currentPlayingIndex by mutableStateOf(-1)
+    /** 字幕列表/播放列表 Tab 的选中索引 */
+    var listSelectedTab by mutableStateOf(0)
+    
     /** 通知消息 */
     var notificationMessage by mutableStateOf("")
     var notificationType by mutableStateOf(NotificationType.INFO)
@@ -95,6 +101,10 @@ class PlayerState(playerData: PlayerData) {
             vocabulary = null
         }
         videoPath = it
+        // 当视频路径改变时，只有当 CaptionAndVideoList 显示且播放列表 Tab 选中时才加载播放列表
+        if (showCaptionList && listSelectedTab == 1) {
+            loadPlaylist(it)
+        }
     }
     /** 设置词库地址的函数，放到这里是因为记忆单词可以接受拖放的视频，然后把当前词库关联到打开的视频播放器。*/
     val vocabularyPathChanged:(String) -> Unit = {
@@ -500,6 +510,104 @@ class PlayerState(playerData: PlayerData) {
 
     }
 
+    /**
+     * 加载播放列表
+     * 只包含当前文件夹下的其他视频文件
+     */
+    fun loadPlaylist(currentVideoPath: String) {
+        playlist.clear()
+        currentPlayingIndex = -1
+        if (currentVideoPath.isEmpty()) return
+        
+        val videoFormatList = listOf("mp4", "mkv", "avi", "mov", "flv", "wmv", "webm", "ts", "m4v", "3gp", "mpeg", "mpg")
+        val playlistItems = mutableListOf<PlaylistItem>()
+        
+        // 只添加当前文件夹下的其他视频文件
+        try {
+            val currentVideoFile = File(currentVideoPath)
+            val parentDir = currentVideoFile.parentFile
+            
+            if (parentDir != null && parentDir.exists()) {
+                val folderVideos = parentDir.listFiles { file ->
+                    file.isFile && 
+                    videoFormatList.contains(file.extension.lowercase())
+                }?.map { file ->
+                    PlaylistItem(
+                        name = file.nameWithoutExtension,
+                        path = file.absolutePath,
+                        lastPlayedTime = "00:00:00",
+                        isCurrentlyPlaying = currentVideoPath == file.absolutePath,
+                        type = PlaylistItemType.FOLDER
+                    )
+                }?.sortedBy { it.name } ?: emptyList()
+                
+                playlistItems.addAll(folderVideos)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        
+        // 更新播放列表
+        playlist.addAll(playlistItems)
+    }
+    
+    /**
+     * 播放播放列表中的指定项目
+     */
+    fun playPlaylistItem(index: Int) {
+        if (index >= 0 && index < playlist.size) {
+            val item = playlist[index]
+            // 更新当前播放状态
+            playlist.forEachIndexed { i, playlistItem ->
+                playlist[i] = playlistItem.copy(isCurrentlyPlaying = i == index)
+            }
+            currentPlayingIndex = index
+            
+            // 更新视频路径（这会触发视频播放）
+            videoPath = item.path
+            startTime = item.lastPlayedTime
+            
+            // 添加到最近播放列表
+            val recentVideo = RecentVideo(
+                dateTime = LocalDateTime.now().toString(),
+                name = item.name,
+                path = item.path,
+                lastPlayedTime = item.lastPlayedTime
+            )
+            saveToRecentList(recentVideo)
+            
+            showNotification("正在播放: ${item.name}")
+        }
+    }
+    
+    /**
+     * 播放下一个视频
+     */
+    fun playNext() {
+        if (playlist.isNotEmpty()) {
+            val nextIndex = if (currentPlayingIndex < playlist.size - 1) {
+                currentPlayingIndex + 1
+            } else {
+                0 // 循环播放
+            }
+            playPlaylistItem(nextIndex)
+        }
+    }
+    
+    /**
+     * 播放上一个视频
+     */
+    fun playPrevious() {
+        if (playlist.isNotEmpty()) {
+            val prevIndex = if (currentPlayingIndex > 0) {
+                currentPlayingIndex - 1
+            } else {
+                playlist.size - 1 // 循环播放
+            }
+            playPlaylistItem(prevIndex)
+        }
+    }
+
 }
 
 private fun getPlayerSettingsFile(): File {
@@ -561,6 +669,21 @@ data class RecentVideo(
     override fun hashCode(): Int {
         return name.hashCode() + path.hashCode()
     }
+}
+
+@Serializable
+data class PlaylistItem(
+    val name: String,
+    val path: String,
+    val lastPlayedTime: String = "00:00:00",
+    val isCurrentlyPlaying: Boolean = false,
+    val type: PlaylistItemType = PlaylistItemType.RECENT
+)
+
+enum class PlaylistItemType {
+    RECENT,     // 最近播放
+    FOLDER,     // 同文件夹视频
+    CUSTOM      // 自定义播放列表
 }
 
 enum class NotificationType {
