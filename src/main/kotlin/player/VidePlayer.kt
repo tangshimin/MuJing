@@ -2569,19 +2569,25 @@ fun CaptionAndVideoList(
 
 
 
-                                    OutlinedButton(onClick = {
-                                        // 清空播放列表
-                                        if (playerState.playlist.isNotEmpty()) {
-                                            playerState.playlist.clear()
-                                            selectedPlaylistIndex = -1
-                                            playerState.showNotification("已清空播放列表")
-                                        } else {
-                                            playerState.showNotification("播放列表已为空", NotificationType.ACTION)
+                                        OutlinedButton(onClick = {
+                                            // 清空播放列表
+                                            if (playerState.playlist.isNotEmpty()) {
+                                                playerState.playlist.clear()
+                                                selectedPlaylistIndex = -1
+                                                playerState.showNotification("已清空播放列表")
+                                            } else {
+                                                playerState.showNotification("播放列表已为空", NotificationType.ACTION)
+                                            }
+                                        },
+                                            border = BorderStroke(1.dp, Color.White.copy(alpha = 0.12f)),
+                                            colors = ButtonDefaults.outlinedButtonColors(
+                                                backgroundColor = Color.Transparent
+                                            )
+                                        ){
+                                            Text(text = "清空", color = Color.White,)
                                         }
-                                    }){
 
-                                        Text(text = "清空",color = Color.White,)
-                                    }
+
                                 }
                             }
 
