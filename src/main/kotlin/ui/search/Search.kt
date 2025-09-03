@@ -2,6 +2,7 @@ package ui.search
 
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
@@ -13,13 +14,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.*
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Popup
-import androidx.compose.ui.window.PopupProperties
+import androidx.compose.ui.window.Dialog
 import data.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -52,6 +50,9 @@ fun Search(
         if (isModifierPressed && it.key == Key.F && it.type == KeyEventType.KeyUp) {
             onDismissRequest()
             true
+        }else if (it.key == Key.Escape && it.type == KeyEventType.KeyUp) {
+            onDismissRequest()
+            true
         }else if (isModifierPressed && it.key == Key.J && it.type == KeyEventType.KeyUp) {
             if (!isPlayingAudio && searchResult != null && searchResult!!.value.isNotEmpty()) {
                 scope.launch (Dispatchers.IO){
@@ -73,16 +74,12 @@ fun Search(
                 }
             }
             true
-        } else false
+        } else true // 不继续传播事件
     }
 
-    Popup(
-        alignment = Alignment.Center,
-        offset = IntOffset(0, 0),
+    Dialog(
         onDismissRequest = {onDismissRequest()},
-        properties = PopupProperties(focusable = true),
-        onKeyEvent = {keyEvent(it)},
-    ){
+    ) {
 
         val focusRequester = remember { FocusRequester() }
         var input by remember { mutableStateOf("") }
@@ -123,12 +120,12 @@ fun Search(
         }
         Surface(
             elevation = 5.dp,
-            shape = RectangleShape,
+            shape = RoundedCornerShape(8.dp),
             border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
             modifier = Modifier
                 .width(600.dp)
                 .height(500.dp)
-                .background(MaterialTheme.colors.background),
+                .onKeyEvent { keyEvent(it) },
         ) {
             Box(Modifier.fillMaxSize()) {
                 val stateVertical = rememberScrollState(0)
