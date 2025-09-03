@@ -1468,7 +1468,16 @@ fun VideoPlayer(
                             }
                         }
 
-
+                        PlayerEventType.TOGGLE_FIRST_CAPTION ->{
+                            primaryCaptionVisible = !primaryCaptionVisible
+                            val message = "${if(primaryCaptionVisible) "显示" else "隐藏"}第一语言字幕"
+                            state.showNotification(message, NotificationType.ACTION)
+                        }
+                        PlayerEventType.TOGGLE_SECOND_CAPTION -> {
+                            secondaryCaptionVisible = !secondaryCaptionVisible
+                            val message = "${if(secondaryCaptionVisible) "显示" else "隐藏"}第二语言字幕"
+                            state.showNotification(message, NotificationType.ACTION)
+                        }
                     }
                 }
             }
@@ -3146,6 +3155,7 @@ private fun loadSubtitleAndVocabulary(
         updateCaptionIndex()
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CaptionToolbar(
     subtitleDescription: String,
@@ -3174,18 +3184,50 @@ fun CaptionToolbar(
                 for ((i, lang) in parts.withIndex()) {
                     val selected = (primaryCaptionVisible && i == 0) ||
                             (secondaryCaptionVisible && i == 1)
-                    LabelButton(
-                        onClick = {
-                            if (i == 0) {
-                                onPrimaryCaptionToggle()
-                            } else {
-                                onSecondaryCaptionToggle()
+
+                    val order = if(i == 0) "第一" else "第二"
+                    val tooltip =if (selected) "隐藏${order}语言 " else "显示${order}语言 "
+                    TooltipArea(
+                        tooltip = {
+                            Surface(
+                                elevation = 4.dp,
+                                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                                shape = RoundedCornerShape(4.dp)
+                            ) {
+                                val ctrl = LocalCtrl.current
+                                val letter = if (i == 0) "1" else "2"
+                                val shortcut = if (isMacOS()) "$ctrl $letter" else "$ctrl+$letter"
+                                Row(modifier = Modifier.padding(10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ){
+                                    Text(text = tooltip,color = MaterialTheme.colors.onSurface)
+                                    Text(text =shortcut,color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                                }
+
                             }
-                            onFocusClear()
                         },
-                        enabled = selected,
-                        lang = lang
-                    )
+                        delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+                        tooltipPlacement = TooltipPlacement.ComponentRect(
+                            anchor = Alignment.TopCenter,
+                            alignment = Alignment.TopCenter,
+                            offset = DpOffset.Zero
+                        )
+
+                    ) {
+                        LabelButton(
+                            onClick = {
+                                if (i == 0) {
+                                    onPrimaryCaptionToggle()
+                                } else {
+                                    onSecondaryCaptionToggle()
+                                }
+                                onFocusClear()
+                            },
+                            enabled = selected,
+                            lang = lang
+                        )
+                    }
+
                 }
                 // 切换主次字幕按钮
                 SwapButton(

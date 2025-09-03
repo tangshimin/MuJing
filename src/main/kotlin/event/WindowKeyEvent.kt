@@ -109,6 +109,18 @@ fun handleWindowKeyEvent(
                 }
                 true
             }
+            isModifierPressed && it.key == Key.One && it.type == KeyEventType.KeyUp -> {
+                scope.launch {
+                    eventBus.post(PlayerEventType.TOGGLE_FIRST_CAPTION)
+                }
+                true
+            }
+            isModifierPressed && it.key == Key.Two && it.type == KeyEventType.KeyUp -> {
+                scope.launch {
+                    eventBus.post(PlayerEventType.TOGGLE_SECOND_CAPTION)
+                }
+                true
+            }
         }
         false
 

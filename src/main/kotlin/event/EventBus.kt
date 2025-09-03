@@ -27,6 +27,8 @@ enum class PlayerEventType {
     REPEAT_CAPTION,// 重复字幕
     AUTO_PAUSE, // 自动暂停
     OPEN_SEARCH,// 打开搜索
+    TOGGLE_FIRST_CAPTION, // 隐藏-显示第一语言字幕
+    TOGGLE_SECOND_CAPTION,// 隐藏-显示第二语言字幕
 }
 
 /**
