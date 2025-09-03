@@ -61,6 +61,7 @@ import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.serialization.ExperimentalSerializationApi
+import org.jetbrains.skia.Surface
 import player.danmaku.CanvasDanmakuContainer
 import player.danmaku.DanmakuStateManager
 import player.danmaku.TimelineSynchronizer
@@ -845,166 +846,170 @@ fun VideoPlayer(
                     // 显示字幕
                     if(caption.isNotEmpty()){
                         var isSelectionActivated by remember { mutableStateOf(false) }
-                        Box(
-                            Modifier
-                                .shadow(4.dp, shape = RoundedCornerShape(8.dp))
-                                .background(if(isCaptionAreaHovered) Color(29,30,31) else Color.Black.copy(alpha = 0.7f))
-                                .onPointerEvent(PointerEventType.Enter) {
-                                    isCaptionAreaHovered = true
-                                }
-                                .onPointerEvent(PointerEventType.Exit) {
-                                    isCaptionAreaHovered = false
-                                }
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color.Transparent,
                         ){
-
-                            if(!isSelectionActivated){
-                                HoverableCaption(
-                                    caption =caption.removeSuffix("\n"),
-                                    playAudio = playAudio,
-                                    playerState = state,
-                                    primaryCaptionVisible = primaryCaptionVisible,
-                                    secondaryCaptionVisible = secondaryCaptionVisible,
-                                    isBilingual = subtitleDescription.contains("&"),
-                                    swapEnabled = isSwap,
-                                    modifier = Modifier.align(Alignment.Center)
-                                        .padding(start = 16.dp, end = 16.dp , top= 48.dp,bottom = 48.dp),
-                                    onPopupHoverChanged = { hovering ->
-                                        showDictPopup = hovering
-                                        if (hovering) {
-                                            if (prevPlayState == null) {
-                                                prevPlayState = isPlaying
-                                            }
-                                            pauseIfPlaying()
-                                        } else {
-                                            scope.launch {
-                                                delay(50)
-                                                tryRestorePlayback()
-                                            }
-                                        }
-                                    },
-                                    addWord ={
-                                        if(it.captions.size<3){
-                                            val playerCaption= timedCaption.getCurrentPlayerCaption()
-                                            val dataCaption = playerCaption.toDataCaption()
-                                            it.captions.add(dataCaption)
-                                        }
-                                        state.addWord(it)
-                                    },
-                                    addToFamiliar = {
-                                        if(it.captions.size<3){
-                                            val playerCaption= timedCaption.getCurrentPlayerCaption()
-                                            val dataCaption = playerCaption.toDataCaption()
-                                            it.captions.add(dataCaption)
-                                        }
-                                        state.addToFamiliar(it)
+                            Box(
+                                Modifier
+                                    .background(if(isCaptionAreaHovered) Color(29,30,31) else Color.Black.copy(alpha = 0.2f))
+                                    .onPointerEvent(PointerEventType.Enter) {
+                                        isCaptionAreaHovered = true
                                     }
-                                )
-                            }else{
-                                CustomTextMenuProvider {
-                                    val textFieldRequester by remember { mutableStateOf(FocusRequester()) }
-                                    BasicTextField(
-                                        value = caption.removeSuffix("\n"),
-                                        onValueChange = {  },
-                                        singleLine = false,
-                                        textStyle = MaterialTheme.typography.h4.copy(
-                                            color = Color.White,
-                                            textAlign = TextAlign.Center,
-                                        ),
-                                        cursorBrush = SolidColor(MaterialTheme.colors.primary),
-                                        modifier = Modifier
-                                            .align(Alignment.Center)
-                                            .focusRequester(textFieldRequester)
-                                            .onPointerEvent(PointerEventType.Enter){isCaptionAreaHovered = true}
-                                            .background(Color.Black.copy(alpha = 0.7f))
-                                            .padding(start = 16.dp, end = 16.dp , top= 48.dp,bottom = 48.dp)
-                                            .shadow(4.dp, shape = RoundedCornerShape(8.dp))
-                                            .onKeyEvent {
-                                                val isModifierPressed = if (isMacOS()) it.isMetaPressed else it.isCtrlPressed
-                                                if (it.type == KeyEventType.KeyUp && it.key == Key.Escape) {
-                                                    isSelectionActivated = false
-                                                    focusManager.clearFocus()
-                                                    true
-                                                }else if ( isModifierPressed && it.type == KeyEventType.KeyUp && it.key == Key.A) {
-                                                    // 消耗事件，防止全选的时候触发 A 快捷键切换到上一条字幕
-                                                    true
-                                                } else {
-                                                    false
+                                    .onPointerEvent(PointerEventType.Exit) {
+                                        isCaptionAreaHovered = false
+                                    }
+                            ){
+
+                                if(!isSelectionActivated){
+                                    HoverableCaption(
+                                        caption =caption.removeSuffix("\n"),
+                                        playAudio = playAudio,
+                                        playerState = state,
+                                        primaryCaptionVisible = primaryCaptionVisible,
+                                        secondaryCaptionVisible = secondaryCaptionVisible,
+                                        isBilingual = subtitleDescription.contains("&"),
+                                        swapEnabled = isSwap,
+                                        modifier = Modifier.align(Alignment.Center)
+                                            .padding(start = 48.dp, end = 48.dp , top= 48.dp,bottom = 48.dp)
+                                        ,
+                                        onPopupHoverChanged = { hovering ->
+                                            showDictPopup = hovering
+                                            if (hovering) {
+                                                if (prevPlayState == null) {
+                                                    prevPlayState = isPlaying
+                                                }
+                                                pauseIfPlaying()
+                                            } else {
+                                                scope.launch {
+                                                    delay(50)
+                                                    tryRestorePlayback()
                                                 }
                                             }
-                                        ,
+                                        },
+                                        addWord ={
+                                            if(it.captions.size<3){
+                                                val playerCaption= timedCaption.getCurrentPlayerCaption()
+                                                val dataCaption = playerCaption.toDataCaption()
+                                                it.captions.add(dataCaption)
+                                            }
+                                            state.addWord(it)
+                                        },
+                                        addToFamiliar = {
+                                            if(it.captions.size<3){
+                                                val playerCaption= timedCaption.getCurrentPlayerCaption()
+                                                val dataCaption = playerCaption.toDataCaption()
+                                                it.captions.add(dataCaption)
+                                            }
+                                            state.addToFamiliar(it)
+                                        }
                                     )
-                                    LaunchedEffect(Unit){
-                                        textFieldRequester.requestFocus()
+                                }else{
+                                    CustomTextMenuProvider {
+                                        val textFieldRequester by remember { mutableStateOf(FocusRequester()) }
+                                        BasicTextField(
+                                            value = caption.removeSuffix("\n"),
+                                            onValueChange = {  },
+                                            singleLine = false,
+                                            textStyle = MaterialTheme.typography.h4.copy(
+                                                color = Color.White,
+                                                textAlign = TextAlign.Center,
+                                            ),
+                                            cursorBrush = SolidColor(MaterialTheme.colors.primary),
+                                            modifier = Modifier
+                                                .align(Alignment.Center)
+                                                .focusRequester(textFieldRequester)
+                                                .onPointerEvent(PointerEventType.Enter){isCaptionAreaHovered = true}
+                                                .padding(start = 48.dp, end = 48.dp , top= 48.dp,bottom = 48.dp)
+                                                .onKeyEvent {
+                                                    val isModifierPressed = if (isMacOS()) it.isMetaPressed else it.isCtrlPressed
+                                                    if (it.type == KeyEventType.KeyUp && it.key == Key.Escape) {
+                                                        isSelectionActivated = false
+                                                        focusManager.clearFocus()
+                                                        true
+                                                    }else if ( isModifierPressed && it.type == KeyEventType.KeyUp && it.key == Key.A) {
+                                                        // 消耗事件，防止全选的时候触发 A 快捷键切换到上一条字幕
+                                                        true
+                                                    } else {
+                                                        false
+                                                    }
+                                                }
+                                            ,
+                                        )
+                                        LaunchedEffect(Unit){
+                                            textFieldRequester.requestFocus()
+                                        }
+
                                     }
-
                                 }
-                            }
 
-                            // 字幕工具栏
-                            if(isCaptionAreaHovered){
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    modifier = Modifier.align(Alignment.TopEnd).padding(end = 8.dp)
-                                ){
-                                    if(subtitleDescription.contains("&")){
-                                        val parts = subtitleDescription
-                                            .split("&")
-                                            .map { removeSuffix(it)}
-                                            .filter { it.isNotEmpty() && it != "&" }
-                                        // 这里只处理双语字幕
-                                        if(parts.size == 2){
-                                            for((i, lang) in parts.withIndex()){
-                                                val selected = (primaryCaptionVisible && i == 0) ||
-                                                        (secondaryCaptionVisible && i == 1)
-                                                LabelButton(
+                                // 字幕工具栏
+                                if(isCaptionAreaHovered){
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.align(Alignment.TopEnd).padding(end = 24.dp)
+                                    ){
+                                        if(subtitleDescription.contains("&")){
+                                            val parts = subtitleDescription
+                                                .split("&")
+                                                .map { removeSuffix(it)}
+                                                .filter { it.isNotEmpty() && it != "&" }
+                                            // 这里只处理双语字幕
+                                            if(parts.size == 2){
+                                                for((i, lang) in parts.withIndex()){
+                                                    val selected = (primaryCaptionVisible && i == 0) ||
+                                                            (secondaryCaptionVisible && i == 1)
+                                                    LabelButton(
+                                                        onClick = {
+                                                            if (i == 0) {
+                                                                primaryCaptionVisible = !primaryCaptionVisible
+                                                            } else {
+                                                                secondaryCaptionVisible = !secondaryCaptionVisible
+                                                            }
+                                                            focusManager.clearFocus()
+                                                        },
+                                                        enabled = selected,
+                                                        lang = lang
+                                                    )
+
+                                                }
+                                                // 切换主次字幕按钮
+                                                SwapButton(
+                                                    isActive = isSwap,
                                                     onClick = {
-                                                        if (i == 0) {
-                                                            primaryCaptionVisible = !primaryCaptionVisible
-                                                        } else {
-                                                            secondaryCaptionVisible = !secondaryCaptionVisible
-                                                        }
+                                                        isSwap = !isSwap
+                                                        focusManager.clearFocus()
+                                                    }
+                                                )
+                                            }
+
+                                        }else{
+                                            if(subtitleDescription.isNotEmpty()){
+                                                LabelButton(
+                                                    lang = removeSuffix(subtitleDescription),
+                                                    onClick = {
+                                                        primaryCaptionVisible = !primaryCaptionVisible
                                                         focusManager.clearFocus()
                                                     },
-                                                    enabled = selected,
-                                                    lang = lang
+                                                    enabled = primaryCaptionVisible
                                                 )
 
                                             }
-                                            // 切换主次字幕按钮
-                                            SwapButton(
-                                                isActive = isSwap,
-                                                onClick = {
-                                                    isSwap = !isSwap
-                                                    focusManager.clearFocus()
-                                                }
-                                            )
                                         }
 
-                                    }else{
-                                        if(subtitleDescription.isNotEmpty()){
-                                            LabelButton(
-                                                lang = removeSuffix(subtitleDescription),
-                                                onClick = {
-                                                    primaryCaptionVisible = !primaryCaptionVisible
-                                                    focusManager.clearFocus()
-                                                },
-                                                enabled = primaryCaptionVisible
-                                            )
+                                        SelectionButton(
+                                            isActive = isSelectionActivated,
+                                            onClick = {
+                                                isSelectionActivated = !isSelectionActivated
+                                                focusManager.clearFocus()
+                                            },
+                                        )
 
-                                        }
                                     }
 
-                                    SelectionButton(
-                                        isActive = isSelectionActivated,
-                                        onClick = {
-                                            isSelectionActivated = !isSelectionActivated
-                                            focusManager.clearFocus()
-                                        },
-                                    )
-
                                 }
-
                             }
+
                         }
 
                         // 如果控制栏不可见，则在字幕下方添加间隔
