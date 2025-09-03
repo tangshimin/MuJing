@@ -27,6 +27,7 @@ jobs:
         with:
           distribution: 'jetbrains'
           java-version: '21'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       # Check out current repository
       - name: Fetch Sources
