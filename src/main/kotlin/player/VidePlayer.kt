@@ -2206,7 +2206,6 @@ fun CaptionAndVideoList(
                     when (listSelectedTab) {
                         0 -> {
                             // 字幕列表内容
-                            
                             Column(
                                 modifier = Modifier
                                     .width(subtitleListWidth)
@@ -2268,6 +2267,10 @@ fun CaptionAndVideoList(
                                         val offset = -(lazyColumnHeight/2) + height
                                         captionListState.scrollToItem(timedCaption.currentIndex,offset)
                                     }
+                                }
+                                LaunchedEffect(Unit){
+                                    // 初始时滚动到第一行
+                                    captionListState.scrollToItem(0)
                                 }
                             }
                         }
