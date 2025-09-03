@@ -1013,6 +1013,11 @@ fun VideoPlayer(
 
                                 }
                             }
+                            DisposableEffect(Unit){
+                                onDispose {
+                                    isCaptionAreaHovered = false
+                                }
+                            }
 
                         }
 
