@@ -13,6 +13,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
@@ -27,8 +28,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.isCtrlPressed
+import androidx.compose.ui.input.key.isMetaPressed
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
@@ -834,44 +844,102 @@ fun VideoPlayer(
 
                     // 显示字幕
                     if(caption.isNotEmpty()){
-                        val enterJob = remember { mutableStateOf<Job?>(null) }
-
+                        var isSelectionActivated by remember { mutableStateOf(false) }
                         Box(
                             Modifier
                                 .shadow(4.dp, shape = RoundedCornerShape(8.dp))
                                 .background(if(isCaptionAreaHovered) Color(29,30,31) else Color.Black.copy(alpha = 0.7f))
                                 .onPointerEvent(PointerEventType.Enter) {
-                                    enterJob.value?.cancel() // 取消之前的 Job
-                                    enterJob.value = scope.launch {
-                                        delay(150) // 设置悬停最少停留时间为 150 毫秒
-                                        isCaptionAreaHovered = true
-                                        if (prevPlayState == null) {
-                                            prevPlayState = isPlaying
-                                        }
-
-                                        // 只有在有字幕时才暂停播放
-                                        // 有时候鼠标移动慢了，过了 150 毫秒字幕已经消失了
-                                        if(caption.isNotEmpty()){
-                                            pauseIfPlaying()
-                                            // 显示悬停暂停通知
-                                            if(prevPlayState == true) {
-                                                state.showNotification("暂停", NotificationType.ACTION)
-                                            }
-                                        }
-
-                                    }
-
+                                    isCaptionAreaHovered = true
                                 }
                                 .onPointerEvent(PointerEventType.Exit) {
-                                    enterJob.value?.cancel() // 取消之前的 Job
                                     isCaptionAreaHovered = false
-                                    // 延时处理，避免在移动到 Popup 时误触发恢复
-                                    scope.launch {
-                                        delay(50) // 短暂延时，让 Popup 的 Enter 事件先触发
-                                        tryRestorePlayback()
-                                    }
                                 }
                         ){
+
+                            if(!isSelectionActivated){
+                                HoverableCaption(
+                                    caption =caption.removeSuffix("\n"),
+                                    playAudio = playAudio,
+                                    playerState = state,
+                                    primaryCaptionVisible = primaryCaptionVisible,
+                                    secondaryCaptionVisible = secondaryCaptionVisible,
+                                    isBilingual = subtitleDescription.contains("&"),
+                                    swapEnabled = isSwap,
+                                    modifier = Modifier.align(Alignment.Center)
+                                        .padding(start = 16.dp, end = 16.dp , top= 48.dp,bottom = 48.dp),
+                                    onPopupHoverChanged = { hovering ->
+                                        showDictPopup = hovering
+                                        if (hovering) {
+                                            if (prevPlayState == null) {
+                                                prevPlayState = isPlaying
+                                            }
+                                            pauseIfPlaying()
+                                        } else {
+                                            scope.launch {
+                                                delay(50)
+                                                tryRestorePlayback()
+                                            }
+                                        }
+                                    },
+                                    addWord ={
+                                        if(it.captions.size<3){
+                                            val playerCaption= timedCaption.getCurrentPlayerCaption()
+                                            val dataCaption = playerCaption.toDataCaption()
+                                            it.captions.add(dataCaption)
+                                        }
+                                        state.addWord(it)
+                                    },
+                                    addToFamiliar = {
+                                        if(it.captions.size<3){
+                                            val playerCaption= timedCaption.getCurrentPlayerCaption()
+                                            val dataCaption = playerCaption.toDataCaption()
+                                            it.captions.add(dataCaption)
+                                        }
+                                        state.addToFamiliar(it)
+                                    }
+                                )
+                            }else{
+                                CustomTextMenuProvider {
+                                    val textFieldRequester by remember { mutableStateOf(FocusRequester()) }
+                                    BasicTextField(
+                                        value = caption.removeSuffix("\n"),
+                                        onValueChange = {  },
+                                        singleLine = false,
+                                        textStyle = MaterialTheme.typography.h4.copy(
+                                            color = Color.White,
+                                            textAlign = TextAlign.Center,
+                                        ),
+                                        cursorBrush = SolidColor(MaterialTheme.colors.primary),
+                                        modifier = Modifier
+                                            .align(Alignment.Center)
+                                            .focusRequester(textFieldRequester)
+                                            .onPointerEvent(PointerEventType.Enter){isCaptionAreaHovered = true}
+                                            .background(Color.Black.copy(alpha = 0.7f))
+                                            .padding(start = 16.dp, end = 16.dp , top= 48.dp,bottom = 48.dp)
+                                            .shadow(4.dp, shape = RoundedCornerShape(8.dp))
+                                            .onKeyEvent {
+                                                val isModifierPressed = if (isMacOS()) it.isMetaPressed else it.isCtrlPressed
+                                                if (it.type == KeyEventType.KeyUp && it.key == Key.Escape) {
+                                                    isSelectionActivated = false
+                                                    focusManager.clearFocus()
+                                                    true
+                                                }else if ( isModifierPressed && it.type == KeyEventType.KeyUp && it.key == Key.A) {
+                                                    // 消耗事件，防止全选的时候触发 A 快捷键切换到上一条字幕
+                                                    true
+                                                } else {
+                                                    false
+                                                }
+                                            }
+                                        ,
+                                    )
+                                    LaunchedEffect(Unit){
+                                        textFieldRequester.requestFocus()
+                                    }
+
+                                }
+                            }
+
                             // 字幕工具栏
                             if(isCaptionAreaHovered){
                                 Row(
@@ -895,7 +963,7 @@ fun VideoPlayer(
                                                         } else {
                                                             secondaryCaptionVisible = !secondaryCaptionVisible
                                                         }
-                                                       focusManager.clearFocus()
+                                                        focusManager.clearFocus()
                                                     },
                                                     enabled = selected,
                                                     lang = lang
@@ -927,8 +995,9 @@ fun VideoPlayer(
                                     }
 
                                     SelectionButton(
-                                        enabled = false,
+                                        isActive = isSelectionActivated,
                                         onClick = {
+                                            isSelectionActivated = !isSelectionActivated
                                             focusManager.clearFocus()
                                         },
                                     )
@@ -936,49 +1005,6 @@ fun VideoPlayer(
                                 }
 
                             }
-
-                            HoverableCaption(
-                                caption =caption.removeSuffix("\n"),
-                                playAudio = playAudio,
-                                playerState = state,
-                                primaryCaptionVisible = primaryCaptionVisible,
-                                secondaryCaptionVisible = secondaryCaptionVisible,
-                                isBilingual = subtitleDescription.contains("&"),
-                                swapEnabled = isSwap,
-                                modifier = Modifier.align(Alignment.Center)
-                                    .padding(start = 16.dp, end = 16.dp , top= 48.dp,bottom = 48.dp),
-                                onPopupHoverChanged = { hovering ->
-                                    showDictPopup = hovering
-                                    if (hovering) {
-                                        if (prevPlayState == null) {
-                                            prevPlayState = isPlaying
-                                        }
-                                        pauseIfPlaying()
-                                    } else {
-                                        scope.launch {
-                                            delay(50)
-                                            tryRestorePlayback()
-                                        }
-                                    }
-                                },
-                                addWord ={
-                                    if(it.captions.size<3){
-                                        val playerCaption= timedCaption.getCurrentPlayerCaption()
-                                        val dataCaption = playerCaption.toDataCaption()
-                                        it.captions.add(dataCaption)
-                                    }
-                                    state.addWord(it)
-                                },
-                                addToFamiliar = {
-                                    if(it.captions.size<3){
-                                        val playerCaption= timedCaption.getCurrentPlayerCaption()
-                                        val dataCaption = playerCaption.toDataCaption()
-                                        it.captions.add(dataCaption)
-                                    }
-                                    state.addToFamiliar(it)
-                                }
-                            )
-
                         }
 
                         // 如果控制栏不可见，则在字幕下方添加间隔
@@ -3078,7 +3104,7 @@ fun LabelButton(
 @Composable
 fun SelectionButton(
     onClick: () -> Unit,
-    enabled: Boolean,
+    isActive: Boolean,
     modifier: Modifier = Modifier
 ){
     Box(
@@ -3086,14 +3112,14 @@ fun SelectionButton(
         modifier = Modifier
             .size(height = 32.dp,width = 36.dp)
             .background(
-                if (enabled) MaterialTheme.colors.primary.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f)
+                if (isActive) MaterialTheme.colors.primary.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f)
             )
             .clickable{ onClick() }
     ){
         Icon(
             icons.TextSelectStart,
             contentDescription = "选择字幕文本",
-            tint = Color.White,
+            tint = if (isActive) MaterialTheme.colors.primary else Color.White.copy(alpha = 0.7f),
             modifier = modifier.size(18.dp)
         )
     }
