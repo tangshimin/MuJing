@@ -278,7 +278,17 @@ class AppState {
         }
 
     }
-
+    fun clearRecentList() {
+        runBlocking {
+            launch (Dispatchers.IO){
+                recentList.clear()
+                val recentListFile = getRecentListFile()
+                if (recentListFile.exists()) {
+                    recentListFile.delete()
+                }
+            }
+        }
+    }
     fun removeRecentItem(recentItem: RecentItem) {
         runBlocking {
             launch (Dispatchers.IO){

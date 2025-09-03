@@ -494,6 +494,11 @@ private fun FrameWindowScope.WindowMenuBar(
             showFilePicker = false
         }
         Menu("打开最近词库${if(isWindows) "(R)" else ""}",enabled = appState.recentList.isNotEmpty(), mnemonic = 'R') {
+
+            Item("清除最近列表", onClick = {
+                appState.clearRecentList()
+            })
+
             for (i in 0 until appState.recentList.size){
                 val recentItem = appState.recentList.getOrNull(i)
                 if(recentItem!= null){
