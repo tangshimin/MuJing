@@ -949,68 +949,19 @@ fun VideoPlayer(
 
                                 // 字幕工具栏
                                 if(isCaptionAreaHovered){
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
+                                    CaptionToolbar(
+                                        subtitleDescription = subtitleDescription,
+                                        primaryCaptionVisible = primaryCaptionVisible,
+                                        secondaryCaptionVisible = secondaryCaptionVisible,
+                                        isSwap = isSwap,
+                                        isSelectionActivated = isSelectionActivated,
+                                        onPrimaryCaptionToggle = { primaryCaptionVisible = !primaryCaptionVisible },
+                                        onSecondaryCaptionToggle = { secondaryCaptionVisible = !secondaryCaptionVisible },
+                                        onSwapToggle = { isSwap = !isSwap },
+                                        onSelectionToggle = { isSelectionActivated = !isSelectionActivated },
+                                        onFocusClear = { focusManager.clearFocus() },
                                         modifier = Modifier.align(Alignment.TopEnd).padding(end = 24.dp)
-                                    ){
-                                        if(subtitleDescription.contains("&")){
-                                            val parts = subtitleDescription
-                                                .split("&")
-                                                .map { removeSuffix(it)}
-                                                .filter { it.isNotEmpty() && it != "&" }
-                                            // 这里只处理双语字幕
-                                            if(parts.size == 2){
-                                                for((i, lang) in parts.withIndex()){
-                                                    val selected = (primaryCaptionVisible && i == 0) ||
-                                                            (secondaryCaptionVisible && i == 1)
-                                                    LabelButton(
-                                                        onClick = {
-                                                            if (i == 0) {
-                                                                primaryCaptionVisible = !primaryCaptionVisible
-                                                            } else {
-                                                                secondaryCaptionVisible = !secondaryCaptionVisible
-                                                            }
-                                                            focusManager.clearFocus()
-                                                        },
-                                                        enabled = selected,
-                                                        lang = lang
-                                                    )
-
-                                                }
-                                                // 切换主次字幕按钮
-                                                SwapButton(
-                                                    isActive = isSwap,
-                                                    onClick = {
-                                                        isSwap = !isSwap
-                                                        focusManager.clearFocus()
-                                                    }
-                                                )
-                                            }
-
-                                        }else{
-                                            if(subtitleDescription.isNotEmpty()){
-                                                LabelButton(
-                                                    lang = removeSuffix(subtitleDescription),
-                                                    onClick = {
-                                                        primaryCaptionVisible = !primaryCaptionVisible
-                                                        focusManager.clearFocus()
-                                                    },
-                                                    enabled = primaryCaptionVisible
-                                                )
-
-                                            }
-                                        }
-
-                                        SelectionButton(
-                                            isActive = isSelectionActivated,
-                                            onClick = {
-                                                isSelectionActivated = !isSelectionActivated
-                                                focusManager.clearFocus()
-                                            },
-                                        )
-
-                                    }
-
+                                    )
                                 }
                             }
                             DisposableEffect(Unit){
@@ -3193,4 +3144,77 @@ private fun loadSubtitleAndVocabulary(
 
         // 更新字幕索引
         updateCaptionIndex()
+}
+
+@Composable
+fun CaptionToolbar(
+    subtitleDescription: String,
+    primaryCaptionVisible: Boolean,
+    secondaryCaptionVisible: Boolean,
+    isSwap: Boolean,
+    isSelectionActivated: Boolean,
+    onPrimaryCaptionToggle: () -> Unit,
+    onSecondaryCaptionToggle: () -> Unit,
+    onSwapToggle: () -> Unit,
+    onSelectionToggle: () -> Unit,
+    onFocusClear: () -> Unit,
+    modifier: Modifier
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = modifier
+    ) {
+        if (subtitleDescription.contains("&")) {
+            val parts = subtitleDescription
+                .split("&")
+                .map { removeSuffix(it) }
+                .filter { it.isNotEmpty() && it != "&" }
+            // 这里只处理双语字幕
+            if (parts.size == 2) {
+                for ((i, lang) in parts.withIndex()) {
+                    val selected = (primaryCaptionVisible && i == 0) ||
+                            (secondaryCaptionVisible && i == 1)
+                    LabelButton(
+                        onClick = {
+                            if (i == 0) {
+                                onPrimaryCaptionToggle()
+                            } else {
+                                onSecondaryCaptionToggle()
+                            }
+                            onFocusClear()
+                        },
+                        enabled = selected,
+                        lang = lang
+                    )
+                }
+                // 切换主次字幕按钮
+                SwapButton(
+                    isActive = isSwap,
+                    onClick = {
+                        onSwapToggle()
+                        onFocusClear()
+                    }
+                )
+            }
+        } else {
+            if (subtitleDescription.isNotEmpty()) {
+                LabelButton(
+                    lang = removeSuffix(subtitleDescription),
+                    onClick = {
+                        onPrimaryCaptionToggle()
+                        onFocusClear()
+                    },
+                    enabled = primaryCaptionVisible
+                )
+            }
+        }
+
+        SelectionButton(
+            isActive = isSelectionActivated,
+            onClick = {
+                onSelectionToggle()
+                onFocusClear()
+            }
+        )
+    }
 }
