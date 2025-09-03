@@ -224,7 +224,11 @@ class PlayerState(playerData: PlayerData) {
                     }
 
                     val json = encodeBuilder.encodeToString(recentList.toList())
-                    getRecentVideoFile().writeText(json)
+                   val recentListFile = getRecentVideoFile()
+                    if(!recentListFile.parentFile.exists()){
+                        recentListFile.parentFile.mkdirs()
+                    }
+                    recentListFile.writeText(json)
                 }
             }
         }

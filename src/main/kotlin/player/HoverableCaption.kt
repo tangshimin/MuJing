@@ -30,6 +30,7 @@ import player.danmaku.WordDetail
 @Composable
 fun HoverableText(
     text: String,
+    color : Color = Color.White,
     playerState: PlayerState,
     playAudio:(String) -> Unit = {},
     modifier: Modifier = Modifier,
@@ -49,7 +50,7 @@ fun HoverableText(
         val hoverJob = remember { mutableStateOf<Job?>(null) }
         Text(
             text = text,
-            color = Color.White,
+            color = color,
             style = MaterialTheme.typography.h4,
             modifier = Modifier
                 .background(
@@ -77,7 +78,7 @@ fun HoverableText(
                 }
         )
 
-        if (expanded) {
+        if (expanded && color != Color.Transparent) {
             val dictWord = Dictionary.query(text.lowercase().trim())
 
             Popup(
@@ -146,9 +147,23 @@ fun HoverableCaption(
     onPopupHoverChanged: (Boolean) -> Unit = {},
     addWord: (Word) -> Unit = {},
     addToFamiliar: (Word) -> Unit = {},
+    primaryCaptionVisible : Boolean = true,
+    secondaryCaptionVisible : Boolean= true,
+    isBilingual : Boolean= false,
 ) {
     Column(modifier) {
-        caption.split("\n").forEach { line ->
+        caption.split("\n").forEachIndexed { index,line ->
+
+            val color = if(isBilingual) {
+                when (index) {
+                    0 if primaryCaptionVisible -> Color.White
+                    1 if secondaryCaptionVisible -> Color(0xFFAAAAAA)
+                    else -> Color.Transparent
+                }
+            }else{
+               if(primaryCaptionVisible) Color.White else Color.Transparent
+            }
+
             Row {
                 // 改进的分词逻辑
                 val words = line.split(Regex("\\s+")) // 按空格分割
@@ -166,7 +181,7 @@ fun HoverableCaption(
                         if (leadingPunctuation.isNotEmpty()) {
                             Text(
                                 leadingPunctuation,
-                                color = Color.White,
+                                color = color,
                                 style = MaterialTheme.typography.h4
                             )
                         }
@@ -175,6 +190,7 @@ fun HoverableCaption(
                         if (wordPart.isNotEmpty()) {
                             HoverableText(
                                 text = wordPart,
+                                color = color,
                                 playAudio = playAudio,
                                 playerState = playerState,
                                 modifier = Modifier,
@@ -188,7 +204,7 @@ fun HoverableCaption(
                         if (trailingPunctuation.isNotEmpty()) {
                             Text(
                                 trailingPunctuation,
-                                color = Color.White,
+                                color = color,
                                 style = MaterialTheme.typography.h4
                             )
                         }
@@ -197,7 +213,7 @@ fun HoverableCaption(
                         if (index < words.size - 1) {
                             Text(
                                 " ",
-                                color = Color.White,
+                                color = color,
                                 style = MaterialTheme.typography.h4
                             )
                         }

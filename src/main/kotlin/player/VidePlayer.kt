@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -236,6 +237,11 @@ fun VideoPlayer(
     /** 当前正在显示的字幕轨道 */
     var currentSubtitleTrack by remember{mutableStateOf(0)}
 
+    /** 当前正在显示的字幕的语言标签 */
+    var subtitleDescription by remember { mutableStateOf("") }
+    var primaryCaptionVisible by remember { mutableStateOf(true) }
+    var secondaryCaptionVisible by remember { mutableStateOf(true) }
+
     /** 当前正在播放的音频轨道 */
     var currentAudioTrack by remember{mutableStateOf(0)}
 
@@ -406,9 +412,11 @@ fun VideoPlayer(
     }
 
     /** 设置内置字幕 */
-    val setCurrentSubtitleTrack:(Int)-> Unit = { trackId ->
+    val setCurrentSubtitleTrack:(Int,String)-> Unit = { trackId,description ->
         // disable-禁用字幕的 TrackID 为 -1
         currentSubtitleTrack = trackId
+        subtitleDescription = getLanguageLabel(description)
+
         println("Track ID: $trackId")
         println("设置了内置字幕，禁用外部字幕")
         extSubIndex = -2 // 禁用外部字幕
@@ -432,13 +440,13 @@ fun VideoPlayer(
                     )
                 }
                 // 保存内部字幕偏好设置
-                saveSubtitlePreference(videoPath, "internal", trackId)
+                saveSubtitlePreference(videoPath, "internal", trackId,description = subtitleDescription)
             }else{
                 // 禁用字幕
                 println("禁用字幕 clear timedCaption")
                 timedCaption.clear()
                 // 保存禁用字幕偏好设置
-                saveSubtitlePreference(videoPath, "disabled")
+                saveSubtitlePreference(videoPath, "disabled",description = "")
             }
             // 更新字幕索引
             updateCaptionIndex()
@@ -447,10 +455,11 @@ fun VideoPlayer(
     }
 
     /** 设置外部字幕 */
-    val setExternalSubtitle :(Int,File) -> Unit = {index, file ->
+    val setExternalSubtitle :(Int,File,String) -> Unit = {index, file,description ->
         println("设置外部字幕: $index, ${file.name}")
         println("设置了外部字幕，禁用内置字幕")
         currentSubtitleTrack = -2 // 禁用内置字幕
+        subtitleDescription = description
         scope.launch (Dispatchers.Default){
             // 把 ASS 字幕转换成 SRT 字幕
             if(file.extension == "ass"){
@@ -474,7 +483,7 @@ fun VideoPlayer(
                updateCaptionIndex()
 
                // 保存外部字幕偏好设置
-               saveSubtitlePreference(videoPath, "external", -1, file.absolutePath)
+               saveSubtitlePreference(videoPath, "external", -1, file.absolutePath,description)
 
                generateMatchedVocabulary(
                    videoPath = videoPath,
@@ -792,7 +801,7 @@ fun VideoPlayer(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp)
                 ) {
-
+                    val focusManager = LocalFocusManager.current
                     var prevPlayState by remember { mutableStateOf<Boolean?>(null) }
                     val pauseIfPlaying: () -> Unit = {
                         if (videoPlayer.status().isPlayable && isPlaying) {
@@ -858,11 +867,79 @@ fun VideoPlayer(
                                     }
                                 }
                         ){
+                            // 字幕工具栏
+                            if(isCaptionAreaHovered){
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    modifier = Modifier.align(Alignment.TopEnd).padding(end = 8.dp)
+                                ){
+                                    if(subtitleDescription.contains("&")){
+                                        val parts = subtitleDescription
+                                            .split("&")
+                                            .map { removeSuffix(it)}
+                                            .filter { it.isNotEmpty() && it != "&" }
+                                        // 这里只处理双语字幕
+                                        if(parts.size == 2){
+                                            for((i, lang) in parts.withIndex()){
+                                                val selected = (primaryCaptionVisible && i == 0) ||
+                                                        (secondaryCaptionVisible && i == 1)
+                                                LabelButton(
+                                                    onClick = {
+                                                        if (i == 0) {
+                                                            primaryCaptionVisible = !primaryCaptionVisible
+                                                        } else {
+                                                            secondaryCaptionVisible = !secondaryCaptionVisible
+                                                        }
+                                                       focusManager.clearFocus()
+                                                    },
+                                                    enabled = selected,
+                                                    lang = lang
+                                                )
+
+                                            }
+                                            // 切换主次字幕按钮
+                                            SwapButton(
+                                                enabled = false,
+                                                onClick = {
+                                                    focusManager.clearFocus()
+                                                }
+                                            )
+                                        }
+
+                                    }else{
+                                        if(subtitleDescription.isNotEmpty()){
+                                            LabelButton(
+                                                lang = removeSuffix(subtitleDescription),
+                                                onClick = {
+                                                    primaryCaptionVisible = !primaryCaptionVisible
+                                                    focusManager.clearFocus()
+                                                },
+                                                enabled = primaryCaptionVisible
+                                            )
+
+                                        }
+                                    }
+
+                                    SelectionButton(
+                                        enabled = false,
+                                        onClick = {
+                                            focusManager.clearFocus()
+                                        },
+                                    )
+
+                                }
+
+                            }
+
                             HoverableCaption(
                                 caption =caption.removeSuffix("\n"),
                                 playAudio = playAudio,
                                 playerState = state,
-                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                                primaryCaptionVisible = primaryCaptionVisible,
+                                secondaryCaptionVisible = secondaryCaptionVisible,
+                                isBilingual = subtitleDescription.contains("&"),
+                                modifier = Modifier.align(Alignment.Center)
+                                    .padding(start = 16.dp, end = 16.dp , top= 48.dp,bottom = 48.dp),
                                 onPopupHoverChanged = { hovering ->
                                     showDictPopup = hovering
                                     if (hovering) {
@@ -945,7 +1022,6 @@ fun VideoPlayer(
                             horizontalArrangement = Arrangement.SpaceBetween,
                             modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
                         ) {
-                            val focusManager = LocalFocusManager.current
                             Row(verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Start,
                             ){
@@ -1411,16 +1487,16 @@ fun VideoPlayer(
                 withContext(Dispatchers.IO){
                     // 读取字幕偏好设置
                     val subtitlePreference = readSubtitlePreference(videoPath)
-                    
+
                     // 自动探测外部字幕
                     val subtitleFiles = findSubtitleFiles(videoPath)
                     extSubList.clear()
                     extSubList.addAll(subtitleFiles)
-                    
+
                     val applicationDir = getSettingsDirectory()
                     var subPath = ""
                     var list = emptyList<PlayerCaption>()
-                    
+
                     // 根据偏好设置加载字幕
                     when {
                         // 如果从查看语境功能进来，优先使用语境字幕轨道
@@ -1432,9 +1508,9 @@ fun VideoPlayer(
                                 subPath = "$applicationDir/VideoPlayer/subtitle.srt"
                             }
                         }
-                        
                         // 有字幕偏好设置，按偏好加载
                         subtitlePreference != null -> {
+                            subtitleDescription = subtitlePreference.description
                             when (subtitlePreference.subtitleType) {
                                 "internal" -> {
                                     // 加载内部字幕
@@ -1485,10 +1561,12 @@ fun VideoPlayer(
                                     // 禁用字幕
                                     timedCaption.clear()
                                     currentSubtitleTrack = -1
+                                    subtitleDescription = ""
                                 }
                             }
+
                         }
-                        
+
                         // 没有偏好设置，使用默认逻辑
                         else -> {
                             val cachedTrackId = readTrackIdFromLastSubtitle()
@@ -1503,18 +1581,33 @@ fun VideoPlayer(
                                 subPath = "$applicationDir/VideoPlayer/subtitle.srt"
                             } else {
                                 // 如果没有缓存就加载内置字幕
+                                println("没有缓存字幕，加载内置字幕，轨道ID: $trackId")
                                 list = readCaptionList(videoPath = videoPath, subtitleId = 0)
                                 timedCaption.setCaptionList(list)
-                                currentSubtitleTrack = 0
                                 if(list.isNotEmpty()) {
+                                    // TODO 需要在这里更新字幕标签
+                                    // 如果字幕轨道列表中没有更新呢？
+                                    if(subtitleTrackList.isNotEmpty()){
+                                        // 尝试从字幕轨道列表中获取标签
+                                        println("尝试从字幕轨道列表中获取标签")
+                                        subtitleTrackList.forEach { (id,description) ->
+                                            if(id == 0){
+                                                subtitleDescription = getLanguageLabel(description)
+                                                return@forEach
+                                            }
+                                        }
+
+
+                                    }
+                                    currentSubtitleTrack = 0
                                     subPath = "$applicationDir/VideoPlayer/subtitle.srt"
                                 }
-                                
+
                                 // 如果没有内置字幕，尝试加载英语外部字幕
                                 if (list.isEmpty() && extSubList.isNotEmpty()) {
                                     var foundIndex = -1
                                     var foundFile: File? = null
-                                    
+
                                     for ((idx, value) in subtitleFiles.withIndex()) {
                                         val (lang, file) = value
                                         if (lang == "en" || lang == "eng" || lang == "English" || lang == "english" || lang == "英文"
@@ -1523,10 +1616,11 @@ fun VideoPlayer(
                                         ) {
                                             foundIndex = idx
                                             foundFile = file
+                                            subtitleDescription = removeSuffix(lang)
                                             break
                                         }
                                     }
-                                    
+
                                     if (foundFile != null) {
                                         val captions = parseSubtitles(foundFile.absolutePath)
                                         timedCaption.setCaptionList(captions)
@@ -1709,6 +1803,7 @@ fun VideoPlayer(
     }
 }
 
+
 @OptIn(ExperimentalFoundationApi::class, ExperimentalComposeUiApi::class)
 @Composable
 fun SubtitleAndAudioSelector(
@@ -1721,9 +1816,9 @@ fun SubtitleAndAudioSelector(
     showSubtitleMenu: Boolean,
     onShowSubtitleMenuChanged: (Boolean) -> Unit,
     onShowSubtitlePicker: () -> Unit,
-    onSubTrackChanged: (Int) -> Unit,
+    onSubTrackChanged: (Int,String) -> Unit,
     extSubIndex: Int,
-    setExternalSubtitle: (Int,File) -> Unit,
+    setExternalSubtitle: (Int,File,String) -> Unit,
     onAudioTrackChanged: (Int) -> Unit,
     onKeepControlBoxVisible: () -> Unit
 ) {
@@ -1813,7 +1908,7 @@ fun SubtitleAndAudioSelector(
                             modifier = Modifier
                                 .clickable(onClick = {
                                     onShowSubtitleMenuChanged(false)
-                                    onSubTrackChanged(-1)
+                                    onSubTrackChanged(-1,"关闭字幕")
                                 })
                                 .width(282.dp).height(40.dp)
                         ){
@@ -1844,7 +1939,7 @@ fun SubtitleAndAudioSelector(
                                             modifier = Modifier
                                                 .clickable(onClick = {
                                                     onShowSubtitleMenuChanged(false)
-                                                    onSubTrackChanged(trackId)
+                                                    onSubTrackChanged(trackId,description)
                                                 })
                                                 .width(282.dp).height(40.dp)
                                         ) {
@@ -1876,7 +1971,7 @@ fun SubtitleAndAudioSelector(
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier
-                                            .clickable(onClick = {setExternalSubtitle(index,file)})
+                                            .clickable(onClick = {setExternalSubtitle(index,file,lang)})
                                             .width(282.dp).height(40.dp)
                                     ) {
                                         Text(
@@ -2947,3 +3042,80 @@ fun stopKeepingScreenAwake(job: Job?) {
     job?.cancel()
 }
 
+
+@Composable
+fun LabelButton(
+    onClick: () -> Unit,
+    enabled: Boolean,
+    lang: String
+){
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .padding(end = 8.dp)
+            .background(
+                if (enabled) MaterialTheme.colors.primary.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f)
+            )
+            .clickable{ onClick() }
+
+    ){
+        Text(
+            text = lang,
+            color = if (enabled) MaterialTheme.colors.primary else Color.White.copy(alpha = 0.7f),
+            fontSize = 12.sp,
+            modifier = Modifier.padding(4.dp)
+        )
+    }
+}
+
+@Composable
+fun SelectionButton(
+    onClick: () -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier
+){
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(height = 32.dp,width = 36.dp)
+            .background(
+                if (enabled) MaterialTheme.colors.primary.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f)
+            )
+            .clickable{ onClick() }
+    ){
+        Icon(
+            icons.TextSelectStart,
+            contentDescription = "选择字幕文本",
+            tint = Color.White,
+            modifier = modifier.size(18.dp)
+        )
+    }
+}
+@Composable
+fun SwapButton(
+    onClick: () -> Unit,
+    enabled: Boolean,
+    modifier: Modifier = Modifier
+){
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(height = 32.dp,width = 44.dp)
+            .padding(end = 8.dp)
+            .background(
+                if (enabled) MaterialTheme.colors.primary.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f)
+            )
+            .clickable{ onClick() }
+    ){
+        Icon(
+            icons.SwapVert,
+            contentDescription = "切换主次字幕",
+            tint = Color.White,
+            modifier = modifier.size(18.dp)
+        )
+    }
+}
+
+fun removeSuffix(description:String):String{
+   return description.removeSuffix(".srt").removeSuffix(".ass")
+}

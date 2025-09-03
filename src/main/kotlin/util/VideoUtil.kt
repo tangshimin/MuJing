@@ -464,7 +464,8 @@ data class SubtitlePreference(
     val videoPath: String,
     val subtitleType: String, // "internal" 或 "external" 或 "disabled"
     val trackId: Int = -1, // 内部字幕轨道ID，仅当 subtitleType 为 "internal" 时有效
-    val subtitlePath: String = "" // 外部字幕路径，仅当 subtitleType 为 "external" 时有效
+    val subtitlePath: String = "", // 外部字幕路径，仅当 subtitleType 为 "external" 时有效
+    val description: String // 字幕描述，如语言标签等
 )
 
 fun readCachedSubtitle(
@@ -514,7 +515,8 @@ fun saveSubtitlePreference(
     videoPath: String,
     subtitleType: String,
     trackId: Int = -1,
-    subtitlePath: String = ""
+    subtitlePath: String = "",
+    description: String
 ) {
     val applicationDir = getSettingsDirectory()
     val infoPath = "$applicationDir/VideoPlayer/subtitle_preference.json"
@@ -522,7 +524,7 @@ fun saveSubtitlePreference(
         prettyPrint = true
         encodeDefaults = true
     }
-    val preference = SubtitlePreference(videoPath, subtitleType, trackId, subtitlePath)
+    val preference = SubtitlePreference(videoPath, subtitleType, trackId, subtitlePath,description)
     val jsonString = json.encodeToString(preference)
     File(infoPath).writeText(jsonString)
 }
@@ -780,3 +782,47 @@ fun getSubtitleLangLabel(baseName: String, fileName: String): String {
     }
     return lang
 }
+
+/**
+ * 根据描述字符串返回对应的语言标签
+ *
+ * 该函数会根据输入的描述字符串，匹配常见的语言关键词，
+ * 并返回对应的标准语言标签。支持简体中文、繁体中文、
+ * 英语、日语、韩语、法语、德语、西班牙语和俄语。
+ *
+ * 匹配规则（不区分大小写）：
+ * - 包含 "简体"、"chinese"、"simplified" 或 "zh" -> "简体中文"
+ * - 包含 "繁体"、"traditional" 或 "tw" -> "繁體中文"
+ * - 包含 "english"、"eng" 或 "en" -> "English"
+ * - 包含 "japanese"、"jp" 或 "ja" -> "日本語"
+ * - 包含 "korean"、"kr" 或 "ko" -> "한국어"
+ * - 包含 "french" 或 "fr" -> "Français"
+ * - 包含 "german" 或 "de" -> "Deutsch"
+ * - 包含 "spanish" 或 "es" -> "Español"
+ * - 包含 "russian" 或 "ru" -> "Русский"
+ * - 其他情况返回原始描述字符串
+ *
+ * @param description 字幕文件名或语言描述字符串
+ * @return 对应的标准语言标签，如果无法识别则返回原始描述
+ *
+ * 示例用法：
+ * ```kotlin
+ * val label1 = getLanguageLabel("movie.zh.srt") // 返回 "简体中文"
+ * val label2 = getLanguageLabel("anime.traditional") // 返回 "繁體中文"
+ * */
+fun getLanguageLabel(description: String): String {
+    val lowerDesc = description.lowercase()
+    return when {
+        lowerDesc.contains("简体") || lowerDesc.contains("chinese") || lowerDesc.contains("simplified") || lowerDesc.contains("zh") -> "简体中文"
+        lowerDesc.contains("繁体") || lowerDesc.contains("traditional") || lowerDesc.contains("tw") -> "繁體中文"
+        lowerDesc.contains("english") || lowerDesc.contains("eng") || lowerDesc.contains("en") -> "English"
+        lowerDesc.contains("japanese") || lowerDesc.contains("jp") || lowerDesc.contains("ja") -> "日本語"
+        lowerDesc.contains("korean") || lowerDesc.contains("kr") || lowerDesc.contains("ko") -> "한국어"
+        lowerDesc.contains("french") || lowerDesc.contains("fr") -> "Français"
+        lowerDesc.contains("german") || lowerDesc.contains("de") -> "Deutsch"
+        lowerDesc.contains("spanish") || lowerDesc.contains("es") -> "Español"
+        lowerDesc.contains("russian") || lowerDesc.contains("ru") -> "Русский"
+        else -> description // 如果无法识别，则返回原始描述
+    }
+}
+
