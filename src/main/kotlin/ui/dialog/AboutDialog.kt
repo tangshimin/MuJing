@@ -491,7 +491,7 @@ fun AboutDialog(
                                     text = "ECDICT",
                                     url = "https://github.com/skywind3000/ECDICT"
                                 )
-                                Text("。")
+
                             }
                             Row{
                                 Text("感谢 ")
@@ -535,15 +535,17 @@ fun AboutDialog(
                         }
                     }
                 }
+               if(state != 3){
+                   Row(
+                       horizontalArrangement = Arrangement.Center,
+                       modifier = Modifier.fillMaxWidth()
+                   ) {
+                       OutlinedButton(onClick = { close() }) {
+                           Text("确定")
+                       }
+                   }
+               }
 
-                Row(
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    OutlinedButton(onClick = { close() }) {
-                        Text("确定")
-                    }
-                }
             }
 
         }
