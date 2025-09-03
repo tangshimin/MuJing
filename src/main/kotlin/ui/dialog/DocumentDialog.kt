@@ -118,6 +118,19 @@ fun DocumentWindow(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(48.dp)
+                                .background( if(currentPage == "BilingualSubtitles")selectedColor else MaterialTheme.colors.background )
+                                .clickable { setCurrentPage("BilingualSubtitles") }) {
+                            Text("双语字幕", modifier = Modifier.padding(start = 16.dp))
+                            if(currentPage == "BilingualSubtitles"){
+                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                            }
+                        }
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
                                 .background( if(currentPage == "document")selectedColor else MaterialTheme.colors.background )
                                 .clickable {  setCurrentPage("document") }) {
                             Text("用文档生成词库", modifier = Modifier.padding(start = 16.dp))
@@ -220,6 +233,9 @@ fun DocumentWindow(
                         }
                         "Danmaku" -> {
                             DanmakuPage()
+                        }
+                        "BilingualSubtitles" -> {
+                            BilingualSubtitlesPage()
                         }
                         "linkVocabulary" -> {
                             LinkVocabularyPage()
@@ -939,10 +955,10 @@ fun DownloadPage(){
 }
 
 @Composable
-fun DanmakuPage(){
-    Column (Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp)){
+fun DanmakuPage() {
+    Column(Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp, end = 16.dp)) {
         Text(
-           """
+            """
             单词弹幕功能详细介绍：
                  - 播放视频时，播放器会自动生成一个词库与正在记忆的单词匹配，如果匹配成功正在记忆的单词会以弹幕的形式出现。
                  - 弹幕显示规则：单词会在对应字幕出现的时间点显示。
@@ -950,6 +966,40 @@ fun DanmakuPage(){
               
            """.trimIndent()
         )
+    }
+}
+
+@Composable
+fun BilingualSubtitlesPage(){
+    Column (Modifier.fillMaxSize().padding(start = 16.dp, top = 16.dp,end = 16.dp)){
+        SelectionContainer {
+            Text(
+                """
+          普通字幕的命名规则：     
+                - 字幕文件命名格式：视频文件名.语言代码.srt
+                - 语言代码示例：en、English、英语、英文、zh、中文、繁体
+                - 语言代码列表参考：https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+                - 示例：对于视频文件 video.mp4，英文字幕文件应命名为 video.en.srt，中文字幕文件应命名为 video.zh.srt
+                - 注意事项：确保字幕文件与视频文件位于同一目录下，且命名完全匹配。
+               
+           双语字幕的命名规则： 
+                - 字幕文件命名格式：视频文件名.语言代码&语言代码.srt
+                - 语言代码示例：en、English、英语、英文、zh、中文、繁体
+                - 语言代码组合示例：en&zh、English&中文、英文&繁体
+                - 多语言字幕示例：video.en&zh.srt、video.English&中文.srt、video.英文&中文.srt、video.英文&繁体.srt
+                - 语言代码列表参考：https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes
+                - 示例：对于视频文件 video.mp4，双语字幕文件应命名为 video.en&zh.srt
+                - 注意事项：确保字幕文件与视频文件位于同一目录下，且命名完全匹配。
+               
+
+          重要提示：
+            - 请严格遵守上述命名规则，以确保字幕文件能够被正确识别和加载。
+            - 只有符合命名规则的字幕才能使用语言切换功能。
+          
+           """.trimIndent()
+            )
+        }
+
     }
 }
 
