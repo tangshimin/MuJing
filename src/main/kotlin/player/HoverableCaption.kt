@@ -31,6 +31,7 @@ import player.danmaku.WordDetail
 fun HoverableText(
     text: String,
     color : Color = Color.White,
+    isActive: Boolean = true,
     playerState: PlayerState,
     playAudio:(String) -> Unit = {},
     modifier: Modifier = Modifier,
@@ -59,6 +60,7 @@ fun HoverableText(
                 )
                 .hoverable(interactionSource)
                 .onPointerEvent(PointerEventType.Enter) {
+                    if(!isActive) return@onPointerEvent
                     hoverJob.value?.cancel() // 取消之前的 Job
                     hoverJob.value = scope.launch {
                         delay(300) // 设置悬停最少停留时间为 300 毫秒
@@ -66,6 +68,7 @@ fun HoverableText(
                     }
                 }
                 .onPointerEvent(PointerEventType.Exit) {
+                    if(!isActive) return@onPointerEvent
                     hoverJob.value?.cancel() // 取消悬停的 Job
                     // 添加延时，让 Popup 的 Enter 事件有机会先执行
                     scope.launch {
@@ -78,7 +81,7 @@ fun HoverableText(
                 }
         )
 
-        if (expanded && color != Color.Transparent) {
+        if (expanded && isActive) {
             val dictWord = Dictionary.query(text.lowercase().trim())
 
             Popup(
@@ -150,74 +153,133 @@ fun HoverableCaption(
     primaryCaptionVisible : Boolean = true,
     secondaryCaptionVisible : Boolean= true,
     isBilingual : Boolean= false,
+    swapEnabled: Boolean = false,
 ) {
     Column(modifier) {
-        caption.split("\n").forEachIndexed { index,line ->
+        val lines = caption.split("\n")
 
-            val color = if(isBilingual) {
-                when (index) {
-                    0 if primaryCaptionVisible -> Color.White
-                    1 if secondaryCaptionVisible -> Color(0xFFAAAAAA)
-                    else -> Color.Transparent
-                }
-            }else{
-               if(primaryCaptionVisible) Color.White else Color.Transparent
+        // 处理双语字幕的显示顺序
+        if (isBilingual && lines.size >= 2) {
+            // 确定主次字幕的显示顺序
+            val primaryLine = lines[0]
+            val secondaryLine =  lines[1]
+
+            // 根据交换状态和可见性决定显示顺序
+            val displayLines = mutableListOf<String>()
+
+            if (swapEnabled) {
+                // 交换模式：次字幕在前，主字幕在后
+                displayLines.add(secondaryLine)
+                displayLines.add(primaryLine)
+            } else {
+                // 正常模式：主字幕在前，次字幕在后
+                displayLines.add(primaryLine)
+                displayLines.add(secondaryLine)
             }
 
-            Row {
-                // 改进的分词逻辑
-                val words = line.split(Regex("\\s+")) // 按空格分割
-                words.forEachIndexed { index, rawWord ->
-                    if (rawWord.isNotEmpty()) {
-                        // 提取开头的标点符号
-                        val leadingPunctuation = rawWord.takeWhile { !(it in 'a'..'z' || it in 'A'..'Z' || it.isDigit()) }
-                        val remaining = rawWord.drop(leadingPunctuation.length)
-
-                        // 从剩余部分提取单词（字母、撇号、连字符）
-                        val wordPart = remaining.takeWhile { it in 'a'..'z' || it in 'A'..'Z' || it.isDigit() || it == '\'' || it == '-' }
-                        val trailingPunctuation = remaining.drop(wordPart.length)
-
-                        // 渲染开头标点
-                        if (leadingPunctuation.isNotEmpty()) {
-                            Text(
-                                leadingPunctuation,
-                                color = color,
-                                style = MaterialTheme.typography.h4
-                            )
-                        }
-
-                        // 渲染单词部分
-                        if (wordPart.isNotEmpty()) {
-                            HoverableText(
-                                text = wordPart,
-                                color = color,
-                                playAudio = playAudio,
-                                playerState = playerState,
-                                modifier = Modifier,
-                                onPopupHoverChanged = onPopupHoverChanged,
-                                addWord = addWord,
-                                addToFamiliar = addToFamiliar,
-                            )
-                        }
-
-                        // 渲染结尾标点
-                        if (trailingPunctuation.isNotEmpty()) {
-                            Text(
-                                trailingPunctuation,
-                                color = color,
-                                style = MaterialTheme.typography.h4
-                            )
-                        }
-
-                        // 添加空格（除了最后一个词）
-                        if (index < words.size - 1) {
-                            Text(
-                                " ",
-                                color = color,
-                                style = MaterialTheme.typography.h4
-                            )
-                        }
+            displayLines.forEachIndexed { index, line ->
+                val color = when (index) {
+                    0 -> {
+                        // 主字幕（白色）
+                        if (primaryCaptionVisible)Color.White else Color.Transparent
                     }
+                    1 -> {
+                        // 次字幕（灰色）
+                        if (secondaryCaptionVisible) Color(0xFFAAAAAA) else Color.Transparent
+                    }
+                    else -> {
+                        Color.Transparent
+                    }
+                }
+
+
+                renderCaptionLine(line, color, playAudio, playerState, onPopupHoverChanged, addWord, addToFamiliar)
+
+            }
+        } else {
+            // 单语字幕或非双语情况
+            lines.forEachIndexed { index, line ->
+                val color = if (isBilingual) {
+                    when (index) {
+                        0 if primaryCaptionVisible -> Color.White
+                        1 if secondaryCaptionVisible -> Color(0xFFAAAAAA)
+                        else -> Color.Transparent
+                    }
+                } else {
+                    if (primaryCaptionVisible) Color.White else Color.Transparent
+                }
+
+
+                renderCaptionLine(line, color, playAudio, playerState, onPopupHoverChanged, addWord, addToFamiliar)
+
+            }
+        }
+    }
+}
+
+@Composable
+private fun renderCaptionLine(
+    line: String,
+    color: Color,
+    playAudio: (String) -> Unit,
+    playerState: PlayerState,
+    onPopupHoverChanged: (Boolean) -> Unit,
+    addWord: (Word) -> Unit,
+    addToFamiliar: (Word) -> Unit,
+) {
+    Row {
+        // 改进的分词逻辑
+        val words = line.split(Regex("\\s+")) // 按空格分割
+        words.forEachIndexed { index, rawWord ->
+            if (rawWord.isNotEmpty()) {
+                // 提取开头的标点符号
+                val leadingPunctuation = rawWord.takeWhile { !(it in 'a'..'z' || it in 'A'..'Z' || it.isDigit()) }
+                val remaining = rawWord.drop(leadingPunctuation.length)
+
+                // 从剩余部分提取单词（字母、撇号、连字符）
+                val wordPart = remaining.takeWhile { it in 'a'..'z' || it in 'A'..'Z' || it.isDigit() || it == '\'' || it == '-' }
+                val trailingPunctuation = remaining.drop(wordPart.length)
+
+                // 渲染开头标点
+                if (leadingPunctuation.isNotEmpty()) {
+                    Text(
+                        leadingPunctuation,
+                        color = color,
+                        style = MaterialTheme.typography.h4
+                    )
+                }
+
+                // 渲染单词部分
+                if (wordPart.isNotEmpty()) {
+                    HoverableText(
+                        text = wordPart,
+                        color = color,
+                        isActive = color != Color.Transparent,
+                        playAudio = playAudio,
+                        playerState = playerState,
+                        modifier = Modifier,
+                        onPopupHoverChanged = onPopupHoverChanged,
+                        addWord = addWord,
+                        addToFamiliar = addToFamiliar,
+                    )
+                }
+
+                // 渲染结尾标点
+                if (trailingPunctuation.isNotEmpty()) {
+                    Text(
+                        trailingPunctuation,
+                        color = color,
+                        style = MaterialTheme.typography.h4
+                    )
+                }
+
+                // 添加空格（除了最后一个词）
+                if (index < words.size - 1) {
+                    Text(
+                        " ",
+                        color = color,
+                        style = MaterialTheme.typography.h4
+                    )
                 }
             }
         }

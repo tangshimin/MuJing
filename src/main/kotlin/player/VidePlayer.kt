@@ -31,7 +31,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontWeight
@@ -241,6 +240,7 @@ fun VideoPlayer(
     var subtitleDescription by remember { mutableStateOf("") }
     var primaryCaptionVisible by remember { mutableStateOf(true) }
     var secondaryCaptionVisible by remember { mutableStateOf(true) }
+    var isSwap by remember { mutableStateOf(false) }
 
     /** 当前正在播放的音频轨道 */
     var currentAudioTrack by remember{mutableStateOf(0)}
@@ -420,6 +420,8 @@ fun VideoPlayer(
         println("Track ID: $trackId")
         println("设置了内置字幕，禁用外部字幕")
         extSubIndex = -2 // 禁用外部字幕
+        // 取消主次字幕切换
+        isSwap = false
 
         scope.launch(Dispatchers.Default) {
             if(trackId  != -1){
@@ -460,6 +462,9 @@ fun VideoPlayer(
         println("设置了外部字幕，禁用内置字幕")
         currentSubtitleTrack = -2 // 禁用内置字幕
         subtitleDescription = description
+        // 取消主次字幕切换
+        isSwap = false
+
         scope.launch (Dispatchers.Default){
             // 把 ASS 字幕转换成 SRT 字幕
             if(file.extension == "ass"){
@@ -899,8 +904,9 @@ fun VideoPlayer(
                                             }
                                             // 切换主次字幕按钮
                                             SwapButton(
-                                                enabled = false,
+                                                isActive = isSwap,
                                                 onClick = {
+                                                    isSwap = !isSwap
                                                     focusManager.clearFocus()
                                                 }
                                             )
@@ -938,6 +944,7 @@ fun VideoPlayer(
                                 primaryCaptionVisible = primaryCaptionVisible,
                                 secondaryCaptionVisible = secondaryCaptionVisible,
                                 isBilingual = subtitleDescription.contains("&"),
+                                swapEnabled = isSwap,
                                 modifier = Modifier.align(Alignment.Center)
                                     .padding(start = 16.dp, end = 16.dp , top= 48.dp,bottom = 48.dp),
                                 onPopupHoverChanged = { hovering ->
@@ -3094,7 +3101,7 @@ fun SelectionButton(
 @Composable
 fun SwapButton(
     onClick: () -> Unit,
-    enabled: Boolean,
+    isActive: Boolean,
     modifier: Modifier = Modifier
 ){
     Box(
@@ -3103,14 +3110,14 @@ fun SwapButton(
             .size(height = 32.dp,width = 44.dp)
             .padding(end = 8.dp)
             .background(
-                if (enabled) MaterialTheme.colors.primary.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f)
+                if (isActive) MaterialTheme.colors.primary.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f)
             )
             .clickable{ onClick() }
     ){
         Icon(
             icons.SwapVert,
             contentDescription = "切换主次字幕",
-            tint = Color.White,
+            tint = if (isActive) MaterialTheme.colors.primary else Color.White.copy(alpha = 0.7f),
             modifier = modifier.size(18.dp)
         )
     }
