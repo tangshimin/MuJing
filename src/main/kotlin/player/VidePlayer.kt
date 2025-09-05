@@ -1008,7 +1008,7 @@ fun VideoPlayer(
                                         autoPauseActive = false
                                         isManualSeeking = true
                                     }
-
+                                    focusManager.clearFocus()
                                 },
                                 colors = SliderDefaults.colors(
                                     inactiveTrackColor = Color.DarkGray // 这里设置未激活轨道颜色
