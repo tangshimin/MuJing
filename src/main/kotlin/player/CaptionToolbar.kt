@@ -1,11 +1,7 @@
 package player
 
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.TooltipArea
-import androidx.compose.foundation.TooltipPlacement
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.ExperimentalAnimationApi
+import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
@@ -26,8 +22,7 @@ import icons.SwapVert
 import icons.TextSelectStart
 import theme.LocalCtrl
 
-
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalAnimationApi::class)
 @Composable
 fun CaptionToolbar(
     subtitleDescription: String,
@@ -47,10 +42,15 @@ fun CaptionToolbar(
         modifier = modifier
     ) {
         if (subtitleDescription.contains("&")) {
-            val parts = subtitleDescription
+            var parts = subtitleDescription
                 .split("&")
                 .map { removeSuffix(it) }
                 .filter { it.isNotEmpty() && it != "&" }
+            if(isSwap) {
+                // 交换主次字幕
+                parts = parts.reversed()
+            }
+
             // 这里只处理双语字幕
             if (parts.size == 2) {
                 for ((i, lang) in parts.withIndex()) {
