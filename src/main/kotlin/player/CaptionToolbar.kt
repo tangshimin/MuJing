@@ -162,29 +162,54 @@ fun CaptionToolbar(
         )
     }
 }
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SwapButton(
     onClick: () -> Unit,
     isActive: Boolean,
     modifier: Modifier = Modifier
 ){
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(height = 32.dp,width = 44.dp)
-            .padding(end = 8.dp)
-            .background(
-                if (isActive) MaterialTheme.colors.primary.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f)
-            )
-            .clickable{ onClick() }
-    ){
-        Icon(
-            SwapVert,
-            contentDescription = "切换主次字幕",
-            tint = if (isActive) MaterialTheme.colors.primary else Color.White.copy(alpha = 0.7f),
-            modifier = modifier.size(18.dp)
+
+    TooltipArea(
+        tooltip = {
+            Surface(
+                elevation = 4.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Row(modifier = Modifier.padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ){
+                    Text(text = "交换字幕",color = MaterialTheme.colors.onSurface)
+                }
+            }
+        },
+        delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+        tooltipPlacement = TooltipPlacement.ComponentRect(
+            anchor = Alignment.TopCenter,
+            alignment = Alignment.TopCenter,
+            offset = DpOffset.Zero
         )
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(height = 32.dp,width = 44.dp)
+                .padding(end = 8.dp)
+                .background(
+                    if (isActive) MaterialTheme.colors.primary.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f)
+                )
+                .clickable{ onClick() }
+        ){
+            Icon(
+                SwapVert,
+                contentDescription = "交换字幕",
+                tint = if (isActive) MaterialTheme.colors.primary else Color.White.copy(alpha = 0.7f),
+                modifier = modifier.size(18.dp)
+            )
+        }
     }
+
 }
 
 @Composable
@@ -212,27 +237,51 @@ fun LabelButton(
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun SelectionButton(
     onClick: () -> Unit,
     isActive: Boolean,
     modifier: Modifier = Modifier
 ){
-    Box(
-        contentAlignment = Alignment.Center,
-        modifier = Modifier
-            .size(height = 32.dp,width = 36.dp)
-            .background(
-                if (isActive) MaterialTheme.colors.primary.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f)
-            )
-            .clickable{ onClick() }
-    ){
-        Icon(
-            TextSelectStart,
-            contentDescription = "选择字幕文本",
-            tint = if (isActive) MaterialTheme.colors.primary else Color.White.copy(alpha = 0.7f),
-            modifier = modifier.size(18.dp)
+    TooltipArea(
+        tooltip = {
+            Surface(
+                elevation = 4.dp,
+                border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                shape = RoundedCornerShape(4.dp)
+            ) {
+                Row(modifier = Modifier.padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ){
+                    Text(text = "选择文本",color = MaterialTheme.colors.onSurface)
+                }
+            }
+        },
+        delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+        tooltipPlacement = TooltipPlacement.ComponentRect(
+            anchor = Alignment.TopCenter,
+            alignment = Alignment.TopCenter,
+            offset = DpOffset.Zero
         )
+    ) {
+        Box(
+            contentAlignment = Alignment.Center,
+            modifier = Modifier
+                .size(height = 32.dp,width = 36.dp)
+                .background(
+                    if (isActive) MaterialTheme.colors.primary.copy(alpha = 0.2f) else Color.White.copy(alpha = 0.1f)
+                )
+                .clickable{ onClick() }
+        ){
+            Icon(
+                TextSelectStart,
+                contentDescription = "选择字幕文本",
+                tint = if (isActive) MaterialTheme.colors.primary else Color.White.copy(alpha = 0.7f),
+                modifier = modifier.size(18.dp)
+            )
+        }
     }
+
 }
 
