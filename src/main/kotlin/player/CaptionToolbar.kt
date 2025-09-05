@@ -112,14 +112,44 @@ fun CaptionToolbar(
             }
         } else {
             if (subtitleDescription.isNotEmpty()) {
-                LabelButton(
-                    lang = removeSuffix(subtitleDescription),
-                    onClick = {
-                        onPrimaryCaptionToggle()
-                        onFocusClear()
+                val selected = primaryCaptionVisible
+                val tooltip =if (selected) "隐藏第一语言 " else "显示第一语言 "
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            val ctrl = LocalCtrl.current
+                            val letter =  "1"
+                            val shortcut = if (isMacOS()) "$ctrl $letter" else "$ctrl+$letter"
+                            Row(modifier = Modifier.padding(10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ){
+                                Text(text = tooltip,color = MaterialTheme.colors.onSurface)
+                                Text(text =shortcut,color = MaterialTheme.colors.onSurface.copy(alpha = 0.5f))
+                            }
+
+                        }
                     },
-                    enabled = primaryCaptionVisible
-                )
+                    delayMillis = 100, // 延迟 100 毫秒显示 Tooltip
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.TopCenter,
+                        alignment = Alignment.TopCenter,
+                        offset = DpOffset.Zero
+                    )
+                ) {
+                    LabelButton(
+                        lang = removeSuffix(subtitleDescription),
+                        onClick = {
+                            onPrimaryCaptionToggle()
+                            onFocusClear()
+                        },
+                        enabled = primaryCaptionVisible
+                    )
+                }
+
             }
         }
 
