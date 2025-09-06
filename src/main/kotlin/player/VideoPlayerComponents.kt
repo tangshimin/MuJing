@@ -342,8 +342,11 @@ fun CaptionAndVideoList(
                                     }
                                 }
                                 LaunchedEffect(Unit){
-                                    // 初始时滚动到第一行
-                                    captionListState.scrollToItem(0)
+                                    if(timedCaption.currentIndex == 0){
+                                        // 初始加载时滚动到顶部
+                                        captionListState.scrollToItem(0)
+                                    }
+
                                 }
                             }
                         }
