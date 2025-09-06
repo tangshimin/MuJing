@@ -1135,7 +1135,10 @@ fun SubtitleAndAudioSelector(
                                     Row(
                                         verticalAlignment = Alignment.CenterVertically,
                                         modifier = Modifier
-                                            .clickable(onClick = {setExternalSubtitle(index,file,lang)})
+                                            .clickable(onClick = {
+                                                setExternalSubtitle(index,file,lang)
+                                                onShowSubtitleMenuChanged(false)
+                                            })
                                             .width(282.dp).height(40.dp)
                                     ) {
                                         Text(
