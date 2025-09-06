@@ -208,10 +208,6 @@ fun VideoPlayer(
     /** 显示视频文件选择器 */
     var showFilePicker by remember {mutableStateOf(false)}
 
-    /** 显示词库文件选择器*/
-    // TODO 不需要手动选择词库了，相关代码计划删除，现在暂时不删除
-    var showVocabularyPicker by remember {mutableStateOf(false)}
-
     /** 显示字幕选择器 */
     var showSubtitlePicker by remember{mutableStateOf(false)}
 
@@ -1274,9 +1270,8 @@ fun VideoPlayer(
 
                 // 视频文件选择器
                 FilePicker(
-                    show = showFilePicker || showVocabularyPicker || showSubtitlePicker,
+                    show = showFilePicker  || showSubtitlePicker,
                     fileExtensions = when {
-                        showVocabularyPicker -> if(isMacOS()) listOf("public.json") else listOf("json")
                         showSubtitlePicker -> listOf("srt","ass")
                         else -> emptyList()
                     },
@@ -1298,10 +1293,7 @@ fun VideoPlayer(
                                 videoPathChanged(file.path)
                                 showFilePicker = false
                             }
-                            showVocabularyPicker -> {
-                                vocabularyPathChanged(file.path)
-                                showVocabularyPicker = false
-                            }
+
                             showSubtitlePicker -> {
                                 addSubtitle(file.path)
                                 showSubtitlePicker = false
@@ -1310,7 +1302,6 @@ fun VideoPlayer(
                     } else {
                         // 取消选择时重置所有状态
                         showFilePicker = false
-                        showVocabularyPicker = false
                         showSubtitlePicker = false
                     }
                     // 清除焦点
