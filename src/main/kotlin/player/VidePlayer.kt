@@ -206,8 +206,8 @@ fun VideoPlayer(
     /** 显示右键菜单 */
     var showDropdownMenu by remember { mutableStateOf(false) }
 
-    /** 显示视频文件选择器 */
-    var showFilePicker by remember {mutableStateOf(false)}
+    /** 初始界面的打开视频按钮 */
+    var openVideo by remember {mutableStateOf(false)}
 
     /** 显示字幕选择器 */
     var showSubtitlePicker by remember{mutableStateOf(false)}
@@ -246,25 +246,44 @@ fun VideoPlayer(
 
     val azureTTS = rememberAzureTTS()
 
+    val focusManager = LocalFocusManager.current
     // FileKit 文件选择器启动器
+    // 打开视频按钮、右键菜单的打开视频、播放列表的添加视频都使用这个
     val filePickerLauncher = rememberFilePickerLauncher(
         type = FileKitType.File(extensions = videoFormatList.toTypedArray()),
         title = "选择视频文件",
         dialogSettings = FileKitDialogSettings.createDefault(),
-                onResult = { platformFile ->
+        onResult = { platformFile ->
             if (platformFile != null) {
-                // 添加单个视频到播放列表
                 val file = platformFile.file
-                val playlistItem = PlaylistItem(
-                    name = file.nameWithoutExtension,
-                    path = file.absolutePath,
-                    lastPlayedTime = "00:00:00",
-                    isCurrentlyPlaying = false,
-                    type = PlaylistItemType.DEFAULT
-                )
-                state.playlist.add(playlistItem)
-                state.showNotification("已添加: ${file.nameWithoutExtension}")
+                // 打开视频
+                if(openVideo){
+                    val name = File(file.path).nameWithoutExtension
+                    val newItem = RecentVideo(
+                        dateTime = LocalDateTime.now().toString(),
+                        name = name,
+                        path = file.path,
+                        lastPlayedTime = "00:00:00",
+                    )
+                    state.saveToRecentList(newItem)
+
+                    videoPathChanged(file.path)
+                    openVideo = false
+                }else{
+                    // 添加视频到播放列表
+                    val playlistItem = PlaylistItem(
+                        name = file.nameWithoutExtension,
+                        path = file.absolutePath,
+                        lastPlayedTime = "00:00:00",
+                        isCurrentlyPlaying = false,
+                        type = PlaylistItemType.DEFAULT
+                    )
+                    state.playlist.add(playlistItem)
+                    state.showNotification("已添加: ${file.nameWithoutExtension}")
+                }
+
             }
+            focusManager.clearFocus()
         }
     )
 
@@ -1260,7 +1279,11 @@ fun VideoPlayer(
                             }
                             Row( modifier = Modifier.fillMaxWidth().padding(top = 24.dp),
                                 horizontalArrangement = Arrangement.Center){
-                                OutlinedButton(onClick = { showFilePicker = true }){
+                                OutlinedButton(onClick = {
+                                    openVideo = true
+                                    filePickerLauncher.launch()
+
+                                }){
                                     Text(text = "打开视频",color = MaterialTheme.colors.onSurface)
                                 }
                             }
@@ -1272,7 +1295,7 @@ fun VideoPlayer(
 
                 // 视频文件选择器
                 FilePicker(
-                    show = showFilePicker  || showSubtitlePicker,
+                    show =  showSubtitlePicker,
                     fileExtensions = when {
                         showSubtitlePicker -> listOf("srt","ass")
                         else -> emptyList()
@@ -1281,21 +1304,6 @@ fun VideoPlayer(
                 ) { file ->
                     if (file != null && file.path.isNotEmpty()) {
                         when {
-                            showFilePicker -> {
-                                // 提取 file 的名称
-                                val name = File(file.path).nameWithoutExtension
-                                val newItem = RecentVideo(
-                                    dateTime = LocalDateTime.now().toString(),
-                                    name = name,
-                                    path = file.path,
-                                    lastPlayedTime = "00:00:00",
-                                )
-                                state.saveToRecentList(newItem)
-
-                                videoPathChanged(file.path)
-                                showFilePicker = false
-                            }
-
                             showSubtitlePicker -> {
                                 addSubtitle(file.path)
                                 showSubtitlePicker = false
@@ -1303,7 +1311,7 @@ fun VideoPlayer(
                         }
                     } else {
                         // 取消选择时重置所有状态
-                        showFilePicker = false
+                        openVideo = false
                         showSubtitlePicker = false
                     }
                     // 清除焦点
@@ -1319,7 +1327,8 @@ fun VideoPlayer(
                     },
                 ){
                     DropdownMenuItem(onClick = {
-                        showFilePicker = true
+                        openVideo = true
+                        filePickerLauncher.launch()
                         showDropdownMenu = false
                     }) {
                         Text("打开视频",color = MaterialTheme.colors.onSurface)
