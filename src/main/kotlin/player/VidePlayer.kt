@@ -832,7 +832,7 @@ fun VideoPlayer(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp)
                 ) {
-                    val focusManager = LocalFocusManager.current
+
                     var prevPlayState by remember { mutableStateOf<Boolean?>(null) }
                     val pauseIfPlaying: () -> Unit = {
                         if (videoPlayer.status().isPlayable && isPlaying) {
@@ -1305,7 +1305,7 @@ fun VideoPlayer(
                     }
                 }
 
-                val focusManager = LocalFocusManager.current
+
 
                 // 右键菜单
                 CursorDropdownMenu(
