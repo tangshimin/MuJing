@@ -3,19 +3,11 @@ package player
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -30,7 +22,6 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -40,10 +31,7 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.pointer.*
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
@@ -54,13 +42,7 @@ import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import event.EventBus
 import event.PlayerEventType
 import icons.ArrowDown
-import icons.Autopause
-import icons.AutopauseDisabled
-import icons.Block
-import icons.SwapVert
-import icons.TextSelectStart
 import io.github.vinceglb.filekit.dialogs.FileKitType
-import io.github.vinceglb.filekit.dialogs.compose.PickerResultLauncher
 import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.*
@@ -1681,32 +1663,6 @@ fun timeFormat(hours: Long, minutes: Int, seconds: Int): String {
     val s = if (seconds < 10) "0$seconds" else "$seconds"
     return "$h:$m:$s"
 }
-
-fun keepScreenAwake(scope: CoroutineScope): Job {
-    val robot = Robot()
-    return scope.launch(Dispatchers.IO) {
-        while (isActive) {
-            try {
-                // 获取当前鼠标位置
-                val mousePosition = MouseInfo.getPointerInfo().location
-                val x = mousePosition.x
-                val y = mousePosition.y
-
-                // 模拟鼠标移动一个像素并回到原位置
-                robot.mouseMove(x + 1, y)
-                robot.mouseMove(x, y)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            delay(60000) // 每分钟执行一次
-        }
-    }
-}
-
-fun stopKeepingScreenAwake(job: Job?) {
-    job?.cancel()
-}
-
 
 
 fun removeSuffix(description:String):String{
