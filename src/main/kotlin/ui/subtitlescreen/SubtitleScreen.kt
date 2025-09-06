@@ -28,6 +28,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import data.Caption
 import ffmpeg.writeSubtitleToFile
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import player.*
@@ -44,13 +48,9 @@ import util.shouldStartDragAndDrop
 import java.awt.Rectangle
 import java.awt.Toolkit
 import java.io.File
-import java.util.concurrent.FutureTask
 import java.util.regex.Pattern
-import javax.swing.JFileChooser
 import javax.swing.JFrame
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileNameExtensionFilter
-import javax.swing.filechooser.FileSystemView
 
 /** 支持的视频类型 */
 val videoFormatList = listOf("mp4","mkv")
@@ -68,9 +68,6 @@ fun SubtitleScreen(
     title: String,
     playerWindow: JFrame,
     videoVolume: Float,
-    futureFileChooser: FutureTask<JFileChooser>,
-    openLoadingDialog: () -> Unit,
-    closeLoadingDialog: () -> Unit,
     openSearch: () -> Unit,
     showPlayer :(Boolean) -> Unit,
     colors: Colors,
@@ -287,42 +284,22 @@ fun SubtitleScreen(
         subtitlesState.saveTypingSubtitlesState()
     }
 
-    /** 打开文件对话框 */
-    val openFileChooser: () -> Unit = {
 
-        // 打开 windows 的文件选择器很慢，有时候会等待超过2秒
-        openLoadingDialog()
-        scope.launch (Dispatchers.Default) {
-                val fileChooser = futureFileChooser.get()
-                fileChooser.dialogTitle = "打开"
-                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
-                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                fileChooser.isAcceptAllFileFilterUsed = false
-                fileChooser.isMultiSelectionEnabled = true
-                val fileFilter = FileNameExtensionFilter(
-                    "1个 mkv 或 mp4 视频，或 1个字幕(srt) + 1个媒体(mp4、mkv、mp3、wav、aac)",
-                    "mp3",
-                    "wav",
-                    "aac",
-                    "mkv",
-                    "srt",
-                    "mp4"
-                )
-                fileChooser.addChoosableFileFilter(fileFilter)
-                fileChooser.selectedFile = null
-                if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
-                    val files = fileChooser.selectedFiles.toList()
-                    parseImportFile(files, OpenMode.Open)
-                    closeLoadingDialog()
-                } else {
-                    closeLoadingDialog()
-                }
-                fileChooser.selectedFile = null
-                fileChooser.isMultiSelectionEnabled = false
-                fileChooser.removeChoosableFileFilter(fileFilter)
+    val filePickerLauncher = rememberFilePickerLauncher(
+        title = "选择视频或字幕文件",
+        mode = FileKitMode.Multiple(maxItems = 2),
+        type = FileKitType.File(extensions = listOf("mp3", "wav", "aac", "mkv", "srt", "mp4")),
+        dialogSettings = FileKitDialogSettings.createDefault(),
+        onResult = { platformFileList ->
+            if (platformFileList?.isNotEmpty() == true) {
+               val files =  platformFileList.map { it.file }
+                parseImportFile(files, OpenMode.Open)
+            }
+            focusManager.clearFocus()
         }
-    }
+    )
+
+
 
     /** 关闭当前字幕*/
     val removeSubtitles:() -> Unit = {
@@ -525,8 +502,7 @@ fun SubtitleScreen(
     val boxKeyEvent: (KeyEvent) -> Boolean = { keyEvent ->
         when {
             (keyEvent.isCtrlPressed && keyEvent.key == Key.O && keyEvent.type == KeyEventType.KeyUp) -> {
-                openFileChooser()
-                showOpenFile = true
+                filePickerLauncher.launch()
                 true
             }
             (keyEvent.isCtrlPressed && keyEvent.key == Key.F && keyEvent.type == KeyEventType.KeyUp) -> {
@@ -919,7 +895,7 @@ fun SubtitleScreen(
                 if (showOpenFile || selectedPath.isNotEmpty() || timedCaption.isEmpty()) {
                     OpenFileComponent(
                         cancel = { showOpenFile = false },
-                        openFileChooser = { openFileChooser() },
+                        openFileChooser = { filePickerLauncher.launch() },
                         showCancel = timedCaption.isNotEmpty(),
                         setTrackId = { saveTrackID(it) },
                         setTrackDescription = { saveTrackDescription(it) },
@@ -1017,8 +993,7 @@ fun SubtitleScreen(
             ) {
                 IconButton(
                     onClick = {
-                        showOpenFile = true
-                        openFileChooser()
+                        filePickerLauncher.launch()
                     },
                     modifier = Modifier.padding(top = if (isMacOS()) 44.dp else 0.dp)
                 ) {

@@ -197,9 +197,6 @@ fun App(
                                             title = title,
                                             playerWindow = appState.videoPlayerWindow,
                                             videoVolume = appState.global.videoVolume,
-                                            futureFileChooser = appState.futureFileChooser,
-                                            openLoadingDialog = { appState.openLoadingDialog()},
-                                            closeLoadingDialog = { appState.loadingFileChooserVisible = false },
                                             openSearch = {appState.openSearch()},
                                             showPlayer ={playerState.showPlayer(wordState)},
                                             colors = appState.colors
