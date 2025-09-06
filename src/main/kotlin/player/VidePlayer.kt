@@ -42,6 +42,7 @@ import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import event.EventBus
 import event.PlayerEventType
 import icons.ArrowDown
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
@@ -247,9 +248,10 @@ fun VideoPlayer(
 
     // FileKit 文件选择器启动器
     val filePickerLauncher = rememberFilePickerLauncher(
-        type = FileKitType.File(),
+        type = FileKitType.File(extensions = videoFormatList.toTypedArray()),
         title = "选择视频文件",
-        onResult = { platformFile ->
+        dialogSettings = FileKitDialogSettings.createDefault(),
+                onResult = { platformFile ->
             if (platformFile != null) {
                 // 添加单个视频到播放列表
                 val file = platformFile.file
