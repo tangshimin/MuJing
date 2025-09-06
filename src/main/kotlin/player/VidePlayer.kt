@@ -1,6 +1,8 @@
 package player
 
-import androidx.compose.animation.*
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.*
 import androidx.compose.foundation.draganddrop.dragAndDropTarget
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -10,7 +12,7 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.LocalTextSelectionColors
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.runtime.*
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
@@ -23,13 +25,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.isCtrlPressed
-import androidx.compose.ui.input.key.isMetaPressed
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onKeyEvent
-import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
@@ -38,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowState
-import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import event.EventBus
 import event.PlayerEventType
 import icons.ArrowDown
@@ -62,7 +57,9 @@ import uk.co.caprica.vlcj.player.base.MediaPlayer
 import uk.co.caprica.vlcj.player.base.MediaPlayerEventAdapter
 import uk.co.caprica.vlcj.player.component.AudioPlayerComponent
 import util.*
-import java.awt.*
+import java.awt.Cursor
+import java.awt.Point
+import java.awt.Toolkit
 import java.awt.image.BufferedImage
 import java.io.File
 import java.time.LocalDateTime
@@ -208,9 +205,6 @@ fun VideoPlayer(
 
     /** 初始界面的打开视频按钮 */
     var openVideo by remember {mutableStateOf(false)}
-
-    /** 显示字幕选择器 */
-    var showSubtitlePicker by remember{mutableStateOf(false)}
 
     /** 支持的视频类型 */
     val videoFormatList = remember { mutableStateListOf("mp4", "mkv", "avi", "mov", "flv", "wmv", "webm", "ts", "m4v", "3gp", "mpeg", "mpg") }
@@ -524,12 +518,30 @@ fun VideoPlayer(
     val addSubtitle:(String) -> Unit = {path->
         scope.launch(Dispatchers.Default) {
             val file = File(path)
-
             val baseName = File(videoPath).nameWithoutExtension
             val lang = getSubtitleLangLabel(baseName,file.name)
-            extSubList.add(lang to file)
+            // 检查是否已经添加过相同路径的字幕
+            val alreadyExists = extSubList.any { it.second.absolutePath == file.absolutePath }
+            if(!alreadyExists){
+                extSubList.add(lang to file)
+            }
+
         }
     }
+
+    // 添加字幕到字幕轨道
+    val subtitlePickerLauncher = rememberFilePickerLauncher(
+        type = FileKitType.File(extensions = listOf("srt","ass")),
+        title = "选择字幕文件",
+        dialogSettings = FileKitDialogSettings.createDefault(),
+        onResult = { platformFile ->
+            if (platformFile != null) {
+                val file = platformFile.file
+                addSubtitle(file.path)
+            }
+            focusManager.clearFocus()
+        }
+    )
 
     /** 播放上一条字幕 */
     val  previousCaption: () -> Unit =  {
@@ -1106,7 +1118,9 @@ fun VideoPlayer(
                                     },
                                     setExternalSubtitle = setExternalSubtitle,
                                     extSubIndex = extSubIndex,
-                                    onShowSubtitlePicker = { showSubtitlePicker = true },
+                                    onShowSubtitlePicker = {
+                                        subtitlePickerLauncher.launch()
+                                    },
                                     onSubTrackChanged = setCurrentSubtitleTrack,
                                     onAudioTrackChanged = setCurrentAudioTrack,
                                     onKeepControlBoxVisible = { controlBoxVisible = true }
@@ -1292,31 +1306,6 @@ fun VideoPlayer(
                 }
 
                 val focusManager = LocalFocusManager.current
-
-                // 视频文件选择器
-                FilePicker(
-                    show =  showSubtitlePicker,
-                    fileExtensions = when {
-                        showSubtitlePicker -> listOf("srt","ass")
-                        else -> emptyList()
-                    },
-                    initialDirectory = ""
-                ) { file ->
-                    if (file != null && file.path.isNotEmpty()) {
-                        when {
-                            showSubtitlePicker -> {
-                                addSubtitle(file.path)
-                                showSubtitlePicker = false
-                            }
-                        }
-                    } else {
-                        // 取消选择时重置所有状态
-                        openVideo = false
-                        showSubtitlePicker = false
-                    }
-                    // 清除焦点
-                    focusManager.clearFocus()
-                }
 
                 // 右键菜单
                 CursorDropdownMenu(
