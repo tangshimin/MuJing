@@ -877,48 +877,62 @@ fun VideoPlayer(
                             ){
 
                                 if(!isSelectionActivated){
-                                    HoverableCaption(
-                                        caption =caption.removeSuffix("\n"),
-                                        playAudio = playAudio,
-                                        playerState = state,
-                                        primaryCaptionVisible = primaryCaptionVisible,
-                                        secondaryCaptionVisible = secondaryCaptionVisible,
-                                        isBilingual = subtitleDescription.contains("&"),
-                                        swapEnabled = isSwap,
-                                        modifier = Modifier.align(Alignment.Center)
-                                            .padding(start = 48.dp, end = 48.dp , top= 48.dp,bottom = 48.dp)
-                                        ,
-                                        onPopupHoverChanged = { hovering ->
-                                            showDictPopup = hovering
-                                            if (hovering) {
-                                                if (prevPlayState == null) {
-                                                    prevPlayState = isPlaying
+                                    if(isCaptionAreaHovered){
+                                        HoverableCaption(
+                                            caption =caption.removeSuffix("\n"),
+                                            playAudio = playAudio,
+                                            playerState = state,
+                                            primaryCaptionVisible = primaryCaptionVisible,
+                                            secondaryCaptionVisible = secondaryCaptionVisible,
+                                            isBilingual = subtitleDescription.contains("&"),
+                                            swapEnabled = isSwap,
+                                            modifier = Modifier.align(Alignment.Center)
+                                                .padding(start = 48.dp, end = 48.dp , top= 48.dp,bottom = 48.dp)
+                                            ,
+                                            onPopupHoverChanged = { hovering ->
+                                                showDictPopup = hovering
+                                                if (hovering) {
+                                                    if (prevPlayState == null) {
+                                                        prevPlayState = isPlaying
+                                                    }
+                                                    pauseIfPlaying()
+                                                } else {
+                                                    scope.launch {
+                                                        delay(50)
+                                                        tryRestorePlayback()
+                                                    }
                                                 }
-                                                pauseIfPlaying()
-                                            } else {
-                                                scope.launch {
-                                                    delay(50)
-                                                    tryRestorePlayback()
+                                            },
+                                            addWord ={
+                                                if(it.captions.size<3){
+                                                    val playerCaption= timedCaption.getCurrentPlayerCaption()
+                                                    val dataCaption = playerCaption.toDataCaption()
+                                                    it.captions.add(dataCaption)
                                                 }
+                                                state.addWord(it)
+                                            },
+                                            addToFamiliar = {
+                                                if(it.captions.size<3){
+                                                    val playerCaption= timedCaption.getCurrentPlayerCaption()
+                                                    val dataCaption = playerCaption.toDataCaption()
+                                                    it.captions.add(dataCaption)
+                                                }
+                                                state.addToFamiliar(it)
                                             }
-                                        },
-                                        addWord ={
-                                            if(it.captions.size<3){
-                                                val playerCaption= timedCaption.getCurrentPlayerCaption()
-                                                val dataCaption = playerCaption.toDataCaption()
-                                                it.captions.add(dataCaption)
-                                            }
-                                            state.addWord(it)
-                                        },
-                                        addToFamiliar = {
-                                            if(it.captions.size<3){
-                                                val playerCaption= timedCaption.getCurrentPlayerCaption()
-                                                val dataCaption = playerCaption.toDataCaption()
-                                                it.captions.add(dataCaption)
-                                            }
-                                            state.addToFamiliar(it)
-                                        }
-                                    )
+                                        )
+                                    }else{
+                                        Text(
+                                            text = caption.removeSuffix("\n"),
+                                            style = MaterialTheme.typography.h4.copy(
+                                                color = Color.White,
+                                                textAlign = TextAlign.Center,
+                                            ),
+                                            modifier = Modifier
+                                                .align(Alignment.Center)
+                                                .padding(start = 48.dp, end = 48.dp , top= 48.dp,bottom = 48.dp)
+                                        )
+                                    }
+
                                 }else{
                                     CustomTextMenuProvider {
                                         val textFieldRequester by remember { mutableStateOf(FocusRequester()) }
