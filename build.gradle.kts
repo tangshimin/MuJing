@@ -96,11 +96,19 @@ compose.desktop {
         jvmArgs += listOf(
             "-server", //server 模式
             "-XX:+UnlockExperimentalVMOptions",// 解锁实验性 JVM 选项
-            "-XX:+UseZGC",// ZGC 垃圾回收器
-            "-XX:+ZUncommit",// ZGC 垃圾回收器的未使用内存归还功能
-            "-XX:ZUncommitDelay=10", // ZGC 垃圾回收器的未使用内存归还延迟，单位为秒
-            "-Xms128m", // 设置初始堆大小
-            "-Xmx1g", // 设置最大堆大小
+
+            "-Xms64m",  //初始堆大小
+            "-Xmx1g", //最大堆大小
+            "-XX:NewRatio=1", // 年轻代与老年代比例 1:1
+            "-XX:SurvivorRatio=8", // Eden 与 Survivor 比例
+
+            // ZGC 优化参数
+            "-XX:+UseZGC", // ZGC 垃圾回收器
+            "-XX:+ZGenerational", // 启用分代 ZGC（JDK 21+）
+            "-XX:+ZUncommit", // ZGC 垃圾回收器的未使用内存归还功能
+            "-XX:ZUncommitDelay=5", // 缩短内存归还延迟
+            "-XX:ZCollectionInterval=2", // 更频繁的 GC
+
             "-Dfile.encoding=UTF-8",
             "-Dstdout.encoding=UTF-8",
             "-Dstderr.encoding=UTF-8",
