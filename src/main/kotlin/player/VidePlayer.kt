@@ -233,7 +233,8 @@ fun VideoPlayer(
     /** 当前正在播放的音频轨道 */
     var currentAudioTrack by remember{mutableStateOf(0)}
 
-    var hideControlBoxTask : TimerTask? by remember{ mutableStateOf(null) }
+    var hideControlBoxJob by remember { mutableStateOf<Job?>(null) }
+
     /** 焦点请求器 */
     val focusRequester = remember { FocusRequester() }
     val scope = rememberCoroutineScope()
@@ -639,9 +640,9 @@ fun VideoPlayer(
             }
             .onPointerEvent(PointerEventType.Move) {
                 controlBoxVisible = true
-                hideControlBoxTask?.cancel()
-                hideControlBoxTask = Timer("Hide ControlBox", false).schedule(10000) {
-                    // 只有在不处于字幕悬停状态时才隐藏控制栏
+                hideControlBoxJob?.cancel()
+                hideControlBoxJob = scope.launch {
+                    delay(10000)
                     if (!isCaptionAreaHovered && !showDictPopup) {
                         controlBoxVisible = false
                     }
