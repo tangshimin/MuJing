@@ -6,25 +6,46 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit
 
 
 // 不依赖鼠标移动的保持唤醒函数
 fun keepScreenAwake(scope: CoroutineScope): Job {
     return scope.launch {
-        while (isActive) {
-            try {
-                when {
-                    isWindows() -> WindowsKeepAwake.preventSleep()
-                    isMacOS() -> MacOSKeepAwake.preventSleep()
-                    else -> {
-                        // Linux 可以使用 xset 命令
-                        Runtime.getRuntime().exec("xset s reset")
+        try {
+            when {
+                isWindows() -> {
+                    WindowsKeepAwake.preventSleep()
+                    // Windows 需要定期刷新
+                    while (isActive) {
+                        delay(30000)
+                        WindowsKeepAwake.preventSleep()
                     }
                 }
-                delay(30000) // 每30秒刷新一次
-            } catch (e: Exception) {
-                e.printStackTrace()
+                isMacOS() -> {
+                    // macOS 只需要启动一次进程
+                    MacOSKeepAwake.preventSleep()
+                    // 保持协程活跃但不需要重复调用
+                    while (isActive) {
+                        delay(30000)
+                    }
+                }
+                else -> {
+                    // Linux 系统
+                    while (isActive) {
+                        try {
+                            val process = ProcessBuilder("xset", "s", "reset").start()
+                            process.waitFor(1000, TimeUnit.MILLISECONDS)
+                            process.destroyForcibly()
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                        }
+                        delay(30000)
+                    }
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 }
@@ -104,7 +125,8 @@ object WindowsKeepAwake {
  */
 object MacOSKeepAwake {
     private var process: Process? = null
-    
+    private var isPreventingSleep = false
+
     /**
      * 阻止 macOS 系统睡眠和屏幕关闭
      * 
@@ -117,9 +139,14 @@ object MacOSKeepAwake {
      * @throws Exception 如果 caffeinate 命令执行失败
      */
     fun preventSleep() {
-        if (isMacOS()) {
+        if (isMacOS() && !isPreventingSleep) {
             try {
-                process = ProcessBuilder("caffeinate", "-d").start()
+                // 只在首次调用时启动进程
+                if (process == null || !process!!.isAlive) {
+                    process?.destroy() // 清理旧进程
+                    process = ProcessBuilder("caffeinate", "-d").start()
+                    isPreventingSleep = true
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -135,5 +162,6 @@ object MacOSKeepAwake {
     fun allowSleep() {
         process?.destroy()
         process = null
+        isPreventingSleep = false
     }
 }
