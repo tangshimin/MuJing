@@ -1,7 +1,6 @@
 package player
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.*
@@ -65,8 +64,6 @@ import java.awt.Toolkit
 import java.awt.image.BufferedImage
 import java.io.File
 import java.time.LocalDateTime
-import java.util.*
-import kotlin.concurrent.schedule
 import kotlin.time.Duration.Companion.milliseconds
 
 
