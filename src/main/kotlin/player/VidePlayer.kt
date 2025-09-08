@@ -30,6 +30,7 @@ import androidx.compose.ui.input.key.*
 import androidx.compose.ui.input.pointer.*
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -1208,7 +1209,15 @@ fun VideoPlayer(
                                        state.recentList.forEach { item ->
                                            var hovered by remember { mutableStateOf(false) }
                                            ListItem(
-                                                text = { Text(item.name, color = MaterialTheme.colors.onSurface) },
+                                               text = {
+                                                   Text(
+                                                       item.name,
+                                                       color = MaterialTheme.colors.onSurface,
+                                                       maxLines = 1,
+                                                       softWrap = false,
+                                                       overflow = TextOverflow.Ellipsis,
+                                                   )
+                                               },
                                                 trailing = {
                                                     Row(verticalAlignment = Alignment.CenterVertically){
                                                         Text(
