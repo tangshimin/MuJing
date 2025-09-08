@@ -19,7 +19,7 @@ plugins {
 }
 
 group = "com.movcontext"
-version = "2.9.0"
+version = "2.9.1"
 
 buildConfig {
     buildConfigField("APP_NAME", provider { "幕境" })
