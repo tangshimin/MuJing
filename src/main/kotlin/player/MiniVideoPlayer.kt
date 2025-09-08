@@ -256,17 +256,23 @@ fun MiniVideoPlayer(
 
                     // 简化的字幕显示 - 直接显示已知的字幕内容
                     if (mediaInfo.caption.content.isNotEmpty() && showCaption) {
-                        SelectionContainer {
-                            Text(
-                                text = mediaInfo.caption.content,
-                                color = Color.White,
-                                style = MaterialTheme.typography.h5,
-                                modifier = Modifier
-                                    .background(Color.Black.copy(alpha = 0.7f))
-                                    .padding(horizontal = 16.dp, vertical = 8.dp)
-                                    .shadow(4.dp, shape = RoundedCornerShape(8.dp))
-                            )
+                        Surface(
+                            shape = RoundedCornerShape(8.dp),
+                            color = Color.Transparent,
+                        ){
+
+                            SelectionContainer {
+                                Text(
+                                    text = mediaInfo.caption.content,
+                                    color = Color.White,
+                                    style = MaterialTheme.typography.h5,
+                                    modifier = Modifier
+                                        .background(Color.Black.copy(alpha = 0.5f))
+                                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                                )
+                            }
                         }
+
                     }
 
 
