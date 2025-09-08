@@ -878,8 +878,7 @@ fun VideoPlayer(
                                         isCaptionAreaHovered = false
                                     }
                             ){
-                                val vertical = animateDpAsState(if(isCaptionAreaHovered) 48.dp else 8.dp)
-                                val horizontal = animateDpAsState(if(isCaptionAreaHovered) 96.dp else 8.dp)
+
                                 if(!isSelectionActivated){
 
                                         HoverableCaption(
@@ -891,7 +890,7 @@ fun VideoPlayer(
                                             isBilingual = subtitleDescription.contains("&"),
                                             swapEnabled = isSwap,
                                             modifier = Modifier.align(Alignment.Center)
-                                                .padding(vertical = vertical.value, horizontal = horizontal.value)
+                                                .padding(48.dp)
                                             ,
                                             onPopupHoverChanged = { hovering ->
                                                 showDictPopup = hovering
@@ -942,7 +941,7 @@ fun VideoPlayer(
                                                 .align(Alignment.Center)
                                                 .focusRequester(textFieldRequester)
                                                 .onPointerEvent(PointerEventType.Enter){isCaptionAreaHovered = true}
-                                                .padding(vertical = vertical.value, horizontal = horizontal.value)
+                                                .padding(48.dp)
                                                 .onKeyEvent {
                                                     val isModifierPressed = if (isMacOS()) it.isMetaPressed else it.isCtrlPressed
                                                     if (it.type == KeyEventType.KeyUp && it.key == Key.Escape) {
