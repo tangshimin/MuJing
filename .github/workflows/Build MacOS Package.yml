@@ -74,4 +74,4 @@ jobs:
           generateReleaseNotes: false  #自动生成发行说明。
           tag: "${{ env.TAG }}"
           artifacts: "${{ github.workspace }}/build/compose/binaries/main/dmg/*.dmg"
-          token: ${{ secrets.GITHUB_TOKEN  }}
+          token: ${{ steps.generate-token.outputs.token }}
