@@ -51,6 +51,10 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.*
 import data.VocabularyType.*
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -67,7 +71,6 @@ import ui.components.BuiltInVocabularyMenu
 import ui.components.SaveButton
 import ui.dialog.FilterState.*
 import ui.edit.SaveOtherVocabulary
-import ui.subtitlescreen.OpenMode
 import ui.window.windowBackgroundFlashingOnCloseFixHack
 import util.*
 import java.awt.Desktop
@@ -111,30 +114,6 @@ fun GenerateVocabularyDialog(
     ) {
         windowBackgroundFlashingOnCloseFixHack()
         val scope = rememberCoroutineScope()
-
-        val fileFilter = when (title) {
-            "过滤词库" -> FileNameExtensionFilter(
-                "词库",
-                "json",
-            )
-
-            "用文档生成词库" -> FileNameExtensionFilter(
-                "支持的文件扩展(*.pdf;*.txt;*.md*.java;*.cs;*.cpp;*.c;*.kt;*.py;*.ts)",
-                "pdf", "txt", "md", "java", "cs", "cpp", "c", "kt", "js", "py", "ts"
-            )
-
-            "用字幕生成词库" -> FileNameExtensionFilter(
-                "SRT或ASS格式的字幕文件",
-                "srt", "ass"
-            )
-
-            "用视频生成词库" -> FileNameExtensionFilter(
-                "mkv或mp4格式的视频文件",
-                "mkv", "mp4",
-            )
-
-            else -> null
-        }
 
         var started by remember { mutableStateOf(false) }
 
@@ -487,29 +466,56 @@ fun GenerateVocabularyDialog(
             }
         }
 
-        /** 打开文件时调用的函数 */
-        val openFile: () -> Unit = {
-            scope.launch(Dispatchers.Default) {
-                val fileChooser = withContext(Dispatchers.IO) {
-                    state.futureFileChooser.get()
+        val filePicker = when (title) {
+            "过滤词库" -> rememberFilePickerLauncher(
+                title = "选择词库文件",
+                mode = FileKitMode.Single,
+                type = FileKitType.File(extensions = listOf("json")),
+                dialogSettings = FileKitDialogSettings.createDefault(),
+                onResult = { platformFile ->
+                    if(platformFile != null){
+                        parseImportFile(listOf(platformFile.file))
+                    }
                 }
-                fileChooser.dialogTitle = chooseText
-                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
-                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                fileChooser.isAcceptAllFileFilterUsed = false
-                fileChooser.isMultiSelectionEnabled = true
-                fileChooser.addChoosableFileFilter(fileFilter)
-                if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
-                    val files = fileChooser.selectedFiles.toList()
-                    parseImportFile(files)
+            )
+            "用文档生成词库" -> rememberFilePickerLauncher(
+                title = "选择文件",
+                mode = FileKitMode.Single,
+                type = FileKitType.File(extensions = listOf("pdf", "txt", "md", "java", "cs", "cpp", "c", "kt", "js", "py", "ts")),
+                dialogSettings = FileKitDialogSettings.createDefault(),
+                onResult = { platformFile ->
+                    if(platformFile != null){
+                        parseImportFile(listOf(platformFile.file))
+                    }
                 }
-                fileChooser.selectedFiles = null
-                fileChooser.isMultiSelectionEnabled = true
-                fileChooser.removeChoosableFileFilter(fileFilter)
-            }
-        }
+            )
+            "用字幕生成词库" -> rememberFilePickerLauncher(
+                title = "选择字幕文件",
+                mode = FileKitMode.Single,
+                type = FileKitType.File(extensions = listOf("srt", "ass")),
+                dialogSettings = FileKitDialogSettings.createDefault(),
+                onResult = { platformFile ->
+                    if(platformFile != null){
+                        parseImportFile(listOf(platformFile.file))
+                    }
+                }
+            )
 
+            "用视频生成词库" -> rememberFilePickerLauncher(
+                title = "选择视频文件",
+                mode = FileKitMode.Multiple(maxItems = 2),
+                type = FileKitType.File(extensions = listOf("mkv", "mp4")),
+                dialogSettings = FileKitDialogSettings.createDefault(),
+                onResult = { platformFileList ->
+                    if(platformFileList != null){
+                        val files =  platformFileList.map { it.file }
+                        parseImportFile(files)
+                    }
+                }
+            )
+
+            else -> null
+        }
 
         // 拖放处理函数
         val dropTarget = remember {
@@ -554,19 +560,17 @@ fun GenerateVocabularyDialog(
         }
 
         /** 打开关联的视频 */
-        val openRelateVideo: () -> Unit = {
-            val fileChooser = state.futureFileChooser.get()
-            fileChooser.dialogTitle = "选择视频"
-            fileChooser.isAcceptAllFileFilterUsed = true
-            fileChooser.selectedFile = null
-            if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
-                val file = fileChooser.selectedFile
-                relateVideoPath = file.absolutePath
-                fileChooser.selectedFile = File("")
+        val relateVideoPicker =  rememberFilePickerLauncher(
+            title = "选择视频文件",
+            mode = FileKitMode.Single,
+            type = FileKitType.File(extensions = listOf("mkv", "mp4")),
+            dialogSettings = FileKitDialogSettings.createDefault(),
+            onResult = { platformFile ->
+                if(platformFile != null){
+                    relateVideoPath = platformFile.file.absolutePath
+                }
             }
-            fileChooser.selectedFile = null
-            fileChooser.removeChoosableFileFilter(fileFilter)
-        }
+        )
 
         /** 改变了左边过滤区域的状态，如有有一个为真，或者选择了一个词库，就开始过滤 */
         val shouldApplyFilters: () -> Boolean = {
@@ -882,8 +886,8 @@ fun GenerateVocabularyDialog(
                             selectAll = { selectAll() },
                             delete = { delete() },
                             chooseText = chooseText,
-                            openFile = { openFile() },
-                            openRelateVideo = { openRelateVideo() },
+                            openFile = { filePicker?.launch() },
+                            openRelateVideo = {relateVideoPicker.launch() },
                             started = started,
                             showEnablePhrases = title != "过滤词库",
                             enablePhrases = enablePhrases,
