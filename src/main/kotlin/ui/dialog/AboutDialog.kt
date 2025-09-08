@@ -258,9 +258,9 @@ fun AboutDialog(
                                     license = Apache2,
                                 )
                                 Dependency(
-                                    name = "ComposeReorderable",
-                                    url = "https://github.com/aclassen/ComposeReorderable",
-                                    version = "0.9.6.2",
+                                    name = "Reorderable",
+                                    url = "https://github.com/Calvin-LL/Reorderable",
+                                    version = "3.0.0",
                                     license = Apache2,
                                 )
                                 Dependency(

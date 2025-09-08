@@ -25,7 +25,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -59,12 +58,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
-import org.burnoutcrew.reorderable.ReorderableItem
-import org.burnoutcrew.reorderable.detectReorder
-import org.burnoutcrew.reorderable.rememberReorderableLazyListState
-import org.burnoutcrew.reorderable.reorderable
 import player.isWindows
 import player.parseTrackList
+import sh.calvin.reorderable.ReorderableItem
+import sh.calvin.reorderable.rememberReorderableLazyListState
 import state.AppState
 import state.getResourcesFile
 import ui.components.BuiltInVocabularyMenu
@@ -3021,34 +3018,31 @@ fun TaskList(
     checkedFileMap: Map<File, Boolean>,
     checkedChange: (Pair<File, Boolean>) -> Unit,
 ) {
-
-    val items = remember { mutableStateOf(selectedFileList) }
-    val state = rememberReorderableLazyListState(onMove = { from, to ->
-        items.value = items.value.toMutableList().apply {
+    val viewList = selectedFileList.map { it }
+    var items by remember { mutableStateOf(viewList) }
+    val lazyListState = rememberLazyListState()
+    val state = rememberReorderableLazyListState(lazyListState){from,to ->
+        items = items.toMutableList().apply {
             add(to.index, removeAt(from.index))
-            updateOrder(items.value)
         }
-    })
+        updateOrder(items)
+    }
 
     Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colors.background)) {
         LazyColumn(
-            state = state.listState,
-            modifier = Modifier.fillMaxSize().reorderable(state)
+            state = lazyListState,
+            modifier = Modifier.fillMaxSize()
         ) {
-            items(items.value, { it }) { item ->
-                ReorderableItem(state, orientationLocked = true, key = item) { isDragging ->
-                    val elevation = animateDpAsState(if (isDragging) 8.dp else 0.dp)
-                    Column(
-                        modifier = Modifier
-                            .shadow(elevation.value)
-                            .background(MaterialTheme.colors.surface)
-                    ) {
+            items(items, key = {it} ) { item ->
+                ReorderableItem(state, key = item) { isDragging ->
+                    val elevation = animateDpAsState(if (isDragging) 4.dp else 0.dp)
+                    Surface(elevation = elevation.value) {
                         Box(
                             modifier = Modifier
                                 .clickable { }
                                 .fillMaxWidth()
                                 .padding(start = 16.dp)
-                                .detectReorder(state)
+                                .longPressDraggableHandle()
                         ) {
                             Text(
                                 text = item.nameWithoutExtension,
@@ -3151,7 +3145,7 @@ fun TaskList(
         VerticalScrollbar(
             modifier = Modifier.align(Alignment.CenterEnd)
                 .fillMaxHeight(),
-            adapter = rememberScrollbarAdapter(state.listState)
+            adapter = rememberScrollbarAdapter(lazyListState)
         )
     }
 

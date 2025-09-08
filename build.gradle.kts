@@ -48,7 +48,7 @@ dependencies {
     implementation(files("lib/subtitleConvert-1.0.3.jar"))
     implementation(files("lib/jacob-1.20.jar"))
     implementation("org.apache.maven:maven-artifact:3.8.6")
-    implementation("org.burnoutcrew.composereorderable:reorderable:0.9.2")
+    implementation("sh.calvin.reorderable:reorderable:3.0.0")
     implementation("com.github.albfernandez:juniversalchardet:2.4.0")
     implementation("com.darkrockstudios:mpfilepicker:2.0.2")
     implementation("org.apache.poi:poi:5.3.0")
