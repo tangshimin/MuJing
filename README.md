@@ -13,7 +13,7 @@
    - 字幕抄写：可以抄写单词对应的字幕，加深记忆
    - 听写测试：每个单元20个单词，记完后有听写测试检查记忆效果
 
-   https://github.com/user-attachments/assets/fe30b357-af95-48ba-ab6a-fd676ef87fb7.mp4
+       https://github.com/user-attachments/assets/fe30b357-af95-48ba-ab6a-fd676ef87fb7.mp4
 
    demo 中的电影片段来源于 [Sintel](https://www.youtube.com/watch?v=eRsGyueVLvQ)。
 
@@ -36,7 +36,7 @@
    - 选择性播放：可以选择性播放一条或多条字幕
    - 字幕抄写：提供字幕抄写功能，加深记忆
 
-   https://user-images.githubusercontent.com/16540656/174944474-e5947df9-c8ed-4546-9c67-057fe52c2d51.mp4
+       https://user-images.githubusercontent.com/16540656/174944474-e5947df9-c8ed-4546-9c67-057fe52c2d51.mp4
 
 
 ### 5. 词库生成系统
