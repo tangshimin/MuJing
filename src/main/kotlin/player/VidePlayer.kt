@@ -1,6 +1,7 @@
 package player
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.*
@@ -868,7 +869,7 @@ fun VideoPlayer(
                         ){
                             Box(
                                 Modifier
-                                    .background(if(isCaptionAreaHovered) Color(29,30,31) else Color.Black.copy(alpha = 0.2f))
+                                    .background(if(isCaptionAreaHovered) Color(29,30,31) else Color.Black.copy(alpha = 0.5f))
                                     .onPointerEvent(PointerEventType.Enter) {
                                         isCaptionAreaHovered = true
                                     }
@@ -876,9 +877,10 @@ fun VideoPlayer(
                                         isCaptionAreaHovered = false
                                     }
                             ){
-
+                                val vertical = animateDpAsState(if(isCaptionAreaHovered) 48.dp else 8.dp)
+                                val horizontal = animateDpAsState(if(isCaptionAreaHovered) 96.dp else 8.dp)
                                 if(!isSelectionActivated){
-                                    if(isCaptionAreaHovered){
+
                                         HoverableCaption(
                                             caption =caption.removeSuffix("\n"),
                                             playAudio = playAudio,
@@ -888,7 +890,7 @@ fun VideoPlayer(
                                             isBilingual = subtitleDescription.contains("&"),
                                             swapEnabled = isSwap,
                                             modifier = Modifier.align(Alignment.Center)
-                                                .padding(start = 48.dp, end = 48.dp , top= 48.dp,bottom = 48.dp)
+                                                .padding(vertical = vertical.value, horizontal = horizontal.value)
                                             ,
                                             onPopupHoverChanged = { hovering ->
                                                 showDictPopup = hovering
@@ -921,18 +923,7 @@ fun VideoPlayer(
                                                 state.addToFamiliar(it)
                                             }
                                         )
-                                    }else{
-                                        Text(
-                                            text = caption.removeSuffix("\n"),
-                                            style = MaterialTheme.typography.h4.copy(
-                                                color = Color.White,
-                                                textAlign = TextAlign.Center,
-                                            ),
-                                            modifier = Modifier
-                                                .align(Alignment.Center)
-                                                .padding(start = 48.dp, end = 48.dp , top= 48.dp,bottom = 48.dp)
-                                        )
-                                    }
+
 
                                 }else{
                                     CustomTextMenuProvider {
@@ -943,14 +934,14 @@ fun VideoPlayer(
                                             singleLine = false,
                                             textStyle = MaterialTheme.typography.h4.copy(
                                                 color = Color.White,
-                                                textAlign = TextAlign.Center,
+                                                textAlign = TextAlign.Start,
                                             ),
                                             cursorBrush = SolidColor(MaterialTheme.colors.primary),
                                             modifier = Modifier
                                                 .align(Alignment.Center)
                                                 .focusRequester(textFieldRequester)
                                                 .onPointerEvent(PointerEventType.Enter){isCaptionAreaHovered = true}
-                                                .padding(start = 48.dp, end = 48.dp , top= 48.dp,bottom = 48.dp)
+                                                .padding(vertical = vertical.value, horizontal = horizontal.value)
                                                 .onKeyEvent {
                                                     val isModifierPressed = if (isMacOS()) it.isMetaPressed else it.isCtrlPressed
                                                     if (it.type == KeyEventType.KeyUp && it.key == Key.Escape) {
