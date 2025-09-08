@@ -33,7 +33,8 @@ jobs:
         with:
           distribution: 'jetbrains'
           java-version: '21'
-          token: ${{ steps.generate-token.outputs.token }}
+        env:
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
 
       # Check out current repository
       - name: Fetch Sources
