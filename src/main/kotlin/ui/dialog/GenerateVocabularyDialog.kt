@@ -470,7 +470,7 @@ fun GenerateVocabularyDialog(
                 type = FileKitType.File(extensions = listOf("json")),
                 dialogSettings = FileKitDialogSettings.createDefault(),
                 onResult = { platformFile ->
-                    if(platformFile != null){
+                    platformFile?.let{
                         parseImportFile(listOf(platformFile.file))
                     }
                 }
@@ -481,7 +481,7 @@ fun GenerateVocabularyDialog(
                 type = FileKitType.File(extensions = listOf("pdf", "txt", "md", "java", "cs", "cpp", "c", "kt", "js", "py", "ts")),
                 dialogSettings = FileKitDialogSettings.createDefault(),
                 onResult = { platformFile ->
-                    if(platformFile != null){
+                    platformFile?.let{
                         parseImportFile(listOf(platformFile.file))
                     }
                 }
@@ -492,7 +492,7 @@ fun GenerateVocabularyDialog(
                 type = FileKitType.File(extensions = listOf("srt", "ass")),
                 dialogSettings = FileKitDialogSettings.createDefault(),
                 onResult = { platformFile ->
-                    if(platformFile != null){
+                    platformFile?.let{
                         parseImportFile(listOf(platformFile.file))
                     }
                 }
@@ -504,7 +504,7 @@ fun GenerateVocabularyDialog(
                 type = FileKitType.File(extensions = listOf("mkv", "mp4")),
                 dialogSettings = FileKitDialogSettings.createDefault(),
                 onResult = { platformFileList ->
-                    if(platformFileList != null){
+                    platformFileList?.let{
                         val files =  platformFileList.map { it.file }
                         parseImportFile(files)
                     }
