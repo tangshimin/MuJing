@@ -64,3 +64,13 @@ jobs:
           name: macos-package-${{ matrix.arch }}
           path: build/compose/binaries/main/dmg/*.dmg
 
+      - name: Draft Release
+        if: github.event_name != 'workflow_dispatch'
+        uses: ncipollo/release-action@v1
+        with:
+          draft: true
+          allowUpdates: true
+          generateReleaseNotes: false  #自动生成发行说明。
+          tag: "${{ env.TAG }}"
+          artifacts: "${{ github.workspace }}/build/compose/binaries/main/dmg/*.dmg"
+          token: ${{ secrets.GITHUB_TOKEN  }}
