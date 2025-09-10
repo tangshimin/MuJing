@@ -1,4 +1,3 @@
-
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.io.FileOutputStream
@@ -63,10 +62,12 @@ dependencies {
     implementation("io.github.vinceglb:filekit-dialogs:0.10.0")
     implementation("io.github.vinceglb:filekit-dialogs-compose:0.10.0")
 
+    // 如果需要 Compose UI 测试，保留这个
     testImplementation(compose.desktop.uiTestJUnit4)
-    testImplementation("org.junit.vintage:junit-vintage-engine:5.9.0")
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
+    // 测试依赖 - 使用完整的 JUnit 5 配置
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.2")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
 }
 
 buildscript {
@@ -166,6 +167,15 @@ tasks.named<Test>("test") {
     testClassesDirs = sourceSets["test"].output.classesDirs
     classpath = sourceSets["test"].runtimeClasspath
     exclude("**/ui/**")
+    
+    // 启用 JUnit 5
+    useJUnitPlatform()
+    
+    // 测试日志配置
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
 }
 
 tasks.register<Test>("uiTest") {
@@ -174,6 +184,9 @@ tasks.register<Test>("uiTest") {
     testClassesDirs = sourceSets["test"].output.classesDirs
     classpath = sourceSets["test"].runtimeClasspath
     include("**/ui/**")
+
+    // UI 测试使用 JUnit 4
+    useJUnit()
 }
 
 project.afterEvaluate {
