@@ -333,8 +333,11 @@ fun CaptionAndVideoList(
                                 }
 
                                 LaunchedEffect(timedCaption.currentIndex){
-                                    // 确保当前字幕在可见范围内
-                                    if(timedCaption.currentIndex >= 0 && timedCaption.currentIndex < captionListState.layoutInfo.totalItemsCount) {
+                                    // 确保当前字幕在可见范围内，添加更严格的边界检查
+                                    if(timedCaption.isNotEmpty() &&
+                                       timedCaption.currentIndex >= 0 &&
+                                       timedCaption.currentIndex < timedCaption.captionList.size &&
+                                       timedCaption.currentIndex < captionListState.layoutInfo.totalItemsCount) {
                                         val firstVisibleItem = captionListState.layoutInfo.visibleItemsInfo.firstOrNull()
                                         val height = firstVisibleItem?.size ?: 0
                                         val offset = -(lazyColumnHeight/2) + height

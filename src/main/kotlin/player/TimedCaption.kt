@@ -397,10 +397,13 @@ class TimedCaption{
     fun clear(){
         timeMap.clear()
         captionList.clear()
+        currentIndex = 0
         captionStart = 0
         captionEnd = 0
         nextCaptionStart = 0
         nextCaptionEnd = 0
+        previousCaptionStart = 0
+        previousCaptionEnd = 0
     }
 }
 
