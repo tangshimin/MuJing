@@ -250,4 +250,177 @@ class FSRSFunctionalTest {
         assertFalse(FSRSTimeUtils.isCardDue(updatedCard), "刚更新的卡片不应该立即到期")
     }
 
+    /**
+     * 功能测试：30张卡片的复习场景模拟
+     * 模拟30张卡片在不同评分下的复习时间安排
+     */
+    @Test
+    fun test30CardsReviewScenario() {
+        println("=== 30张卡片复习场景模拟 ===")
+
+        // 使用固定的时间作为基准，避免时间计算误差
+        val startTime = LocalDateTime.of(2025, 9, 11, 10, 0, 0)
+
+        // 创建30张新卡片
+        val cards = mutableListOf<FlashCard>()
+        repeat(30) { index ->
+            cards.add(FlashCard(id = index.toLong() + 1, phase = CardPhase.Added.value))
+        }
+
+        // 第一轮学习：10张Good，10张Easy，10张Hard
+        val updatedCards = mutableListOf<FlashCard>()
+
+        // 10张选择Good
+        for (i in 0 until 10) {
+            val grades = fsrs.calculate(cards[i])
+            val goodGrade = grades.find { it.choice == Rating.Good }!!
+            val updatedCard = FSRSTimeUtils.addMillisToTime(startTime, goodGrade.durationMillis).let { dueTime ->
+                cards[i].copy(
+                    stability = goodGrade.stability,
+                    difficulty = goodGrade.difficulty,
+                    interval = goodGrade.interval,
+                    phase = CardPhase.Review.value,
+                    dueDate = dueTime,
+                    lastReview = startTime,
+                    reviewCount = 1
+                )
+            }
+            updatedCards.add(updatedCard)
+            println("卡片${i+1} 选择Good - 下次复习: ${goodGrade.txt}, 到期时间: ${updatedCard.dueDate}")
+        }
+
+        // 10张选择Easy
+        for (i in 10 until 20) {
+            val grades = fsrs.calculate(cards[i])
+            val easyGrade = grades.find { it.choice == Rating.Easy }!!
+            val updatedCard = FSRSTimeUtils.addMillisToTime(startTime, easyGrade.durationMillis).let { dueTime ->
+                cards[i].copy(
+                    stability = easyGrade.stability,
+                    difficulty = easyGrade.difficulty,
+                    interval = easyGrade.interval,
+                    phase = CardPhase.Review.value,
+                    dueDate = dueTime,
+                    lastReview = startTime,
+                    reviewCount = 1
+                )
+            }
+            updatedCards.add(updatedCard)
+            println("卡片${i+1} 选择Easy - 下次复习: ${easyGrade.txt}, 到期时间: ${updatedCard.dueDate}")
+        }
+
+        // 10张选择Hard
+        for (i in 20 until 30) {
+            val grades = fsrs.calculate(cards[i])
+            val hardGrade = grades.find { it.choice == Rating.Hard }!!
+            val updatedCard = FSRSTimeUtils.addMillisToTime(startTime, hardGrade.durationMillis).let { dueTime ->
+                cards[i].copy(
+                    stability = hardGrade.stability,
+                    difficulty = hardGrade.difficulty,
+                    interval = hardGrade.interval,
+                    phase = CardPhase.Review.value,
+                    dueDate = dueTime,
+                    lastReview = startTime,
+                    reviewCount = 1
+                )
+            }
+            updatedCards.add(updatedCard)
+            println("卡片${i+1} 选择Hard - 下次复习: ${hardGrade.txt}, 到期时间: ${updatedCard.dueDate}")
+        }
+
+        // 30分钟后有多少卡片需要复习？
+        val after30Minutes = startTime.plusMinutes(30)
+
+        val cardsToReviewAfter30Min = updatedCards.filter { card ->
+            FSRSTimeUtils.isCardDue(card, after30Minutes)
+        }
+
+        println("\n=== 30分钟后的复习情况 ===")
+        println("检查时间: $after30Minutes")
+        println("需要复习的卡片数量: ${cardsToReviewAfter30Min.size}")
+        cardsToReviewAfter30Min.forEach { card ->
+            println("卡片${card.id} 需要复习 (到期时间: ${card.dueDate})")
+        }
+
+        // 第二轮：所有需要复习的卡片都选择Easy
+        println("\n=== 第二轮复习（都选择Easy）===")
+        val secondRoundCards = mutableListOf<FlashCard>()
+
+        // 未到期的卡片保持原状
+        val notDueCards = updatedCards.filter { card ->
+            !FSRSTimeUtils.isCardDue(card, after30Minutes)
+        }
+        secondRoundCards.addAll(notDueCards)
+        println("未到期卡片: ${notDueCards.map { it.id }}")
+
+        // 到期的卡片选择Easy（在30分钟后的时间点进行第二轮复习）
+        cardsToReviewAfter30Min.forEach { card ->
+            val grades = fsrs.calculate(card)
+            val easyGrade = grades.find { it.choice == Rating.Easy }!!
+            val updatedCard = FSRSTimeUtils.addMillisToTime(after30Minutes, easyGrade.durationMillis).let { dueTime ->
+                card.copy(
+                    stability = easyGrade.stability,
+                    difficulty = easyGrade.difficulty,
+                    interval = easyGrade.interval,
+                    dueDate = dueTime,
+                    lastReview = after30Minutes,
+                    reviewCount = card.reviewCount + 1
+                )
+            }
+            secondRoundCards.add(updatedCard)
+            println("卡片${card.id} 第二轮选择Easy - 下次复习: ${easyGrade.txt}, 到期时间: ${updatedCard.dueDate}")
+        }
+
+        // 第二天需要复习多少张卡片？
+        // 注意：检查时间应该是第二天的稍晚一些，确保包含所有应该到期的卡片
+        val nextDay = startTime.plusDays(1).plusHours(1) // 第二天11:00，确保涵盖所有第二轮复习的卡片
+        val cardsToReviewNextDay = secondRoundCards.filter { card ->
+            FSRSTimeUtils.isCardDue(card, nextDay)
+        }
+
+        println("\n=== 第二天的复习情况 ===")
+        println("检查时间: $nextDay")
+        println("第二天需要复习的卡片数量: ${cardsToReviewNextDay.size}")
+        cardsToReviewNextDay.forEach { card ->
+            println("卡片${card.id} 需要复习 (到期时间: ${card.dueDate})")
+        }
+
+        // 详细分析每组卡片的状态
+        println("\n=== 详细分析 ===")
+        val originalEasyCards = secondRoundCards.filter { it.id in 11..20 }
+        val secondRoundEasyCards = secondRoundCards.filter { it.id in cardsToReviewAfter30Min.map { it.id } }
+
+        println("原本选择Easy的卡片(11-20)第二天状态:")
+        originalEasyCards.forEach { card ->
+            val isDue = FSRSTimeUtils.isCardDue(card, nextDay)
+            println("  卡片${card.id}: 到期时间=${card.dueDate}, 是否需要复习=$isDue")
+        }
+
+        println("第二轮选择Easy的卡片第二天状态:")
+        secondRoundEasyCards.forEach { card ->
+            val isDue = FSRSTimeUtils.isCardDue(card, nextDay)
+            println("  卡片${card.id}: 到期时间=${card.dueDate}, 是否需要复习=$isDue")
+        }
+
+        // 验证结果
+        println("\n=== 总结 ===")
+        println("初始卡片数量: 30张")
+        println("30分钟后需要复习: ${cardsToReviewAfter30Min.size}张")
+        println("第二天需要复习: ${cardsToReviewNextDay.size}张")
+
+        // 根据FSRS算法的设计进行验证
+        // Good = 10分钟，Hard = 5分钟，Easy = 1天
+        // 30分钟后，Good(10分钟)和Hard(5分钟)的卡片应该都到期了
+        val expectedCardsAfter30Min = 20 // 10张Good + 10张Hard
+        assertEquals(expectedCardsAfter30Min, cardsToReviewAfter30Min.size,
+            "30分钟后应该有${expectedCardsAfter30Min}张卡片需要复习")
+
+        // 根据测试输出，所有第二轮选择Easy的卡片都显示"1 day"
+        // 所以第二天应该需要复习: 10张原本Easy + 20张第二轮Easy = 30张
+        val expectedCardsNextDay = 30
+        assertEquals(expectedCardsNextDay, cardsToReviewNextDay.size,
+            "第二天应该有${expectedCardsNextDay}张卡片需要复习")
+
+        println("测试完成！")
+    }
+
 }
