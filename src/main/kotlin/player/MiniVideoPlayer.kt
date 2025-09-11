@@ -237,12 +237,11 @@ fun MiniVideoPlayer(
                 if(showTitle){
                     Box(modifier = Modifier
                         .align(Alignment.TopCenter)
-                        .background(Color.Black.copy(alpha = 0.7f))
                         .padding(horizontal = 16.dp, vertical = 8.dp)
                     ) {
                         Text(
                             text = mediaInfo.mediaPath.substringAfterLast(File.separator),
-                            color = MaterialTheme.colors.onBackground,
+                            color = Color.LightGray,
                         )
                     }
                 }
