@@ -436,6 +436,10 @@ class FSRS(
      * @return 新的短期稳定性值
      */
     private fun nextShortTermStability(currentS: Double, rating: Rating): Double {
+        if (currentS <= 0.0) {
+            // 当稳定性为0或负数时，返回一个最小的初始值避免NaN
+            return initStability(rating)
+        }
         var sinc = exp(params[17] * (rating.value - 3 + params[18])) * currentS.pow(-params[19])
         if (rating.value >= 3) {
             sinc = max(sinc, 1.0)
