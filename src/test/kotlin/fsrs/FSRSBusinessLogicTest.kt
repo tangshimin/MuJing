@@ -13,302 +13,297 @@ import java.time.LocalDateTime
 
 /**
  * FSRS 业务逻辑测试
- * 测试实际使用场景中的业务逻辑
+ * 测试学习会话管理、卡片管理等高级业务场景
  */
 class FSRSBusinessLogicTest {
 
-    private lateinit var fsrs: FSRS
-    private val defaultParams = listOf(
-        0.212, 1.2931, 2.3065, 8.2956,
-        6.4133, 0.8334, 3.0194, 0.001,
-        1.8722, 0.1666, 0.796, 1.4835,
-        0.0614, 0.2629, 1.6483, 0.6014,
-        1.8729, 0.5425, 0.0912, 0.0658,
-        0.1542
-    )
+    private lateinit var fsrsService: FSRSService
+    private lateinit var cardManager: FlashCardManager
+    private lateinit var sessionManager: LearningSessionManager
 
     @BeforeEach
     fun setUp() {
-        fsrs = FSRS(
-            requestRetention = 0.9,
-            params = defaultParams,
-            isReview = false
-        )
+        fsrsService = FSRSService(requestRetention = 0.9)
+        cardManager = FlashCardManager(fsrsService)
+        sessionManager = LearningSessionManager(fsrsService)
     }
 
     /**
-     * 测试学习计划生成
+     * 测试学习会话的完整生命周期
      */
     @Test
-    fun testStudyPlanGeneration() {
-        val cards = createTestCards(50)
-        val currentTime = LocalDateTime.now()
+    fun testLearningSessionLifecycle() {
+        // 准备测试数据：5张新卡片和3张需要复习的卡片
+        val newCards = cardManager.createCards(listOf("apple", "banana", "cherry", "dragon", "elephant"))
+        val reviewCards = listOf(
+            FlashCard(id = 101L, phase = CardPhase.Review.value, dueDate = LocalDateTime.now().minusHours(1)),
+            FlashCard(id = 102L, phase = CardPhase.Review.value, dueDate = LocalDateTime.now().minusDays(1)),
+            FlashCard(id = 103L, phase = CardPhase.ReLearning.value, dueDate = LocalDateTime.now().minusMinutes(30))
+        )
+        val allCards = newCards + reviewCards
 
-        // 模拟用户的学习历史
-        val studiedCards = simulateStudySession(cards, currentTime)
+        // 开始学习会话
+        val session = sessionManager.startSession(allCards, maxNewCards = 3, maxReviewCards = 5)
 
-        // 生成下一天的学习计划
-        val nextDay = currentTime.plusDays(1)
-        val dueCards = studiedCards.filter { card ->
-            FSRSTimeUtils.isCardDue(card, nextDay)
+        // 验证会话创建
+        assertNotNull(session)
+        assertTrue(session.cards.size <= 8) // 最多3新+5复习
+        assertEquals(0, session.completedCount)
+        assertEquals(0, session.correctCount)
+        assertFalse(session.isCompleted())
+
+        // 模拟完成会话中的所有卡片
+        var currentSession = session
+        val processedCards = mutableListOf<FlashCard>()
+
+        while (!currentSession.isCompleted()) {
+            val currentCard = currentSession.getCurrentCard()!!
+            val gradeOptions = fsrsService.getGradeOptions(currentCard)
+
+            // 模拟用户选择Good评分
+            val selectedGrade = gradeOptions.find { it.choice == Rating.Good }!!
+            val (updatedSession, updatedCard) = sessionManager.processCardReview(currentSession, selectedGrade)
+
+            currentSession = updatedSession
+            processedCards.add(updatedCard)
         }
 
-        println("=== 学习计划生成测试 ===")
-        println("总卡片数: ${cards.size}")
-        println("已学习卡片数: ${studiedCards.size}")
-        println("明天需复习: ${dueCards.size}")
-
-        // 按优先级排序（越早到期的优先级越高）
-        val prioritizedCards = dueCards.sortedBy { it.dueDate }
-
-        // 验证学习计划
-        assertTrue(dueCards.isNotEmpty(), "应该有卡片需要复习")
-        assertTrue(prioritizedCards.first().dueDate <= prioritizedCards.last().dueDate,
-            "卡片应该按到期时间排序")
-
-        // 模拟每日学习量限制（比如每天最多学习20张）
-        val dailyLimit = 20
-        val todaysCards = prioritizedCards.take(dailyLimit)
-
-        assertTrue(todaysCards.size <= dailyLimit, "每日学习量不应超过限制")
-        println("今日计划学习: ${todaysCards.size}张")
+        // 验证会话完成状态
+        assertTrue(currentSession.isCompleted())
+        assertEquals(100.0, currentSession.getProgress(), 0.1)
+        assertEquals(processedCards.size, currentSession.completedCount)
+        assertTrue(currentSession.getAccuracy() > 0) // 应该有正确率统计
     }
 
     /**
-     * 测试学习统计和进度跟踪
+     * 测试学习建议生成
+     */
+    @Test
+    fun testLearningRecommendations() {
+        // 创建不同状态的卡片
+        val cards = mutableListOf<FlashCard>()
+
+        // 新卡片
+        cards.addAll(cardManager.createCards(listOf("word1", "word2", "word3")))
+
+        // 到期的复习卡片
+        cards.add(FlashCard(id = 201L, phase = CardPhase.Review.value,
+                           dueDate = LocalDateTime.now().minusDays(1), difficulty = 3.0))
+        cards.add(FlashCard(id = 202L, phase = CardPhase.Review.value,
+                           dueDate = LocalDateTime.now().minusHours(2), difficulty = 7.0))
+
+        // 重新学习卡片
+        cards.add(FlashCard(id = 203L, phase = CardPhase.ReLearning.value,
+                           dueDate = LocalDateTime.now().minusMinutes(30)))
+
+        // 创建模拟的学习会话历史
+        val mockSession = LearningSession(
+            sessionId = 1L,
+            cards = cards.take(3),
+            startTime = LocalDateTime.now().minusMinutes(15),
+            currentIndex = 3,
+            completedCount = 3,
+            correctCount = 2,
+            sessionStats = mutableMapOf(),
+            endTime = LocalDateTime.now()
+        )
+
+        // 获取学习建议
+        val recommendations = sessionManager.getLearningRecommendations(cards, listOf(mockSession))
+
+        // 验证建议内容
+        assertNotNull(recommendations)
+        assertTrue(recommendations.suggestedReviewCards > 0) // 应该有到期卡片需要复习
+        assertTrue(recommendations.estimatedStudyTime > 0) // 应该有学习时间估计
+        assertNotNull(recommendations.studyLoad)
+        assertTrue(recommendations.recommendations.isNotEmpty()) // 应该有文本建议
+        assertTrue(recommendations.priorityCards.isNotEmpty()) // 应该有优先级卡片
+    }
+
+    /**
+     * 测试卡片筛选和排序功能
+     */
+    @Test
+    fun testCardFilteringAndSorting() {
+        // 创建不同状态的卡片
+        val cards = mutableListOf<FlashCard>()
+
+        // 简单卡片
+        cards.add(FlashCard(id = 1L, difficulty = 2.0, stability = 5.0, phase = CardPhase.Review.value))
+        // 困难卡片
+        cards.add(FlashCard(id = 2L, difficulty = 8.0, stability = 2.0, phase = CardPhase.Review.value))
+        // 到期卡片
+        cards.add(FlashCard(id = 3L, difficulty = 5.0, stability = 3.0, phase = CardPhase.Review.value,
+                           dueDate = LocalDateTime.now().minusDays(1)))
+        // 新卡片
+        cards.add(FlashCard(id = 4L, difficulty = 2.5, stability = 2.5, phase = CardPhase.Added.value))
+
+        // 测试筛选困难卡片
+        val hardCards = cardManager.filterCards(cards, CardFilter(minDifficulty = 7.0))
+        assertEquals(1, hardCards.size)
+        assertEquals(2L, hardCards[0].id)
+
+        // 测试筛选到期卡片
+        val dueCards = cardManager.filterCards(cards, CardFilter(dueOnly = true))
+        assertTrue(dueCards.isNotEmpty())
+
+        // 测试筛选特定阶段
+        val newCards = cardManager.filterCards(cards, CardFilter(phases = listOf(CardPhase.Added)))
+        assertEquals(1, newCards.size)
+        assertEquals(4L, newCards[0].id)
+
+        // 测试按难度排序
+        val sortedByDifficulty = cardManager.sortCards(cards, SortStrategy.DIFFICULTY_DESC)
+        assertEquals(2L, sortedByDifficulty[0].id) // 最困难的应该排在前面
+
+        // 测试智能优先级排序
+        val prioritySorted = cardManager.sortCards(cards, SortStrategy.PRIORITY)
+        assertNotNull(prioritySorted)
+        assertEquals(cards.size, prioritySorted.size)
+    }
+
+    /**
+     * 测试学习统计功能
      */
     @Test
     fun testLearningStatistics() {
-        val cards = createTestCards(100)
-        val studyResults = mutableMapOf<Rating, Int>()
+        // 创建各种状态的卡片
+        val cards = mutableListOf<FlashCard>()
 
-        // 模拟30天的学习过程
-        var currentTime = LocalDateTime.now()
-        var activeCards = cards.toMutableList()
-
-        repeat(30) { day ->
-            println("第${day + 1}天学习:")
-
-            val dueCards = activeCards.filter { card ->
-                FSRSTimeUtils.isCardDue(card, currentTime)
-            }.take(20) // 每天最多学习20张
-
-            dueCards.forEach { card ->
-                val grades = fsrs.calculate(card)
-                val selectedRating = selectRatingBasedOnDifficulty(card.difficulty)
-                val selectedGrade = grades.find { it.choice == selectedRating }!!
-
-                // 更新统计
-                studyResults[selectedRating] = studyResults.getOrDefault(selectedRating, 0) + 1
-
-                // 更新卡片
-                val updatedCard = FSRSTimeUtils.updateCardDueDate(card, selectedGrade)
-                val index = activeCards.indexOfFirst { it.id == card.id }
-                if (index != -1) {
-                    activeCards[index] = updatedCard.copy(
-                        phase = if (selectedRating == Rating.Again)
-                            CardPhase.ReLearning.value else CardPhase.Review.value
-                    )
-                }
-            }
-
-            currentTime = currentTime.plusDays(1)
-            println("  学习了${dueCards.size}张卡片")
+        // 3张新卡片
+        repeat(3) { i ->
+            cards.add(FlashCard(id = i.toLong(), phase = CardPhase.Added.value))
         }
 
-        // 生成学习统计报告
-        println("\n=== 30天学习统计 ===")
-        val totalReviews = studyResults.values.sum()
-        studyResults.forEach { (rating, count) ->
-            val percentage = (count * 100.0 / totalReviews)
-            println("${rating.name}: ${count}次 (${"%.1f".format(percentage)}%)")
+        // 5张复习卡片
+        repeat(5) { i ->
+            cards.add(FlashCard(id = (i + 10).toLong(), phase = CardPhase.Review.value,
+                               difficulty = 3.0 + i, stability = 5.0 + i))
         }
 
-        // 验证学习统计
-        assertTrue(totalReviews > 0, "应该有复习记录")
-
-        // 安全地检查 Good 评分，使用 getOrDefault 避免空指针异常
-        val goodCount = studyResults.getOrDefault(Rating.Good, 0)
-        assertTrue(goodCount >= 0, "Good评分次数应该非负")
-
-        // 如果没有Good评分，说明所有卡片都比较困难，这也是合理的情况
-        if (goodCount == 0) {
-            println("注意: 没有Good评分，所有卡片都被评为其他等级")
+        // 2张重新学习卡片
+        repeat(2) { i ->
+            cards.add(FlashCard(id = (i + 20).toLong(), phase = CardPhase.ReLearning.value,
+                               dueDate = LocalDateTime.now().minusHours(1)))
         }
 
-        // 计算学习效果指标
-        val successRate = (studyResults.getOrDefault(Rating.Good, 0) +
-                          studyResults.getOrDefault(Rating.Easy, 0)) * 100.0 / totalReviews
-        println("学习成功率: ${"%.1f".format(successRate)}%")
+        // 获取学习统计
+        val stats = fsrsService.getLearningStat(cards)
 
-        assertTrue(successRate > 50, "学习成功率应该合理")
+        assertEquals(10, stats.totalCards)
+        assertEquals(3, stats.newCards)
+        assertEquals(5, stats.reviewCards)
+        assertEquals(2, stats.relearningCards)
+        assertTrue(stats.dueCards >= 2) // 至少重新学习的卡片是到期的
+
+        // 验证平均值计算
+        assertTrue(stats.averageDifficulty > 0)
+        assertTrue(stats.averageStability > 0)
     }
 
     /**
-     * 测试卡片退役机制
+     * 测试批量卡片分析
      */
     @Test
-    fun testCardRetirement() {
-        var card = FlashCard(phase = CardPhase.Added.value)
-        val retirementThreshold = 180 // 间隔超过180天认为已掌握
-
-        // 模拟持续选择Easy直到卡片"退役"
-        var iterations = 0
-        val maxIterations = 20
-
-        while (card.interval < retirementThreshold && iterations < maxIterations) {
-            val grades = fsrs.calculate(card)
-            val easyGrade = grades.find { it.choice == Rating.Easy }!!
-
-            card = card.copy(
-                stability = easyGrade.stability,
-                difficulty = easyGrade.difficulty,
-                interval = easyGrade.interval,
-                phase = CardPhase.Review.value,
-                reviewCount = card.reviewCount + 1
-            )
-
-            iterations++
-            println("第${iterations}次: 间隔=${card.interval}天, 稳定性=${"%.2f".format(card.stability)}")
-        }
-
-        println("\n卡片状态:")
-        println("复习次数: ${card.reviewCount}")
-        println("最终间隔: ${card.interval}天")
-        println("是否可退役: ${card.interval >= retirementThreshold}")
-
-        // 验证退役逻辑
-        if (card.interval >= retirementThreshold) {
-            assertTrue(card.reviewCount >= 3, "退役卡片应该有足够的复习次数")
-            assertTrue(card.stability > 10.0, "退役卡片应该有较高的稳定性")
-        }
-    }
-
-    /**
-     * 测试学习负担均衡
-     */
-    @Test
-    fun testWorkloadBalancing() {
-        val cards = createTestCards(200)
-        val currentTime = LocalDateTime.now()
-
-        // 模拟不同的学习安排
-        val studyDays = 14
-        val dailyLimits = listOf(10, 20, 30) // 不同的每日学习量
-
-        dailyLimits.forEach { dailyLimit ->
-            println("\n=== 每日学习${dailyLimit}张的负载测试 ===")
-
-            var testCards = cards.map { it.copy() }.toMutableList()
-            var testTime = currentTime
-            val dailyWorkloads = mutableListOf<Int>()
-
-            repeat(studyDays) { day ->
-                val dueCards = testCards.filter { card ->
-                    FSRSTimeUtils.isCardDue(card, testTime)
-                }
-
-                val todaysCards = dueCards.take(dailyLimit)
-                dailyWorkloads.add(todaysCards.size)
-
-                // 模拟学习
-                todaysCards.forEach { card ->
-                    val grades = fsrs.calculate(card)
-                    val selectedGrade = grades.find { it.choice == Rating.Good }!!
-                    val updatedCard = FSRSTimeUtils.updateCardDueDate(card, selectedGrade)
-
-                    val index = testCards.indexOfFirst { it.id == card.id }
-                    if (index != -1) {
-                        testCards[index] = updatedCard.copy(phase = CardPhase.Review.value)
-                    }
-                }
-
-                testTime = testTime.plusDays(1)
-            }
-
-            val avgWorkload = dailyWorkloads.average()
-            val maxWorkload = dailyWorkloads.maxOrNull() ?: 0
-            val minWorkload = dailyWorkloads.minOrNull() ?: 0
-
-            println("平均每日工作量: ${"%.1f".format(avgWorkload)}")
-            println("最大工作量: $maxWorkload")
-            println("最小工作量: $minWorkload")
-            println("工作量方差: ${"%.1f".format(calculateVariance(dailyWorkloads))}")
-
-            // 验证负载均衡
-            assertTrue(maxWorkload <= dailyLimit * 1.2, "工作量不应过度超载")
-            assertTrue(avgWorkload <= dailyLimit, "平均工作量应该在限制内")
-        }
-    }
-
-    /**
-     * 测试遗忘曲线建模
-     */
-    @Test
-    fun testForgettingCurveModeling() {
-        val card = FlashCard(
-            stability = 10.0,
-            difficulty = 5.0,
-            interval = 7,
-            phase = CardPhase.Review.value
+    fun testBatchCardAnalysis() {
+        // 创建具有不同特征的卡片
+        val cards = listOf(
+            FlashCard(id = 1L, difficulty = 2.0, stability = 8.0, phase = CardPhase.Review.value, reviewCount = 10),
+            FlashCard(id = 2L, difficulty = 6.0, stability = 3.0, phase = CardPhase.Review.value, reviewCount = 3),
+            FlashCard(id = 3L, difficulty = 9.0, stability = 1.5, phase = CardPhase.ReLearning.value, reviewCount = 15),
+            FlashCard(id = 4L, difficulty = 2.5, stability = 2.5, phase = CardPhase.Added.value, reviewCount = 0)
         )
 
-        // 模拟不同时间点的记忆保持率
-        val timePoints = listOf(1, 3, 7, 14, 30)
-        val retentionRates = mutableMapOf<Int, Double>()
+        val batchAnalysis = cardManager.batchAnalyzeCards(cards)
 
-        timePoints.forEach { days ->
-            // 计算在该时间点的记忆保持率（简化模型）
-            val retention = kotlin.math.exp(-days.toDouble() / card.stability)
-            retentionRates[days] = retention
+        assertEquals(4, batchAnalysis.totalCards)
 
-            println("第${days}天预期记忆保持率: ${"%.2f".format(retention * 100)}%")
-        }
+        // 验证难度分布
+        assertTrue(batchAnalysis.difficultyDistribution.containsKey("Easy"))
+        assertTrue(batchAnalysis.difficultyDistribution.containsKey("Hard"))
 
-        // 验证遗忘曲线的合理性
-        assertTrue(retentionRates[1]!! > retentionRates[7]!!, "短期记忆保持率应该更高")
-        assertTrue(retentionRates[7]!! > retentionRates[30]!!, "记忆应该随时间衰减")
+        // 验证阶段分布
+        assertTrue(batchAnalysis.phaseDistribution.containsKey("Review"))
+        assertTrue(batchAnalysis.phaseDistribution.containsKey("Added"))
 
-        // 测试在不同保持率下的复习时机
-        val targetRetention = 0.9
-        val optimalReviewDay = timePoints.find { days ->
-            retentionRates[days]!! <= targetRetention
-        }
-
-        println("在目标保持率${targetRetention * 100}%下，最佳复习时机: 第${optimalReviewDay}天")
-        assertNotNull(optimalReviewDay, "应该能找到最佳复习时机")
+        // 验证平均值
+        assertEquals((2.0 + 6.0 + 9.0 + 2.5) / 4, batchAnalysis.averageDifficulty, 0.01)
+        assertEquals((8.0 + 3.0 + 1.5 + 2.5) / 4, batchAnalysis.averageStability, 0.01)
     }
 
-    // 辅助方法
-    private fun createTestCards(count: Int): List<FlashCard> {
-        return (1..count).map { id ->
+    /**
+     * 测试学习进度跟踪
+     */
+    @Test
+    fun testLearningProgressTracking() {
+        var card = fsrsService.createNewCard(1L)
+        val progressSnapshots = mutableListOf<Pair<Int, Double>>() // (reviewCount, stability)
+
+        // 模拟30次复习，记录进度
+        repeat(30) { iteration ->
+            val gradeOptions = fsrsService.getGradeOptions(card)
+
+            // 模拟80%的时间选择Good，20%选择Easy
+            val selectedGrade = if (iteration % 5 == 0) {
+                gradeOptions.find { it.choice == Rating.Easy }!!
+            } else {
+                gradeOptions.find { it.choice == Rating.Good }!!
+            }
+
+            card = fsrsService.applyGrade(card, selectedGrade)
+            progressSnapshots.add(card.reviewCount to card.stability)
+        }
+
+        // 验证学习进展
+        assertEquals(30, card.reviewCount)
+        assertTrue(card.stability > 2.5, "经过30次复习，稳定性应该显著提高")
+
+        // 验证稳定性总体趋势向上
+        val firstHalfAvgStability = progressSnapshots.take(15).map { it.second }.average()
+        val secondHalfAvgStability = progressSnapshots.drop(15).map { it.second }.average()
+        assertTrue(secondHalfAvgStability > firstHalfAvgStability,
+                  "后半段的平均稳定性应该比前半段高")
+    }
+
+    /**
+     * 测试学习负担管理
+     */
+    @Test
+    fun testStudyLoadManagement() {
+        // 创建大量到期卡片模拟高负担情况
+        val heavyLoadCards = (1..60).map { i ->
             FlashCard(
-                id = id.toLong(),
-                phase = CardPhase.Added.value
+                id = i.toLong(),
+                phase = CardPhase.Review.value,
+                dueDate = LocalDateTime.now().minusDays(1),
+                difficulty = 5.0,
+                stability = 3.0
             )
         }
-    }
 
-    private fun simulateStudySession(cards: List<FlashCard>, currentTime: LocalDateTime): List<FlashCard> {
-        return cards.map { card ->
-            val grades = fsrs.calculate(card)
-            val selectedGrade = grades.find { it.choice == Rating.Good }!!
-            FSRSTimeUtils.updateCardDueDate(card, selectedGrade)
-                .copy(phase = CardPhase.Review.value)
+        val recommendations = sessionManager.getLearningRecommendations(heavyLoadCards, emptyList())
+
+        // 高负担情况下应该建议较少或不学新卡片
+        assertTrue(recommendations.suggestedNewCards <= 5,
+                  "高负担时新卡片建议数量应该较少")
+        assertEquals(StudyLoadLevel.HIGH, recommendations.studyLoad.level)
+        assertTrue(recommendations.recommendations.any { it.contains("负担") || it.contains("重") },
+                  "应该包含负担相关的建议")
+
+        // 测试低负担情况
+        val lightLoadCards = (1..5).map { i ->
+            FlashCard(
+                id = i.toLong(),
+                phase = CardPhase.Review.value,
+                dueDate = LocalDateTime.now().plusDays(1), // 未到期
+                difficulty = 3.0,
+                stability = 10.0
+            )
         }
-    }
 
-    private fun selectRatingBasedOnDifficulty(difficulty: Double): Rating {
-        return when {
-            difficulty <= 3.0 -> Rating.Easy
-            difficulty <= 6.0 -> Rating.Good
-            difficulty <= 8.0 -> Rating.Hard
-            else -> Rating.Again
-        }
-    }
-
-    private fun calculateVariance(values: List<Int>): Double {
-        val mean = values.average()
-        return values.map { (it - mean) * (it - mean) }.average()
+        val lightRecommendations = sessionManager.getLearningRecommendations(lightLoadCards, emptyList())
+        assertEquals(StudyLoadLevel.LOW, lightRecommendations.studyLoad.level)
+        assertTrue(lightRecommendations.suggestedNewCards >= 5,
+                  "低负担时应该建议学习更多新卡片")
     }
 }

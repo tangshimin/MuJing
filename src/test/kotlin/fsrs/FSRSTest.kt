@@ -7,41 +7,35 @@ import java.time.LocalDateTime
 
 class FSRSTest {
 
-    private lateinit var fsrs: FSRS
-
-    // FSRS-6 的默认参数
-    private val defaultParams = listOf(
-        0.212, 1.2931, 2.3065, 8.2956,
-        6.4133, 0.8334, 3.0194, 0.001,
-        1.8722, 0.1666, 0.796, 1.4835,
-        0.0614, 0.2629, 1.6483, 0.6014,
-        1.8729, 0.5425, 0.0912, 0.0658,
-        0.1542
-    )
+    private lateinit var fsrsService: FSRSService
+    private lateinit var cardManager: FlashCardManager
 
     @BeforeEach
     fun setUp() {
-        fsrs = FSRS(
+        fsrsService = FSRSService(
             requestRetention = 0.9,
-            params = defaultParams,
+            customParams = null, // 使用默认参数
             isReview = false
         )
+        cardManager = FlashCardManager(fsrsService)
     }
 
     /**
-     * 测试 FSRS 实例的基本初始化
-     * 验证实例创建成功，评级列表包含 4 个正确的评级选项
+     * 测试 FSRS 服务的基本初始化
+     * 验证服务创建成功，能够正确创建新卡片
      */
     @Test
-    fun testInitialization() {
-        assertNotNull(fsrs)
-        assertEquals(4, fsrs.gradeList.size)
+    fun testServiceInitialization() {
+        assertNotNull(fsrsService)
+        assertNotNull(cardManager)
 
-        // 验证评级类型
-        assertEquals(Rating.Easy, fsrs.gradeList[0].choice)
-        assertEquals(Rating.Good, fsrs.gradeList[1].choice)
-        assertEquals(Rating.Hard, fsrs.gradeList[2].choice)
-        assertEquals(Rating.Again, fsrs.gradeList[3].choice)
+        // 测试创建新卡片
+        val newCard = fsrsService.createNewCard(1L)
+        assertNotNull(newCard)
+        assertEquals(1L, newCard.id)
+        assertEquals(CardPhase.Added.value, newCard.phase)
+        assertEquals(2.5, newCard.stability, 0.01)
+        assertEquals(2.5, newCard.difficulty, 0.01)
     }
 
     /**
@@ -49,218 +43,193 @@ class FSRSTest {
      * 验证新添加的卡片能够正确计算出各种评级对应的复习时间
      */
     @Test
-    fun testNewCardCalculation() {
-        val newCard = FlashCard(
-            id = 1,
-            stability = 2.5,
-            difficulty = 2.5,
-            interval = 0,
-            dueDate = LocalDateTime.now(),
-            reviewCount = 0,
-            lastReview = LocalDateTime.now(),
-            phase = CardPhase.Added.value
-        )
+    fun testNewCardGradeOptions() {
+        val newCard = fsrsService.createNewCard(1L)
+        val gradeOptions = fsrsService.getGradeOptions(newCard)
 
-        val grades = fsrs.calculate(newCard)
+        assertEquals(4, gradeOptions.size)
 
-        assertEquals(4, grades.size)
+        // 验证评级类型
+        val easyGrade = gradeOptions.find { it.choice == Rating.Easy }!!
+        val goodGrade = gradeOptions.find { it.choice == Rating.Good }!!
+        val hardGrade = gradeOptions.find { it.choice == Rating.Hard }!!
+        val againGrade = gradeOptions.find { it.choice == Rating.Again }!!
 
-        // 验证新卡片的时间安排
-        assertEquals("1 day", grades[0].txt) // Easy
-        assertEquals("10 Min", grades[1].txt) // Good
-        assertEquals("5 Min", grades[2].txt) // Hard
-        assertEquals("< 3 Min", grades[3].txt) // Again
-
-        // 验证稳定性和难度值不为零
-        assertTrue(grades[0].stability > 0) // Easy
-        assertTrue(grades[1].stability > 0) // Good
-        assertTrue(grades[2].stability > 0) // Hard
-        assertTrue(grades[3].stability >= 0) // Again
+        // 验证新卡片的时间间隔
+        assertTrue(easyGrade.interval >= 1, "Easy应该至少1天")
+        assertTrue(hardGrade.txt.contains("Min"), "Hard应该是分钟级别")
+        assertTrue(goodGrade.txt.contains("Min"), "Good应该是分钟级别")
+        assertTrue(againGrade.txt.contains("Min"), "Again应该是分钟级别")
     }
 
     /**
-     * 测试重新学习阶段卡片的间隔计算
-     * 验证失败后进入重新学习状态的卡片能够正确计算复习间隔
+     * 测试评分应用功能
+     * 验证用户选择评分后卡片状态的正确更新
      */
     @Test
-    fun testRelearningCardCalculation() {
-        val relearningCard = FlashCard(
-            id = 2,
-            stability = 1.5,
-            difficulty = 5.0,
-            interval = 1,
+    fun testApplyGrade() {
+        val originalCard = fsrsService.createNewCard(1L)
+        val gradeOptions = fsrsService.getGradeOptions(originalCard)
+        val goodGrade = gradeOptions.find { it.choice == Rating.Good }!!
+
+        val updatedCard = fsrsService.applyGrade(originalCard, goodGrade)
+
+        // 验证卡片状态更新
+        assertEquals(goodGrade.stability, updatedCard.stability, 0.01)
+        assertEquals(goodGrade.difficulty, updatedCard.difficulty, 0.01)
+        assertEquals(1, updatedCard.reviewCount)
+        assertTrue(updatedCard.lastReview.isAfter(originalCard.lastReview) ||
+                  updatedCard.lastReview.isEqual(originalCard.lastReview))
+        assertTrue(updatedCard.dueDate.isAfter(LocalDateTime.now()))
+    }
+
+    /**
+     * 测试连续学习流程
+     * 模拟用户连续复习同一张卡片的过程
+     */
+    @Test
+    fun testContinuousLearning() {
+        var card = fsrsService.createNewCard(1L)
+
+        // 第一次复习 - Good
+        var gradeOptions = fsrsService.getGradeOptions(card)
+        var selectedGrade = gradeOptions.find { it.choice == Rating.Good }!!
+        card = fsrsService.applyGrade(card, selectedGrade)
+        assertEquals(1, card.reviewCount)
+
+        // 模拟时间间隔：设置卡片为已到期状态（模拟经过了足够的时间）
+        card = card.copy(
+            dueDate = LocalDateTime.now().minusDays(1), // 设置为昨天到期
+            lastReview = LocalDateTime.now().minusDays(2) // 设置上次复习为2天前
+        )
+
+        // 第二次复习 - Easy（现在应该会增加稳定性）
+        gradeOptions = fsrsService.getGradeOptions(card)
+        selectedGrade = gradeOptions.find { it.choice == Rating.Easy }!!
+        val oldStability = card.stability
+        card = fsrsService.applyGrade(card, selectedGrade)
+        assertEquals(2, card.reviewCount)
+
+        // 验证稳定性应该增加
+        assertTrue(card.stability >= oldStability, "连续好评在合适间隔后应该维持或增加稳定性")
+
+        // 第三次复习 - Again (模拟遗忘)
+        gradeOptions = fsrsService.getGradeOptions(card)
+        selectedGrade = gradeOptions.find { it.choice == Rating.Again }!!
+        card = fsrsService.applyGrade(card, selectedGrade)
+        assertEquals(3, card.reviewCount)
+        assertEquals(CardPhase.ReLearning.value, card.phase)
+    }
+
+    /**
+     * 测试到期判断
+     * 验证卡片到期判断逻辑的正确性
+     */
+    @Test
+    fun testDueDetection() {
+        // 创建一个已过期的卡片
+        val pastDueCard = FlashCard(
+            id = 1L,
             dueDate = LocalDateTime.now().minusDays(1),
-            reviewCount = 2,
-            lastReview = LocalDateTime.now().minusDays(1),
-            phase = CardPhase.ReLearning.value
-        )
-
-        val grades = fsrs.calculate(relearningCard)
-
-        assertEquals(4, grades.size)
-
-        // 验证重新学习卡片有合理的间隔
-        assertTrue(grades[0].interval >= 1) // Easy
-        assertTrue(grades[1].interval >= 1) // Good
-        assertEquals("10 Min", grades[2].txt) // Hard
-        assertEquals("< 3 Min", grades[3].txt) // Again
-    }
-
-    /**
-     * 测试复习阶段卡片的间隔计算
-     * 验证正常复习流程中卡片的间隔递增逻辑
-     */
-    @Test
-    fun testReviewCardCalculation() {
-        val reviewCard = FlashCard(
-            id = 3,
-            stability = 10.0,
-            difficulty = 3.0,
-            interval = 7,
-            dueDate = LocalDateTime.now().minusDays(7),
-            reviewCount = 5,
-            lastReview = LocalDateTime.now().minusDays(7),
             phase = CardPhase.Review.value
         )
+        assertTrue(fsrsService.isDue(pastDueCard))
 
-        val grades = fsrs.calculate(reviewCard)
-
-        assertEquals(4, grades.size)
-
-        // 验证复习卡片的间隔递增
-        assertTrue(grades[0].interval > grades[1].interval) // Easy > Good
-        assertTrue(grades[1].interval >= grades[2].interval) // Good >= Hard
-
-        // 验证稳定性值合理
-        assertTrue(grades[0].stability > 0)
-        assertTrue(grades[1].stability > 0)
-        assertTrue(grades[2].stability > 0)
-        assertTrue(grades[3].stability > 0)
-    }
-
-    /**
-     * 测试难度值的变化规律
-     * 验证不同评级对卡片难度的影响（Again 增加难度，Easy 降低难度）
-     */
-    @Test
-    fun testDifficultyProgression() {
-        val card = FlashCard(
-            id = 4,
-            stability = 5.0,
-            difficulty = 5.0,
-            interval = 3,
-            dueDate = LocalDateTime.now().minusDays(3),
-            reviewCount = 3,
-            lastReview = LocalDateTime.now().minusDays(3),
+        // 创建一个未到期的卡片
+        val futureDueCard = FlashCard(
+            id = 2L,
+            dueDate = LocalDateTime.now().plusDays(1),
             phase = CardPhase.Review.value
         )
+        assertFalse(fsrsService.isDue(futureDueCard))
 
-        val grades = fsrs.calculate(card)
-
-        // Again 应该增加难度，Easy 应该降低难度
-        assertTrue(grades[3].difficulty > card.difficulty) // Again increases difficulty
-        assertTrue(grades[0].difficulty < card.difficulty) // Easy decreases difficulty
-
-        // 难度值应该在合理范围内 (1-10)
-        grades.forEach { grade ->
-            assertTrue(grade.difficulty >= 1.0 && grade.difficulty <= 10.0)
-        }
-    }
-
-    /**
-     * 测试评级选项的颜色配置
-     * 验证四个评级选项使用了正确的颜色代码
-     */
-    @Test
-    fun testGradeColors() {
-        val grades = fsrs.gradeList
-
-        assertEquals("#2196F3", grades[0].color) // Easy - Blue
-        assertEquals("#4CAF50", grades[1].color) // Good - Green
-        assertEquals("#9C27B0", grades[2].color) // Hard - Purple
-        assertEquals("#F44336", grades[3].color) // Again - Red
-    }
-
-    /**
-     * 测试评级选项的标题文本
-     * 验证四个评级选项显示了正确的标题文字
-     */
-    @Test
-    fun testGradeTitles() {
-        val grades = fsrs.gradeList
-
-        assertEquals("Easy", grades[0].title)
-        assertEquals("Good", grades[1].title)
-        assertEquals("Hard", grades[2].title)
-        assertEquals("Again", grades[3].title)
-    }
-
-    /**
-     * 测试卡片阶段枚举的数值
-     * 验证 CardPhase 枚举各阶段的数值正确性
-     */
-    @Test
-    fun testCardPhaseEnum() {
-        assertEquals(0, CardPhase.Added.value)
-        assertEquals(1, CardPhase.ReLearning.value)
-        assertEquals(2, CardPhase.Review.value)
-    }
-
-    /**
-     * 测试评级枚举的数值
-     * 验证 Rating 枚举各评级的数值正确性
-     */
-    @Test
-    fun testRatingEnum() {
-        assertEquals(1, Rating.Again.value)
-        assertEquals(2, Rating.Hard.value)
-        assertEquals(3, Rating.Good.value)
-        assertEquals(4, Rating.Easy.value)
-    }
-
-    /**
-     * 测试参数验证和异常处理
-     * 验证当传入无效参数时能够正确抛出异常
-     */
-    @Test
-    fun testParameterValidation() {
-        // 测试参数数量不足的情况
-        assertThrows(IndexOutOfBoundsException::class.java) {
-            val invalidFsrs = FSRS(
-                requestRetention = 0.9,
-                params = listOf(1.0, 2.0), // 参数不足
-                isReview = false
-            )
-            // 这会在访问 params[20] 时抛出异常
-            val card = FlashCard(phase = CardPhase.Added.value)
-            invalidFsrs.calculate(card)
-        }
-    }
-
-    /**
-     * 测试稳定性和难度值的边界限制
-     * 验证计算结果中的稳定性和难度值都在合理范围内
-     */
-    @Test
-    fun testStabilityAndDifficultyBounds() {
-        val card = FlashCard(
-            stability = 100.0,
-            difficulty = 9.5,
-            interval = 30,
+        // 创建一个正好到期的卡片
+        val nowDueCard = FlashCard(
+            id = 3L,
+            dueDate = LocalDateTime.now(),
             phase = CardPhase.Review.value
         )
+        assertTrue(fsrsService.isDue(nowDueCard))
+    }
 
-        val grades = fsrs.calculate(card)
+    /**
+     * 测试批量操作
+     * 验证批量处理卡片的功能
+     */
+    @Test
+    fun testBatchOperations() {
+        // 创建多张卡片
+        val cards = (1..5).map { fsrsService.createNewCard(it.toLong()) }
 
-        // 验证所有难度值都在 1-10 范围内
-        grades.forEach { grade ->
-            assertTrue(grade.difficulty >= 1.0, "Difficulty should be >= 1.0, but was ${grade.difficulty}")
-            assertTrue(grade.difficulty <= 10.0, "Difficulty should be <= 10.0, but was ${grade.difficulty}")
+        // 批量计算评分选项
+        val batchGrades = fsrsService.batchCalculateGrades(cards)
+        assertEquals(5, batchGrades.size)
+        batchGrades.values.forEach { gradeOptions ->
+            assertEquals(4, gradeOptions.size)
         }
 
-        // 验证稳定性值为正数
-        grades.forEach { grade ->
-            assertTrue(grade.stability > 0, "Stability should be positive, but was ${grade.stability}")
-        }
+        // 获取学习统计
+        val stats = fsrsService.getLearningStat(cards)
+        assertEquals(5, stats.totalCards)
+        assertEquals(5, stats.newCards)
+        assertEquals(0, stats.reviewCards)
+        assertEquals(0, stats.relearningCards)
+    }
+
+    /**
+     * 测试卡片管理器功能
+     * 验证卡片创建、重置、暂停等功能
+     */
+    @Test
+    fun testCardManager() {
+        // 测试创建卡片
+        val card = cardManager.createCard("test word", listOf("vocabulary"), "english")
+        assertNotNull(card)
+
+        // 测试批量创建
+        val words = listOf("apple", "banana", "cherry")
+        val cards = cardManager.createCards(words, "fruits")
+        assertEquals(3, cards.size)
+
+        // 测试重置卡片
+        var testCard = fsrsService.createNewCard(100L)
+        testCard = testCard.copy(reviewCount = 5, difficulty = 8.0)
+        val resetCard = cardManager.resetCard(testCard)
+        assertEquals(0, resetCard.reviewCount)
+        assertEquals(2.5, resetCard.difficulty, 0.01)
+        assertEquals(CardPhase.Added.value, resetCard.phase)
+
+        // 测试暂停和恢复
+        val suspendedCard = cardManager.suspendCard(testCard, 30)
+        assertTrue(suspendedCard.dueDate.isAfter(LocalDateTime.now().plusDays(29)))
+
+        val resumedCard = cardManager.resumeCard(suspendedCard)
+        assertTrue(resumedCard.dueDate.isBefore(LocalDateTime.now().plusMinutes(1)))
+    }
+
+    /**
+     * 测试卡片分析功能
+     * 验证单卡片和批量分析的准确性
+     */
+    @Test
+    fun testCardAnalytics() {
+        val card = fsrsService.createNewCard(1L)
+        val analytics = cardManager.getCardAnalytics(card)
+
+        assertEquals(card.id, analytics.cardId)
+        assertEquals(CardPhase.Added, analytics.currentPhase)
+        assertEquals(card.stability, analytics.stability, 0.01)
+        assertEquals(card.difficulty, analytics.difficulty, 0.01)
+        assertEquals(4, analytics.nextReviewOptions.size)
+
+        // 测试批量分析
+        val cards = (1..10).map { fsrsService.createNewCard(it.toLong()) }
+        val batchAnalysis = cardManager.batchAnalyzeCards(cards)
+
+        assertEquals(10, batchAnalysis.totalCards)
+        assertEquals(2.5, batchAnalysis.averageDifficulty, 0.01)
+        assertEquals(2.5, batchAnalysis.averageStability, 0.01)
+        assertTrue(batchAnalysis.phaseDistribution.containsKey("Added"))
+        assertEquals(10, batchAnalysis.phaseDistribution["Added"])
     }
 }

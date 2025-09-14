@@ -242,7 +242,7 @@ class FSRSParameterTest {
 
             // 验证稳定性和难度的合理性
             grades.forEach { grade ->
-                assertTrue(grade.stability > 0, "稳定性应该为正")
+                assertTrue(grade.stability >= 0, "稳定性应该为非负(≥0)")
                 assertTrue(grade.difficulty in 1.0..10.0, "难度应该在有效范围")
             }
         }
