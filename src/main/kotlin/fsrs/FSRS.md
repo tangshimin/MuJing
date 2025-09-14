@@ -59,6 +59,6 @@ FSRS的先进性主要体现在以下几个方面：
 ---
 
 参考链接：
-- [FSRS ALgorithm](https://github.com/open-spaced-repetition/fsrs4anki)
+- [FSRS ALgorithm](https://github.com/open-spaced-repetition/fsrs4anki/wiki/The-Algorithm)
 - [FSRS v6 Documentation & Research Paper](https://github.com/open-spaced-repetition/fsrs4anki/wiki/Research-resources)
 - [FSRS-Kotlin](https://github.com/open-spaced-repetition/FSRS-Kotlin)
