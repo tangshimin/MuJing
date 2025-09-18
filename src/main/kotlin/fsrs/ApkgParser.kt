@@ -3,6 +3,8 @@ package fsrs
 import kotlinx.serialization.json.*
 import java.io.*
 import java.sql.DriverManager
+import java.sql.SQLException
+import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
 /**
@@ -87,16 +89,50 @@ class ApkgParser {
     )
 
     /**
+     * 检测 APKG 文件中的数据库格式（优先新格式）
+     */
+    private fun detectDatabaseFormat(zipFile: ZipFile): String {
+        val entries = zipFile.entries().toList().map { it.name }
+        
+        // 优先检测新格式，然后过渡格式，最后旧格式
+        return when {
+            entries.contains("collection.anki21b") -> "collection.anki21b"
+            entries.contains("collection.anki21") -> "collection.anki21"
+            entries.contains("collection.anki2") -> "collection.anki2"
+            else -> throw IllegalArgumentException("No supported database format found in APKG")
+        }
+    }
+
+    /**
+     * 检测数据库架构版本
+     */
+    private fun detectDatabaseSchemaVersion(conn: java.sql.Connection): Int {
+        try {
+            conn.createStatement().use { stmt ->
+                stmt.executeQuery("SELECT ver FROM col WHERE id = 1").use { rs ->
+                    if (rs.next()) {
+                        return rs.getInt("ver")
+                    }
+                }
+            }
+        } catch (e: SQLException) {
+            throw ApkgParseException("Failed to detect database schema version: ${e.message}", e)
+        }
+        throw ApkgParseException("无法检测数据库架构版本")
+    }
+
+    /**
      * 解析 APKG 文件
      */
     fun parseApkg(filePath: String): ParsedApkg {
         val zipFile = ZipFile(filePath)
-        val tempDbFile = File.createTempFile("parsed_db", ".anki2")
+        val dbFormat = detectDatabaseFormat(zipFile)
+        val tempDbFile = File.createTempFile("parsed_db", ".${dbFormat.substringAfterLast('.')}")
         
         try {
             // 提取数据库文件
-            val dbEntry = zipFile.entries().toList().find { it.name.endsWith(".anki2") }
-                ?: throw IllegalArgumentException("No database file found in APKG")
+            val dbEntry = zipFile.getEntry(dbFormat)
+                ?: throw IllegalArgumentException("Database file $dbFormat not found in APKG")
             
             zipFile.getInputStream(dbEntry).use { input ->
                 tempDbFile.outputStream().use { output ->
@@ -107,12 +143,18 @@ class ApkgParser {
             // 解析数据库
             val url = "jdbc:sqlite:${tempDbFile.absolutePath}"
             DriverManager.getConnection(url).use { conn ->
-                val notes = parseNotes(conn)
-                val cards = parseCards(conn)
-                val decks = parseDecks(conn)
-                val models = parseModels(conn)
-                val mediaFiles = parseMediaFiles(zipFile)
-                val (dbVersion, creationTime) = parseCollectionInfo(conn)
+                // 检测架构版本并处理新格式的特殊逻辑
+                val schemaVersion = detectDatabaseSchemaVersion(conn)
+                
+                val databaseParser = ApkgDatabaseParser(schemaVersion)
+                val mediaParser = ApkgMediaParser()
+                
+                val notes = databaseParser.parseNotes(conn)
+                val cards = databaseParser.parseCards(conn)
+                val decks = databaseParser.parseDecks(conn)
+                val models = databaseParser.parseModels(conn)
+                val mediaFiles = mediaParser.parseMediaFiles(zipFile)
+                val (dbVersion, creationTime) = databaseParser.parseCollectionInfo(conn)
 
                 return ParsedApkg(
                     notes = notes,
@@ -130,185 +172,6 @@ class ApkgParser {
         }
     }
 
-    private fun parseNotes(conn: java.sql.Connection): List<ParsedNote> {
-        val notes = mutableListOf<ParsedNote>()
-        
-        conn.createStatement().use { stmt ->
-            stmt.executeQuery("SELECT id, guid, mid, mod, usn, tags, flds FROM notes").use { rs ->
-                while (rs.next()) {
-                    val fieldsString = rs.getString("flds")
-                    val fields = fieldsString.split("\u001f")
-                    
-                    notes.add(ParsedNote(
-                        id = rs.getLong("id"),
-                        guid = rs.getString("guid"),
-                        modelId = rs.getLong("mid"),
-                        fields = fields,
-                        tags = rs.getString("tags"),
-                        modificationTime = rs.getLong("mod"),
-                        updateSequenceNumber = rs.getInt("usn")
-                    ))
-                }
-            }
-        }
-        
-        return notes
-    }
-
-    private fun parseCards(conn: java.sql.Connection): List<ParsedCard> {
-        val cards = mutableListOf<ParsedCard>()
-        
-        conn.createStatement().use { stmt ->
-            stmt.executeQuery("SELECT id, nid, did, ord, type, queue, due, ivl, factor, reps, lapses, left FROM cards").use { rs ->
-                while (rs.next()) {
-                    cards.add(ParsedCard(
-                        id = rs.getLong("id"),
-                        noteId = rs.getLong("nid"),
-                        deckId = rs.getLong("did"),
-                        templateOrdinal = rs.getInt("ord"),
-                        cardType = rs.getInt("type"),
-                        queueType = rs.getInt("queue"),
-                        dueTime = rs.getInt("due"),
-                        interval = rs.getInt("ivl"),
-                        easeFactor = rs.getInt("factor"),
-                        repetitions = rs.getInt("reps"),
-                        lapses = rs.getInt("lapses"),
-                        remainingSteps = rs.getInt("left")
-                    ))
-                }
-            }
-        }
-        
-        return cards
-    }
-
-    private fun parseDecks(conn: java.sql.Connection): List<ParsedDeck> {
-        val decks = mutableListOf<ParsedDeck>()
-        
-        conn.createStatement().use { stmt ->
-            stmt.executeQuery("SELECT decks FROM col WHERE id = 1").use { rs ->
-                if (rs.next()) {
-                    val decksJson = rs.getString("decks")
-                    val decksObj = Json.parseToJsonElement(decksJson).jsonObject
-                    
-                    decksObj.forEach { (deckId, deckData) ->
-                        val deck = deckData.jsonObject
-                        decks.add(ParsedDeck(
-                            id = deckId.toLong(),
-                            name = deck["name"]?.jsonPrimitive?.content ?: "",
-                            description = deck["desc"]?.jsonPrimitive?.content ?: "",
-                            isCollapsed = deck["collapsed"]?.jsonPrimitive?.boolean ?: false,
-                            isDynamic = deck["dyn"]?.jsonPrimitive?.int == 1,
-                            configurationId = deck["conf"]?.jsonPrimitive?.long ?: 1L
-                        ))
-                    }
-                }
-            }
-        }
-        
-        return decks
-    }
-
-    private fun parseModels(conn: java.sql.Connection): List<ParsedModel> {
-        val models = mutableListOf<ParsedModel>()
-        
-        conn.createStatement().use { stmt ->
-            stmt.executeQuery("SELECT models FROM col WHERE id = 1").use { rs ->
-                if (rs.next()) {
-                    val modelsJson = rs.getString("models")
-                    val modelsObj = Json.parseToJsonElement(modelsJson).jsonObject
-                    
-                    modelsObj.forEach { (modelId, modelData) ->
-                        val model = modelData.jsonObject
-                        val templates = parseTemplates(model["tmpls"]?.jsonArray)
-                        val fields = parseFields(model["flds"]?.jsonArray)
-                        
-                        models.add(ParsedModel(
-                            id = modelId.toLong(),
-                            name = model["name"]?.jsonPrimitive?.content ?: "",
-                            type = model["type"]?.jsonPrimitive?.int ?: 0,
-                            templates = templates,
-                            fields = fields,
-                            css = model["css"]?.jsonPrimitive?.content ?: ""
-                        ))
-                    }
-                }
-            }
-        }
-        
-        return models
-    }
-
-    private fun parseTemplates(templatesArray: JsonArray?): List<ParsedTemplate> {
-        return templatesArray?.mapNotNull { templateElement ->
-            val template = templateElement.jsonObject
-            ParsedTemplate(
-                name = template["name"]?.jsonPrimitive?.content ?: "",
-                ordinal = template["ord"]?.jsonPrimitive?.int ?: 0,
-                questionFormat = template["qfmt"]?.jsonPrimitive?.content ?: "",
-                answerFormat = template["afmt"]?.jsonPrimitive?.content ?: ""
-            )
-        } ?: emptyList()
-    }
-
-    private fun parseFields(fieldsArray: JsonArray?): List<ParsedField> {
-        return fieldsArray?.mapNotNull { fieldElement ->
-            val field = fieldElement.jsonObject
-            ParsedField(
-                name = field["name"]?.jsonPrimitive?.content ?: "",
-                ordinal = field["ord"]?.jsonPrimitive?.int ?: 0,
-                isSticky = field["sticky"]?.jsonPrimitive?.boolean ?: false,
-                isRightToLeft = field["rtl"]?.jsonPrimitive?.boolean ?: false,
-                font = field["font"]?.jsonPrimitive?.content ?: "Arial",
-                size = field["size"]?.jsonPrimitive?.int ?: 20
-            )
-        } ?: emptyList()
-    }
-
-    private fun parseMediaFiles(zipFile: ZipFile): List<ParsedMediaFile> {
-        val mediaFiles = mutableListOf<ParsedMediaFile>()
-        
-        // 解析媒体映射
-        val mediaEntry = zipFile.getEntry("media")
-        if (mediaEntry != null) {
-            val mediaJson = zipFile.getInputStream(mediaEntry).use {
-                it.readBytes().toString(Charsets.UTF_8)
-            }
-            
-            val mediaMap = Json.parseToJsonElement(mediaJson).jsonObject
-            
-            // 提取媒体文件
-            mediaMap.forEach { (indexStr, filenameElement) ->
-                val index = indexStr.toIntOrNull()
-                val filename = filenameElement.jsonPrimitive.content
-                
-                if (index != null) {
-                    val mediaEntry = zipFile.getEntry(indexStr)
-                    if (mediaEntry != null) {
-                        val data = zipFile.getInputStream(mediaEntry).use {
-                            it.readBytes()
-                        }
-                        mediaFiles.add(ParsedMediaFile(index, filename, data))
-                    }
-                }
-            }
-        }
-        
-        return mediaFiles
-    }
-
-    private fun parseCollectionInfo(conn: java.sql.Connection): Pair<Int, Long> {
-        conn.createStatement().use { stmt ->
-            stmt.executeQuery("SELECT ver, crt FROM col WHERE id = 1").use { rs ->
-                if (rs.next()) {
-                    val version = rs.getInt("ver")
-                    val creationTime = rs.getLong("crt")
-                    return Pair(version, creationTime)
-                }
-            }
-        }
-        throw IllegalArgumentException("Collection information not found")
-    }
 
     /**
      * 快速检查 APKG 文件是否有效
@@ -316,7 +179,10 @@ class ApkgParser {
     fun isValidApkg(filePath: String): Boolean {
         return try {
             ZipFile(filePath).use { zipFile ->
-                zipFile.entries().toList().any { it.name.endsWith(".anki2") } &&
+                val entries = zipFile.entries().toList().map { it.name }
+                (entries.contains("collection.anki21b") || 
+                 entries.contains("collection.anki21") || 
+                 entries.contains("collection.anki2")) &&
                 zipFile.getEntry("media") != null
             }
         } catch (e: Exception) {
@@ -329,10 +195,13 @@ class ApkgParser {
      */
     fun getApkgInfo(filePath: String): Map<String, Any> {
         val zipFile = ZipFile(filePath)
-        val tempDbFile = File.createTempFile("info_db", ".anki2")
+        var tempDbFile: File? = null
         
         try {
-            val dbEntry = zipFile.entries().toList().find { it.name.endsWith(".anki2") }
+            val dbFormat = detectDatabaseFormat(zipFile)
+            tempDbFile = File.createTempFile("info_db", ".${dbFormat.substringAfterLast('.')}")
+            
+            val dbEntry = zipFile.getEntry(dbFormat)
                 ?: return emptyMap()
             
             zipFile.getInputStream(dbEntry).use { input ->
@@ -345,32 +214,44 @@ class ApkgParser {
             DriverManager.getConnection(url).use { conn ->
                 val info = mutableMapOf<String, Any>()
                 
-                // 获取基本统计信息
-                conn.createStatement().use { stmt ->
-                    stmt.executeQuery("SELECT COUNT(*) FROM notes").use { rs ->
-                        if (rs.next()) info["noteCount"] = rs.getInt(1)
-                    }
+                try {
+                    val schemaVersion = detectDatabaseSchemaVersion(conn)
+                    val databaseParser = ApkgDatabaseParser(schemaVersion)
+                    val mediaParser = ApkgMediaParser()
                     
-                    stmt.executeQuery("SELECT COUNT(*) FROM cards").use { rs ->
-                        if (rs.next()) info["cardCount"] = rs.getInt(1)
-                    }
-                    
-                    stmt.executeQuery("SELECT COUNT(*) FROM (SELECT json_each.value FROM col, json_each(col.decks))").use { rs ->
-                        if (rs.next()) info["deckCount"] = rs.getInt(1)
-                    }
-                    
-                    stmt.executeQuery("SELECT ver, crt FROM col WHERE id = 1").use { rs ->
-                        if (rs.next()) {
-                            info["databaseVersion"] = rs.getInt("ver")
-                            info["creationTime"] = rs.getLong("crt")
+                    // 获取基本统计信息
+                    conn.createStatement().use { stmt ->
+                        stmt.executeQuery("SELECT COUNT(*) FROM notes").use { rs ->
+                            if (rs.next()) info["noteCount"] = rs.getInt(1)
+                        }
+                        
+                        stmt.executeQuery("SELECT COUNT(*) FROM cards").use { rs ->
+                            if (rs.next()) info["cardCount"] = rs.getInt(1)
+                        }
+                        
+                        stmt.executeQuery("SELECT COUNT(*) FROM (SELECT json_each.value FROM col, json_each(col.decks))").use { rs ->
+                            if (rs.next()) info["deckCount"] = rs.getInt(1)
                         }
                     }
+                    
+                    val (dbVersion, creationTime) = databaseParser.parseCollectionInfo(conn)
+                    info["databaseVersion"] = dbVersion
+                    info["creationTime"] = creationTime
+                    
+                    // 添加媒体文件信息
+                    info.putAll(mediaParser.getMediaInfo(zipFile))
+                    
+                } catch (e: Exception) {
+                    // 对于信息获取，不抛出异常，只记录错误
+                    info["error"] = e.message ?: "Unknown error"
                 }
                 
                 return info
             }
+        } catch (e: Exception) {
+            return mapOf("error" to (e.message ?: "Failed to get APKG info"))
         } finally {
-            tempDbFile.delete()
+            tempDbFile?.delete()
             zipFile.close()
         }
     }

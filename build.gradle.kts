@@ -61,6 +61,9 @@ dependencies {
     implementation("net.bramp.ffmpeg:ffmpeg:0.8.0")
     implementation("io.github.vinceglb:filekit-dialogs:0.10.0")
     implementation("io.github.vinceglb:filekit-dialogs-compose:0.10.0")
+    
+    // Zstd compression for Anki 23.10+ format support
+    implementation("com.github.luben:zstd-jni:1.5.6-10")
 
     // 如果需要 Compose UI 测试，保留这个
     testImplementation(compose.desktop.uiTestJUnit4)

@@ -4,13 +4,23 @@
 
 `.apkg` (Anki Package) 是 Anki 使用的一种**压缩包格式**，本质上是一个 **ZIP 文件**，只是扩展名改为了 `.apkg`。这种格式用于打包和分发 Anki 牌组（deck），包含卡片数据、媒体文件和配置信息。
 
+## 版本兼容性
+
+### 格式版本演进
+
+| 格式版本 | 文件名称 | 架构版本 | 支持版本 | 特性 |
+|----------|----------|----------|----------|------|
+| Legacy1 | collection.anki2 | V11 | Anki < 2.1.0 | 原始格式 |
+| Legacy2 | collection.anki21 | V11-V18 | Anki 2.1.x | v2调度器 |
+| Latest | collection.anki21b | V18 | Anki 23.10+ | 新格式，Zstd压缩 |
+
 ## 文件结构
 
 一个典型的 `.apkg` 文件包含以下内容：
 
 ```
 example.apkg (ZIP 压缩包)
-├── collection.anki2          # SQLite 数据库文件（核心数据）
+├── collection.anki2 / collection.anki21 / collection.anki21b  # SQLite 数据库文件
 ├── media                     # JSON 文件（媒体文件映射）
 ├── 0                        # 媒体文件（按数字编号）
 ├── 1                        # 媒体文件
@@ -18,9 +28,13 @@ example.apkg (ZIP 压缩包)
 └── ...                      # 更多媒体文件
 ```
 
-### 1. collection.anki2
+### 1. 数据库文件
 
-这是一个 **SQLite 数据库文件**，包含所有的卡片数据和配置信息。
+根据 Anki 版本不同，数据库文件名称和架构版本有所区别：
+
+- **collection.anki2**: 旧格式 (Schema V11)，兼容 Anki 2.1.x
+- **collection.anki21**: 过渡格式 (Schema V11-V18)，v2调度器
+- **collection.anki21b**: 新格式 (Schema V18)，Anki 23.10+，支持Zstd压缩
 
 #### 主要数据表
 
@@ -236,9 +250,9 @@ CREATE TABLE cards (
 
 ```json
 {
-    "s": 2.5,      // Stability (稳定性)
-    "d": 1.2,      // Difficulty (难度)
-    "r": 0.8       // Retrievability (可提取性)
+    "s": 2.5,
+    "d": 1.2,
+    "r": 0.8
 }
 ```
 
@@ -268,9 +282,21 @@ CREATE TABLE cards (
 
 ## 兼容性说明
 
+### Anki 23.10+ 重大变更
+- **格式破坏性变更**: 新格式 (`collection.anki21b`) 与旧版本不兼容
+- **Zstd 压缩**: 默认启用压缩以获得更小文件大小
+- **媒体处理**: 媒体列表格式从哈希映射改为新结构
+- **内置特性**: 支持 FSRS 集成调度和图像遮挡
+
+### 版本特定要求
 - **Anki 24.11+**: 使用最新的 decks JSON 结构（包含 `mod`, `browserCollapsed`, `dyn`, `reviewLimit` 等字段）
-- **数据库版本**: 设置为 11 以确保与 Anki 2.1.x 版本兼容
+- **数据库版本**: 根据目标版本选择 V11 (兼容旧版) 或 V18 (新版)
 - **字段顺序**: 确保字段顺序与 Anki 官方结构完全一致
+
+### 全面兼容性策略
+建议同时支持两种格式生成：
+1. **新格式** (`collection.anki21b`): 针对 Anki 23.10+ 用户
+2. **旧格式** (`collection.anki21`): 针对 Anki 2.1.x - 23.09 用户
 
 ## 注意事项
 
@@ -294,3 +320,4 @@ CREATE TABLE cards (
 - [Anki 官方文档](https://docs.ankiweb.net/)
 - [Anki 数据库格式](https://github.com/ankidroid/Anki-Android/wiki/Database-Structure)
 - [FSRS 算法](https://github.com/open-spaced-repetition/fsrs4anki)
+- [Anki GitHub 仓库](https://github.com/ankitects/anki) - 最新格式变更信息

@@ -27,7 +27,7 @@ class ApkgFormatValidatorTest {
         outputDir = File(System.getProperty("user.dir"), "test-output")
         outputDir.mkdirs()
 
-        // 创建一个测试用的 APKG 文件
+        // 创建一个测试用的 APKG 文件（使用默认旧格式）
         val creator = ApkgCreator()
         val deckId = ApkgCreator.generateId()
         val deck = ApkgCreator.Deck(
@@ -54,10 +54,10 @@ class ApkgFormatValidatorTest {
     }
 
     /**
-     * 测试 APKG 文件基本结构
+     * 测试 APKG 文件基本结构（旧格式）
      */
     @Test
-    fun testApkgBasicStructure() {
+    fun testApkgBasicStructureLegacy() {
         assertTrue(testApkgFile.exists(), "APKG 文件应该存在")
         assertTrue(testApkgFile.length() > 0, "APKG 文件应该不为空")
 
@@ -74,6 +74,89 @@ class ApkgFormatValidatorTest {
 
             val mediaEntry = zipFile.getEntry("media")
             assertTrue(mediaEntry.size >= 0, "media 文件应该存在")
+        }
+    }
+
+    /**
+     * 测试新格式 APKG 文件结构
+     */
+    @Test
+    fun testNewFormatApkgStructure() {
+        val newFormatFile = File(outputDir, "new_format_validation_test.apkg")
+        
+        val creator = ApkgCreator()
+        val deckId = ApkgCreator.generateId()
+        val deck = ApkgCreator.Deck(id = deckId, name = "新格式测试牌组")
+        creator.addDeck(deck)
+
+        val model = ApkgCreator.createBasicModel()
+        creator.addModel(model)
+
+        val note = ApkgCreator.Note(
+            id = ApkgCreator.generateId(),
+            mid = model.id,
+            fields = listOf("new", "格式")
+        )
+        creator.addNote(note, deckId)
+
+        // 生成新格式文件
+        creator.setFormatVersion(ApkgCreator.FormatVersion.LATEST)
+        creator.createApkg(newFormatFile.absolutePath)
+
+        assertTrue(newFormatFile.exists(), "新格式 APKG 文件应该存在")
+
+        ZipFile(newFormatFile).use { zipFile ->
+            val entries = zipFile.entries().toList().map { it.name }
+
+            // 验证新格式文件
+            assertTrue(entries.contains("collection.anki21b"), "应该包含 collection.anki21b 文件")
+            assertTrue(entries.contains("media"), "应该包含 media 文件")
+
+            val dbEntry = zipFile.getEntry("collection.anki21b")
+            assertTrue(dbEntry.size > 0, "新格式数据库文件应该不为空")
+        }
+    }
+
+    /**
+     * 测试双格式 APKG 文件结构
+     */
+    @Test
+    fun testDualFormatApkgStructure() {
+        val dualFormatFile = File(outputDir, "dual_format_validation_test.apkg")
+        
+        val creator = ApkgCreator()
+        val deckId = ApkgCreator.generateId()
+        val deck = ApkgCreator.Deck(id = deckId, name = "双格式测试牌组")
+        creator.addDeck(deck)
+
+        val model = ApkgCreator.createBasicModel()
+        creator.addModel(model)
+
+        val note = ApkgCreator.Note(
+            id = ApkgCreator.generateId(),
+            mid = model.id,
+            fields = listOf("dual", "格式")
+        )
+        creator.addNote(note, deckId)
+
+        // 生成双格式文件
+        creator.createApkg(dualFormatFile.absolutePath, dualFormat = true)
+
+        assertTrue(dualFormatFile.exists(), "双格式 APKG 文件应该存在")
+
+        ZipFile(dualFormatFile).use { zipFile ->
+            val entries = zipFile.entries().toList().map { it.name }
+
+            // 验证同时包含新旧格式
+            assertTrue(entries.contains("collection.anki2"), "应该包含旧格式 collection.anki2")
+            assertTrue(entries.contains("collection.anki21b"), "应该包含新格式 collection.anki21b")
+            assertTrue(entries.contains("media"), "应该包含 media 文件")
+
+            // 验证两个数据库文件都不为空
+            val legacyDbEntry = zipFile.getEntry("collection.anki2")
+            val newDbEntry = zipFile.getEntry("collection.anki21b")
+            assertTrue(legacyDbEntry.size > 0, "旧格式数据库文件应该不为空")
+            assertTrue(newDbEntry.size > 0, "新格式数据库文件应该不为空")
         }
     }
 
@@ -310,8 +393,11 @@ class ApkgFormatValidatorTest {
 
     private fun extractAndVerifyDatabase(apkgFile: File, verification: (java.sql.Connection) -> Unit) {
         ZipFile(apkgFile).use { zipFile ->
-            val dbEntry = zipFile.getEntry("collection.anki2")
-            assertNotNull(dbEntry, "collection.anki2 应该存在")
+            // 尝试检测数据库文件格式（优先新格式，回退旧格式）
+            val dbEntry = zipFile.getEntry("collection.anki21b") ?: 
+                         zipFile.getEntry("collection.anki21") ?: 
+                         zipFile.getEntry("collection.anki2")
+            assertNotNull(dbEntry, "应该包含至少一种数据库格式")
 
             val tempDbFile = File.createTempFile("test_db", ".anki2")
             try {
