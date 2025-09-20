@@ -1,0 +1,14 @@
+[package]
+name = "rust-zstd-jni"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "rust_zstd_jni"
+crate-type = ["cdylib"]
+
+[dependencies]
+jni = "0.21"
+zstd = "0.13.3"
+anyhow = "1.0"
+num_cpus = "1.0"

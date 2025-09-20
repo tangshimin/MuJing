@@ -1,7 +1,8 @@
 package fsrs
 
+
+import fsrs.zstd.ZstdNative
 import kotlinx.serialization.json.*
-import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
 /**
@@ -9,15 +10,22 @@ import java.util.zip.ZipFile
  */
 internal class ApkgMediaParser {
 
-    fun parseMediaFiles(zipFile: ZipFile): List<ApkgParser.ParsedMediaFile> {
+    fun parseMediaFiles(zipFile: ZipFile, databaseFormat: String): List<ApkgParser.ParsedMediaFile> {
         val mediaFiles = mutableListOf<ApkgParser.ParsedMediaFile>()
         
         try {
             // 解析媒体映射
             val mediaEntry = zipFile.getEntry("media")
             if (mediaEntry != null) {
-                val mediaJson = zipFile.getInputStream(mediaEntry).use {
-                    it.readBytes().toString(Charsets.UTF_8)
+                val mediaData = zipFile.getInputStream(mediaEntry).use {
+                    it.readBytes()
+                }
+                
+                // 新格式的媒体文件使用 ZSTD 压缩
+                val mediaJson = if (databaseFormat == "collection.anki21b") {
+                    ZstdNative().decompress(mediaData).toString(Charsets.UTF_8)
+                } else {
+                    mediaData.toString(Charsets.UTF_8)
                 }
                 
                 val mediaMap = Json.parseToJsonElement(mediaJson).jsonObject
@@ -45,14 +53,21 @@ internal class ApkgMediaParser {
         return mediaFiles
     }
 
-    fun getMediaInfo(zipFile: ZipFile): Map<String, Any> {
+    fun getMediaInfo(zipFile: ZipFile, databaseFormat: String): Map<String, Any> {
         val info = mutableMapOf<String, Any>()
         
         try {
             val mediaEntry = zipFile.getEntry("media")
             if (mediaEntry != null) {
-                val mediaJson = zipFile.getInputStream(mediaEntry).use {
-                    it.readBytes().toString(Charsets.UTF_8)
+                val mediaData = zipFile.getInputStream(mediaEntry).use {
+                    it.readBytes()
+                }
+                
+                // 新格式的媒体文件使用 ZSTD 压缩
+                val mediaJson = if (databaseFormat == "collection.anki21b") {
+                    ZstdNative().decompress(mediaData).toString(Charsets.UTF_8)
+                } else {
+                    mediaData.toString(Charsets.UTF_8)
                 }
                 
                 val mediaMap = Json.parseToJsonElement(mediaJson).jsonObject

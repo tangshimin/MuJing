@@ -10,13 +10,16 @@ import java.nio.file.Path
 import java.sql.DriverManager
 import java.util.zip.ZipFile
 import kotlinx.serialization.json.*
-import com.github.luben.zstd.Zstd
 import java.nio.charset.StandardCharsets
+import org.junit.jupiter.api.TestMethodOrder
+import org.junit.jupiter.api.MethodOrderer
+import fsrs.zstd.ZstdNative
 
 /**
  * APKG 创建器功能测试
  * 测试 ApkgCreator 类的各种功能
  */
+@TestMethodOrder(MethodOrderer.MethodName::class)
 class ApkgCreatorTest {
 
     @TempDir
@@ -26,8 +29,12 @@ class ApkgCreatorTest {
 
     @BeforeEach
     fun setUp() {
+
         // 使用项目根目录下的 test-output 文件夹，而不是临时目录
-        outputDir = File(System.getProperty("user.dir"), "test-output")
+//        outputDir = File(System.getProperty("user.dir"), "test-output")
+
+        // 使用临时目录
+        outputDir = tempDir.toFile()
         outputDir.mkdirs() // 确保目录存在
 
         println("📁 测试输出目录: ${outputDir.absolutePath}")
@@ -382,6 +389,7 @@ class ApkgCreatorTest {
     }
 
 
+
     /**
      * 测试 V18 架构特定功能
      */
@@ -482,31 +490,7 @@ class ApkgCreatorTest {
         println("✅ V18 架构特定功能测试通过")
     }
 
-    /**
-     * 测试 Zstd 压缩功能 - 独立测试
-     */
-    @Test
-    fun testZstdCompressionFunctionality() {
-        // 测试 Zstd 压缩和解压缩
-        val testData = "Hello, this is a test string for Zstd compression. This should be compressed effectively.".toByteArray()
-        
-        // 使用 zstd-jni 库进行压缩（与 ApkgCreator 保持一致）
-        val compressed = Zstd.compress(testData, 3)
-        println("📊 原始数据大小: ${testData.size} 字节")
-        println("📊 压缩后大小: ${compressed.size} 字节")
-        println("📊 压缩率: ${String.format("%.1f%%", compressed.size.toDouble() / testData.size * 100)}")
-        
-        // 验证 Zstd 魔术字节
-        assertTrue(isZstdCompressed(compressed), "压缩数据应该包含 Zstd 魔术字节")
-        
-        // 解压缩数据（使用 zstd-jni 库）
-        val decompressed = Zstd.decompress(compressed, testData.size * 2)
-        
-        // 验证数据完整性
-        assertArrayEquals(testData, decompressed, "解压缩后的数据应该与原始数据相同")
-        
-        println("✅ Zstd 压缩功能测试通过")
-    }
+
 
     // === 辅助测试方法 ===
 
@@ -564,14 +548,37 @@ class ApkgCreatorTest {
                     val isZstdCompressed = isZstdCompressed(data)
                     println("🔍 数据库 $dbName Zstd 压缩检测: $isZstdCompressed, 数据大小: ${data.size} 字节")
                     
+                    // Debug: Check frame descriptor and magic bytes
+                    if (isZstdCompressed && data.size >= 5) {
+                        val frameDescriptor = data[4].toInt() and 0xFF
+                        println("🔍 Zstd 帧描述符: 0x${frameDescriptor.toString(16)}")
+                        val singleSegment = (frameDescriptor and 0x20) != 0
+                        val checksum = (frameDescriptor and 0x04) != 0
+                        val contentSizeFlag = frameDescriptor and 0x03
+                        println("🔍 单段模式: $singleSegment, 校验和: $checksum, 内容大小标志: $contentSizeFlag")
+                        
+                        // Check magic bytes
+                        val magic = (data[0].toLong() and 0xFF) or
+                                   ((data[1].toLong() and 0xFF) shl 8) or
+                                   ((data[2].toLong() and 0xFF) shl 16) or
+                                   ((data[3].toLong() and 0xFF) shl 24)
+                        println("🔍 Zstd 魔术字节: 0x${magic.toString(16).uppercase()}")
+                    }
+                    
                     val decompressedData = if (isZstdCompressed) {
                         try {
-                            // 使用 zstd-jni 库进行解压缩（与 ApkgCreator 保持一致）
-                            val result = Zstd.decompress(data, 10 * 1024 * 1024) // 10MB 最大解压缩大小
+                            println("🔍 尝试 Zstd 解压缩，数据大小: ${data.size} 字节")
+                            // 使用项目内的 Rust JNI 封装进行解压缩
+                            val result = ZstdNative().decompress(data)
                             println("✅ Zstd 解压缩成功: ${data.size} -> ${result.size} 字节")
                             result
                         } catch (e: Exception) {
                             println("❌ Zstd 解压缩失败: ${e.message}")
+                            // 打印前 20 字节用于调试
+                            if (data.size > 20) {
+                                val hexBytes = data.copyOfRange(0, 20).joinToString(" ") { "%02X".format(it.toInt() and 0xFF) }
+                                println("🔍 前 20 字节: $hexBytes")
+                            }
                             throw e // 重新抛出异常，让测试失败
                         }
                     } else {
@@ -595,17 +602,20 @@ class ApkgCreatorTest {
 
     /**
      * 检查数据是否使用 Zstd 压缩
+     * Zstd 魔术字节是小端格式存储: [0x28, 0xB5, 0x2F, 0xFD] = 0xFD2FB528 (小端读取)
+     * 以小端格式读取: 字节[0] | 字节[1] << 8 | 字节[2] << 16 | 字节[3] << 24
      */
     private fun isZstdCompressed(data: ByteArray): Boolean {
         if (data.size < 4) return false
         
-        // Zstd 魔术字节: 0x28B52FFD (big-endian: 28 B5 2F FD)
-        val magic = (data[0].toLong() and 0xFF) shl 24 or
-                   ((data[1].toLong() and 0xFF) shl 16) or
-                   ((data[2].toLong() and 0xFF) shl 8) or
-                   (data[3].toLong() and 0xFF)
+        // Zstd 魔术字节是小端格式存储: [0x28, 0xB5, 0x2F, 0xFD] = 0xFD2FB528 (小端读取)
+        // 以小端格式读取: 字节[0] | 字节[1] << 8 | 字节[2] << 16 | 字节[3] << 24
+        val magic = (data[0].toLong() and 0xFF) or
+                   ((data[1].toLong() and 0xFF) shl 8) or
+                   ((data[2].toLong() and 0xFF) shl 16) or
+                   ((data[3].toLong() and 0xFF) shl 24)
         
-        return magic == 0x28B52FFDL
+        return magic == 0xFD2FB528L
     }
 
     /**
@@ -721,58 +731,35 @@ class ApkgCreatorTest {
 
     private fun verifyMediaFiles(apkgFile: File, expectedMedia: Map<String, ByteArray>, formatVersion: ApkgCreator.FormatVersion = ApkgCreator.FormatVersion.LEGACY) {
         ZipFile(apkgFile).use { zipFile ->
-            // 验证 media 映射文件
             val mediaEntry = zipFile.getEntry("media")
             assertNotNull(mediaEntry, "media 文件应该存在")
 
-            val mediaJson = zipFile.getInputStream(mediaEntry).use {
-                it.readBytes().toString(StandardCharsets.UTF_8)
-            }
-            
             if (formatVersion.schemaVersion >= 18) {
-                // V18+ 新格式：JsonArray of JsonObjects
-                val mediaList = Json.parseToJsonElement(mediaJson).jsonArray
-                
+                // LATEST: media 映射为 Protobuf(MediaEntries) 且经过 Zstd 压缩；编号媒体文件内容也经过 Zstd 压缩
+                val mediaRaw = zipFile.getInputStream(mediaEntry).use { it.readBytes() }
+                val mediaDecoded = ZstdNative().decompress(mediaRaw)
+                val entries = decodeMediaEntries(mediaDecoded)
                 // 验证每个媒体文件
                 expectedMedia.forEach { (filename, expectedData) ->
-                    val found = mediaList.any { mediaItem ->
-                        mediaItem.jsonObject["name"]?.jsonPrimitive?.content == filename
-                    }
-                    assertTrue(found, "媒体映射应该包含 $filename")
-
-                    // 找到对应的编号文件并验证内容
-                    val mediaItem = mediaList.find { mediaItem ->
-                        mediaItem.jsonObject["name"]?.jsonPrimitive?.content == filename
-                    }
-                    val mediaId = mediaItem?.jsonObject?.get("id")?.jsonPrimitive?.int
-                    assertNotNull(mediaId, "应该找到 $filename 的编号")
-
-                    val mediaFileEntry = zipFile.getEntry(mediaId.toString())
-                    assertNotNull(mediaFileEntry, "编号媒体文件应该存在")
-
-                    val actualData = zipFile.getInputStream(mediaFileEntry).use { it.readBytes() }
+                    val idx = entries.indexOfFirst { it.name == filename }
+                    assertTrue(idx >= 0, "媒体映射应该包含 $filename")
+                    val mediaFileEntry = zipFile.getEntry(idx.toString())
+                    assertNotNull(mediaFileEntry, "编号媒体文件应该存在: $idx")
+                    val stored = zipFile.getInputStream(mediaFileEntry).use { it.readBytes() }
+                    val actualData = ZstdNative().decompress(stored)
                     assertArrayEquals(expectedData, actualData, "$filename 的内容应该匹配")
                 }
             } else {
-                // 旧格式：JsonObject mapping numbers to filenames
+                // 旧格式：JsonObject mapping numbers to filenames，编号媒体文件为原始字节
+                val mediaJson = zipFile.getInputStream(mediaEntry).use { it.readBytes().toString(StandardCharsets.UTF_8) }
                 val mediaMap = Json.parseToJsonElement(mediaJson).jsonObject
-
-                // 验证每个媒体文件
                 expectedMedia.forEach { (filename, expectedData) ->
-                    val found = mediaMap.values.any {
-                        it.jsonPrimitive.content == filename
-                    }
+                    val found = mediaMap.values.any { it.jsonPrimitive.content == filename }
                     assertTrue(found, "媒体映射应该包含 $filename")
-
-                    // 找到对应的编号文件并验证内容
-                    val mediaNumber = mediaMap.entries.find {
-                        it.value.jsonPrimitive.content == filename
-                    }?.key
+                    val mediaNumber = mediaMap.entries.find { it.value.jsonPrimitive.content == filename }?.key
                     assertNotNull(mediaNumber, "应该找到 $filename 的编号")
-
                     val mediaFileEntry = zipFile.getEntry(mediaNumber!!)
                     assertNotNull(mediaFileEntry, "编号媒体文件应该存在")
-
                     val actualData = zipFile.getInputStream(mediaFileEntry).use { it.readBytes() }
                     assertArrayEquals(expectedData, actualData, "$filename 的内容应该匹配")
                 }
@@ -780,165 +767,171 @@ class ApkgCreatorTest {
         }
     }
 
-    private fun verifyMultipleDecks(apkgFile: File, expectedDeckCount: Int, dbName: String = "collection.anki2") {
+    // --- 最小 Protobuf 解码：MediaEntries{ repeated MediaEntry entries=1; }，MediaEntry{name=1,size=2,sha1=3}
+// 保留一份定义，移除多余副本
+    private data class ProtoMediaEntry(val name: String?, val size: Int?, val sha1: ByteArray?)
+
+    private fun decodeMediaEntries(buf: ByteArray): List<ProtoMediaEntry> {
+        var off = 0
+        val out = mutableListOf<ProtoMediaEntry>()
+        while (off < buf.size) {
+            val (tagL, tlen1) = readVarint(buf, off)
+            off += tlen1
+            val tag = tagL.toInt()
+            val field = tag ushr 3
+            val wire = tag and 0x7
+            if (field == 1 && wire == 2) { // entries
+                val (lenL, tlen2) = readVarint(buf, off)
+                off += tlen2
+                val len = lenL.toInt()
+                val end = off + len
+                out.add(decodeMediaEntry(buf.copyOfRange(off, end)))
+                off = end
+            } else {
+                off = skipField(buf, off, wire)
+            }
+        }
+        return out
+    }
+
+    private fun decodeMediaEntry(buf: ByteArray): ProtoMediaEntry {
+        var off = 0
+        var name: String? = null
+        var size: Int? = null
+        var sha1: ByteArray? = null
+        while (off < buf.size) {
+            val (tagL, tlen1) = readVarint(buf, off)
+            off += tlen1
+            val tag = tagL.toInt()
+            val field = tag ushr 3
+            val wire = tag and 0x7
+            when (field) {
+                1 -> { // name, len-delimited
+                    val (lenL, tlen2) = readVarint(buf, off)
+                    off += tlen2
+                    val len = lenL.toInt()
+                    name = buf.copyOfRange(off, off + len).toString(Charsets.UTF_8)
+                    off += len
+                }
+                2 -> { // size, varint
+                    val (vL, tlen2) = readVarint(buf, off)
+                    size = vL.toInt()
+                    off += tlen2
+                }
+                3 -> { // sha1, len-delimited
+                    val (lenL, tlen2) = readVarint(buf, off)
+                    off += tlen2
+                    val len = lenL.toInt()
+                    sha1 = buf.copyOfRange(off, off + len)
+                    off += len
+                }
+                else -> off = skipField(buf, off, wire)
+            }
+        }
+        return ProtoMediaEntry(name, size, sha1)
+    }
+
+    private fun readVarint(buf: ByteArray, start: Int): Pair<Long, Int> {
+        var off = start
+        var shift = 0
+        var result = 0L
+        while (off < buf.size) {
+            val b = buf[off].toInt() and 0xFF
+            result = result or ((b and 0x7F).toLong() shl shift)
+            off++
+            if ((b and 0x80) == 0) break
+            shift += 7
+        }
+        return result to (off - start)
+    }
+
+    private fun skipField(buf: ByteArray, start: Int, wire: Int): Int {
+        var off = start
+        return when (wire) {
+            0 -> { // varint
+                while (off < buf.size && (buf[off].toInt() and 0x80) != 0) off++
+                off + 1
+            }
+            2 -> { // length-delimited
+                val (lenL, tlen) = readVarint(buf, off)
+                off + tlen + lenL.toInt()
+            }
+            else -> buf.size // unsupported in our schema
+        }
+    }
+
+    // === 辅助构造/校验方法（新增） ===
+
+    private data class WordData(val word: String, val meaning: String, val audio: String = "", val example: String = "")
+
+    private fun createBasicTestData(format: ApkgCreator.FormatVersion = ApkgCreator.FormatVersion.LEGACY): Pair<ApkgCreator, List<String>> {
+        val creator = ApkgCreator().setFormatVersion(format)
+        val deckId = ApkgCreator.generateId()
+        val deck = ApkgCreator.Deck(id = deckId, name = "基础词汇")
+        creator.addDeck(deck)
+        val model = ApkgCreator.createBasicModel()
+        creator.addModel(model)
+        val words = listOf("apple", "banana", "cat")
+        words.forEach { w ->
+            val note = ApkgCreator.Note(
+                id = ApkgCreator.generateId(),
+                mid = model.id,
+                fields = listOf(w, "$w-meaning"),
+                tags = "basic"
+            )
+            creator.addNote(note, deckId)
+        }
+        return creator to words
+    }
+
+    private fun verifyBasicApkgStructure(apkgFile: File, expectedDbName: String) {
+        verifyApkgStructure(apkgFile, expectedDbName)
+    }
+
+    private fun getExpectedDbName(formatVersion: ApkgCreator.FormatVersion): String = when (formatVersion) {
+        ApkgCreator.FormatVersion.LEGACY -> "collection.anki2"
+        ApkgCreator.FormatVersion.TRANSITIONAL -> "collection.anki21"
+        ApkgCreator.FormatVersion.LATEST -> "collection.anki21b"
+    }
+
+    private fun setupAdvancedTestData(creator: ApkgCreator, formatVersion: ApkgCreator.FormatVersion) {
+        val deckId = ApkgCreator.generateId()
+        val deck = ApkgCreator.Deck(id = deckId, name = "高级词汇")
+        creator.addDeck(deck)
+        val model = ApkgCreator.createWordModel()
+        creator.addModel(model)
+        val words = listOf(
+            WordData("sophisticated", "复杂的，精密的", "", "She has sophisticated taste in art."),
+            WordData("magnificent", "壮丽的，宏伟的", "", "The view from the mountain top was magnificent."),
+            WordData("fundamental", "基本的，根本的", "", "Education is fundamental to personal development.")
+        )
+        words.forEach { wd ->
+            val note = ApkgCreator.Note(
+                id = ApkgCreator.generateId(),
+                mid = model.id,
+                fields = listOf(
+                    wd.word,
+                    wd.meaning,
+                    if (wd.audio.isNotEmpty()) "[sound:${'$'}{wd.audio}]" else "",
+                    wd.example
+                ),
+                tags = "advanced"
+            )
+            creator.addNote(note, deckId)
+        }
+    }
+
+    private fun verifyMultipleDecks(apkgFile: File, expectedDecks: Int, dbName: String) {
         withDatabase(apkgFile, dbName) { conn ->
             conn.createStatement().use { stmt ->
                 val rs = stmt.executeQuery("SELECT decks FROM col WHERE id = 1")
                 rs.next()
                 val decksJson = rs.getString(1)
                 val decks = Json.parseToJsonElement(decksJson).jsonObject
-                assertEquals(expectedDeckCount, decks.size, "应该有 $expectedDeckCount 个牌组")
+                assertEquals(expectedDecks, decks.size, "牌组数量应该匹配")
             }
         }
     }
 
-    private data class WordData(
-        val english: String,
-        val chinese: String,
-        val audio: String,
-        val example: String
-    )
-
-    // === 测试辅助方法 ===
-
-    /**
-     * 创建基础测试数据
-     */
-    private fun createBasicTestData(formatVersion: ApkgCreator.FormatVersion? = null): Pair<ApkgCreator, List<Pair<String, String>>> {
-        val creator = ApkgCreator()
-        formatVersion?.let { creator.setFormatVersion(it) }
-        
-        // 创建牌组
-        val deckId = ApkgCreator.generateId()
-        val deck = ApkgCreator.Deck(
-            id = deckId,
-            name = "基础英语词汇",
-            desc = "包含常用英语单词的学习卡片"
-        )
-        creator.addDeck(deck)
-
-        // 创建模型
-        val model = ApkgCreator.createBasicModel()
-        creator.addModel(model)
-
-        // 测试单词数据
-        val testWords = listOf(
-            "apple" to "苹果",
-            "book" to "书",
-            "cat" to "猫",
-            "dog" to "狗",
-            "water" to "水"
-        )
-
-        // 添加笔记
-        testWords.forEach { (english, chinese) ->
-            val note = ApkgCreator.Note(
-                id = ApkgCreator.generateId(),
-                mid = model.id,
-                fields = listOf(english, chinese)
-            )
-            creator.addNote(note, deckId)
-        }
-
-        return Pair(creator, testWords)
-    }
-
-    /**
-     * 创建高级测试数据（包含音频和例句）
-     */
-    private fun createAdvancedTestData(formatVersion: ApkgCreator.FormatVersion? = null): Pair<ApkgCreator, List<WordData>> {
-        val creator = ApkgCreator()
-        formatVersion?.let { creator.setFormatVersion(it) }
-        
-        // 创建牌组
-        val deckId = ApkgCreator.generateId()
-        val deck = ApkgCreator.Deck(
-            id = deckId,
-            name = "高级英语词汇",
-            desc = "包含音频和例句的英语单词学习"
-        )
-        creator.addDeck(deck)
-
-        // 使用高级单词模型
-        val model = ApkgCreator.createWordModel()
-        creator.addModel(model)
-
-        // 高级单词数据
-        val advancedWords = listOf(
-            WordData("sophisticated", "复杂的，精密的", "", "She has sophisticated taste in art."),
-            WordData("magnificent", "壮丽的，宏伟的", "", "The view from the mountain top was magnificent."),
-            WordData("fundamental", "基本的，根本的", "", "Education is fundamental to personal development.")
-        )
-
-        // 添加笔记
-        advancedWords.forEach { word ->
-            val note = ApkgCreator.Note(
-                id = ApkgCreator.generateId(),
-                mid = model.id,
-                fields = listOf(word.english, word.chinese, word.audio, word.example)
-            )
-            creator.addNote(note, deckId)
-        }
-
-        return Pair(creator, advancedWords)
-    }
-
-    /**
-     * 验证 APKG 文件基本结构
-     */
-    private fun verifyBasicApkgStructure(apkgFile: File, expectedDbName: String) {
-        assertTrue(apkgFile.exists(), "APKG 文件应该被成功创建")
-        assertTrue(apkgFile.length() > 0, "APKG 文件应该不为空")
-        println("📊 文件大小: ${apkgFile.length()} 字节")
-        
-        verifyApkgStructure(apkgFile, expectedDbName)
-    }
-
-    /**
-     * 设置高级测试数据
-     */
-    private fun setupAdvancedTestData(creator: ApkgCreator, formatVersion: ApkgCreator.FormatVersion? = null) {
-        formatVersion?.let { creator.setFormatVersion(it) }
-        
-        // 创建牌组
-        val deckId = ApkgCreator.generateId()
-        val deck = ApkgCreator.Deck(
-            id = deckId,
-            name = "高级英语词汇",
-            desc = "包含音频和例句的英语单词学习"
-        )
-        creator.addDeck(deck)
-
-        // 使用高级单词模型
-        val model = ApkgCreator.createWordModel()
-        creator.addModel(model)
-
-        // 高级单词数据
-        val advancedWords = listOf(
-            WordData("sophisticated", "复杂的，精密的", "", "She has sophisticated taste in art."),
-            WordData("magnificent", "壮丽的，宏伟的", "", "The view from the mountain top was magnificent."),
-            WordData("fundamental", "基本的，根本的", "", "Education is fundamental to personal development.")
-        )
-
-        // 添加笔记
-        advancedWords.forEach { word ->
-            val note = ApkgCreator.Note(
-                id = ApkgCreator.generateId(),
-                mid = model.id,
-                fields = listOf(word.english, word.chinese, word.audio, word.example)
-            )
-            creator.addNote(note, deckId)
-        }
-    }
-
-    /**
-     * 获取对应格式版本的数据库文件名
-     */
-    private fun getExpectedDbName(formatVersion: ApkgCreator.FormatVersion): String {
-        return when (formatVersion) {
-            ApkgCreator.FormatVersion.LEGACY -> "collection.anki2"
-            ApkgCreator.FormatVersion.TRANSITIONAL -> "collection.anki21"
-            ApkgCreator.FormatVersion.LATEST -> "collection.anki21b"
-        }
-    }
+    // === 修复 protobuf 解码中的类型（Long→Int 比较） ===
 }

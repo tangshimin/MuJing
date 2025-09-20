@@ -24,7 +24,10 @@ class ApkgFormatValidatorTest {
 
     @BeforeEach
     fun setUp() {
-        outputDir = File(System.getProperty("user.dir"), "test-output")
+//        outputDir = File(System.getProperty("user.dir"), "test-output")
+
+        // 使用临时目录
+        outputDir = tempDir.toFile()
         outputDir.mkdirs()
 
         // 创建一个测试用的 APKG 文件（使用默认旧格式）

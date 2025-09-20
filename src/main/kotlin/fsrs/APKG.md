@@ -12,7 +12,7 @@
 |----------|----------|----------|----------|------|
 | Legacy1 | collection.anki2 | V11 | Anki < 2.1.0 | 原始格式 |
 | Legacy2 | collection.anki21 | V11-V18 | Anki 2.1.x | v2调度器 |
-| Latest | collection.anki21b | V18 | Anki 23.10+ | 新格式，Zstd压缩 |
+| Latest | collection.anki21b | V18 | Anki 23.10+ | 新格式，Zstd压缩、Protobuf媒体映射、meta文件 |
 
 ## 文件结构
 
@@ -20,9 +20,10 @@
 
 ```
 example.apkg (ZIP 压缩包)
-├── collection.anki2 / collection.anki21 / collection.anki21b  # SQLite 数据库文件
-├── media                     # JSON 文件（媒体文件映射）
-├── 0                        # 媒体文件（按数字编号）
+├── collection.anki2 / collection.anki21 / collection.anki21b  # SQLite 数据库文件（V18为Zstd压缩）
+├── media                    # 媒体映射文件（见下文，格式随版本变化）
+├── meta                     # 新格式（V18）必需，Protobuf编码包版本
+├── 0                        # 媒体文件（按数字编号，V18为Zstd压缩）
 ├── 1                        # 媒体文件
 ├── 2                        # 媒体文件
 └── ...                      # 更多媒体文件
@@ -34,7 +35,7 @@ example.apkg (ZIP 压缩包)
 
 - **collection.anki2**: 旧格式 (Schema V11)，兼容 Anki 2.1.x
 - **collection.anki21**: 过渡格式 (Schema V11-V18)，v2调度器
-- **collection.anki21b**: 新格式 (Schema V18)，Anki 23.10+，支持Zstd压缩
+- **collection.anki21b**: 新格式 (Schema V18)，Anki 23.10+，**内容需用 Zstd 压缩**，不是明文 SQLite
 
 #### 主要数据表
 
@@ -110,6 +111,7 @@ CREATE TABLE cards (
 
 ### 2. media 文件
 
+#### 旧格式（collection.anki2/anki21）
 这是一个 JSON 文件，映射媒体文件的编号到实际文件名：
 
 ```json
@@ -120,9 +122,35 @@ CREATE TABLE cards (
 }
 ```
 
-### 3. 媒体文件
+#### 新格式（collection.anki21b，V18）
+- `media` 文件内容为 Protobuf 编码的 MediaEntries（entries: repeated MediaEntry），整体经过 Zstd 压缩。
+- 每个编号媒体文件（如 0、1、2）内容也需单独用 Zstd 压缩。
+- Protobuf 结构（伪代码）：
 
-按数字编号的实际媒体文件（图片、音频、视频等），对应 media 文件中的映射关系。
+```protobuf
+message MediaEntries {
+  repeated MediaEntry entries = 1;
+}
+message MediaEntry {
+  string name = 1;
+  uint32 size = 2;
+  bytes sha1 = 3;
+}
+```
+
+- 旧格式（collection.anki2/anki21）：`media` 为 JSON，编号媒体文件为原始内容。
+- 新格式（collection.anki21b）：`media` 为 Zstd+Protobuf，编号媒体文件为 Zstd 压缩内容。
+
+### 3. meta 文件（仅新格式 V18 必需）
+
+- 新格式（V18）APKG 必须包含 `meta` 文件，内容为 Protobuf 编码，字段 1（varint）表示包格式版本。
+- 示例（仅含 version 字段）：
+
+```protobuf
+message Meta {
+  uint32 version = 1; // 1=LEGACY_1, 2=LEGACY_2, 3=LATEST
+}
+```
 
 ## JSON 配置格式
 
@@ -284,19 +312,24 @@ CREATE TABLE cards (
 
 ### Anki 23.10+ 重大变更
 - **格式破坏性变更**: 新格式 (`collection.anki21b`) 与旧版本不兼容
-- **Zstd 压缩**: 默认启用压缩以获得更小文件大小
-- **媒体处理**: 媒体列表格式从哈希映射改为新结构
+- **Zstd 压缩**: 默认启用压缩以获得更小文件大小，collection.anki21b、media、所有媒体文件内容均需 Zstd 压缩
+- **媒体处理**: 媒体列表格式从哈希映射（JSON）改为 Protobuf+Zstd 结构
+- **meta 文件**: 新格式包内必须包含 meta 文件，内容为 Protobuf 编码的包版本
 - **内置特性**: 支持 FSRS 集成调度和图像遮挡
 
 ### 版本特定要求
 - **Anki 24.11+**: 使用最新的 decks JSON 结构（包含 `mod`, `browserCollapsed`, `dyn`, `reviewLimit` 等字段）
 - **数据库版本**: 根据目标版本选择 V11 (兼容旧版) 或 V18 (新版)
 - **字段顺序**: 确保字段顺序与 Anki 官方结构完全一致
+- **媒体文件名规范**: 新格式下需做安全化处理（去除非法字符、避免 Windows 保留名、去除路径穿越等），并在重名时加 hash 后缀
 
 ### 全面兼容性策略
 建议同时支持两种格式生成：
-1. **新格式** (`collection.anki21b`): 针对 Anki 23.10+ 用户
-2. **旧格式** (`collection.anki21`): 针对 Anki 2.1.x - 23.09 用户
+1. **新格式** (`collection.anki21b`): 针对 Anki 23.10+ 用户，所有媒体相关内容和数据库均需 Zstd 压缩，media 文件为 Protobuf，不再是 JSON。
+2. **旧格式** (`collection.anki2`/`collection.anki21`): 针对 Anki 2.1.x - 23.09 用户，media 为 JSON，媒体文件为原始内容。
+
+- 推荐生成双格式 APKG，确保兼容所有主流 Anki 版本。
+- 字段顺序和 JSON 结构需严格对齐 Anki 官方格式。
 
 ## 注意事项
 

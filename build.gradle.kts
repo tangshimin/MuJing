@@ -4,6 +4,34 @@ import java.io.FileOutputStream
 import java.io.IOException
 import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import java.nio.file.Files
+import org.gradle.api.tasks.Exec
+import java.io.File
+
+// 解析 cargo 路径（优先级：-PcargoPath > CARGO 环境变量 > 常见安装路径列表 > PATH 中的 cargo）
+fun resolveCargoPath(): String {
+    // 允许通过 -PcargoPath 显式指定
+    val propPath = (project.findProperty("cargoPath") as String?)?.trim()?.takeIf { it.isNotEmpty() }
+    if (propPath != null && File(propPath).canExecute()) return propPath
+
+    // 允许通过环境变量 CARGO 指定
+    val envCargo = System.getenv("CARGO")?.trim()?.takeIf { it.isNotEmpty() }
+    if (envCargo != null && File(envCargo).canExecute()) return envCargo
+
+    val home = System.getProperty("user.home") ?: System.getenv("HOME") ?: ""
+    val candidates = buildList {
+        if (home.isNotEmpty()) add("$home/.cargo/bin/cargo")
+        // macOS Homebrew
+        add("/opt/homebrew/bin/cargo")
+        // 常见 Linux/macOS 路径
+        add("/usr/local/bin/cargo")
+        add("/usr/bin/cargo")
+    }
+    val hit = candidates.firstOrNull { File(it).canExecute() }
+    if (hit != null) return hit
+
+    // 回退到 PATH 中的 cargo（若存在）
+    return "cargo"
+}
 
 plugins {
     // 版本设置在 settings.gradle.kts 的 plugins 块中
@@ -61,9 +89,7 @@ dependencies {
     implementation("net.bramp.ffmpeg:ffmpeg:0.8.0")
     implementation("io.github.vinceglb:filekit-dialogs:0.10.0")
     implementation("io.github.vinceglb:filekit-dialogs-compose:0.10.0")
-    
-    // Zstd compression for Anki 23.10+ format support
-    implementation("com.github.luben:zstd-jni:1.5.6-10")
+
 
     // 如果需要 Compose UI 测试，保留这个
     testImplementation(compose.desktop.uiTestJUnit4)
@@ -84,9 +110,38 @@ buildscript {
 }
 
 tasks.withType<KotlinCompile>().configureEach {
-    compilerOptions {
-        compilerOptions.freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
+    compilerOptions.freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
+}
+
+// 构建 Rust JNI 库 ---
+val buildRustZstdJni by tasks.registering(Exec::class) {
+    group = "build"
+    description = "Build rust-zstd-jni native library via cargo"
+    workingDir = file("rust-zstd-jni")
+
+    val cargoPath = resolveCargoPath()
+    doFirst {
+        println("Using cargo: $cargoPath")
+        // 确保 PATH 包含常见 cargo 安装目录
+        val home = System.getProperty("user.home") ?: System.getenv("HOME") ?: ""
+        val extra = sequenceOf(
+            if (home.isNotEmpty()) "$home/.cargo/bin" else "",
+            "/opt/homebrew/bin",
+            "/usr/local/bin"
+        ).filter { it.isNotEmpty() }.joinToString(File.pathSeparator)
+        val currentPath = System.getenv("PATH") ?: ""
+        environment("PATH", listOf(currentPath, extra).filter { it.isNotEmpty() }.joinToString(File.pathSeparator))
     }
+
+    // 显式指定可执行文件与参数
+    executable = cargoPath
+    args = listOf("build", "--release")
+
+    // 若 cargo 存在但构建失败，应当让任务失败以暴露错误
+    isIgnoreExitValue = false
+
+    // 仅当子项目存在时执行
+    onlyIf { file("rust-zstd-jni/Cargo.toml").exists() }
 }
 
 
@@ -164,7 +219,11 @@ tasks.named("compileKotlin") {
     }
 }
 
+// 确保测试前已构建 Rust JNI 库
 tasks.named<Test>("test") {
+    dependsOn(buildRustZstdJni)
+    // 排除 JNI 端到端测试，避免在无 cargo 环境失败
+    exclude("**/fsrs/zstd/**")
     description = "Runs unit tests."
     group = "verification"
     testClassesDirs = sourceSets["test"].output.classesDirs
@@ -181,7 +240,9 @@ tasks.named<Test>("test") {
     }
 }
 
+// 为 UI 测试注册任务，并同样添加依赖（可选）
 tasks.register<Test>("uiTest") {
+    dependsOn(buildRustZstdJni)
     description = "Runs UI tests."
     group = "verification"
     testClassesDirs = sourceSets["test"].output.classesDirs

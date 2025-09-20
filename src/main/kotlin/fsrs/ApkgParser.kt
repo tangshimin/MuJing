@@ -1,10 +1,9 @@
 package fsrs
 
-import kotlinx.serialization.json.*
-import java.io.*
+import fsrs.zstd.ZstdNative
+import java.io.File
 import java.sql.DriverManager
 import java.sql.SQLException
-import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
 /**
@@ -136,7 +135,15 @@ class ApkgParser {
             
             zipFile.getInputStream(dbEntry).use { input ->
                 tempDbFile.outputStream().use { output ->
-                    input.copyTo(output)
+                    if (dbFormat == "collection.anki21b") {
+                        // 新格式使用 ZSTD 压缩，需要解压
+                        val compressedData = input.readBytes()
+                        val decompressedData = ZstdNative().decompress(compressedData)
+                        output.write(decompressedData)
+                    } else {
+                        // 旧格式直接复制
+                        input.copyTo(output)
+                    }
                 }
             }
 
@@ -153,7 +160,7 @@ class ApkgParser {
                 val cards = databaseParser.parseCards(conn)
                 val decks = databaseParser.parseDecks(conn)
                 val models = databaseParser.parseModels(conn)
-                val mediaFiles = mediaParser.parseMediaFiles(zipFile)
+                val mediaFiles = mediaParser.parseMediaFiles(zipFile, dbFormat)
                 val (dbVersion, creationTime) = databaseParser.parseCollectionInfo(conn)
 
                 return ParsedApkg(
@@ -239,7 +246,7 @@ class ApkgParser {
                     info["creationTime"] = creationTime
                     
                     // 添加媒体文件信息
-                    info.putAll(mediaParser.getMediaInfo(zipFile))
+                    info.putAll(mediaParser.getMediaInfo(zipFile, dbFormat))
                     
                 } catch (e: Exception) {
                     // 对于信息获取，不抛出异常，只记录错误

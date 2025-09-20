@@ -54,3 +54,7 @@ bin/
 /wix311/
 /resources/windows/VLC/plugins/plugins.dat
 /.kotlin/
+
+/rust-zstd-jni/target/
+/test-output/
+/rust-zstd-jni/Cargo.lock

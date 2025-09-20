@@ -1,14 +1,17 @@
 package fsrs
 
-import fsrs.zstd.ZstdHelper
+
+import fsrs.zstd.ZstdNative
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 import java.io.File
 import java.io.FileOutputStream
+import java.security.MessageDigest
 import java.sql.DriverManager
 import java.time.Instant
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import java.util.zip.CRC32
 
 /**
  * APKG 创建器
@@ -290,6 +293,9 @@ class ApkgCreator {
             }
             tempDbFiles.addAll(dbFiles)
 
+            // 构建规范化后的媒体清单，确保名称安全唯一
+            val mediaList: List<Pair<String, ByteArray>> = buildNormalizedMediaList()
+
             // 创建 ZIP 文件
             FileOutputStream(outputPath).use { fos ->
                 ZipOutputStream(fos).use { zos ->
@@ -302,8 +308,18 @@ class ApkgCreator {
                             else -> "collection.anki2"
                         }
                         println("🔧 数据库文件检测: 原始文件名=${dbFile.name}, ZIP 条目名=$dbName")
-                        zos.putNextEntry(ZipEntry(dbName))
-                        dbFile.inputStream().use { it.copyTo(zos) }
+
+                        // 使用 STORED 方式写入数据库，避免 ZIP 再压缩
+                        val bytes = dbFile.readBytes()
+                        val crc32 = CRC32()
+                        crc32.update(bytes)
+                        val entry = ZipEntry(dbName).apply {
+                            method = ZipEntry.STORED
+                            size = bytes.size.toLong()
+                            crc = crc32.value
+                        }
+                        zos.putNextEntry(entry)
+                        zos.write(bytes)
                         zos.closeEntry()
                     }
 
@@ -315,15 +331,28 @@ class ApkgCreator {
 
                     // 添加媒体映射文件
                     zos.putNextEntry(ZipEntry("media"))
-                    val mediaJson = createMediaJson()
-                    zos.write(mediaJson.toByteArray())
+                    val mediaBytes = if (formatVersion == FormatVersion.LATEST) {
+                        // LATEST: Protobuf(MediaEntries) + Zstd 压缩
+                        val entriesBytes = buildMediaEntriesProtobuf(mediaList)
+                        ZstdNative().compress(entriesBytes, 0)
+                    } else {
+                        // 旧格式：JSON（未压缩）
+                        createLegacyMediaJson(mediaList).toByteArray()
+                    }
+                    zos.write(mediaBytes)
                     zos.closeEntry()
 
                     // 添加媒体文件（使用编号命名）
-                    mediaFiles.keys.forEachIndexed { index, filename ->
-                        val data = mediaFiles[filename]!!
+                    mediaList.forEachIndexed { index, pair ->
+                        val (_, data) = pair
                         zos.putNextEntry(ZipEntry(index.toString()))
-                        zos.write(data)
+                        val toWrite = if (formatVersion == FormatVersion.LATEST) {
+                            // LATEST: 每个媒体文件内容单独用 Zstd 压缩
+                            ZstdNative().compress(data, 0)
+                        } else {
+                            data
+                        }
+                        zos.write(toWrite)
                         zos.closeEntry()
                     }
                 }
@@ -333,6 +362,7 @@ class ApkgCreator {
         }
     }
 
+    // 创建 SQLite 数据库文件（根据版本决定是否 zstd 压缩）
     private fun createDatabase(version: FormatVersion): File {
         val suffix = when (version) {
             FormatVersion.LEGACY -> "anki2"
@@ -341,90 +371,39 @@ class ApkgCreator {
         }
         val dbFile = File.createTempFile("collection", ".$suffix")
         createDatabaseContent(dbFile, version)
-        // 记录未压缩大小
-        val originalSize = dbFile.length()
-        // 对新格式应用 Zstd 压缩
-        println("🔧 数据库压缩检查: 格式=$suffix, 需要压缩=${version.useZstdCompression}")
         if (version.useZstdCompression) {
-            println("🔧 对 $suffix 格式应用 Zstd 压缩")
-            val compressedFile = compressDatabaseWithZstd(dbFile)
-            println("✅ Zstd 压缩完成: ${originalSize} -> ${compressedFile.length()} 字节")
-            return compressedFile
+            return compressDatabaseWithZstd(dbFile)
         }
-        println("🔧 $suffix 格式不使用压缩，返回原始文件")
         return dbFile
     }
-    
-    /**
-     * 使用 Zstd 压缩数据库文件
-     */
+
+    // 使用 zstd 压缩 SQLite 数据库内容（输出 .anki21b.zstd）
     private fun compressDatabaseWithZstd(dbFile: File): File {
         val compressedFile = File.createTempFile("collection", ".anki21b.zstd")
         dbFile.inputStream().use { input ->
             compressedFile.outputStream().use { output ->
                 val originalData = input.readBytes()
-                println("🔧 原始数据库大小: ${originalData.size} 字节")
                 val compressedData = compressWithZstdJni(originalData)
-                println("🔧 压缩后大小: ${compressedData.size} 字节, 压缩率: ${String.format("%.1f%%", compressedData.size.toDouble() / originalData.size * 100)}")
-                if (compressedData.size >= 4) {
-                    val magicBytes = compressedData.copyOfRange(0, 4)
-                    val magic = (magicBytes[0].toLong() and 0xFF) shl 24 or ((magicBytes[1].toLong() and 0xFF) shl 16) or ((magicBytes[2].toLong() and 0xFF) shl 8) or (magicBytes[3].toLong() and 0xFF)
-                    println("🔧 Zstd 魔术字节: 0x${magic.toString(16).uppercase()}, 期望: 0x28B52FFD")
-                    println("🔧 Zstd 压缩检测: ${magic == 0x28B52FFDL}")
-                    val hexBytes = magicBytes.joinToString(" ") { "%02X".format(it.toInt() and 0xFF) }
-                    println("🔧 实际字节: $hexBytes")
-                }
                 output.write(compressedData)
             }
         }
-        // 删除原始未压缩文件
         dbFile.delete()
         return compressedFile
     }
-    
-    /**
-     * 使用 Rust zstd JNI 桥接进行压缩（确保与 Anki 完全兼容）
-     */
+
     private fun compressWithZstdJni(data: ByteArray): ByteArray {
-        try {
-            println("🔧 使用 Rust zstd JNI 压缩 (级别 0)")
-            println("🔧 Zstd 版本: ${ZstdHelper.getVersion()}")
-            
-            // 使用 Rust zstd JNI 桥接进行压缩
-            val compressedData = ZstdHelper.compress(data, 0)
-            
-            // 验证压缩结果
-            if (compressedData.isEmpty()) {
-                throw RuntimeException("Zstd compression failed: empty result")
-            }
-            
-            // 验证Zstd魔术字节
-            if (compressedData.size >= 4) {
-                val magic = (compressedData[0].toLong() and 0xFF) shl 24 or
-                           ((compressedData[1].toLong() and 0xFF) shl 16) or
-                           ((compressedData[2].toLong() and 0xFF) shl 8) or
-                           (compressedData[3].toLong() and 0xFF)
-                
-                if (magic != 0x28B52FFDL) {
-                    throw RuntimeException("Invalid Zstd magic bytes: 0x${magic.toString(16)}")
-                }
-            }
-            
-            return compressedData
-        } catch (e: Exception) {
-            throw RuntimeException("Zstd compression failed: ${e.message}", e)
-        }
+        return ZstdNative().compress(data, 0)
     }
 
+    // 初始化数据库结构并插入基础数据
     private fun createDatabaseContent(dbFile: File, version: FormatVersion) {
         val url = "jdbc:sqlite:${dbFile.absolutePath}"
         DriverManager.getConnection(url).use { conn ->
-            // 创建表结构
             conn.createStatement().use { stmt ->
-                // 集合表 - 根据版本使用不同的架构
+                stmt.execute("PRAGMA user_version = ${version.schemaVersion}")
                 if (version.schemaVersion >= 18) {
-                    // V18+ 架构 (Anki 23.10+)
-                    stmt.execute("""
+                    stmt.execute(
+                        """
                         CREATE TABLE col (
                             id INTEGER PRIMARY KEY,
                             crt INTEGER NOT NULL,
@@ -439,7 +418,6 @@ class ApkgCreator {
                             decks TEXT NOT NULL,
                             dconf TEXT NOT NULL,
                             tags TEXT NOT NULL,
-                            -- V18 新增字段
                             fsrsWeights TEXT,
                             fsrsParams5 TEXT,
                             desiredRetention REAL,
@@ -454,10 +432,11 @@ class ApkgCreator {
                             sm2Retention REAL,
                             weightSearch TEXT
                         )
-                    """)
+                        """
+                    )
                 } else {
-                    // V11 架构 (Anki 2.1.x)
-                    stmt.execute("""
+                    stmt.execute(
+                        """
                         CREATE TABLE col (
                             id INTEGER PRIMARY KEY,
                             crt INTEGER NOT NULL,
@@ -473,11 +452,12 @@ class ApkgCreator {
                             dconf TEXT NOT NULL,
                             tags TEXT NOT NULL
                         )
-                    """)
+                        """
+                    )
                 }
 
-                // 笔记表
-                stmt.execute("""
+                stmt.execute(
+                    """
                     CREATE TABLE notes (
                         id INTEGER PRIMARY KEY,
                         guid TEXT NOT NULL,
@@ -486,17 +466,17 @@ class ApkgCreator {
                         usn INTEGER NOT NULL,
                         tags TEXT NOT NULL,
                         flds TEXT NOT NULL,
-                        sfld TEXT NOT NULL,
+                        sfld INTEGER NOT NULL,
                         csum INTEGER NOT NULL,
                         flags INTEGER NOT NULL,
                         data TEXT NOT NULL
                     )
-                """)
+                    """
+                )
 
-                // 卡片表
                 if (version.schemaVersion >= 18) {
-                    // V18+ 架构
-                    stmt.execute("""
+                    stmt.execute(
+                        """
                         CREATE TABLE cards (
                             id INTEGER PRIMARY KEY,
                             nid INTEGER NOT NULL,
@@ -516,16 +496,16 @@ class ApkgCreator {
                             odid INTEGER NOT NULL,
                             flags INTEGER NOT NULL,
                             data TEXT NOT NULL,
-                            -- V18 新增字段
                             fsrsState TEXT,
                             fsrsDifficulty REAL,
                             fsrsStability REAL,
                             fsrsDue TEXT
                         )
-                    """)
+                        """
+                    )
                 } else {
-                    // V11 架构
-                    stmt.execute("""
+                    stmt.execute(
+                        """
                         CREATE TABLE cards (
                             id INTEGER PRIMARY KEY,
                             nid INTEGER NOT NULL,
@@ -546,16 +526,15 @@ class ApkgCreator {
                             flags INTEGER NOT NULL,
                             data TEXT NOT NULL
                         )
-                    """)
+                        """
+                    )
                 }
 
-                // 删除日志表
                 stmt.execute("CREATE TABLE graves (usn INTEGER NOT NULL, oid INTEGER NOT NULL, type INTEGER NOT NULL, PRIMARY KEY (oid, type)) WITHOUT ROWID")
 
-                // 复习日志表
                 if (version.schemaVersion >= 18) {
-                    // V18+ 架构
-                    stmt.execute("""
+                    stmt.execute(
+                        """
                         CREATE TABLE revlog (
                             id INTEGER PRIMARY KEY,
                             cid INTEGER NOT NULL,
@@ -566,15 +545,15 @@ class ApkgCreator {
                             factor INTEGER NOT NULL,
                             time INTEGER NOT NULL,
                             type INTEGER NOT NULL,
-                            -- V18 新增字段
                             fsrsRating INTEGER,
                             fsrsReviewTime INTEGER,
                             fsrsState TEXT
                         )
-                    """)
+                        """
+                    )
                 } else {
-                    // V11 架构
-                    stmt.execute("""
+                    stmt.execute(
+                        """
                         CREATE TABLE revlog (
                             id INTEGER PRIMARY KEY,
                             cid INTEGER NOT NULL,
@@ -586,12 +565,13 @@ class ApkgCreator {
                             time INTEGER NOT NULL,
                             type INTEGER NOT NULL
                         )
-                    """)
+                        """
+                    )
                 }
 
-                // V18+ 新增表：媒体元数据
                 if (version.schemaVersion >= 18) {
-                    stmt.execute("""
+                    stmt.execute(
+                        """
                         CREATE TABLE mediaMeta (
                             dir TEXT NOT NULL,
                             fname TEXT NOT NULL,
@@ -600,36 +580,34 @@ class ApkgCreator {
                             isNew BOOLEAN NOT NULL,
                             PRIMARY KEY (dir, fname)
                         )
-                    """)
-                    
-                    // V18+ 新增表：FSRS 权重和参数
-                    stmt.execute("""
+                        """
+                    )
+                    stmt.execute(
+                        """
                         CREATE TABLE fsrsWeights (
                             id INTEGER PRIMARY KEY,
                             weights TEXT NOT NULL,
                             mod INTEGER NOT NULL
                         )
-                    """)
-                    
-                    stmt.execute("""
+                        """
+                    )
+                    stmt.execute(
+                        """
                         CREATE TABLE fsrsParams (
                             id INTEGER PRIMARY KEY,
                             params TEXT NOT NULL,
                             mod INTEGER NOT NULL
                         )
-                    """)
+                        """
+                    )
                 }
             }
-
-            // 插入数据
             insertData(conn, version)
         }
     }
 
     private fun insertData(conn: java.sql.Connection, version: FormatVersion) {
         val now = Instant.now().epochSecond
-
-        // 插入集合配置
         val colConfig = JsonObject(mapOf(
             "nextPos" to JsonPrimitive(1),
             "estTimes" to JsonPrimitive(true),
@@ -762,7 +740,6 @@ class ApkgCreator {
         }""".trimIndent()
 
         if (version.schemaVersion >= 18) {
-            // V18+ 架构有更多字段
             conn.prepareStatement("INSERT INTO col VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").use { stmt ->
                 stmt.setInt(1, 1)
                 stmt.setLong(2, now)
@@ -777,24 +754,22 @@ class ApkgCreator {
                 stmt.setString(11, decksJson.toString())
                 stmt.setString(12, dconfJson)
                 stmt.setString(13, "{}")
-                // V18 新增字段
-                stmt.setString(14, "[]")  // fsrsWeights
-                stmt.setString(15, "[]")  // fsrsParams5
-                stmt.setDouble(16, 0.9)    // desiredRetention
-                stmt.setString(17, "")     // ignoreRevlogsBeforeDate
-                stmt.setString(18, "[1.0,1.0,1.0,1.0,1.0,1.0,1.0]")  // easyDaysPercentages
-                stmt.setBoolean(19, false) // stopTimerOnAnswer
-                stmt.setDouble(20, 0.0)    // secondsToShowQuestion
-                stmt.setDouble(21, 0.0)    // secondsToShowAnswer
-                stmt.setInt(22, 0)         // questionAction
-                stmt.setInt(23, 0)         // answerAction
-                stmt.setBoolean(24, true)  // waitForAudio
-                stmt.setDouble(25, 0.9)    // sm2Retention
-                stmt.setString(26, "")     // weightSearch
+                stmt.setString(14, "[]")
+                stmt.setString(15, "[]")
+                stmt.setDouble(16, 0.9)
+                stmt.setString(17, "")
+                stmt.setString(18, "[1.0,1.0,1.0,1.0,1.0,1.0,1.0]")
+                stmt.setBoolean(19, false)
+                stmt.setDouble(20, 0.0)
+                stmt.setDouble(21, 0.0)
+                stmt.setInt(22, 0)
+                stmt.setInt(23, 0)
+                stmt.setBoolean(24, true)
+                stmt.setDouble(25, 0.9)
+                stmt.setString(26, "")
                 stmt.executeUpdate()
             }
         } else {
-            // V11 架构
             conn.prepareStatement("INSERT INTO col VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").use { stmt ->
                 stmt.setInt(1, 1)
                 stmt.setLong(2, now)
@@ -813,7 +788,6 @@ class ApkgCreator {
             }
         }
 
-        // 插入笔记
         conn.prepareStatement("INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").use { stmt ->
             notes.forEach { note ->
                 stmt.setLong(1, note.id)
@@ -822,11 +796,10 @@ class ApkgCreator {
                 stmt.setLong(4, now)
                 stmt.setInt(5, -1)
                 stmt.setString(6, note.tags)
-                // 确保字段分隔符正确
                 val fieldsString = note.fields.joinToString("\u001f")
                 stmt.setString(7, fieldsString)
                 stmt.setInt(8, (note.fields.firstOrNull() ?: "").hashCode() and 0x7FFFFFFF)
-                stmt.setLong(9, fieldsString.hashCode().toLong() and 0x7FFFFFFF) // 确保为正数
+                stmt.setLong(9, fieldsString.hashCode().toLong() and 0x7FFFFFFF)
                 stmt.setInt(10, 0)
                 stmt.setString(11, "")
                 stmt.addBatch()
@@ -834,9 +807,7 @@ class ApkgCreator {
             stmt.executeBatch()
         }
 
-        // 插入卡片
         if (version.schemaVersion >= 18) {
-            // V18+ 架构有 FSRS 字段
             conn.prepareStatement("INSERT INTO cards VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").use { stmt ->
                 cards.forEach { card ->
                     stmt.setLong(1, card.id)
@@ -857,17 +828,15 @@ class ApkgCreator {
                     stmt.setInt(16, 0)
                     stmt.setInt(17, 0)
                     stmt.setString(18, "")
-                    // V18 新增 FSRS 字段
-                    stmt.setString(19, "")  // fsrsState
-                    stmt.setDouble(20, 0.0) // fsrsDifficulty
-                    stmt.setDouble(21, 0.0) // fsrsStability
-                    stmt.setString(22, "")  // fsrsDue
+                    stmt.setString(19, "")
+                    stmt.setDouble(20, 0.0)
+                    stmt.setDouble(21, 0.0)
+                    stmt.setString(22, "")
                     stmt.addBatch()
                 }
                 stmt.executeBatch()
             }
         } else {
-            // V11 架构
             conn.prepareStatement("INSERT INTO cards VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").use { stmt ->
                 cards.forEach { card ->
                     stmt.setLong(1, card.id)
@@ -894,15 +863,14 @@ class ApkgCreator {
             }
         }
 
-        // V18+ 插入媒体元数据
         if (version.schemaVersion >= 18) {
             conn.prepareStatement("INSERT INTO mediaMeta VALUES (?, ?, ?, ?, ?)").use { stmt ->
                 mediaFiles.keys.forEach { filename ->
-                    stmt.setString(1, "")  // dir
+                    stmt.setString(1, "")
                     stmt.setString(2, filename)
-                    stmt.setString(3, "")  // csum (需要计算实际校验和)
+                    stmt.setString(3, "")
                     stmt.setLong(4, now)
-                    stmt.setBoolean(5, true)  // isNew
+                    stmt.setBoolean(5, true)
                     stmt.addBatch()
                 }
                 stmt.executeBatch()
@@ -910,26 +878,120 @@ class ApkgCreator {
         }
     }
 
-    private fun createMediaJson(): String {
-        // V18+ (LATEST) 使用新的数组格式: [{"id":0,"name":"file"}, ...]
-        return if (formatVersion.schemaVersion >= 18) {
-            buildJsonArray {
-                mediaFiles.keys.forEachIndexed { index, filename ->
-                    add(buildJsonObject {
-                        put("id", index)
-                        put("name", filename)
-                    })
+    // 基于当前 formatVersion 需要，构建安全、唯一的媒体清单（name,data）
+    private fun buildNormalizedMediaList(): List<Pair<String, ByteArray>> {
+        if (mediaFiles.isEmpty()) return emptyList()
+        val normalized = mutableListOf<Pair<String, ByteArray>>()
+        val used = mutableSetOf<String>()
+        mediaFiles.forEach { (origName, data) ->
+            var name = if (formatVersion.schemaVersion >= 18) normalizeFilename(origName) else origName
+            if (name.isEmpty()) name = "media_${System.nanoTime()}"
+            // 去重：如重名，追加短哈希后缀
+            if (name in used) {
+                val short = sha1Bytes(data).joinToString("") { "%02x".format(it) }.take(8)
+                var candidate = addSuffixBeforeExtension(name, "-$short")
+                var i = 1
+                while (candidate in used) {
+                    candidate = addSuffixBeforeExtension(name, "-$short-$i")
+                    i++
                 }
-            }.toString()
-        } else {
-            // 旧格式: {"0":"file"}
-            val mediaMap = mediaFiles.keys.mapIndexed { index, filename ->
-                index.toString() to filename
-            }.toMap()
-            Json.encodeToString(mediaMap)
+                name = candidate
+            }
+            used.add(name)
+            normalized.add(name to data)
+        }
+        return normalized
+    }
+
+    private fun addSuffixBeforeExtension(name: String, suffix: String): String {
+        val idx = name.lastIndexOf('.')
+        return if (idx > 0) {
+            name.substring(0, idx) + suffix + name.substring(idx)
+        } else name + suffix
+    }
+
+    // 近似对齐 Anki 的安全文件名规则（避免目录穿越、非法字符、Windows 保留名等）
+    private fun normalizeFilename(input: String): String {
+        var s = input.replace('\\', '/').replace('/', '_')
+        s = s.replace(Regex("[\\n\\r\\t\\u0000]"), "")
+        s = s.replace(Regex("[:*?\"<>|]"), "_")
+        // 去掉尾随空格与点，避免 Windows 问题
+        s = s.trim().trimEnd('.', ' ')
+        if (s.isEmpty()) return s
+        // 防止隐藏路径组件
+        if (s.startsWith("../") || s.startsWith("..")) s = s.replace("..", "_")
+        // Windows 保留名处理（不区分大小写，含扩展名也不允许）
+        val lower = s.lowercase()
+        val dot = lower.indexOf('.')
+        val stem = if (dot >= 0) lower.substring(0, dot) else lower
+        val reserved = setOf(
+            "con","prn","aux","nul",
+            "com1","com2","com3","com4","com5","com6","com7","com8","com9",
+            "lpt1","lpt2","lpt3","lpt4","lpt5","lpt6","lpt7","lpt8","lpt9"
+        )
+        if (stem in reserved) s += "_"
+        if (s.length > 255) s = s.take(255)
+        return s
+    }
+
+    private fun createLegacyMediaJson(mediaList: List<Pair<String, ByteArray>>): String {
+        val map = mediaList.mapIndexed { index, (name, _) -> index.toString() to name }.toMap()
+        return Json.encodeToString(map)
+    }
+
+    // 构建 LATEST 所需的 Protobuf(MediaEntries) 并用 Zstd 压缩
+    private fun buildMediaEntriesProtobuf(mediaList: List<Pair<String, ByteArray>>): ByteArray {
+        val out = java.io.ByteArrayOutputStream()
+        // MediaEntries: field 1 (entries), wire type 2 (length-delimited)
+        mediaList.forEach { (filename, data) ->
+            val entryBytes = encodeMediaEntry(
+                name = filename,
+                size = data.size,
+                sha1 = sha1Bytes(data)
+            )
+            out.write(0x0A) // tag for field 1, wire type 2
+            writeVarint(out, entryBytes.size.toLong())
+            out.write(entryBytes)
+        }
+        return out.toByteArray()
+    }
+
+    // 编码单个 MediaEntry 子消息: name=1(string), size=2(uint32), sha1=3(bytes)
+    private fun encodeMediaEntry(name: String, size: Int, sha1: ByteArray): ByteArray {
+        val out = java.io.ByteArrayOutputStream()
+        val nameBytes = name.toByteArray(Charsets.UTF_8)
+        // field 1: name (length-delimited)
+        out.write(0x0A)
+        writeVarint(out, nameBytes.size.toLong())
+        out.write(nameBytes)
+        // field 2: size (varint)
+        out.write(0x10)
+        writeVarint(out, size.toLong() and 0xFFFFFFFFL)
+        // field 3: sha1 (length-delimited)
+        out.write(0x1A)
+        writeVarint(out, sha1.size.toLong())
+        out.write(sha1)
+        return out.toByteArray()
+    }
+
+    private fun sha1Bytes(data: ByteArray): ByteArray {
+        val md = MessageDigest.getInstance("SHA-1")
+        return md.digest(data)
+    }
+
+    // Protobuf varint 编码（无符号）
+    private fun writeVarint(out: java.io.ByteArrayOutputStream, value: Long) {
+        var v = value
+        while (true) {
+            if ((v and -128L) == 0L) {
+                out.write(v.toInt())
+                return
+            }
+            out.write(((v and 0x7FL) or 0x80L).toInt())
+            v = v ushr 7
         }
     }
-    
+
     /**
      * 创建 meta 文件数据（Anki 23.10+ 要求）
      * meta 文件包含包版本信息，使用正确的 protobuf 编码
@@ -937,22 +999,14 @@ class ApkgCreator {
     private fun createMetaData(): ByteArray {
         // 对于Anki 24.11，meta文件应该使用正确的 protobuf 编码
         val versionValue = when (formatVersion) {
-            FormatVersion.LEGACY -> 1      // VERSION_LEGACY_1
-            FormatVersion.TRANSITIONAL -> 2 // VERSION_LEGACY_2
-            FormatVersion.LATEST -> 3       // VERSION_LATEST
+            FormatVersion.LEGACY -> 1      // LEGACY_1 → collection.anki2
+            FormatVersion.TRANSITIONAL -> 2 // LEGACY_2 → collection.anki21
+            FormatVersion.LATEST -> 3       // LATEST   → collection.anki21b
         }
         
         // 正确的 protobuf 编码：字段1 (version)，wire type 0 (varint)
-        // 协议：message PackageMetadata { Version version = 1; }
-        // Version enum: UNKNOWN=0, LEGACY_1=1, LEGACY_2=2, LATEST=3
-        
-        // 编码字段编号和类型: (field_number << 3) | wire_type
-        // field_number = 1, wire_type = 0 (varint) → 0x08
         val fieldTag: Byte = 0x08
-        
-        // 编码 varint 值
         val versionBytes = encodeVarint(versionValue.toLong())
-        
         return byteArrayOf(fieldTag) + versionBytes
     }
     
