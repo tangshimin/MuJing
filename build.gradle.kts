@@ -7,32 +7,6 @@ import java.nio.file.Files
 import org.gradle.api.tasks.Exec
 import java.io.File
 
-// 解析 cargo 路径（优先级：-PcargoPath > CARGO 环境变量 > 常见安装路径列表 > PATH 中的 cargo）
-fun resolveCargoPath(): String {
-    // 允许通过 -PcargoPath 显式指定
-    val propPath = (project.findProperty("cargoPath") as String?)?.trim()?.takeIf { it.isNotEmpty() }
-    if (propPath != null && File(propPath).canExecute()) return propPath
-
-    // 允许通过环境变量 CARGO 指定
-    val envCargo = System.getenv("CARGO")?.trim()?.takeIf { it.isNotEmpty() }
-    if (envCargo != null && File(envCargo).canExecute()) return envCargo
-
-    val home = System.getProperty("user.home") ?: System.getenv("HOME") ?: ""
-    val candidates = buildList {
-        if (home.isNotEmpty()) add("$home/.cargo/bin/cargo")
-        // macOS Homebrew
-        add("/opt/homebrew/bin/cargo")
-        // 常见 Linux/macOS 路径
-        add("/usr/local/bin/cargo")
-        add("/usr/bin/cargo")
-    }
-    val hit = candidates.firstOrNull { File(it).canExecute() }
-    if (hit != null) return hit
-
-    // 回退到 PATH 中的 cargo（若存在）
-    return "cargo"
-}
-
 plugins {
     // 版本设置在 settings.gradle.kts 的 plugins 块中
     // kotlin
@@ -329,4 +303,31 @@ fun decompressDict(input: File, destination: File) {
             }
         }
     }
+}
+
+
+// 解析 cargo 路径（优先级：-PcargoPath > CARGO 环境变量 > 常见安装路径列表 > PATH 中的 cargo）
+fun resolveCargoPath(): String {
+    // 允许通过 -PcargoPath 显式指定
+    val propPath = (project.findProperty("cargoPath") as String?)?.trim()?.takeIf { it.isNotEmpty() }
+    if (propPath != null && File(propPath).canExecute()) return propPath
+
+    // 允许通过环境变量 CARGO 指定
+    val envCargo = System.getenv("CARGO")?.trim()?.takeIf { it.isNotEmpty() }
+    if (envCargo != null && File(envCargo).canExecute()) return envCargo
+
+    val home = System.getProperty("user.home") ?: System.getenv("HOME") ?: ""
+    val candidates = buildList {
+        if (home.isNotEmpty()) add("$home/.cargo/bin/cargo")
+        // macOS Homebrew
+        add("/opt/homebrew/bin/cargo")
+        // 常见 Linux/macOS 路径
+        add("/usr/local/bin/cargo")
+        add("/usr/bin/cargo")
+    }
+    val hit = candidates.firstOrNull { File(it).canExecute() }
+    if (hit != null) return hit
+
+    // 回退到 PATH 中的 cargo（若存在）
+    return "cargo"
 }
