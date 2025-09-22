@@ -2,32 +2,17 @@ package fsrs
 
 /**
  * APKG 格式版本枚举
- * 用于统一管理 APKG 文件的格式版本信息
+ * 支持所有格式版本
  */
-enum class ApkgFormat {
-    LEGACY {          // collection.anki2 (Anki 2.1.x 之前)
-        override val schemaVersion = 11
-        override val databaseVersion = 11
-        override val useZstdCompression = false
-        override val databaseFileName = "collection.anki2"
-    },
-    TRANSITIONAL {    // collection.anki21 (Anki 2.1.x)
-        override val schemaVersion = 11
-        override val databaseVersion = 11
-        override val useZstdCompression = false
-        override val databaseFileName = "collection.anki21"
-    },
-    LATEST {          // collection.anki21b (Anki 23.10+)
-        override val schemaVersion = 18
-        override val databaseVersion = 11
-        override val useZstdCompression = true
-        override val databaseFileName = "collection.anki21b"
-    };
+enum class ApkgFormat(val version: Version) {
+    LEGACY(Version.LEGACY1),          // collection.anki2 (Anki 2.1.x 之前)
+    TRANSITIONAL(Version.LEGACY2),    // collection.anki21 (Anki 2.1.x)
+    LATEST(Version.LATEST);           // collection.anki21b (Anki 23.10+)
 
-    abstract val schemaVersion: Int
-    abstract val databaseVersion: Int
-    abstract val useZstdCompression: Boolean
-    abstract val databaseFileName: String
+    val schemaVersion: Int get() = version.schemaVersion
+    val databaseVersion: Int get() = version.databaseVersion
+    val useZstdCompression: Boolean get() = version.useZstdCompression
+    val databaseFileName: String get() = version.databaseFileName
 
     companion object {
         /**
@@ -53,5 +38,39 @@ enum class ApkgFormat {
                 else -> throw IllegalArgumentException("No supported database format found in APKG")
             }
         }
+    }
+}
+
+/**
+ * APKG 版本信息数据类
+ * 分离版本信息和格式逻辑
+ */
+data class Version(
+    val schemaVersion: Int,
+    val databaseVersion: Int,
+    val useZstdCompression: Boolean,
+    val databaseFileName: String
+) {
+    companion object {
+        val LEGACY1 = Version(
+            schemaVersion = 11,
+            databaseVersion = 11,
+            useZstdCompression = false,
+            databaseFileName = "collection.anki2"
+        )
+        
+        val LEGACY2 = Version(
+            schemaVersion = 11,
+            databaseVersion = 11,
+            useZstdCompression = false,
+            databaseFileName = "collection.anki21"
+        )
+        
+        val LATEST = Version(
+            schemaVersion = 18,
+            databaseVersion = 11,
+            useZstdCompression = true,
+            databaseFileName = "collection.anki21b"
+        )
     }
 }

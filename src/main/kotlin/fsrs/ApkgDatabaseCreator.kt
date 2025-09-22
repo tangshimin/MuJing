@@ -323,27 +323,27 @@ internal class ApkgDatabaseCreator {
                 "id" to JsonPrimitive(model.id),
                 "name" to JsonPrimitive(model.name),
                 "type" to JsonPrimitive(model.type),
-                "mod" to JsonPrimitive(model.mod),
-                "usn" to JsonPrimitive(model.usn),
-                "sortf" to JsonPrimitive(model.sortf),
-                "did" to (model.did?.let { JsonPrimitive(it) } ?: JsonNull),
-                "tmpls" to JsonArray(model.tmpls.map { tmpl ->
+                "mod" to JsonPrimitive(model.modificationTime),
+                "usn" to JsonPrimitive(model.updateSequenceNumber),
+                "sortf" to JsonPrimitive(model.sortField),
+                "did" to (model.deckId?.let { JsonPrimitive(it) } ?: JsonNull),
+                "tmpls" to JsonArray(model.templates.map { tmpl ->
                     JsonObject(mapOf(
                         "name" to JsonPrimitive(tmpl.name),
-                        "ord" to JsonPrimitive(tmpl.ord),
-                        "qfmt" to JsonPrimitive(tmpl.qfmt),
-                        "afmt" to JsonPrimitive(tmpl.afmt),
-                        "did" to (tmpl.did?.let { JsonPrimitive(it) } ?: JsonNull),
-                        "bqfmt" to JsonPrimitive(tmpl.bqfmt),
-                        "bafmt" to JsonPrimitive(tmpl.bafmt)
+                        "ord" to JsonPrimitive(tmpl.ordinal),
+                        "qfmt" to JsonPrimitive(tmpl.questionFormat),
+                        "afmt" to JsonPrimitive(tmpl.answerFormat),
+                        "did" to (tmpl.deckId?.let { JsonPrimitive(it) } ?: JsonNull),
+                        "bqfmt" to JsonPrimitive(tmpl.browserQuestionFormat),
+                        "bafmt" to JsonPrimitive(tmpl.browserAnswerFormat)
                     ))
                 }),
-                "flds" to JsonArray(model.flds.map { fld ->
+                "flds" to JsonArray(model.fields.map { fld ->
                     JsonObject(mapOf(
                         "name" to JsonPrimitive(fld.name),
-                        "ord" to JsonPrimitive(fld.ord),
+                        "ord" to JsonPrimitive(fld.ordinal),
                         "sticky" to JsonPrimitive(fld.sticky),
-                        "rtl" to JsonPrimitive(fld.rtl),
+                        "rtl" to JsonPrimitive(fld.rightToLeft),
                         "font" to JsonPrimitive(fld.font),
                         "size" to JsonPrimitive(fld.size)
                     ))
@@ -357,18 +357,18 @@ internal class ApkgDatabaseCreator {
         return JsonObject(decks.mapKeys { it.key.toString() }.mapValues { (_, deck) ->
             JsonObject(mapOf(
                 "id" to JsonPrimitive(deck.id),
-                "mod" to JsonPrimitive(deck.mod),
+                "mod" to JsonPrimitive(deck.modificationTime),
                 "name" to JsonPrimitive(deck.name),
-                "usn" to JsonPrimitive(deck.usn),
-                "lrnToday" to JsonArray(deck.lrnToday.map { JsonPrimitive(it) }),
-                "revToday" to JsonArray(deck.revToday.map { JsonPrimitive(it) }),
+                "usn" to JsonPrimitive(deck.updateSequenceNumber),
+                "lrnToday" to JsonArray(deck.learnToday.map { JsonPrimitive(it) }),
+                "revToday" to JsonArray(deck.reviewToday.map { JsonPrimitive(it) }),
                 "newToday" to JsonArray(deck.newToday.map { JsonPrimitive(it) }),
                 "timeToday" to JsonArray(deck.timeToday.map { JsonPrimitive(it) }),
                 "collapsed" to JsonPrimitive(deck.collapsed),
                 "browserCollapsed" to JsonPrimitive(deck.browserCollapsed),
-                "desc" to JsonPrimitive(deck.desc),
-                "dyn" to JsonPrimitive(deck.dyn),
-                "conf" to JsonPrimitive(deck.conf),
+                "desc" to JsonPrimitive(deck.description),
+                "dyn" to JsonPrimitive(deck.isDynamic),
+                "conf" to JsonPrimitive(deck.configurationId),
                 "extendNew" to JsonPrimitive(deck.extendNew),
                 "extendRev" to JsonPrimitive(deck.extendRev),
                 "reviewLimit" to (deck.reviewLimit?.let { JsonPrimitive(it) } ?: JsonNull),
@@ -504,7 +504,7 @@ internal class ApkgDatabaseCreator {
             notes.forEach { note ->
                 stmt.setLong(1, note.id)
                 stmt.setString(2, note.guid)
-                stmt.setLong(3, note.mid)
+                stmt.setLong(3, note.modelId)
                 stmt.setLong(4, now)
                 stmt.setInt(5, -1)
                 stmt.setString(6, note.tags)
@@ -542,19 +542,19 @@ internal class ApkgDatabaseCreator {
 
     private fun setCardDataV18(stmt: java.sql.PreparedStatement, card: ApkgCreator.Card, now: Long) {
         stmt.setLong(1, card.id)
-        stmt.setLong(2, card.nid)
-        stmt.setLong(3, card.did)
-        stmt.setInt(4, card.ord)
+        stmt.setLong(2, card.noteId)
+        stmt.setLong(3, card.deckId)
+        stmt.setInt(4, card.templateOrdinal)
         stmt.setLong(5, now)
         stmt.setInt(6, -1)
-        stmt.setInt(7, card.type)
-        stmt.setInt(8, card.queue)
-        stmt.setInt(9, card.due)
-        stmt.setInt(10, card.ivl)
-        stmt.setInt(11, card.factor)
-        stmt.setInt(12, card.reps)
+        stmt.setInt(7, card.cardType)
+        stmt.setInt(8, card.queueType)
+        stmt.setInt(9, card.dueTime)
+        stmt.setInt(10, card.interval)
+        stmt.setInt(11, card.easeFactor)
+        stmt.setInt(12, card.repetitions)
         stmt.setInt(13, card.lapses)
-        stmt.setInt(14, card.left)
+        stmt.setInt(14, card.remainingSteps)
         stmt.setInt(15, 0)
         stmt.setInt(16, 0)
         stmt.setInt(17, 0)
@@ -567,19 +567,19 @@ internal class ApkgDatabaseCreator {
 
     private fun setCardDataLegacy(stmt: java.sql.PreparedStatement, card: ApkgCreator.Card, now: Long) {
         stmt.setLong(1, card.id)
-        stmt.setLong(2, card.nid)
-        stmt.setLong(3, card.did)
-        stmt.setInt(4, card.ord)
+        stmt.setLong(2, card.noteId)
+        stmt.setLong(3, card.deckId)
+        stmt.setInt(4, card.templateOrdinal)
         stmt.setLong(5, now)
         stmt.setInt(6, -1)
-        stmt.setInt(7, card.type)
-        stmt.setInt(8, card.queue)
-        stmt.setInt(9, card.due)
-        stmt.setInt(10, card.ivl)
-        stmt.setInt(11, card.factor)
-        stmt.setInt(12, card.reps)
+        stmt.setInt(7, card.cardType)
+        stmt.setInt(8, card.queueType)
+        stmt.setInt(9, card.dueTime)
+        stmt.setInt(10, card.interval)
+        stmt.setInt(11, card.easeFactor)
+        stmt.setInt(12, card.repetitions)
         stmt.setInt(13, card.lapses)
-        stmt.setInt(14, card.left)
+        stmt.setInt(14, card.remainingSteps)
         stmt.setInt(15, 0)
         stmt.setInt(16, 0)
         stmt.setInt(17, 0)

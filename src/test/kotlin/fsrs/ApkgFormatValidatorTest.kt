@@ -36,7 +36,7 @@ class ApkgFormatValidatorTest {
         val deck = ApkgCreator.Deck(
             id = deckId,
             name = "格式验证测试牌组",
-            desc = "用于验证 APKG 格式正确性"
+            description = "用于验证 APKG 格式正确性"
         )
         creator.addDeck(deck)
 
@@ -46,7 +46,7 @@ class ApkgFormatValidatorTest {
         // 添加测试笔记
         val note = ApkgCreator.Note(
             id = ApkgCreator.generateId(),
-            mid = model.id,
+            modelId = model.id,
             fields = listOf("test", "测试")
         )
         creator.addNote(note, deckId)
@@ -97,13 +97,13 @@ class ApkgFormatValidatorTest {
 
         val note = ApkgCreator.Note(
             id = ApkgCreator.generateId(),
-            mid = model.id,
+            modelId = model.id,
             fields = listOf("new", "格式")
         )
         creator.addNote(note, deckId)
 
         // 生成新格式文件
-        creator.setFormatVersion(ApkgCreator.FormatVersion.LATEST)
+        creator.setFormat(ApkgFormat.LATEST)
         creator.createApkg(newFormatFile.absolutePath)
 
         assertTrue(newFormatFile.exists(), "新格式 APKG 文件应该存在")
@@ -137,7 +137,7 @@ class ApkgFormatValidatorTest {
 
         val note = ApkgCreator.Note(
             id = ApkgCreator.generateId(),
-            mid = model.id,
+            modelId = model.id,
             fields = listOf("dual", "格式")
         )
         creator.addNote(note, deckId)

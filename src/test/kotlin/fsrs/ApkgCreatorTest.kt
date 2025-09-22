@@ -53,7 +53,7 @@ class ApkgCreatorTest {
      */
     @Test
     fun testCreateBasicVocabularyDeckLegacy() {
-        val (creator, testWords) = createBasicTestData(ApkgCreator.FormatVersion.LEGACY)
+        val (creator, testWords) = createBasicTestData(ApkgFormat.LEGACY)
 
         // 生成文件
         val outputPath = File(outputDir, "test_basic_vocabulary_legacy.apkg").absolutePath
@@ -73,7 +73,7 @@ class ApkgCreatorTest {
      */
     @Test
     fun testCreateBasicVocabularyDeckLatest() {
-        val (creator, testWords) = createBasicTestData(ApkgCreator.FormatVersion.LATEST)
+        val (creator, testWords) = createBasicTestData(ApkgFormat.LATEST)
 
         // 生成文件
         val outputPath = File(outputDir, "test_basic_vocabulary_latest.apkg").absolutePath
@@ -148,20 +148,20 @@ class ApkgCreatorTest {
     fun testCreateFromVocabularyDataMultiFormat() {
         // 测试所有格式版本
         val formatTests = listOf(
-            ApkgCreator.FormatVersion.LEGACY to "legacy",
-            ApkgCreator.FormatVersion.LATEST to "latest"
+            ApkgFormat.LEGACY to "legacy",
+            ApkgFormat.LATEST to "latest"
         )
 
         formatTests.forEach { (formatVersion, formatName) ->
             val creator = ApkgCreator()
-            creator.setFormatVersion(formatVersion)
+            creator.setFormat(formatVersion)
 
             // 1. 创建牌组
             val deckId = ApkgCreator.generateId()
             val deck = ApkgCreator.Deck(
                 id = deckId,
                 name = "测试词汇导入",
-                desc = "从测试数据导入的词汇"
+                description = "从测试数据导入的词汇"
             )
             creator.addDeck(deck)
 
@@ -208,7 +208,7 @@ class ApkgCreatorTest {
 
                 val note = ApkgCreator.Note(
                     id = ApkgCreator.generateId(),
-                    mid = model.id,
+                    modelId = model.id,
                     fields = listOf(word, definition, "", "$pronunciation\n$translation"),
                     tags = "imported vocabulary"
                 )
@@ -227,11 +227,7 @@ class ApkgCreatorTest {
             println("📊 文件大小: ${apkgFile.length()} 字节")
 
             // 7. 验证 ZIP 结构
-            val expectedDbName = when (formatVersion) {
-                ApkgCreator.FormatVersion.LEGACY -> "collection.anki2"
-                ApkgCreator.FormatVersion.TRANSITIONAL -> "collection.anki21"
-                ApkgCreator.FormatVersion.LATEST -> "collection.anki21b"
-            }
+            val expectedDbName = formatVersion.databaseFileName
             verifyApkgStructure(apkgFile, expectedDbName)
 
             // 8. 验证数据库内容
@@ -251,13 +247,13 @@ class ApkgCreatorTest {
     fun testMediaFileHandlingMultiFormat() {
         // 测试所有格式版本
         val formatTests = listOf(
-            ApkgCreator.FormatVersion.LEGACY to "legacy",
-            ApkgCreator.FormatVersion.LATEST to "latest"
+            ApkgFormat.LEGACY to "legacy",
+            ApkgFormat.LATEST to "latest"
         )
 
         formatTests.forEach { (formatVersion, formatName) ->
             val creator = ApkgCreator()
-            creator.setFormatVersion(formatVersion)
+            creator.setFormat(formatVersion)
 
             // 1. 创建牌组和模型
             val deckId = ApkgCreator.generateId()
@@ -277,7 +273,7 @@ class ApkgCreatorTest {
             // 3. 添加引用媒体的笔记
             val note = ApkgCreator.Note(
                 id = ApkgCreator.generateId(),
-                mid = model.id,
+                modelId = model.id,
                 fields = listOf(
                     "hello",
                     "你好",
@@ -299,11 +295,7 @@ class ApkgCreatorTest {
             ), formatVersion)
 
             // 6. 验证数据库结构
-            val expectedDbName = when (formatVersion) {
-                ApkgCreator.FormatVersion.LEGACY -> "collection.anki2"
-                ApkgCreator.FormatVersion.TRANSITIONAL -> "collection.anki21"
-                ApkgCreator.FormatVersion.LATEST -> "collection.anki21b"
-            }
+            val expectedDbName = formatVersion.databaseFileName
             verifyDatabaseContent(File(outputPath), 1, 1, 1, expectedDbName)
 
             println("✅ 媒体文件处理测试通过 ($formatName)")
@@ -317,13 +309,13 @@ class ApkgCreatorTest {
     fun testMultipleDeckSupportMultiFormat() {
         // 测试所有格式版本
         val formatTests = listOf(
-            ApkgCreator.FormatVersion.LEGACY to "legacy",
-            ApkgCreator.FormatVersion.TRANSITIONAL to "transitional"  // 暂时使用过渡格式避免压缩问题
+            ApkgFormat.LEGACY to "legacy",
+            ApkgFormat.TRANSITIONAL to "transitional"  // 暂时使用过渡格式避免压缩问题
         )
 
         formatTests.forEach { (formatVersion, formatName) ->
             val creator = ApkgCreator()
-            creator.setFormatVersion(formatVersion)
+            creator.setFormat(formatVersion)
 
             // 1. 创建多个牌组
             val deck1Id = ApkgCreator.generateId()
@@ -341,14 +333,14 @@ class ApkgCreatorTest {
             // 3. 向不同牌组添加笔记
             val basicNote = ApkgCreator.Note(
                 id = ApkgCreator.generateId(),
-                mid = model.id,
+                modelId = model.id,
                 fields = listOf("cat", "猫")
             )
             creator.addNote(basicNote, deck1Id)
 
             val advancedNote = ApkgCreator.Note(
                 id = ApkgCreator.generateId(),
-                mid = model.id,
+                modelId = model.id,
                 fields = listOf("sophisticated", "复杂的")
             )
             creator.addNote(advancedNote, deck2Id)
@@ -359,11 +351,7 @@ class ApkgCreatorTest {
             println("📦 生成的 APKG 文件 ($formatName): $outputPath")
 
             // 5. 验证多牌组
-            val expectedDbName = when (formatVersion) {
-                ApkgCreator.FormatVersion.LEGACY -> "collection.anki2"
-                ApkgCreator.FormatVersion.TRANSITIONAL -> "collection.anki21"
-                ApkgCreator.FormatVersion.LATEST -> "collection.anki21b"
-            }
+            val expectedDbName = formatVersion.databaseFileName
             
             // 调试：检查数据库文件是否被压缩
             val apkgFile = File(outputPath)
@@ -375,7 +363,7 @@ class ApkgCreatorTest {
                 val isZstdCompressed = isZstdCompressed(dbData)
                 println("🔍 数据库 $expectedDbName Zstd 压缩检测: $isZstdCompressed, 数据大小: ${dbData.size} 字节")
                 
-                if (isZstdCompressed && formatVersion != ApkgCreator.FormatVersion.LATEST) {
+                if (isZstdCompressed && formatVersion != ApkgFormat.LATEST) {
                     println("❌ 错误: 非 LATEST 格式的数据库被压缩了!")
                 }
             }
@@ -396,7 +384,7 @@ class ApkgCreatorTest {
     @Test
     fun testV18SchemaSpecificFeatures() {
         val creator = ApkgCreator()
-        creator.setFormatVersion(ApkgCreator.FormatVersion.LATEST)
+        creator.setFormat(ApkgFormat.LATEST)
         
         // 创建牌组和模型
         val deckId = ApkgCreator.generateId()
@@ -413,7 +401,7 @@ class ApkgCreatorTest {
         // 添加笔记
         val note = ApkgCreator.Note(
             id = ApkgCreator.generateId(),
-            mid = model.id,
+            modelId = model.id,
             fields = listOf("v18", "V18 测试", "[sound:test_audio_v18.mp3]", "V18 schema test")
         )
         creator.addNote(note, deckId)
@@ -499,16 +487,16 @@ class ApkgCreatorTest {
      */
     private fun runMultiFormatTest(
         testName: String,
-        formatTests: List<Pair<ApkgCreator.FormatVersion, String>> = listOf(
-            ApkgCreator.FormatVersion.LEGACY to "legacy",
-            ApkgCreator.FormatVersion.LATEST to "latest"
+        formatTests: List<Pair<ApkgFormat, String>> = listOf(
+            ApkgFormat.LEGACY to "legacy",
+            ApkgFormat.LATEST to "latest"
         ),
-        setup: (ApkgCreator, ApkgCreator.FormatVersion, String) -> Unit,
-        verify: (File, ApkgCreator.FormatVersion, String) -> Unit
+        setup: (ApkgCreator, ApkgFormat, String) -> Unit,
+        verify: (File, ApkgFormat, String) -> Unit
     ) {
         formatTests.forEach { (formatVersion, formatName) ->
             val creator = ApkgCreator()
-            creator.setFormatVersion(formatVersion)
+            creator.setFormat(formatVersion)
             
             setup(creator, formatVersion, formatName)
             
@@ -729,12 +717,12 @@ class ApkgCreatorTest {
         }
     }
 
-    private fun verifyMediaFiles(apkgFile: File, expectedMedia: Map<String, ByteArray>, formatVersion: ApkgCreator.FormatVersion = ApkgCreator.FormatVersion.LEGACY) {
+    private fun verifyMediaFiles(apkgFile: File, expectedMedia: Map<String, ByteArray>, format: ApkgFormat = ApkgFormat.LEGACY) {
         ZipFile(apkgFile).use { zipFile ->
             val mediaEntry = zipFile.getEntry("media")
             assertNotNull(mediaEntry, "media 文件应该存在")
 
-            if (formatVersion.schemaVersion >= 18) {
+            if (format.schemaVersion >= 18) {
                 // LATEST: media 映射为 Protobuf(MediaEntries) 且经过 Zstd 压缩；编号媒体文件内容也经过 Zstd 压缩
                 val mediaRaw = zipFile.getInputStream(mediaEntry).use { it.readBytes() }
                 val mediaDecoded = ZstdNative().decompress(mediaRaw)
@@ -864,8 +852,8 @@ class ApkgCreatorTest {
 
     private data class WordData(val word: String, val meaning: String, val audio: String = "", val example: String = "")
 
-    private fun createBasicTestData(format: ApkgCreator.FormatVersion = ApkgCreator.FormatVersion.LEGACY): Pair<ApkgCreator, List<String>> {
-        val creator = ApkgCreator().setFormatVersion(format)
+    private fun createBasicTestData(format: ApkgFormat = ApkgFormat.LEGACY): Pair<ApkgCreator, List<String>> {
+        val creator = ApkgCreator().setFormat(format)
         val deckId = ApkgCreator.generateId()
         val deck = ApkgCreator.Deck(id = deckId, name = "基础词汇")
         creator.addDeck(deck)
@@ -875,7 +863,7 @@ class ApkgCreatorTest {
         words.forEach { w ->
             val note = ApkgCreator.Note(
                 id = ApkgCreator.generateId(),
-                mid = model.id,
+                modelId = model.id,
                 fields = listOf(w, "$w-meaning"),
                 tags = "basic"
             )
@@ -888,13 +876,9 @@ class ApkgCreatorTest {
         verifyApkgStructure(apkgFile, expectedDbName)
     }
 
-    private fun getExpectedDbName(formatVersion: ApkgCreator.FormatVersion): String = when (formatVersion) {
-        ApkgCreator.FormatVersion.LEGACY -> "collection.anki2"
-        ApkgCreator.FormatVersion.TRANSITIONAL -> "collection.anki21"
-        ApkgCreator.FormatVersion.LATEST -> "collection.anki21b"
-    }
+    private fun getExpectedDbName(format: ApkgFormat): String = format.databaseFileName
 
-    private fun setupAdvancedTestData(creator: ApkgCreator, formatVersion: ApkgCreator.FormatVersion) {
+    private fun setupAdvancedTestData(creator: ApkgCreator, format: ApkgFormat) {
         val deckId = ApkgCreator.generateId()
         val deck = ApkgCreator.Deck(id = deckId, name = "高级词汇")
         creator.addDeck(deck)
@@ -908,7 +892,7 @@ class ApkgCreatorTest {
         words.forEach { wd ->
             val note = ApkgCreator.Note(
                 id = ApkgCreator.generateId(),
-                mid = model.id,
+                modelId = model.id,
                 fields = listOf(
                     wd.word,
                     wd.meaning,

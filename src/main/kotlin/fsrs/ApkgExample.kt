@@ -1,8 +1,5 @@
 package fsrs
 
-import java.io.File
-
-
 
 /**
  * APKG 使用示例
@@ -21,7 +18,7 @@ object ApkgExample {
         val deck = ApkgCreator.Deck(
             id = deckId,
             name = "基础英语词汇",
-            desc = "包含常用英语单词的学习卡片"
+            description = "包含常用英语单词的学习卡片"
         )
         creator.addDeck(deck)
 
@@ -46,7 +43,7 @@ object ApkgExample {
         basicWords.forEach { (english, chinese) ->
             val note = ApkgCreator.Note(
                 id = ApkgCreator.generateId(),
-                mid = model.id,
+                modelId = model.id,
                 fields = listOf(english, chinese)
             )
             creator.addNote(note, deckId)
@@ -69,7 +66,7 @@ object ApkgExample {
         val deck = ApkgCreator.Deck(
             id = deckId,
             name = "高级英语词汇",
-            desc = "包含音频和例句的英语单词学习"
+            description = "包含音频和例句的英语单词学习"
         )
         creator.addDeck(deck)
 
@@ -89,7 +86,7 @@ object ApkgExample {
         advancedWords.forEach { word ->
             val note = ApkgCreator.Note(
                 id = ApkgCreator.generateId(),
-                mid = model.id,
+                modelId = model.id,
                 fields = listOf(word.english, word.chinese, word.audio, word.example)
             )
             creator.addNote(note, deckId)
@@ -113,7 +110,7 @@ object ApkgExample {
         val deck = ApkgCreator.Deck(
             id = deckId,
             name = "导入的词汇",
-            desc = "从 JSON 文件导入的词汇数据"
+            description = "从 JSON 文件导入的词汇数据"
         )
         creator.addDeck(deck)
 

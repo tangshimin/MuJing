@@ -9,8 +9,8 @@ import java.sql.SQLException
  */
 internal class ApkgDatabaseParser(private val schemaVersion: Int) {
 
-    fun parseNotes(conn: Connection): List<ApkgParser.ParsedNote> {
-        val notes = mutableListOf<ApkgParser.ParsedNote>()
+    fun parseNotes(conn: Connection): List<ApkgCreator.Note> {
+        val notes = mutableListOf<ApkgCreator.Note>()
         
         val query = if (schemaVersion >= 18) {
             "SELECT id, guid, mid, mod, usn, tags, flds, sfld, csum, flags, data FROM notes"
@@ -25,17 +25,12 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
                         val fieldsString = rs.getString("flds")
                         val fields = fieldsString.split("\u001f")
                         
-                        notes.add(ApkgParser.ParsedNote(
+                        notes.add(ApkgCreator.Note(
                             id = rs.getLong("id"),
-                            guid = rs.getString("guid"),
                             modelId = rs.getLong("mid"),
                             fields = fields,
                             tags = rs.getString("tags"),
-                            modificationTime = rs.getLong("mod"),
-                            updateSequenceNumber = rs.getInt("usn"),
-                            checksum = if (schemaVersion >= 18) rs.getLong("csum") else null,
-                            flags = if (schemaVersion >= 18) rs.getInt("flags") else null,
-                            data = if (schemaVersion >= 18) rs.getString("data") else null
+                            guid = rs.getString("guid")
                         ))
                     }
                 }
@@ -47,23 +42,17 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
         return notes
     }
 
-    fun parseCards(conn: Connection): List<ApkgParser.ParsedCard> {
-        val cards = mutableListOf<ApkgParser.ParsedCard>()
+    fun parseCards(conn: Connection): List<ApkgCreator.Card> {
+        val cards = mutableListOf<ApkgCreator.Card>()
         
         // 动态检测可用的列
         val availableColumns = getAvailableColumns(conn, "cards")
         
         // 构建查询，只包含实际存在的列
         val baseColumns = listOf("id", "nid", "did", "ord", "type", "queue", "due", "ivl", "factor", "reps", "lapses", "left")
-        val v18Columns = listOf("mod", "usn", "odue", "odid", "flags", "data")
-        val fsrsColumns = listOf("fsrsState", "fsrsDifficulty", "fsrsStability", "fsrsDue")
         
         val selectedColumns = mutableListOf<String>().apply {
             addAll(baseColumns)
-            if (schemaVersion >= 18) {
-                addAll(v18Columns.filter { it in availableColumns })
-                addAll(fsrsColumns.filter { it in availableColumns })
-            }
         }
         
         val query = "SELECT ${selectedColumns.joinToString(", ")} FROM cards"
@@ -72,7 +61,7 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
             conn.createStatement().use { stmt ->
                 stmt.executeQuery(query).use { rs ->
                     while (rs.next()) {
-                        cards.add(ApkgParser.ParsedCard(
+                        cards.add(ApkgCreator.Card(
                             id = rs.getLong("id"),
                             noteId = rs.getLong("nid"),
                             deckId = rs.getLong("did"),
@@ -84,17 +73,7 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
                             easeFactor = rs.getInt("factor"),
                             repetitions = rs.getInt("reps"),
                             lapses = rs.getInt("lapses"),
-                            remainingSteps = rs.getInt("left"),
-                            modificationTime = if ("mod" in selectedColumns) rs.getLong("mod") else null,
-                            updateSequenceNumber = if ("usn" in selectedColumns) rs.getInt("usn") else null,
-                            originalDueTime = if ("odue" in selectedColumns) rs.getInt("odue") else null,
-                            originalDeckId = if ("odid" in selectedColumns) rs.getInt("odid") else null,
-                            flags = if ("flags" in selectedColumns) rs.getInt("flags") else null,
-                            data = if ("data" in selectedColumns) rs.getString("data") else null,
-                            fsrsState = if ("fsrsState" in selectedColumns) rs.getString("fsrsState") else null,
-                            fsrsDifficulty = if ("fsrsDifficulty" in selectedColumns) rs.getDouble("fsrsDifficulty") else null,
-                            fsrsStability = if ("fsrsStability" in selectedColumns) rs.getDouble("fsrsStability") else null,
-                            fsrsDue = if ("fsrsDue" in selectedColumns) rs.getString("fsrsDue") else null
+                            remainingSteps = rs.getInt("left")
                         ))
                     }
                 }
@@ -127,8 +106,8 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
         return columns
     }
 
-    fun parseDecks(conn: Connection): List<ApkgParser.ParsedDeck> {
-        val decks = mutableListOf<ApkgParser.ParsedDeck>()
+    fun parseDecks(conn: Connection): List<ApkgCreator.Deck> {
+        val decks = mutableListOf<ApkgCreator.Deck>()
         
         try {
             conn.createStatement().use { stmt ->
@@ -138,34 +117,34 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
                         
                         // 检查 decksJson 是否为空或无效
                         if (decksJson.isBlank() || decksJson == "{}" || decksJson == "null") {
+                            println("DEBUG: decksJson is empty or invalid: '$decksJson'")
                             return emptyList()
                         }
                         
                         try {
                             val decksObj = Json.parseToJsonElement(decksJson).jsonObject
+                            println("DEBUG: Found ${decksObj.size} decks in JSON")
                             
                             decksObj.forEach { (deckId, deckData) ->
                                 val deck = deckData.jsonObject
+                                println("DEBUG: Parsing deck $deckId: ${deck["name"]?.jsonPrimitive?.content}")
                                 
-                                if (schemaVersion >= 18) {
-                                    deck["reviewLimit"]?.jsonPrimitive?.int
-                                    deck["newLimit"]?.jsonPrimitive?.int
-                                    deck["reviewLimitToday"]?.jsonPrimitive?.int
-                                    deck["newLimitToday"]?.jsonPrimitive?.int
-                                    deck["browserCollapsed"]?.jsonPrimitive?.boolean
-                                }
-                                
-                                decks.add(ApkgParser.ParsedDeck(
+                                decks.add(ApkgCreator.Deck(
                                     id = deckId.toLong(),
                                     name = deck["name"]?.jsonPrimitive?.content ?: "",
                                     description = deck["desc"]?.jsonPrimitive?.content ?: "",
-                                    isCollapsed = deck["collapsed"]?.jsonPrimitive?.boolean ?: false,
-                                    isDynamic = deck["dyn"]?.jsonPrimitive?.int == 1,
+                                    modificationTime = deck["mod"]?.jsonPrimitive?.long ?: 0,
+                                    updateSequenceNumber = deck["usn"]?.jsonPrimitive?.int ?: 0,
+                                    learnToday = deck["lrnToday"]?.jsonArray?.map { it.jsonPrimitive.int } ?: listOf(0, 0),
+                                    reviewToday = deck["revToday"]?.jsonArray?.map { it.jsonPrimitive.int } ?: listOf(0, 0),
+                                    newToday = deck["newToday"]?.jsonArray?.map { it.jsonPrimitive.int } ?: listOf(0, 0),
+                                    timeToday = deck["timeToday"]?.jsonArray?.map { it.jsonPrimitive.int } ?: listOf(0, 0),
+                                    collapsed = deck["collapsed"]?.jsonPrimitive?.boolean ?: false,
+                                    browserCollapsed = deck["browserCollapsed"]?.jsonPrimitive?.boolean ?: true,
+                                    isDynamic = deck["dyn"]?.jsonPrimitive?.int ?: 0,
                                     configurationId = deck["conf"]?.jsonPrimitive?.long ?: 1L,
-                                    modificationTime = deck["mod"]?.jsonPrimitive?.long,
-                                    updateSequenceNumber = deck["usn"]?.jsonPrimitive?.int,
-                                    reviewLimit = if (schemaVersion >= 18) deck["reviewLimit"]?.jsonPrimitive?.int else null,
-                                    newLimit = if (schemaVersion >= 18) deck["newLimit"]?.jsonPrimitive?.int else null
+                                    reviewLimit = deck["reviewLimit"]?.let { if (it is JsonNull) null else it.jsonPrimitive.intOrNull },
+                                    newLimit = deck["newLimit"]?.let { if (it is JsonNull) null else it.jsonPrimitive.intOrNull }
                                 ))
                             }
                         } catch (e: Exception) {
@@ -185,8 +164,8 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
         return decks
     }
 
-    fun parseModels(conn: Connection): List<ApkgParser.ParsedModel> {
-        val models = mutableListOf<ApkgParser.ParsedModel>()
+    fun parseModels(conn: Connection): List<ApkgCreator.Model> {
+        val models = mutableListOf<ApkgCreator.Model>()
         
         try {
             conn.createStatement().use { stmt ->
@@ -207,21 +186,19 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
                                 val templates = parseTemplates(model["tmpls"]?.jsonArray)
                                 val fields = parseFields(model["flds"]?.jsonArray)
                                 
-                                if (schemaVersion >= 18) {
-                                    model["latexPre"]?.jsonPrimitive?.content
-                                    model["latexPost"]?.jsonPrimitive?.content
-                                    model["latexsvg"]?.jsonPrimitive?.boolean
-                                }
-                                
-                                models.add(ApkgParser.ParsedModel(
+                                models.add(ApkgCreator.Model(
                                     id = modelId.toLong(),
                                     name = model["name"]?.jsonPrimitive?.content ?: "",
                                     type = model["type"]?.jsonPrimitive?.int ?: 0,
+                                    modificationTime = model["mod"]?.jsonPrimitive?.long ?: java.time.Instant.now().epochSecond,
+                                    updateSequenceNumber = model["usn"]?.jsonPrimitive?.int ?: -1,
+                                    sortField = model["sortf"]?.jsonPrimitive?.int ?: 0,
+                                    deckId = model["did"]?.let { 
+                                        if (it is JsonNull) null else it.jsonPrimitive.longOrNull 
+                                    },
                                     templates = templates,
                                     fields = fields,
-                                    css = model["css"]?.jsonPrimitive?.content ?: "",
-                                    modificationTime = model["mod"]?.jsonPrimitive?.long,
-                                    updateSequenceNumber = model["usn"]?.jsonPrimitive?.int
+                                    css = model["css"]?.jsonPrimitive?.content ?: ".card {\n font-family: arial;\n font-size: 20px;\n text-align: center;\n color: black;\n background-color: white;\n}"
                                 ))
                             }
                         } catch (e: Exception) {
@@ -258,10 +235,10 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
         throw ApkgParseException("Collection information not found")
     }
 
-    private fun parseTemplates(templatesArray: JsonArray?): List<ApkgParser.ParsedTemplate> {
+    private fun parseTemplates(templatesArray: JsonArray?): List<ApkgCreator.CardTemplate> {
         return templatesArray?.mapNotNull { templateElement ->
             val template = templateElement.jsonObject
-            ApkgParser.ParsedTemplate(
+            ApkgCreator.CardTemplate(
                 name = template["name"]?.jsonPrimitive?.content ?: "",
                 ordinal = template["ord"]?.jsonPrimitive?.int ?: 0,
                 questionFormat = template["qfmt"]?.jsonPrimitive?.content ?: "",
@@ -275,14 +252,14 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
         } ?: emptyList()
     }
 
-    private fun parseFields(fieldsArray: JsonArray?): List<ApkgParser.ParsedField> {
+    private fun parseFields(fieldsArray: JsonArray?): List<ApkgCreator.Field> {
         return fieldsArray?.mapNotNull { fieldElement ->
             val field = fieldElement.jsonObject
-            ApkgParser.ParsedField(
+            ApkgCreator.Field(
                 name = field["name"]?.jsonPrimitive?.content ?: "",
                 ordinal = field["ord"]?.jsonPrimitive?.int ?: 0,
-                isSticky = field["sticky"]?.jsonPrimitive?.boolean ?: false,
-                isRightToLeft = field["rtl"]?.jsonPrimitive?.boolean ?: false,
+                sticky = field["sticky"]?.jsonPrimitive?.boolean ?: false,
+                rightToLeft = field["rtl"]?.jsonPrimitive?.boolean ?: false,
                 font = field["font"]?.jsonPrimitive?.content ?: "Arial",
                 size = field["size"]?.jsonPrimitive?.int ?: 20
             )

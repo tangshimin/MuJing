@@ -4,110 +4,29 @@ import java.util.zip.ZipFile
 
 /**
  * APKG 解析器
- * 用于解析 Anki 包格式文件，支持所有格式版本：
- * - Legacy (collection.anki2): Anki 2.1.x 之前
- * - Transitional (collection.anki21): Anki 2.1.x
- * - Latest (collection.anki21b): Anki 23.10+ (V18, Zstd压缩)
+ * 支持所有格式版本
  */
 class ApkgParser {
 
     private val databaseHandler = ApkgDatabaseHandler()
-
-    data class ParsedNote(
-        val id: Long,
-        val guid: String,
-        val modelId: Long,
-        val fields: List<String>,
-        val tags: String,
-        val modificationTime: Long,
-        val updateSequenceNumber: Int,
-        val checksum: Long? = null,
-        val flags: Int? = null,
-        val data: String? = null
+    private val mediaParser = ApkgMediaParser()
+    
+    /**
+     * 解析上下文，遵循 Anki 的 Context 模式
+     */
+    private data class ParseContext(
+        val zipFile: ZipFile,
+        val format: ApkgFormat,
+        val meta: ApkgMeta?
     )
 
-    data class ParsedCard(
-        val id: Long,
-        val noteId: Long,
-        val deckId: Long,
-        val templateOrdinal: Int,
-        val cardType: Int,
-        val queueType: Int,
-        val dueTime: Int,
-        val interval: Int,
-        val easeFactor: Int,
-        val repetitions: Int,
-        val lapses: Int,
-        val remainingSteps: Int,
-        val modificationTime: Long? = null,
-        val updateSequenceNumber: Int? = null,
-        val originalDueTime: Int? = null,
-        val originalDeckId: Int? = null,
-        val flags: Int? = null,
-        val data: String? = null,
-        val fsrsState: String? = null,
-        val fsrsDifficulty: Double? = null,
-        val fsrsStability: Double? = null,
-        val fsrsDue: String? = null
-    )
-
-    data class ParsedDeck(
-        val id: Long,
-        val name: String,
-        val description: String,
-        val isCollapsed: Boolean,
-        val isDynamic: Boolean,
-        val configurationId: Long,
-        val modificationTime: Long? = null,
-        val updateSequenceNumber: Int? = null,
-        val reviewLimit: Int? = null,
-        val newLimit: Int? = null
-    )
-
-    data class ParsedModel(
-        val id: Long,
-        val name: String,
-        val type: Int,
-        val templates: List<ParsedTemplate>,
-        val fields: List<ParsedField>,
-        val css: String,
-        val modificationTime: Long? = null,
-        val updateSequenceNumber: Int? = null
-    )
-
-    data class ParsedTemplate(
-        val name: String,
-        val ordinal: Int,
-        val questionFormat: String,
-        val answerFormat: String,
-        val deckId: Long? = null,
-        val browserQuestionFormat: String = "",
-        val browserAnswerFormat: String = ""
-    )
-
-    data class ParsedField(
-        val name: String,
-        val ordinal: Int,
-        val isSticky: Boolean,
-        val isRightToLeft: Boolean,
-        val font: String,
-        val size: Int
-    )
-
-    data class ParsedMediaFile(
-        val index: Int,
-        val filename: String,
-        val data: ByteArray,
-        val size: Int? = null,
-        val sha1: ByteArray? = null
-    )
-
+    // 解析结果使用 ApkgCreator 的数据类
     data class ParsedApkg(
-        val notes: List<ParsedNote>,
-        val cards: List<ParsedCard>,
-        val decks: List<ParsedDeck>,
-        val models: List<ParsedModel>,
-        val mediaFiles: List<ParsedMediaFile>,
+        val notes: List<ApkgCreator.Note>,
+        val cards: List<ApkgCreator.Card>,
+        val decks: List<ApkgCreator.Deck>,
+        val models: List<ApkgCreator.Model>,
+        val mediaFiles: List<ApkgCreator.MediaFile>,
         val databaseVersion: Int,
         val creationTime: Long,
         val format: ApkgFormat,
@@ -115,11 +34,19 @@ class ApkgParser {
     )
 
     /**
-     * 检测 APKG 文件中的数据库格式
+     * 检测 APKG 文件中的格式和元数据
      */
-    private fun detectFormat(zipFile: ZipFile): ApkgFormat {
+    private fun detectFormatAndMeta(zipFile: ZipFile): ParseContext {
         val entries = zipFile.entries().toList().map { it.name }
-        return ApkgFormat.detectFromZipEntries(entries)
+        val format = ApkgFormat.detectFromZipEntries(entries)
+        val meta = try {
+            zipFile.getInputStream(zipFile.getEntry("meta")).use { stream ->
+                ApkgMeta.fromInputStream(stream)
+            }
+        } catch (e: Exception) {
+            null // 旧格式可能没有 meta 文件
+        }
+        return ParseContext(zipFile, format, meta)
     }
 
 
@@ -128,20 +55,20 @@ class ApkgParser {
      */
     fun parseApkg(filePath: String): ParsedApkg {
         val zipFile = ZipFile(filePath)
-        val format = detectFormat(zipFile)
+        val context = detectFormatAndMeta(zipFile)
         
-        val dbConnection = databaseHandler.prepareDatabaseConnection(zipFile, format)
+        val dbConnection = databaseHandler.prepareDatabaseConnection(context.zipFile, context.format)
         
         try {
             val schemaVersion = databaseHandler.detectSchemaVersion(dbConnection.connection)
             val databaseParser = ApkgDatabaseParser(schemaVersion.effectiveVersion)
-            val mediaParser = ApkgMediaParser()
             
+            // 遵循 Anki 的数据收集模式
             val notes = databaseParser.parseNotes(dbConnection.connection)
             val cards = databaseParser.parseCards(dbConnection.connection)
             val decks = databaseParser.parseDecks(dbConnection.connection)
             val models = databaseParser.parseModels(dbConnection.connection)
-            val mediaFiles = mediaParser.parseMediaFiles(zipFile, format.databaseFileName)
+            val mediaFiles = mediaParser.parseMediaFiles(context.zipFile, context.format.databaseFileName)
             val (dbVersion, creationTime) = databaseParser.parseCollectionInfo(dbConnection.connection)
 
             return ParsedApkg(
@@ -152,7 +79,7 @@ class ApkgParser {
                 mediaFiles = mediaFiles,
                 databaseVersion = dbVersion,
                 creationTime = creationTime,
-                format = format,
+                format = context.format,
                 schemaVersion = schemaVersion.effectiveVersion
             )
         } finally {
@@ -174,13 +101,14 @@ class ApkgParser {
                     val format = ApkgFormat.detectFromZipEntries(entries)
                     val hasMedia = zipFile.getEntry("media") != null
                     
-                    // 检查新格式的必需文件
-                    if (format == ApkgFormat.LATEST) {
-                        val hasMeta = zipFile.getEntry("meta") != null
-                        return hasMedia && hasMeta
+                    // 遵循 Anki 的格式验证逻辑
+                    when (format) {
+                        ApkgFormat.LATEST -> {
+                            val hasMeta = zipFile.getEntry("meta") != null
+                            hasMedia && hasMeta
+                        }
+                        else -> hasMedia
                     }
-                    
-                    return hasMedia
                 } catch (e: IllegalArgumentException) {
                     false
                 }
@@ -197,8 +125,8 @@ class ApkgParser {
         val zipFile = ZipFile(filePath)
         
         try {
-            val format = detectFormat(zipFile)
-            val dbConnection = databaseHandler.prepareDatabaseConnection(zipFile, format)
+            val context = detectFormatAndMeta(zipFile)
+            val dbConnection = databaseHandler.prepareDatabaseConnection(context.zipFile, context.format)
             
             try {
                 val info = mutableMapOf<String, Any>()
@@ -206,12 +134,14 @@ class ApkgParser {
                 try {
                     val schemaVersion = databaseHandler.detectSchemaVersion(dbConnection.connection)
                     val databaseParser = ApkgDatabaseParser(schemaVersion.effectiveVersion)
-                    val mediaParser = ApkgMediaParser()
                     
-                    // 添加格式信息
-                    info["format"] = format.name
+                    // 添加格式和元数据信息
+                    info["format"] = context.format.name
                     info["schemaVersion"] = schemaVersion.effectiveVersion
-                    info["databaseFormat"] = format.databaseFileName
+                    info["databaseFormat"] = context.format.databaseFileName
+                    context.meta?.let { meta ->
+                        info["metaVersion"] = meta.version
+                    }
                     
                     // 获取基本统计信息
                     dbConnection.connection.createStatement().use { stmt ->
@@ -233,7 +163,7 @@ class ApkgParser {
                     info["creationTime"] = creationTime
                     
                     // 添加媒体文件信息
-                    info.putAll(mediaParser.getMediaInfo(zipFile, format.databaseFileName))
+                    info.putAll(mediaParser.getMediaInfo(context.zipFile, context.format.databaseFileName))
                     
                 } catch (e: Exception) {
                     // 对于信息获取，不抛出异常，只记录错误
@@ -257,14 +187,15 @@ class ApkgParser {
     fun getFormatInfo(filePath: String): Map<String, Any> {
         return try {
             ZipFile(filePath).use { zipFile ->
-                val format = detectFormat(zipFile)
+                val context = detectFormatAndMeta(zipFile)
                 val entries = zipFile.entries().toList().map { it.name }
                 
                 mapOf(
-                    "format" to format.name,
-                    "databaseFormat" to format.databaseFileName,
+                    "format" to context.format.name,
+                    "databaseFormat" to context.format.databaseFileName,
                     "hasMetaFile" to entries.contains("meta"),
                     "hasMediaFile" to entries.contains("media"),
+                    "metaVersion" to (context.meta?.version ?: "N/A").toString(),
                     "mediaFileCount" to entries.count { it.matches(Regex("\\d+")) },
                     "totalEntries" to entries.size
                 )

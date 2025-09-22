@@ -10,8 +10,8 @@ import java.util.zip.ZipFile
  */
 internal class ApkgMediaParser {
 
-    fun parseMediaFiles(zipFile: ZipFile, databaseFormat: String): List<ApkgParser.ParsedMediaFile> {
-        val mediaFiles = mutableListOf<ApkgParser.ParsedMediaFile>()
+    fun parseMediaFiles(zipFile: ZipFile, databaseFormat: String): List<ApkgCreator.MediaFile> {
+        val mediaFiles = mutableListOf<ApkgCreator.MediaFile>()
         
         try {
             // 解析媒体映射
@@ -34,7 +34,7 @@ internal class ApkgMediaParser {
                                 it.readBytes()
                             }
                             val data = ZstdNative().decompress(compressedData)
-                            mediaFiles.add(ApkgParser.ParsedMediaFile(index, filename, data, size, sha1))
+                            mediaFiles.add(ApkgCreator.MediaFile(index, filename, data, size, sha1))
                         }
                     }
                 } else {
@@ -53,7 +53,7 @@ internal class ApkgMediaParser {
                                 val data = zipFile.getInputStream(mediaFileEntry).use {
                                     it.readBytes()
                                 }
-                                mediaFiles.add(ApkgParser.ParsedMediaFile(index, filename, data))
+                                mediaFiles.add(ApkgCreator.MediaFile(index, filename, data))
                             }
                         }
                     }

@@ -1,6 +1,5 @@
 package fsrs
 
-
 import fsrs.zstd.ZstdNative
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -13,36 +12,21 @@ import java.util.zip.ZipOutputStream
 
 /**
  * APKG 创建器
- * 用于创建 Anki 包格式文件
- * 支持多种格式：collection.anki2 (旧格式), collection.anki21 (过渡格式), collection.anki21b (新格式)
+ * 支持所有格式版本
  */
 class ApkgCreator {
 
     /**
-     * APKG 格式版本（使用共享的 ApkgFormat 枚举）
+     * 创建上下文
      */
-    enum class FormatVersion {
-        LEGACY {          // collection.anki2 (Anki 2.1.x 之前)
-            override val apkgFormat = ApkgFormat.LEGACY
-        },
-        TRANSITIONAL {    // collection.anki21 (Anki 2.1.x)
-            override val apkgFormat = ApkgFormat.TRANSITIONAL
-        },
-        LATEST {          // collection.anki21b (Anki 23.10+)
-            override val apkgFormat = ApkgFormat.LATEST
-        };
-        
-        abstract val apkgFormat: ApkgFormat
-        
-        val schemaVersion: Int get() = apkgFormat.schemaVersion
-        val databaseVersion: Int get() = apkgFormat.databaseVersion
-        val useZstdCompression: Boolean get() = apkgFormat.useZstdCompression
-        val databaseFileName: String get() = apkgFormat.databaseFileName
-    }
+    private data class CreateContext(
+        val format: ApkgFormat,
+        val meta: ApkgMeta
+    )
 
     data class Note(
         val id: Long,
-        val mid: Long, // model id
+        val modelId: Long,
         val fields: List<String>,
         val tags: String = "",
         val guid: String = generateGuid()
@@ -50,33 +34,33 @@ class ApkgCreator {
 
     data class Card(
         val id: Long,
-        val nid: Long, // note id
-        val did: Long, // deck id
-        val ord: Int, // ordinal (card template)
-        val type: Int = 0, // 0=new, 1=learning, 2=review
-        val queue: Int = 0, // same as type
-        val due: Int = 1,
-        val ivl: Int = 0, // interval
-        val factor: Int = 2500, // ease factor
-        val reps: Int = 0, // repetitions
+        val noteId: Long,
+        val deckId: Long,
+        val templateOrdinal: Int,
+        val cardType: Int = 0, // 0=new, 1=learning, 2=review
+        val queueType: Int = 0, // same as type
+        val dueTime: Int = 1,
+        val interval: Int = 0,
+        val easeFactor: Int = 2500,
+        val repetitions: Int = 0,
         val lapses: Int = 0,
-        val left: Int = 0
+        val remainingSteps: Int = 0
     )
 
     data class Deck(
         val id: Long,
-        val mod: Long = 0,
+        val modificationTime: Long = 0,
         val name: String,
-        val usn: Int = 0,
-        val lrnToday: List<Int> = listOf(0, 0),
-        val revToday: List<Int> = listOf(0, 0),
+        val updateSequenceNumber: Int = 0,
+        val learnToday: List<Int> = listOf(0, 0),
+        val reviewToday: List<Int> = listOf(0, 0),
         val newToday: List<Int> = listOf(0, 0),
         val timeToday: List<Int> = listOf(0, 0),
         val collapsed: Boolean = false,
         val browserCollapsed: Boolean = true,
-        val desc: String = "",
-        val dyn: Int = 0,
-        val conf: Long = 1,
+        val description: String = "",
+        val isDynamic: Int = 0,
+        val configurationId: Long = 1,
         val extendNew: Int = 0,
         val extendRev: Int = 0,
         val reviewLimit: Int? = null,
@@ -89,32 +73,40 @@ class ApkgCreator {
         val id: Long,
         val name: String,
         val type: Int = 0,
-        val mod: Long = java.time.Instant.now().epochSecond,
-        val usn: Int = -1,
-        val sortf: Int = 0,
-        val did: Long? = null,
-        val tmpls: List<CardTemplate>,
-        val flds: List<Field>,
+        val modificationTime: Long = java.time.Instant.now().epochSecond,
+        val updateSequenceNumber: Int = -1,
+        val sortField: Int = 0,
+        val deckId: Long? = null,
+        val templates: List<CardTemplate>,
+        val fields: List<Field>,
         val css: String = ".card {\n font-family: arial;\n font-size: 20px;\n text-align: center;\n color: black;\n background-color: white;\n}"
     )
 
     data class CardTemplate(
         val name: String,
-        val ord: Int,
-        val qfmt: String, // question format
-        val afmt: String, // answer format
-        val did: Long? = null,
-        val bqfmt: String = "",
-        val bafmt: String = ""
+        val ordinal: Int,
+        val questionFormat: String,
+        val answerFormat: String,
+        val deckId: Long? = null,
+        val browserQuestionFormat: String = "",
+        val browserAnswerFormat: String = ""
     )
 
     data class Field(
         val name: String,
-        val ord: Int,
+        val ordinal: Int,
         val sticky: Boolean = false,
-        val rtl: Boolean = false,
+        val rightToLeft: Boolean = false,
         val font: String = "Arial",
         val size: Int = 20
+    )
+
+    data class MediaFile(
+        val index: Int,
+        val filename: String,
+        val data: ByteArray,
+        val size: Int? = null,
+        val sha1: ByteArray? = null
     )
 
     companion object {
@@ -131,17 +123,17 @@ class ApkgCreator {
             return Model(
                 id = modelId,
                 name = "Basic",
-                tmpls = listOf(
+                templates = listOf(
                     CardTemplate(
                         name = "Card 1",
-                        ord = 0,
-                        qfmt = "{{Front}}",
-                        afmt = "{{FrontSide}}\n\n<hr id=answer>\n\n{{Back}}"
+                        ordinal = 0,
+                        questionFormat = "{{Front}}",
+                        answerFormat = "{{FrontSide}}\n\n<hr id=answer>\n\n{{Back}}"
                     )
                 ),
-                flds = listOf(
-                    Field(name = "Front", ord = 0),
-                    Field(name = "Back", ord = 1)
+                fields = listOf(
+                    Field(name = "Front", ordinal = 0),
+                    Field(name = "Back", ordinal = 1)
                 )
             )
         }
@@ -154,25 +146,25 @@ class ApkgCreator {
             return Model(
                 id = modelId,
                 name = "Word Learning",
-                tmpls = listOf(
+                templates = listOf(
                     CardTemplate(
                         name = "Recognition",
-                        ord = 0,
-                        qfmt = "{{Word}}\n{{#Audio}}{{Audio}}{{/Audio}}",
-                        afmt = "{{FrontSide}}\n\n<hr id=answer>\n\n{{Meaning}}\n{{#Example}}{{Example}}{{/Example}}"
+                        ordinal = 0,
+                        questionFormat = "{{Word}}\n{{#Audio}}{{Audio}}{{/Audio}}",
+                        answerFormat = "{{FrontSide}}\n\n<hr id=answer>\n\n{{Meaning}}\n{{#Example}}{{Example}}{{/Example}}"
                     ),
                     CardTemplate(
                         name = "Recall",
-                        ord = 1,
-                        qfmt = "{{Meaning}}",
-                        afmt = "{{FrontSide}}\n\n<hr id=answer>\n\n{{Word}}\n{{#Audio}}{{Audio}}{{/Audio}}\n{{#Example}}{{Example}}{{/Example}}"
+                        ordinal = 1,
+                        questionFormat = "{{Meaning}}",
+                        answerFormat = "{{FrontSide}}\n\n<hr id=answer>\n\n{{Word}}\n{{#Audio}}{{Audio}}{{/Audio}}\n{{#Example}}{{Example}}{{/Example}}"
                     )
                 ),
-                flds = listOf(
-                    Field(name = "Word", ord = 0),
-                    Field(name = "Meaning", ord = 1),
-                    Field(name = "Audio", ord = 2),
-                    Field(name = "Example", ord = 3)
+                fields = listOf(
+                    Field(name = "Word", ordinal = 0),
+                    Field(name = "Meaning", ordinal = 1),
+                    Field(name = "Audio", ordinal = 2),
+                    Field(name = "Example", ordinal = 3)
                 ),
                 css = """
                     .card {
@@ -212,7 +204,7 @@ class ApkgCreator {
     private val decks = mutableMapOf<Long, Deck>()
     private val models = mutableMapOf<Long, Model>()
     private val mediaFiles = mutableMapOf<String, ByteArray>()
-    private var formatVersion: FormatVersion = FormatVersion.LEGACY
+    private var format: ApkgFormat = ApkgFormat.LEGACY
     private val databaseCreator = ApkgDatabaseCreator()
 
     /**
@@ -238,14 +230,14 @@ class ApkgCreator {
         notes.add(note)
 
         // 为笔记创建卡片（根据模型的模板数量）
-        val model = models[note.mid] ?: throw IllegalArgumentException("Model not found: ${note.mid}")
-        model.tmpls.forEachIndexed { index, _ ->
+        val model = models[note.modelId] ?: throw IllegalArgumentException("Model not found: ${note.modelId}")
+        model.templates.forEachIndexed { index, _ ->
             cards.add(
                 Card(
                     id = generateId(),
-                    nid = note.id,
-                    did = deckId,
-                    ord = index
+                    noteId = note.id,
+                    deckId = deckId,
+                    templateOrdinal = index
                 )
             )
         }
@@ -263,8 +255,8 @@ class ApkgCreator {
     /**
      * 设置 APKG 格式版本
      */
-    fun setFormatVersion(version: FormatVersion): ApkgCreator {
-        formatVersion = version
+    fun setFormat(format: ApkgFormat): ApkgCreator {
+        this.format = format
         return this
     }
 
@@ -274,35 +266,31 @@ class ApkgCreator {
      * @param dualFormat 是否同时生成新旧两种格式（默认 false）
      */
     fun createApkg(outputPath: String, dualFormat: Boolean = false) {
+        val context = CreateContext(format, createMetaForFormat(format))
         val tempDbFiles = mutableListOf<File>()
         try {
             // 创建 SQLite 数据库
-            val dbFiles = if (dualFormat) {
+            val dbFilesWithFormat = if (dualFormat) {
                 // 生成双格式：旧格式和新格式
                 listOf(
-                    createDatabase(FormatVersion.LEGACY),
-                    createDatabase(FormatVersion.LATEST)
+                    createDatabase(ApkgFormat.LEGACY) to ApkgFormat.LEGACY,
+                    createDatabase(ApkgFormat.LATEST) to ApkgFormat.LATEST
                 )
             } else {
                 // 生成单格式
-                listOf(createDatabase(formatVersion))
+                listOf(createDatabase(format) to format)
             }
-            tempDbFiles.addAll(dbFiles)
+            tempDbFiles.addAll(dbFilesWithFormat.map { it.first })
 
             // 构建规范化后的媒体清单，确保名称安全唯一
-            val mediaList: List<Pair<String, ByteArray>> = buildNormalizedMediaList()
+            val mediaList: List<Pair<String, ByteArray>> = buildNormalizedMediaList(context)
 
             // 创建 ZIP 文件
             FileOutputStream(outputPath).use { fos ->
                 ZipOutputStream(fos).use { zos ->
                     // 添加数据库文件
-                    dbFiles.forEach { dbFile ->
-                        val dbName = when {
-                            dbFile.name.contains("anki21b") && !dbFile.name.endsWith(".zstd") -> "collection.anki21b"
-                            dbFile.name.contains("anki21b.zstd") -> "collection.anki21b"
-                            dbFile.name.contains("anki21") -> "collection.anki21"
-                            else -> "collection.anki2"
-                        }
+                    dbFilesWithFormat.forEach { (dbFile, dbFormat) ->
+                        val dbName = dbFormat.databaseFileName
                         println("🔧 数据库文件检测: 原始文件名=${dbFile.name}, ZIP 条目名=$dbName")
 
                         // 使用 STORED 方式写入数据库，避免 ZIP 再压缩
@@ -321,20 +309,12 @@ class ApkgCreator {
 
                     // 添加 meta 文件（Anki 23.10+ 要求）
                     zos.putNextEntry(ZipEntry("meta"))
-                    val metaData = createMetaData()
-                    zos.write(metaData)
+                    zos.write(context.meta.toByteArray())
                     zos.closeEntry()
 
                     // 添加媒体映射文件
                     zos.putNextEntry(ZipEntry("media"))
-                    val mediaBytes = if (formatVersion == FormatVersion.LATEST) {
-                        // LATEST: Protobuf(MediaEntries) + Zstd 压缩
-                        val entriesBytes = buildMediaEntriesProtobuf(mediaList)
-                        ZstdNative().compress(entriesBytes, 0)
-                    } else {
-                        // 旧格式：JSON（未压缩）
-                        createLegacyMediaJson(mediaList).toByteArray()
-                    }
+                    val mediaBytes = createMediaFileData(context, mediaList)
                     zos.write(mediaBytes)
                     zos.closeEntry()
 
@@ -342,7 +322,7 @@ class ApkgCreator {
                     mediaList.forEachIndexed { index, pair ->
                         val (_, data) = pair
                         zos.putNextEntry(ZipEntry(index.toString()))
-                        val toWrite = if (formatVersion == FormatVersion.LATEST) {
+                        val toWrite = if (context.format.useZstdCompression) {
                             // LATEST: 每个媒体文件内容单独用 Zstd 压缩
                             ZstdNative().compress(data, 0)
                         } else {
@@ -359,9 +339,9 @@ class ApkgCreator {
     }
 
     // 创建 SQLite 数据库文件（使用 ApkgDatabaseCreator）
-    private fun createDatabase(version: FormatVersion): File {
+    private fun createDatabase(format: ApkgFormat): File {
         return databaseCreator.createDatabase(
-            format = version.apkgFormat,
+            format = format,
             notes = notes,
             cards = cards,
             decks = decks,
@@ -373,13 +353,13 @@ class ApkgCreator {
 
 
 
-    // 基于当前 formatVersion 需要，构建安全、唯一的媒体清单（name,data）
-    private fun buildNormalizedMediaList(): List<Pair<String, ByteArray>> {
+    // 基于当前格式需要，构建安全、唯一的媒体清单（name,data）
+    private fun buildNormalizedMediaList(context: CreateContext): List<Pair<String, ByteArray>> {
         if (mediaFiles.isEmpty()) return emptyList()
         val normalized = mutableListOf<Pair<String, ByteArray>>()
         val used = mutableSetOf<String>()
         mediaFiles.forEach { (origName, data) ->
-            var name = if (formatVersion.schemaVersion >= 18) normalizeFilename(origName) else origName
+            var name = if (context.format.schemaVersion >= 18) normalizeFilename(origName) else origName
             if (name.isEmpty()) name = "media_${System.nanoTime()}"
             // 去重：如重名，追加短哈希后缀
             if (name in used) {
@@ -429,12 +409,26 @@ class ApkgCreator {
         return s
     }
 
+    /**
+     * 创建媒体文件数据，遵循 Anki 的格式要求
+     */
+    private fun createMediaFileData(context: CreateContext, mediaList: List<Pair<String, ByteArray>>): ByteArray {
+        return if (context.format.useZstdCompression) {
+            // LATEST: Protobuf(MediaEntries) + Zstd 压缩
+            val entriesBytes = buildMediaEntriesProtobuf(mediaList)
+            ZstdNative().compress(entriesBytes, 0)
+        } else {
+            // 旧格式：JSON（未压缩）
+            createLegacyMediaJson(mediaList).toByteArray()
+        }
+    }
+
     private fun createLegacyMediaJson(mediaList: List<Pair<String, ByteArray>>): String {
         val map = mediaList.mapIndexed { index, (name, _) -> index.toString() to name }.toMap()
         return Json.encodeToString(map)
     }
 
-    // 构建 LATEST 所需的 Protobuf(MediaEntries) 并用 Zstd 压缩
+    // 构建 LATEST 所需的 Protobuf(MediaEntries)
     private fun buildMediaEntriesProtobuf(mediaList: List<Pair<String, ByteArray>>): ByteArray {
         val out = java.io.ByteArrayOutputStream()
         // MediaEntries: field 1 (entries), wire type 2 (length-delimited)
@@ -469,6 +463,18 @@ class ApkgCreator {
         return out.toByteArray()
     }
 
+    /**
+     * 根据格式创建对应的 meta 数据
+     */
+    private fun createMetaForFormat(format: ApkgFormat): ApkgMeta {
+        val version = when (format) {
+            ApkgFormat.LEGACY -> 1
+            ApkgFormat.TRANSITIONAL -> 2
+            ApkgFormat.LATEST -> 3
+        }
+        return ApkgMeta(version)
+    }
+
     private fun sha1Bytes(data: ByteArray): ByteArray {
         val md = MessageDigest.getInstance("SHA-1")
         return md.digest(data)
@@ -487,37 +493,4 @@ class ApkgCreator {
         }
     }
 
-    /**
-     * 创建 meta 文件数据（Anki 23.10+ 要求）
-     * meta 文件包含包版本信息，使用正确的 protobuf 编码
-     */
-    private fun createMetaData(): ByteArray {
-        // 对于Anki 24.11，meta文件应该使用正确的 protobuf 编码
-        val versionValue = when (formatVersion) {
-            FormatVersion.LEGACY -> 1      // LEGACY_1 → collection.anki2
-            FormatVersion.TRANSITIONAL -> 2 // LEGACY_2 → collection.anki21
-            FormatVersion.LATEST -> 3       // LATEST   → collection.anki21b
-        }
-        
-        // 正确的 protobuf 编码：字段1 (version)，wire type 0 (varint)
-        val fieldTag: Byte = 0x08
-        val versionBytes = encodeVarint(versionValue.toLong())
-        return byteArrayOf(fieldTag) + versionBytes
-    }
-    
-    /**
-     * 编码 varint 值
-     */
-    private fun encodeVarint(value: Long): ByteArray {
-        val result = mutableListOf<Byte>()
-        var v = value
-        
-        while (v >= 0x80) {
-            result.add(((v and 0x7F) or 0x80).toByte())
-            v = v ushr 7
-        }
-        result.add(v.toByte())
-        
-        return result.toByteArray()
-    }
 }

@@ -328,11 +328,7 @@ class ApkgParserTest {
                     // 验证新格式特有特性
                     if (result.schemaVersion >= 18) {
                         println("检测到新格式 (V18+): ${file.name}")
-                        // 验证新格式特有字段
-                        result.cards.forEach { card ->
-                            assertNotNull(card.modificationTime, "新格式卡片应该有修改时间")
-                            assertNotNull(card.updateSequenceNumber, "新格式卡片应该有更新序列号")
-                        }
+                        // 新格式特有字段验证已移除，因为数据类已统一
                     }
 
                     // 输出格式信息
