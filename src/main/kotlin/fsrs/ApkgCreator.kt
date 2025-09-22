@@ -3,15 +3,13 @@ package fsrs
 
 import fsrs.zstd.ZstdNative
 import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.Json
 import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
-import java.sql.DriverManager
-import java.time.Instant
+import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
-import java.util.zip.CRC32
 
 /**
  * APKG 创建器
@@ -21,28 +19,25 @@ import java.util.zip.CRC32
 class ApkgCreator {
 
     /**
-     * APKG 格式版本
+     * APKG 格式版本（使用共享的 ApkgFormat 枚举）
      */
     enum class FormatVersion {
         LEGACY {          // collection.anki2 (Anki 2.1.x 之前)
-            override val schemaVersion = 11
-            override val databaseVersion = 11
-            override val useZstdCompression = false
+            override val apkgFormat = ApkgFormat.LEGACY
         },
         TRANSITIONAL {    // collection.anki21 (Anki 2.1.x)
-            override val schemaVersion = 11
-            override val databaseVersion = 11
-            override val useZstdCompression = false
+            override val apkgFormat = ApkgFormat.TRANSITIONAL
         },
         LATEST {          // collection.anki21b (Anki 23.10+)
-            override val schemaVersion = 18
-            override val databaseVersion = 11
-            override val useZstdCompression = true  // 启用 Zstd 压缩，使用 Square 库
+            override val apkgFormat = ApkgFormat.LATEST
         };
         
-        abstract val schemaVersion: Int
-        abstract val databaseVersion: Int
-        abstract val useZstdCompression: Boolean
+        abstract val apkgFormat: ApkgFormat
+        
+        val schemaVersion: Int get() = apkgFormat.schemaVersion
+        val databaseVersion: Int get() = apkgFormat.databaseVersion
+        val useZstdCompression: Boolean get() = apkgFormat.useZstdCompression
+        val databaseFileName: String get() = apkgFormat.databaseFileName
     }
 
     data class Note(
@@ -94,7 +89,7 @@ class ApkgCreator {
         val id: Long,
         val name: String,
         val type: Int = 0,
-        val mod: Long = Instant.now().epochSecond,
+        val mod: Long = java.time.Instant.now().epochSecond,
         val usn: Int = -1,
         val sortf: Int = 0,
         val did: Long? = null,
@@ -218,6 +213,7 @@ class ApkgCreator {
     private val models = mutableMapOf<Long, Model>()
     private val mediaFiles = mutableMapOf<String, ByteArray>()
     private var formatVersion: FormatVersion = FormatVersion.LEGACY
+    private val databaseCreator = ApkgDatabaseCreator()
 
     /**
      * 添加牌组
@@ -362,521 +358,20 @@ class ApkgCreator {
         }
     }
 
-    // 创建 SQLite 数据库文件（根据版本决定是否 zstd 压缩）
+    // 创建 SQLite 数据库文件（使用 ApkgDatabaseCreator）
     private fun createDatabase(version: FormatVersion): File {
-        val suffix = when (version) {
-            FormatVersion.LEGACY -> "anki2"
-            FormatVersion.TRANSITIONAL -> "anki21"
-            FormatVersion.LATEST -> "anki21b"
-        }
-        val dbFile = File.createTempFile("collection", ".$suffix")
-        createDatabaseContent(dbFile, version)
-        if (version.useZstdCompression) {
-            return compressDatabaseWithZstd(dbFile)
-        }
-        return dbFile
+        return databaseCreator.createDatabase(
+            format = version.apkgFormat,
+            notes = notes,
+            cards = cards,
+            decks = decks,
+            models = models,
+            mediaFiles = mediaFiles
+        )
     }
 
-    // 使用 zstd 压缩 SQLite 数据库内容（输出 .anki21b.zstd）
-    private fun compressDatabaseWithZstd(dbFile: File): File {
-        val compressedFile = File.createTempFile("collection", ".anki21b.zstd")
-        dbFile.inputStream().use { input ->
-            compressedFile.outputStream().use { output ->
-                val originalData = input.readBytes()
-                val compressedData = compressWithZstdJni(originalData)
-                output.write(compressedData)
-            }
-        }
-        dbFile.delete()
-        return compressedFile
-    }
 
-    private fun compressWithZstdJni(data: ByteArray): ByteArray {
-        return ZstdNative().compress(data, 0)
-    }
 
-    // 初始化数据库结构并插入基础数据
-    private fun createDatabaseContent(dbFile: File, version: FormatVersion) {
-        val url = "jdbc:sqlite:${dbFile.absolutePath}"
-        DriverManager.getConnection(url).use { conn ->
-            conn.createStatement().use { stmt ->
-                stmt.execute("PRAGMA user_version = ${version.schemaVersion}")
-                if (version.schemaVersion >= 18) {
-                    stmt.execute(
-                        """
-                        CREATE TABLE col (
-                            id INTEGER PRIMARY KEY,
-                            crt INTEGER NOT NULL,
-                            mod INTEGER NOT NULL,
-                            scm INTEGER NOT NULL,
-                            ver INTEGER NOT NULL,
-                            dty INTEGER NOT NULL,
-                            usn INTEGER NOT NULL,
-                            ls INTEGER NOT NULL,
-                            conf TEXT NOT NULL,
-                            models TEXT NOT NULL,
-                            decks TEXT NOT NULL,
-                            dconf TEXT NOT NULL,
-                            tags TEXT NOT NULL,
-                            fsrsWeights TEXT,
-                            fsrsParams5 TEXT,
-                            desiredRetention REAL,
-                            ignoreRevlogsBeforeDate TEXT,
-                            easyDaysPercentages TEXT,
-                            stopTimerOnAnswer BOOLEAN,
-                            secondsToShowQuestion REAL,
-                            secondsToShowAnswer REAL,
-                            questionAction INTEGER,
-                            answerAction INTEGER,
-                            waitForAudio BOOLEAN,
-                            sm2Retention REAL,
-                            weightSearch TEXT
-                        )
-                        """
-                    )
-                } else {
-                    stmt.execute(
-                        """
-                        CREATE TABLE col (
-                            id INTEGER PRIMARY KEY,
-                            crt INTEGER NOT NULL,
-                            mod INTEGER NOT NULL,
-                            scm INTEGER NOT NULL,
-                            ver INTEGER NOT NULL,
-                            dty INTEGER NOT NULL,
-                            usn INTEGER NOT NULL,
-                            ls INTEGER NOT NULL,
-                            conf TEXT NOT NULL,
-                            models TEXT NOT NULL,
-                            decks TEXT NOT NULL,
-                            dconf TEXT NOT NULL,
-                            tags TEXT NOT NULL
-                        )
-                        """
-                    )
-                }
-
-                stmt.execute(
-                    """
-                    CREATE TABLE notes (
-                        id INTEGER PRIMARY KEY,
-                        guid TEXT NOT NULL,
-                        mid INTEGER NOT NULL,
-                        mod INTEGER NOT NULL,
-                        usn INTEGER NOT NULL,
-                        tags TEXT NOT NULL,
-                        flds TEXT NOT NULL,
-                        sfld INTEGER NOT NULL,
-                        csum INTEGER NOT NULL,
-                        flags INTEGER NOT NULL,
-                        data TEXT NOT NULL
-                    )
-                    """
-                )
-
-                if (version.schemaVersion >= 18) {
-                    stmt.execute(
-                        """
-                        CREATE TABLE cards (
-                            id INTEGER PRIMARY KEY,
-                            nid INTEGER NOT NULL,
-                            did INTEGER NOT NULL,
-                            ord INTEGER NOT NULL,
-                            mod INTEGER NOT NULL,
-                            usn INTEGER NOT NULL,
-                            type INTEGER NOT NULL,
-                            queue INTEGER NOT NULL,
-                            due INTEGER NOT NULL,
-                            ivl INTEGER NOT NULL,
-                            factor INTEGER NOT NULL,
-                            reps INTEGER NOT NULL,
-                            lapses INTEGER NOT NULL,
-                            left INTEGER NOT NULL,
-                            odue INTEGER NOT NULL,
-                            odid INTEGER NOT NULL,
-                            flags INTEGER NOT NULL,
-                            data TEXT NOT NULL,
-                            fsrsState TEXT,
-                            fsrsDifficulty REAL,
-                            fsrsStability REAL,
-                            fsrsDue TEXT
-                        )
-                        """
-                    )
-                } else {
-                    stmt.execute(
-                        """
-                        CREATE TABLE cards (
-                            id INTEGER PRIMARY KEY,
-                            nid INTEGER NOT NULL,
-                            did INTEGER NOT NULL,
-                            ord INTEGER NOT NULL,
-                            mod INTEGER NOT NULL,
-                            usn INTEGER NOT NULL,
-                            type INTEGER NOT NULL,
-                            queue INTEGER NOT NULL,
-                            due INTEGER NOT NULL,
-                            ivl INTEGER NOT NULL,
-                            factor INTEGER NOT NULL,
-                            reps INTEGER NOT NULL,
-                            lapses INTEGER NOT NULL,
-                            left INTEGER NOT NULL,
-                            odue INTEGER NOT NULL,
-                            odid INTEGER NOT NULL,
-                            flags INTEGER NOT NULL,
-                            data TEXT NOT NULL
-                        )
-                        """
-                    )
-                }
-
-                stmt.execute("CREATE TABLE graves (usn INTEGER NOT NULL, oid INTEGER NOT NULL, type INTEGER NOT NULL, PRIMARY KEY (oid, type)) WITHOUT ROWID")
-
-                if (version.schemaVersion >= 18) {
-                    stmt.execute(
-                        """
-                        CREATE TABLE revlog (
-                            id INTEGER PRIMARY KEY,
-                            cid INTEGER NOT NULL,
-                            usn INTEGER NOT NULL,
-                            ease INTEGER NOT NULL,
-                            ivl INTEGER NOT NULL,
-                            lastIvl INTEGER NOT NULL,
-                            factor INTEGER NOT NULL,
-                            time INTEGER NOT NULL,
-                            type INTEGER NOT NULL,
-                            fsrsRating INTEGER,
-                            fsrsReviewTime INTEGER,
-                            fsrsState TEXT
-                        )
-                        """
-                    )
-                } else {
-                    stmt.execute(
-                        """
-                        CREATE TABLE revlog (
-                            id INTEGER PRIMARY KEY,
-                            cid INTEGER NOT NULL,
-                            usn INTEGER NOT NULL,
-                            ease INTEGER NOT NULL,
-                            ivl INTEGER NOT NULL,
-                            lastIvl INTEGER NOT NULL,
-                            factor INTEGER NOT NULL,
-                            time INTEGER NOT NULL,
-                            type INTEGER NOT NULL
-                        )
-                        """
-                    )
-                }
-
-                if (version.schemaVersion >= 18) {
-                    stmt.execute(
-                        """
-                        CREATE TABLE mediaMeta (
-                            dir TEXT NOT NULL,
-                            fname TEXT NOT NULL,
-                            csum TEXT NOT NULL,
-                            mtime INTEGER NOT NULL,
-                            isNew BOOLEAN NOT NULL,
-                            PRIMARY KEY (dir, fname)
-                        )
-                        """
-                    )
-                    stmt.execute(
-                        """
-                        CREATE TABLE fsrsWeights (
-                            id INTEGER PRIMARY KEY,
-                            weights TEXT NOT NULL,
-                            mod INTEGER NOT NULL
-                        )
-                        """
-                    )
-                    stmt.execute(
-                        """
-                        CREATE TABLE fsrsParams (
-                            id INTEGER PRIMARY KEY,
-                            params TEXT NOT NULL,
-                            mod INTEGER NOT NULL
-                        )
-                        """
-                    )
-                }
-            }
-            insertData(conn, version)
-        }
-    }
-
-    private fun insertData(conn: java.sql.Connection, version: FormatVersion) {
-        val now = Instant.now().epochSecond
-        val colConfig = JsonObject(mapOf(
-            "nextPos" to JsonPrimitive(1),
-            "estTimes" to JsonPrimitive(true),
-            "activeDecks" to JsonArray(decks.keys.map { JsonPrimitive(it) }),
-            "sortType" to JsonPrimitive("noteFld"),
-            "timeLim" to JsonPrimitive(0),
-            "sortBackwards" to JsonPrimitive(false),
-            "addToCur" to JsonPrimitive(true),
-            "curDeck" to JsonPrimitive(decks.keys.firstOrNull() ?: 1),
-            "newBury" to JsonPrimitive(true),
-            "newSpread" to JsonPrimitive(0),
-            "dueCounts" to JsonPrimitive(true),
-            "curModel" to JsonPrimitive(models.keys.firstOrNull() ?: 1),
-            "collapseTime" to JsonPrimitive(1200)
-        ))
-
-        val modelsJson = JsonObject(models.mapKeys { it.key.toString() }.mapValues { (_, model) ->
-            JsonObject(mapOf(
-                "id" to JsonPrimitive(model.id),
-                "name" to JsonPrimitive(model.name),
-                "type" to JsonPrimitive(model.type),
-                "mod" to JsonPrimitive(model.mod),
-                "usn" to JsonPrimitive(model.usn),
-                "sortf" to JsonPrimitive(model.sortf),
-                "did" to (model.did?.let { JsonPrimitive(it) } ?: JsonNull),
-                "tmpls" to JsonArray(model.tmpls.map { tmpl ->
-                    JsonObject(mapOf(
-                        "name" to JsonPrimitive(tmpl.name),
-                        "ord" to JsonPrimitive(tmpl.ord),
-                        "qfmt" to JsonPrimitive(tmpl.qfmt),
-                        "afmt" to JsonPrimitive(tmpl.afmt),
-                        "did" to (tmpl.did?.let { JsonPrimitive(it) } ?: JsonNull),
-                        "bqfmt" to JsonPrimitive(tmpl.bqfmt),
-                        "bafmt" to JsonPrimitive(tmpl.bafmt)
-                    ))
-                }),
-                "flds" to JsonArray(model.flds.map { fld ->
-                    JsonObject(mapOf(
-                        "name" to JsonPrimitive(fld.name),
-                        "ord" to JsonPrimitive(fld.ord),
-                        "sticky" to JsonPrimitive(fld.sticky),
-                        "rtl" to JsonPrimitive(fld.rtl),
-                        "font" to JsonPrimitive(fld.font),
-                        "size" to JsonPrimitive(fld.size)
-                    ))
-                }),
-                "css" to JsonPrimitive(model.css)
-            ))
-        })
-
-        val decksJson = JsonObject(decks.mapKeys { it.key.toString() }.mapValues { (_, deck) ->
-            JsonObject(mapOf(
-                "id" to JsonPrimitive(deck.id),
-                "mod" to JsonPrimitive(deck.mod),
-                "name" to JsonPrimitive(deck.name),
-                "usn" to JsonPrimitive(deck.usn),
-                "lrnToday" to JsonArray(deck.lrnToday.map { JsonPrimitive(it) }),
-                "revToday" to JsonArray(deck.revToday.map { JsonPrimitive(it) }),
-                "newToday" to JsonArray(deck.newToday.map { JsonPrimitive(it) }),
-                "timeToday" to JsonArray(deck.timeToday.map { JsonPrimitive(it) }),
-                "collapsed" to JsonPrimitive(deck.collapsed),
-                "browserCollapsed" to JsonPrimitive(deck.browserCollapsed),
-                "desc" to JsonPrimitive(deck.desc),
-                "dyn" to JsonPrimitive(deck.dyn),
-                "conf" to JsonPrimitive(deck.conf),
-                "extendNew" to JsonPrimitive(deck.extendNew),
-                "extendRev" to JsonPrimitive(deck.extendRev),
-                "reviewLimit" to (deck.reviewLimit?.let { JsonPrimitive(it) } ?: JsonNull),
-                "newLimit" to (deck.newLimit?.let { JsonPrimitive(it) } ?: JsonNull),
-                "reviewLimitToday" to (deck.reviewLimitToday?.let { JsonPrimitive(it) } ?: JsonNull),
-                "newLimitToday" to (deck.newLimitToday?.let { JsonPrimitive(it) } ?: JsonNull)
-            ))
-        })
-
-        val dconfJson = """{
-            "1": {
-                "id": 1,
-                "mod": 0,
-                "name": "Default",
-                "usn": 0,
-                "maxTaken": 60,
-                "autoplay": true,
-                "timer": 0,
-                "replayq": true,
-                "new": {
-                    "bury": false,
-                    "delays": [1.0, 10.0],
-                    "initialFactor": 2500,
-                    "ints": [1, 4, 0],
-                    "order": 1,
-                    "perDay": 20
-                },
-                "rev": {
-                    "bury": false,
-                    "ease4": 1.3,
-                    "ivlFct": 1.0,
-                    "maxIvl": 36500,
-                    "perDay": 200,
-                    "hardFactor": 1.2
-                },
-                "lapse": {
-                    "delays": [10.0],
-                    "leechAction": 1,
-                    "leechFails": 8,
-                    "minInt": 1,
-                    "mult": 0.0
-                },
-                "dyn": false,
-                "newMix": 0,
-                "newPerDayMinimum": 0,
-                "interdayLearningMix": 0,
-                "reviewOrder": 0,
-                "newSortOrder": 0,
-                "newGatherPriority": 0,
-                "buryInterdayLearning": false,
-                "fsrsWeights": [],
-                "fsrsParams5": [],
-                "desiredRetention": 0.9,
-                "ignoreRevlogsBeforeDate": "",
-                "easyDaysPercentages": [1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0],
-                "stopTimerOnAnswer": false,
-                "secondsToShowQuestion": 0.0,
-                "secondsToShowAnswer": 0.0,
-                "questionAction": 0,
-                "answerAction": 0,
-                "waitForAudio": true,
-                "sm2Retention": 0.9,
-                "weightSearch": ""
-            }
-        }""".trimIndent()
-
-        if (version.schemaVersion >= 18) {
-            conn.prepareStatement("INSERT INTO col VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").use { stmt ->
-                stmt.setInt(1, 1)
-                stmt.setLong(2, now)
-                stmt.setLong(3, now)
-                stmt.setLong(4, now)
-                stmt.setInt(5, version.databaseVersion)
-                stmt.setInt(6, 0)
-                stmt.setInt(7, 0)
-                stmt.setLong(8, now)
-                stmt.setString(9, colConfig.toString())
-                stmt.setString(10, modelsJson.toString())
-                stmt.setString(11, decksJson.toString())
-                stmt.setString(12, dconfJson)
-                stmt.setString(13, "{}")
-                stmt.setString(14, "[]")
-                stmt.setString(15, "[]")
-                stmt.setDouble(16, 0.9)
-                stmt.setString(17, "")
-                stmt.setString(18, "[1.0,1.0,1.0,1.0,1.0,1.0,1.0]")
-                stmt.setBoolean(19, false)
-                stmt.setDouble(20, 0.0)
-                stmt.setDouble(21, 0.0)
-                stmt.setInt(22, 0)
-                stmt.setInt(23, 0)
-                stmt.setBoolean(24, true)
-                stmt.setDouble(25, 0.9)
-                stmt.setString(26, "")
-                stmt.executeUpdate()
-            }
-        } else {
-            conn.prepareStatement("INSERT INTO col VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").use { stmt ->
-                stmt.setInt(1, 1)
-                stmt.setLong(2, now)
-                stmt.setLong(3, now)
-                stmt.setLong(4, now)
-                stmt.setInt(5, version.databaseVersion)
-                stmt.setInt(6, 0)
-                stmt.setInt(7, 0)
-                stmt.setLong(8, now)
-                stmt.setString(9, colConfig.toString())
-                stmt.setString(10, modelsJson.toString())
-                stmt.setString(11, decksJson.toString())
-                stmt.setString(12, dconfJson)
-                stmt.setString(13, "{}")
-                stmt.executeUpdate()
-            }
-        }
-
-        conn.prepareStatement("INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").use { stmt ->
-            notes.forEach { note ->
-                stmt.setLong(1, note.id)
-                stmt.setString(2, note.guid)
-                stmt.setLong(3, note.mid)
-                stmt.setLong(4, now)
-                stmt.setInt(5, -1)
-                stmt.setString(6, note.tags)
-                val fieldsString = note.fields.joinToString("\u001f")
-                stmt.setString(7, fieldsString)
-                stmt.setInt(8, (note.fields.firstOrNull() ?: "").hashCode() and 0x7FFFFFFF)
-                stmt.setLong(9, fieldsString.hashCode().toLong() and 0x7FFFFFFF)
-                stmt.setInt(10, 0)
-                stmt.setString(11, "")
-                stmt.addBatch()
-            }
-            stmt.executeBatch()
-        }
-
-        if (version.schemaVersion >= 18) {
-            conn.prepareStatement("INSERT INTO cards VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").use { stmt ->
-                cards.forEach { card ->
-                    stmt.setLong(1, card.id)
-                    stmt.setLong(2, card.nid)
-                    stmt.setLong(3, card.did)
-                    stmt.setInt(4, card.ord)
-                    stmt.setLong(5, now)
-                    stmt.setInt(6, -1)
-                    stmt.setInt(7, card.type)
-                    stmt.setInt(8, card.queue)
-                    stmt.setInt(9, card.due)
-                    stmt.setInt(10, card.ivl)
-                    stmt.setInt(11, card.factor)
-                    stmt.setInt(12, card.reps)
-                    stmt.setInt(13, card.lapses)
-                    stmt.setInt(14, card.left)
-                    stmt.setInt(15, 0)
-                    stmt.setInt(16, 0)
-                    stmt.setInt(17, 0)
-                    stmt.setString(18, "")
-                    stmt.setString(19, "")
-                    stmt.setDouble(20, 0.0)
-                    stmt.setDouble(21, 0.0)
-                    stmt.setString(22, "")
-                    stmt.addBatch()
-                }
-                stmt.executeBatch()
-            }
-        } else {
-            conn.prepareStatement("INSERT INTO cards VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").use { stmt ->
-                cards.forEach { card ->
-                    stmt.setLong(1, card.id)
-                    stmt.setLong(2, card.nid)
-                    stmt.setLong(3, card.did)
-                    stmt.setInt(4, card.ord)
-                    stmt.setLong(5, now)
-                    stmt.setInt(6, -1)
-                    stmt.setInt(7, card.type)
-                    stmt.setInt(8, card.queue)
-                    stmt.setInt(9, card.due)
-                    stmt.setInt(10, card.ivl)
-                    stmt.setInt(11, card.factor)
-                    stmt.setInt(12, card.reps)
-                    stmt.setInt(13, card.lapses)
-                    stmt.setInt(14, card.left)
-                    stmt.setInt(15, 0)
-                    stmt.setInt(16, 0)
-                    stmt.setInt(17, 0)
-                    stmt.setString(18, "")
-                    stmt.addBatch()
-                }
-                stmt.executeBatch()
-            }
-        }
-
-        if (version.schemaVersion >= 18) {
-            conn.prepareStatement("INSERT INTO mediaMeta VALUES (?, ?, ?, ?, ?)").use { stmt ->
-                mediaFiles.keys.forEach { filename ->
-                    stmt.setString(1, "")
-                    stmt.setString(2, filename)
-                    stmt.setString(3, "")
-                    stmt.setLong(4, now)
-                    stmt.setBoolean(5, true)
-                    stmt.addBatch()
-                }
-                stmt.executeBatch()
-            }
-        }
-    }
 
     // 基于当前 formatVersion 需要，构建安全、唯一的媒体清单（name,data）
     private fun buildNormalizedMediaList(): List<Pair<String, ByteArray>> {

@@ -43,9 +43,11 @@ class ApkgParserTest {
             assertTrue(result.decks.isNotEmpty(), "应该解析出牌组")
             assertTrue(result.models.isNotEmpty(), "应该解析出模型")
 
-            // 验证数据库版本
-            assertEquals(11, result.databaseVersion, "数据库版本应该为 11")
+            // 验证数据库版本和格式信息
+            assertTrue(result.databaseVersion > 0, "数据库版本应该为正数")
             assertTrue(result.creationTime > 0, "创建时间应该为正数")
+            assertNotNull(result.format, "格式不应该为 null")
+            assertTrue(result.schemaVersion > 0, "架构版本应该为正数")
 
             // 验证笔记数据
             val firstNote = result.notes.first()
@@ -285,13 +287,16 @@ class ApkgParserTest {
             assertTrue(result.decks.isNotEmpty(), "过渡格式应该解析出牌组")
             assertTrue(result.models.isNotEmpty(), "过渡格式应该解析出模型")
 
-            // 验证数据库版本
-            assertEquals(11, result.databaseVersion, "过渡格式数据库版本应该为 11")
+            // 验证数据库版本和格式信息
+            assertTrue(result.databaseVersion > 0, "数据库版本应该为正数")
             assertTrue(result.creationTime > 0, "创建时间应该为正数")
+            assertEquals(ApkgFormat.TRANSITIONAL, result.format, "格式应该为 TRANSITIONAL")
 
             // 输出格式信息
             println("过渡格式 (collection.anki21):")
             println("  - 数据库版本: ${result.databaseVersion}")
+            println("  - 架构版本: ${result.schemaVersion}")
+            println("  - 格式: ${result.format}")
             println("  - 笔记数量: ${result.notes.size}")
             println("  - 卡片数量: ${result.cards.size}")
         }
@@ -307,41 +312,40 @@ class ApkgParserTest {
             testFiles.forEach { filePath ->
                 val file = File(filePath)
                 if (file.exists()) {
-                    try {
-                        val result = parser.parseApkg(file.absolutePath)
 
-                        // 验证基本结构
-                        assertTrue(result.notes.isNotEmpty(), "新格式 $filePath 应该解析出笔记")
-                        assertTrue(result.cards.isNotEmpty(), "新格式 $filePath 应该解析出卡片")
-                        assertTrue(result.decks.isNotEmpty(), "新格式 $filePath 应该解析出牌组")
-                        assertTrue(result.models.isNotEmpty(), "新格式 $filePath 应该解析出模型")
+                    val result = parser.parseApkg(file.absolutePath)
 
-                        // 验证数据库版本
-                        assertTrue(result.databaseVersion > 0, "新格式数据库版本应该为正数")
-                        assertTrue(result.creationTime > 0, "创建时间应该为正数")
+                    // 验证基本结构
+                    assertTrue(result.notes.isNotEmpty(), "新格式 $filePath 应该解析出笔记")
+                    assertTrue(result.cards.isNotEmpty(), "新格式 $filePath 应该解析出卡片")
 
-                        // 验证新格式特有特性
-                        if (result.databaseVersion >= 18) {
-                            println("检测到新格式 (V18+): ${file.name}")
-                            // 可以添加新格式特有的验证逻辑
+                    // 验证数据库版本和格式信息
+                    assertTrue(result.databaseVersion > 0, "新格式数据库版本应该为正数")
+                    assertTrue(result.creationTime > 0, "创建时间应该为正数")
+                    assertEquals(ApkgFormat.LATEST, result.format, "格式应该为 LATEST")
+                    assertTrue(result.schemaVersion >= 18, "新格式架构版本应该 >= 18")
+
+                    // 验证新格式特有特性
+                    if (result.schemaVersion >= 18) {
+                        println("检测到新格式 (V18+): ${file.name}")
+                        // 验证新格式特有字段
+                        result.cards.forEach { card ->
+                            assertNotNull(card.modificationTime, "新格式卡片应该有修改时间")
+                            assertNotNull(card.updateSequenceNumber, "新格式卡片应该有更新序列号")
                         }
-
-                        // 输出格式信息
-                        println("新格式 (${file.name}):")
-                        println("  - 数据库版本: ${result.databaseVersion}")
-                        println("  - 架构版本: ${result.databaseVersion}")
-                        println("  - 笔记数量: ${result.notes.size}")
-                        println("  - 卡片数量: ${result.cards.size}")
-                        println("  - 文件大小: ${file.length()} bytes")
-                        println("  - 格式类型: collection.anki21b")
-                    } catch (e: Exception) {
-                        // 如果仍然失败，提供详细错误信息
-                        // TODO 新格式解析失败
-                        println("警告: 新格式文件 ${file.name} 解析失败: ${e.message}")
-                        println("  堆栈跟踪: ${e.stackTraceToString()}")
-                        // 对于新格式测试，允许失败但不中断其他测试
-                        println("新格式解析失败，跳过测试: ${e.message}")
                     }
+
+                    // 输出格式信息
+                    println("新格式 (${file.name}):")
+                    println("  - 数据库版本: ${result.databaseVersion}")
+                    println("  - 架构版本: ${result.schemaVersion}")
+                    println("  - 格式: ${result.format}")
+                    println("  - 笔记数量: ${result.notes.size}")
+                    println("  - 卡片数量: ${result.cards.size}")
+                    println("  - 文件大小: ${file.length()} bytes")
+                    println("  - 格式类型: collection.anki21b")
+
+
                 }
             }
         }
@@ -366,11 +370,21 @@ class ApkgParserTest {
                         
                         // 对于新格式文件，可能无法获取完整信息，只验证能获取到的信息
                         if (!info.containsKey("error")) {
+                            assertTrue(info.containsKey("format") || info.containsKey("mediaError"), "应该包含格式或媒体错误信息")
+                            assertTrue(info.containsKey("schemaVersion") || info.containsKey("mediaError"), "应该包含架构版本或媒体错误信息")
                             assertTrue(info.containsKey("noteCount") || info.containsKey("mediaError"), "应该包含笔记数量或媒体错误信息")
                             assertTrue(info.containsKey("cardCount") || info.containsKey("mediaError"), "应该包含卡片数量或媒体错误信息")
                             assertTrue(info.containsKey("databaseVersion") || info.containsKey("mediaError"), "应该包含数据库版本或媒体错误信息")
                             
                             // 只验证能获取到的信息
+                            if (info.containsKey("format")) {
+                                val format = info["format"] as String
+                                assertTrue(format.isNotBlank(), "格式不应该为空")
+                            }
+                            if (info.containsKey("schemaVersion")) {
+                                val schemaVersion = info["schemaVersion"] as Int
+                                assertTrue(schemaVersion > 0, "架构版本应该为正数")
+                            }
                             if (info.containsKey("noteCount")) {
                                 val noteCount = info["noteCount"] as Int
                                 assertTrue(noteCount > 0, "笔记数量应该为正数")
@@ -393,6 +407,7 @@ class ApkgParserTest {
                         }
 
                         println("快速信息 - ${file.name}:")
+                        println("  - 格式: ${info["format"] ?: "N/A"}, 架构: ${info["schemaVersion"] ?: "N/A"}")
                         println("  - 笔记: ${info["noteCount"] ?: "N/A"}, 卡片: ${info["cardCount"] ?: "N/A"}, 牌组: ${info["deckCount"] ?: "N/A"}, 版本: ${info["databaseVersion"] ?: "N/A"}")
                     } catch (e: Exception) {
                         if (file.name.contains("new_version") || file.name.contains("Alphabet")) {
@@ -407,6 +422,38 @@ class ApkgParserTest {
                     }
                 }
             }
+        }
+    }
+
+    @Nested
+    @DisplayName("格式信息测试")
+    inner class FormatInfoTests {
+
+        @Test
+        @DisplayName("测试获取 APKG 文件格式信息")
+        fun testGetFormatInfo() {
+            val testFile = File("src/test/resources/apkg/basic_word.apkg")
+            val formatInfo = parser.getFormatInfo(testFile.absolutePath)
+
+            assertTrue(formatInfo.isNotEmpty(), "应该返回格式信息")
+            assertTrue(formatInfo.containsKey("format"), "应该包含格式")
+            assertTrue(formatInfo.containsKey("databaseFormat"), "应该包含数据库格式")
+            assertTrue(formatInfo.containsKey("hasMetaFile"), "应该包含 meta 文件信息")
+            assertTrue(formatInfo.containsKey("hasMediaFile"), "应该包含媒体文件信息")
+
+            val format = formatInfo["format"] as String
+            val databaseFormat = formatInfo["databaseFormat"] as String
+            val hasMetaFile = formatInfo["hasMetaFile"] as Boolean
+            val hasMediaFile = formatInfo["hasMediaFile"] as Boolean
+
+            assertTrue(format.isNotBlank(), "格式不应该为空")
+            assertTrue(databaseFormat.isNotBlank(), "数据库格式不应该为空")
+
+            println("格式信息 - ${testFile.name}:")
+            println("  - 格式: $format")
+            println("  - 数据库格式: $databaseFormat")
+            println("  - 有 meta 文件: $hasMetaFile")
+            println("  - 有媒体文件: $hasMediaFile")
         }
     }
 

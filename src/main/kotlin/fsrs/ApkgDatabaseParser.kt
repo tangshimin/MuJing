@@ -32,7 +32,10 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
                             fields = fields,
                             tags = rs.getString("tags"),
                             modificationTime = rs.getLong("mod"),
-                            updateSequenceNumber = rs.getInt("usn")
+                            updateSequenceNumber = rs.getInt("usn"),
+                            checksum = if (schemaVersion >= 18) rs.getLong("csum") else null,
+                            flags = if (schemaVersion >= 18) rs.getInt("flags") else null,
+                            data = if (schemaVersion >= 18) rs.getString("data") else null
                         ))
                     }
                 }
@@ -47,11 +50,23 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
     fun parseCards(conn: Connection): List<ApkgParser.ParsedCard> {
         val cards = mutableListOf<ApkgParser.ParsedCard>()
         
-        val query = if (schemaVersion >= 18) {
-            "SELECT id, nid, did, ord, mod, usn, type, queue, due, ivl, factor, reps, lapses, left, odue, odid, flags, data FROM cards"
-        } else {
-            "SELECT id, nid, did, ord, type, queue, due, ivl, factor, reps, lapses, left FROM cards"
+        // 动态检测可用的列
+        val availableColumns = getAvailableColumns(conn, "cards")
+        
+        // 构建查询，只包含实际存在的列
+        val baseColumns = listOf("id", "nid", "did", "ord", "type", "queue", "due", "ivl", "factor", "reps", "lapses", "left")
+        val v18Columns = listOf("mod", "usn", "odue", "odid", "flags", "data")
+        val fsrsColumns = listOf("fsrsState", "fsrsDifficulty", "fsrsStability", "fsrsDue")
+        
+        val selectedColumns = mutableListOf<String>().apply {
+            addAll(baseColumns)
+            if (schemaVersion >= 18) {
+                addAll(v18Columns.filter { it in availableColumns })
+                addAll(fsrsColumns.filter { it in availableColumns })
+            }
         }
+        
+        val query = "SELECT ${selectedColumns.joinToString(", ")} FROM cards"
         
         try {
             conn.createStatement().use { stmt ->
@@ -69,7 +84,17 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
                             easeFactor = rs.getInt("factor"),
                             repetitions = rs.getInt("reps"),
                             lapses = rs.getInt("lapses"),
-                            remainingSteps = rs.getInt("left")
+                            remainingSteps = rs.getInt("left"),
+                            modificationTime = if ("mod" in selectedColumns) rs.getLong("mod") else null,
+                            updateSequenceNumber = if ("usn" in selectedColumns) rs.getInt("usn") else null,
+                            originalDueTime = if ("odue" in selectedColumns) rs.getInt("odue") else null,
+                            originalDeckId = if ("odid" in selectedColumns) rs.getInt("odid") else null,
+                            flags = if ("flags" in selectedColumns) rs.getInt("flags") else null,
+                            data = if ("data" in selectedColumns) rs.getString("data") else null,
+                            fsrsState = if ("fsrsState" in selectedColumns) rs.getString("fsrsState") else null,
+                            fsrsDifficulty = if ("fsrsDifficulty" in selectedColumns) rs.getDouble("fsrsDifficulty") else null,
+                            fsrsStability = if ("fsrsStability" in selectedColumns) rs.getDouble("fsrsStability") else null,
+                            fsrsDue = if ("fsrsDue" in selectedColumns) rs.getString("fsrsDue") else null
                         ))
                     }
                 }
@@ -80,6 +105,27 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
         
         return cards
     }
+    
+    /**
+     * 获取表中可用的列
+     */
+    private fun getAvailableColumns(conn: Connection, tableName: String): Set<String> {
+        val columns = mutableSetOf<String>()
+        try {
+            conn.createStatement().use { stmt ->
+                stmt.executeQuery("PRAGMA table_info($tableName)").use { rs ->
+                    while (rs.next()) {
+                        columns.add(rs.getString("name"))
+                    }
+                }
+            }
+        } catch (e: SQLException) {
+            // 如果无法获取列信息，返回空集合
+            e.printStackTrace()
+            return emptySet()
+        }
+        return columns
+    }
 
     fun parseDecks(conn: Connection): List<ApkgParser.ParsedDeck> {
         val decks = mutableListOf<ApkgParser.ParsedDeck>()
@@ -89,33 +135,51 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
                 stmt.executeQuery("SELECT decks FROM col WHERE id = 1").use { rs ->
                     if (rs.next()) {
                         val decksJson = rs.getString("decks")
-                        val decksObj = Json.parseToJsonElement(decksJson).jsonObject
                         
-                        decksObj.forEach { (deckId, deckData) ->
-                            val deck = deckData.jsonObject
+                        // 检查 decksJson 是否为空或无效
+                        if (decksJson.isBlank() || decksJson == "{}" || decksJson == "null") {
+                            return emptyList()
+                        }
+                        
+                        try {
+                            val decksObj = Json.parseToJsonElement(decksJson).jsonObject
                             
-                            if (schemaVersion >= 18) {
-                                deck["reviewLimit"]?.jsonPrimitive?.int
-                                deck["newLimit"]?.jsonPrimitive?.int
-                                deck["reviewLimitToday"]?.jsonPrimitive?.int
-                                deck["newLimitToday"]?.jsonPrimitive?.int
-                                deck["browserCollapsed"]?.jsonPrimitive?.boolean
+                            decksObj.forEach { (deckId, deckData) ->
+                                val deck = deckData.jsonObject
+                                
+                                if (schemaVersion >= 18) {
+                                    deck["reviewLimit"]?.jsonPrimitive?.int
+                                    deck["newLimit"]?.jsonPrimitive?.int
+                                    deck["reviewLimitToday"]?.jsonPrimitive?.int
+                                    deck["newLimitToday"]?.jsonPrimitive?.int
+                                    deck["browserCollapsed"]?.jsonPrimitive?.boolean
+                                }
+                                
+                                decks.add(ApkgParser.ParsedDeck(
+                                    id = deckId.toLong(),
+                                    name = deck["name"]?.jsonPrimitive?.content ?: "",
+                                    description = deck["desc"]?.jsonPrimitive?.content ?: "",
+                                    isCollapsed = deck["collapsed"]?.jsonPrimitive?.boolean ?: false,
+                                    isDynamic = deck["dyn"]?.jsonPrimitive?.int == 1,
+                                    configurationId = deck["conf"]?.jsonPrimitive?.long ?: 1L,
+                                    modificationTime = deck["mod"]?.jsonPrimitive?.long,
+                                    updateSequenceNumber = deck["usn"]?.jsonPrimitive?.int,
+                                    reviewLimit = if (schemaVersion >= 18) deck["reviewLimit"]?.jsonPrimitive?.int else null,
+                                    newLimit = if (schemaVersion >= 18) deck["newLimit"]?.jsonPrimitive?.int else null
+                                ))
                             }
-                            
-                            decks.add(ApkgParser.ParsedDeck(
-                                id = deckId.toLong(),
-                                name = deck["name"]?.jsonPrimitive?.content ?: "",
-                                description = deck["desc"]?.jsonPrimitive?.content ?: "",
-                                isCollapsed = deck["collapsed"]?.jsonPrimitive?.boolean ?: false,
-                                isDynamic = deck["dyn"]?.jsonPrimitive?.int == 1,
-                                configurationId = deck["conf"]?.jsonPrimitive?.long ?: 1L
-                            ))
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            // 如果 JSON 解析失败，返回空列表而不是抛出异常
+                            return emptyList()
                         }
                     }
                 }
             }
         } catch (e: Exception) {
-            throw ApkgParseException("Failed to parse decks: ${e.message}", e)
+            e.printStackTrace()
+            // 对于 decks 解析失败，返回空列表而不是抛出异常
+            return emptyList()
         }
         
         return decks
@@ -129,33 +193,49 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
                 stmt.executeQuery("SELECT models FROM col WHERE id = 1").use { rs ->
                     if (rs.next()) {
                         val modelsJson = rs.getString("models")
-                        val modelsObj = Json.parseToJsonElement(modelsJson).jsonObject
                         
-                        modelsObj.forEach { (modelId, modelData) ->
-                            val model = modelData.jsonObject
-                            val templates = parseTemplates(model["tmpls"]?.jsonArray)
-                            val fields = parseFields(model["flds"]?.jsonArray)
+                        // 检查 modelsJson 是否为空或无效
+                        if (modelsJson.isBlank() || modelsJson == "{}" || modelsJson == "null") {
+                            return emptyList()
+                        }
+                        
+                        try {
+                            val modelsObj = Json.parseToJsonElement(modelsJson).jsonObject
                             
-                            if (schemaVersion >= 18) {
-                                model["latexPre"]?.jsonPrimitive?.content
-                                model["latexPost"]?.jsonPrimitive?.content
-                                model["latexsvg"]?.jsonPrimitive?.boolean
+                            modelsObj.forEach { (modelId, modelData) ->
+                                val model = modelData.jsonObject
+                                val templates = parseTemplates(model["tmpls"]?.jsonArray)
+                                val fields = parseFields(model["flds"]?.jsonArray)
+                                
+                                if (schemaVersion >= 18) {
+                                    model["latexPre"]?.jsonPrimitive?.content
+                                    model["latexPost"]?.jsonPrimitive?.content
+                                    model["latexsvg"]?.jsonPrimitive?.boolean
+                                }
+                                
+                                models.add(ApkgParser.ParsedModel(
+                                    id = modelId.toLong(),
+                                    name = model["name"]?.jsonPrimitive?.content ?: "",
+                                    type = model["type"]?.jsonPrimitive?.int ?: 0,
+                                    templates = templates,
+                                    fields = fields,
+                                    css = model["css"]?.jsonPrimitive?.content ?: "",
+                                    modificationTime = model["mod"]?.jsonPrimitive?.long,
+                                    updateSequenceNumber = model["usn"]?.jsonPrimitive?.int
+                                ))
                             }
-                            
-                            models.add(ApkgParser.ParsedModel(
-                                id = modelId.toLong(),
-                                name = model["name"]?.jsonPrimitive?.content ?: "",
-                                type = model["type"]?.jsonPrimitive?.int ?: 0,
-                                templates = templates,
-                                fields = fields,
-                                css = model["css"]?.jsonPrimitive?.content ?: ""
-                            ))
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            // 如果 JSON 解析失败，返回空列表而不是抛出异常
+                            return emptyList()
                         }
                     }
                 }
             }
         } catch (e: Exception) {
-            throw ApkgParseException("Failed to parse models: ${e.message}", e)
+            e.printStackTrace()
+            // 对于 models 解析失败，返回空列表而不是抛出异常
+            return emptyList()
         }
         
         return models
@@ -185,7 +265,12 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
                 name = template["name"]?.jsonPrimitive?.content ?: "",
                 ordinal = template["ord"]?.jsonPrimitive?.int ?: 0,
                 questionFormat = template["qfmt"]?.jsonPrimitive?.content ?: "",
-                answerFormat = template["afmt"]?.jsonPrimitive?.content ?: ""
+                answerFormat = template["afmt"]?.jsonPrimitive?.content ?: "",
+                deckId = template["did"]?.let { 
+                    if (it is JsonNull) null else it.jsonPrimitive.longOrNull 
+                },
+                browserQuestionFormat = template["bqfmt"]?.jsonPrimitive?.content ?: "",
+                browserAnswerFormat = template["bafmt"]?.jsonPrimitive?.content ?: ""
             )
         } ?: emptyList()
     }

@@ -1,16 +1,17 @@
 package fsrs
 
-import fsrs.zstd.ZstdNative
-import java.io.File
-import java.sql.DriverManager
-import java.sql.SQLException
 import java.util.zip.ZipFile
 
 /**
  * APKG 解析器
- * 用于解析 Anki 包格式文件，兼容 Anki 的 GitHub 源代码结构
+ * 用于解析 Anki 包格式文件，支持所有格式版本：
+ * - Legacy (collection.anki2): Anki 2.1.x 之前
+ * - Transitional (collection.anki21): Anki 2.1.x
+ * - Latest (collection.anki21b): Anki 23.10+ (V18, Zstd压缩)
  */
 class ApkgParser {
+
+    private val databaseHandler = ApkgDatabaseHandler()
 
     data class ParsedNote(
         val id: Long,
@@ -19,7 +20,10 @@ class ApkgParser {
         val fields: List<String>,
         val tags: String,
         val modificationTime: Long,
-        val updateSequenceNumber: Int
+        val updateSequenceNumber: Int,
+        val checksum: Long? = null,
+        val flags: Int? = null,
+        val data: String? = null
     )
 
     data class ParsedCard(
@@ -34,7 +38,17 @@ class ApkgParser {
         val easeFactor: Int,
         val repetitions: Int,
         val lapses: Int,
-        val remainingSteps: Int
+        val remainingSteps: Int,
+        val modificationTime: Long? = null,
+        val updateSequenceNumber: Int? = null,
+        val originalDueTime: Int? = null,
+        val originalDeckId: Int? = null,
+        val flags: Int? = null,
+        val data: String? = null,
+        val fsrsState: String? = null,
+        val fsrsDifficulty: Double? = null,
+        val fsrsStability: Double? = null,
+        val fsrsDue: String? = null
     )
 
     data class ParsedDeck(
@@ -43,7 +57,11 @@ class ApkgParser {
         val description: String,
         val isCollapsed: Boolean,
         val isDynamic: Boolean,
-        val configurationId: Long
+        val configurationId: Long,
+        val modificationTime: Long? = null,
+        val updateSequenceNumber: Int? = null,
+        val reviewLimit: Int? = null,
+        val newLimit: Int? = null
     )
 
     data class ParsedModel(
@@ -52,14 +70,19 @@ class ApkgParser {
         val type: Int,
         val templates: List<ParsedTemplate>,
         val fields: List<ParsedField>,
-        val css: String
+        val css: String,
+        val modificationTime: Long? = null,
+        val updateSequenceNumber: Int? = null
     )
 
     data class ParsedTemplate(
         val name: String,
         val ordinal: Int,
         val questionFormat: String,
-        val answerFormat: String
+        val answerFormat: String,
+        val deckId: Long? = null,
+        val browserQuestionFormat: String = "",
+        val browserAnswerFormat: String = ""
     )
 
     data class ParsedField(
@@ -74,7 +97,9 @@ class ApkgParser {
     data class ParsedMediaFile(
         val index: Int,
         val filename: String,
-        val data: ByteArray
+        val data: ByteArray,
+        val size: Int? = null,
+        val sha1: ByteArray? = null
     )
 
     data class ParsedApkg(
@@ -84,97 +109,54 @@ class ApkgParser {
         val models: List<ParsedModel>,
         val mediaFiles: List<ParsedMediaFile>,
         val databaseVersion: Int,
-        val creationTime: Long
+        val creationTime: Long,
+        val format: ApkgFormat,
+        val schemaVersion: Int
     )
 
     /**
-     * 检测 APKG 文件中的数据库格式（优先新格式）
+     * 检测 APKG 文件中的数据库格式
      */
-    private fun detectDatabaseFormat(zipFile: ZipFile): String {
+    private fun detectFormat(zipFile: ZipFile): ApkgFormat {
         val entries = zipFile.entries().toList().map { it.name }
-        
-        // 优先检测新格式，然后过渡格式，最后旧格式
-        return when {
-            entries.contains("collection.anki21b") -> "collection.anki21b"
-            entries.contains("collection.anki21") -> "collection.anki21"
-            entries.contains("collection.anki2") -> "collection.anki2"
-            else -> throw IllegalArgumentException("No supported database format found in APKG")
-        }
+        return ApkgFormat.detectFromZipEntries(entries)
     }
 
-    /**
-     * 检测数据库架构版本
-     */
-    private fun detectDatabaseSchemaVersion(conn: java.sql.Connection): Int {
-        try {
-            conn.createStatement().use { stmt ->
-                stmt.executeQuery("SELECT ver FROM col WHERE id = 1").use { rs ->
-                    if (rs.next()) {
-                        return rs.getInt("ver")
-                    }
-                }
-            }
-        } catch (e: SQLException) {
-            throw ApkgParseException("Failed to detect database schema version: ${e.message}", e)
-        }
-        throw ApkgParseException("无法检测数据库架构版本")
-    }
 
     /**
      * 解析 APKG 文件
      */
     fun parseApkg(filePath: String): ParsedApkg {
         val zipFile = ZipFile(filePath)
-        val dbFormat = detectDatabaseFormat(zipFile)
-        val tempDbFile = File.createTempFile("parsed_db", ".${dbFormat.substringAfterLast('.')}")
+        val format = detectFormat(zipFile)
+        
+        val dbConnection = databaseHandler.prepareDatabaseConnection(zipFile, format)
         
         try {
-            // 提取数据库文件
-            val dbEntry = zipFile.getEntry(dbFormat)
-                ?: throw IllegalArgumentException("Database file $dbFormat not found in APKG")
+            val schemaVersion = databaseHandler.detectSchemaVersion(dbConnection.connection)
+            val databaseParser = ApkgDatabaseParser(schemaVersion.effectiveVersion)
+            val mediaParser = ApkgMediaParser()
             
-            zipFile.getInputStream(dbEntry).use { input ->
-                tempDbFile.outputStream().use { output ->
-                    if (dbFormat == "collection.anki21b") {
-                        // 新格式使用 ZSTD 压缩，需要解压
-                        val compressedData = input.readBytes()
-                        val decompressedData = ZstdNative().decompress(compressedData)
-                        output.write(decompressedData)
-                    } else {
-                        // 旧格式直接复制
-                        input.copyTo(output)
-                    }
-                }
-            }
+            val notes = databaseParser.parseNotes(dbConnection.connection)
+            val cards = databaseParser.parseCards(dbConnection.connection)
+            val decks = databaseParser.parseDecks(dbConnection.connection)
+            val models = databaseParser.parseModels(dbConnection.connection)
+            val mediaFiles = mediaParser.parseMediaFiles(zipFile, format.databaseFileName)
+            val (dbVersion, creationTime) = databaseParser.parseCollectionInfo(dbConnection.connection)
 
-            // 解析数据库
-            val url = "jdbc:sqlite:${tempDbFile.absolutePath}"
-            DriverManager.getConnection(url).use { conn ->
-                // 检测架构版本并处理新格式的特殊逻辑
-                val schemaVersion = detectDatabaseSchemaVersion(conn)
-                
-                val databaseParser = ApkgDatabaseParser(schemaVersion)
-                val mediaParser = ApkgMediaParser()
-                
-                val notes = databaseParser.parseNotes(conn)
-                val cards = databaseParser.parseCards(conn)
-                val decks = databaseParser.parseDecks(conn)
-                val models = databaseParser.parseModels(conn)
-                val mediaFiles = mediaParser.parseMediaFiles(zipFile, dbFormat)
-                val (dbVersion, creationTime) = databaseParser.parseCollectionInfo(conn)
-
-                return ParsedApkg(
-                    notes = notes,
-                    cards = cards,
-                    decks = decks,
-                    models = models,
-                    mediaFiles = mediaFiles,
-                    databaseVersion = dbVersion,
-                    creationTime = creationTime
-                )
-            }
+            return ParsedApkg(
+                notes = notes,
+                cards = cards,
+                decks = decks,
+                models = models,
+                mediaFiles = mediaFiles,
+                databaseVersion = dbVersion,
+                creationTime = creationTime,
+                format = format,
+                schemaVersion = schemaVersion.effectiveVersion
+            )
         } finally {
-            tempDbFile.delete()
+            dbConnection.close()
             zipFile.close()
         }
     }
@@ -187,10 +169,21 @@ class ApkgParser {
         return try {
             ZipFile(filePath).use { zipFile ->
                 val entries = zipFile.entries().toList().map { it.name }
-                (entries.contains("collection.anki21b") || 
-                 entries.contains("collection.anki21") || 
-                 entries.contains("collection.anki2")) &&
-                zipFile.getEntry("media") != null
+                
+                try {
+                    val format = ApkgFormat.detectFromZipEntries(entries)
+                    val hasMedia = zipFile.getEntry("media") != null
+                    
+                    // 检查新格式的必需文件
+                    if (format == ApkgFormat.LATEST) {
+                        val hasMeta = zipFile.getEntry("meta") != null
+                        return hasMedia && hasMeta
+                    }
+                    
+                    return hasMedia
+                } catch (e: IllegalArgumentException) {
+                    false
+                }
             }
         } catch (e: Exception) {
             false
@@ -202,32 +195,26 @@ class ApkgParser {
      */
     fun getApkgInfo(filePath: String): Map<String, Any> {
         val zipFile = ZipFile(filePath)
-        var tempDbFile: File? = null
         
         try {
-            val dbFormat = detectDatabaseFormat(zipFile)
-            tempDbFile = File.createTempFile("info_db", ".${dbFormat.substringAfterLast('.')}")
+            val format = detectFormat(zipFile)
+            val dbConnection = databaseHandler.prepareDatabaseConnection(zipFile, format)
             
-            val dbEntry = zipFile.getEntry(dbFormat)
-                ?: return emptyMap()
-            
-            zipFile.getInputStream(dbEntry).use { input ->
-                tempDbFile.outputStream().use { output ->
-                    input.copyTo(output)
-                }
-            }
-
-            val url = "jdbc:sqlite:${tempDbFile.absolutePath}"
-            DriverManager.getConnection(url).use { conn ->
+            try {
                 val info = mutableMapOf<String, Any>()
                 
                 try {
-                    val schemaVersion = detectDatabaseSchemaVersion(conn)
-                    val databaseParser = ApkgDatabaseParser(schemaVersion)
+                    val schemaVersion = databaseHandler.detectSchemaVersion(dbConnection.connection)
+                    val databaseParser = ApkgDatabaseParser(schemaVersion.effectiveVersion)
                     val mediaParser = ApkgMediaParser()
                     
+                    // 添加格式信息
+                    info["format"] = format.name
+                    info["schemaVersion"] = schemaVersion.effectiveVersion
+                    info["databaseFormat"] = format.databaseFileName
+                    
                     // 获取基本统计信息
-                    conn.createStatement().use { stmt ->
+                    dbConnection.connection.createStatement().use { stmt ->
                         stmt.executeQuery("SELECT COUNT(*) FROM notes").use { rs ->
                             if (rs.next()) info["noteCount"] = rs.getInt(1)
                         }
@@ -241,12 +228,12 @@ class ApkgParser {
                         }
                     }
                     
-                    val (dbVersion, creationTime) = databaseParser.parseCollectionInfo(conn)
+                    val (dbVersion, creationTime) = databaseParser.parseCollectionInfo(dbConnection.connection)
                     info["databaseVersion"] = dbVersion
                     info["creationTime"] = creationTime
                     
                     // 添加媒体文件信息
-                    info.putAll(mediaParser.getMediaInfo(zipFile, dbFormat))
+                    info.putAll(mediaParser.getMediaInfo(zipFile, format.databaseFileName))
                     
                 } catch (e: Exception) {
                     // 对于信息获取，不抛出异常，只记录错误
@@ -254,12 +241,36 @@ class ApkgParser {
                 }
                 
                 return info
+            } finally {
+                dbConnection.close()
             }
         } catch (e: Exception) {
             return mapOf("error" to (e.message ?: "Failed to get APKG info"))
         } finally {
-            tempDbFile?.delete()
             zipFile.close()
+        }
+    }
+
+    /**
+     * 获取 APKG 文件的格式版本信息
+     */
+    fun getFormatInfo(filePath: String): Map<String, Any> {
+        return try {
+            ZipFile(filePath).use { zipFile ->
+                val format = detectFormat(zipFile)
+                val entries = zipFile.entries().toList().map { it.name }
+                
+                mapOf(
+                    "format" to format.name,
+                    "databaseFormat" to format.databaseFileName,
+                    "hasMetaFile" to entries.contains("meta"),
+                    "hasMediaFile" to entries.contains("media"),
+                    "mediaFileCount" to entries.count { it.matches(Regex("\\d+")) },
+                    "totalEntries" to entries.size
+                )
+            }
+        } catch (e: Exception) {
+            mapOf("error" to (e.message ?: "Failed to get format info"))
         }
     }
 }
