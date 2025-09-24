@@ -15,7 +15,7 @@ object ApkgExample {
 
         // 1. 创建牌组
         val deckId = ApkgCreator.generateId()
-        val deck = ApkgCreator.Deck(
+        val deck = Deck(
             id = deckId,
             name = "基础英语词汇",
             description = "包含常用英语单词的学习卡片"
@@ -41,7 +41,7 @@ object ApkgExample {
         )
 
         basicWords.forEach { (english, chinese) ->
-            val note = ApkgCreator.Note(
+            val note = Note(
                 id = ApkgCreator.generateId(),
                 modelId = model.id,
                 fields = listOf(english, chinese)
@@ -63,7 +63,7 @@ object ApkgExample {
 
         // 1. 创建牌组
         val deckId = ApkgCreator.generateId()
-        val deck = ApkgCreator.Deck(
+        val deck = Deck(
             id = deckId,
             name = "高级英语词汇",
             description = "包含音频和例句的英语单词学习"
@@ -84,7 +84,7 @@ object ApkgExample {
         )
 
         advancedWords.forEach { word ->
-            val note = ApkgCreator.Note(
+            val note = Note(
                 id = ApkgCreator.generateId(),
                 modelId = model.id,
                 fields = listOf(word.english, word.chinese, word.audio, word.example)
@@ -107,7 +107,7 @@ object ApkgExample {
         val creator = ApkgCreator()
 
         val deckId = ApkgCreator.generateId()
-        val deck = ApkgCreator.Deck(
+        val deck = Deck(
             id = deckId,
             name = "导入的词汇",
             description = "从 JSON 文件导入的词汇数据"

@@ -158,7 +158,7 @@ class ApkgCreatorTest {
 
             // 1. 创建牌组
             val deckId = ApkgCreator.generateId()
-            val deck = ApkgCreator.Deck(
+            val deck = Deck(
                 id = deckId,
                 name = "测试词汇导入",
                 description = "从测试数据导入的词汇"
@@ -206,7 +206,7 @@ class ApkgCreatorTest {
                 val pronunciation = wordMap["pronunciation"] as String
                 val translation = wordMap["translation"] as String
 
-                val note = ApkgCreator.Note(
+                val note = Note(
                     id = ApkgCreator.generateId(),
                     modelId = model.id,
                     fields = listOf(word, definition, "", "$pronunciation\n$translation"),
@@ -257,7 +257,7 @@ class ApkgCreatorTest {
 
             // 1. 创建牌组和模型
             val deckId = ApkgCreator.generateId()
-            val deck = ApkgCreator.Deck(id = deckId, name = "媒体测试")
+            val deck = Deck(id = deckId, name = "媒体测试")
             creator.addDeck(deck)
 
             val model = ApkgCreator.createWordModel()
@@ -271,7 +271,7 @@ class ApkgCreatorTest {
             creator.addMediaFile("test_image.jpg", imageData)
 
             // 3. 添加引用媒体的笔记
-            val note = ApkgCreator.Note(
+            val note = Note(
                 id = ApkgCreator.generateId(),
                 modelId = model.id,
                 fields = listOf(
@@ -319,11 +319,11 @@ class ApkgCreatorTest {
 
             // 1. 创建多个牌组
             val deck1Id = ApkgCreator.generateId()
-            val deck1 = ApkgCreator.Deck(id = deck1Id, name = "基础词汇")
+            val deck1 = Deck(id = deck1Id, name = "基础词汇")
             creator.addDeck(deck1)
 
             val deck2Id = ApkgCreator.generateId()
-            val deck2 = ApkgCreator.Deck(id = deck2Id, name = "高级词汇")
+            val deck2 = Deck(id = deck2Id, name = "高级词汇")
             creator.addDeck(deck2)
 
             // 2. 创建模型
@@ -331,14 +331,14 @@ class ApkgCreatorTest {
             creator.addModel(model)
 
             // 3. 向不同牌组添加笔记
-            val basicNote = ApkgCreator.Note(
+            val basicNote = Note(
                 id = ApkgCreator.generateId(),
                 modelId = model.id,
                 fields = listOf("cat", "猫")
             )
             creator.addNote(basicNote, deck1Id)
 
-            val advancedNote = ApkgCreator.Note(
+            val advancedNote = Note(
                 id = ApkgCreator.generateId(),
                 modelId = model.id,
                 fields = listOf("sophisticated", "复杂的")
@@ -388,7 +388,7 @@ class ApkgCreatorTest {
         
         // 创建牌组和模型
         val deckId = ApkgCreator.generateId()
-        val deck = ApkgCreator.Deck(id = deckId, name = "V18 测试")
+        val deck = Deck(id = deckId, name = "V18 测试")
         creator.addDeck(deck)
         
         val model = ApkgCreator.createWordModel()
@@ -399,7 +399,7 @@ class ApkgCreatorTest {
         creator.addMediaFile("test_audio_v18.mp3", audioData)
         
         // 添加笔记
-        val note = ApkgCreator.Note(
+        val note = Note(
             id = ApkgCreator.generateId(),
             modelId = model.id,
             fields = listOf("v18", "V18 测试", "[sound:test_audio_v18.mp3]", "V18 schema test")
@@ -855,13 +855,13 @@ class ApkgCreatorTest {
     private fun createBasicTestData(format: ApkgFormat = ApkgFormat.LEGACY): Pair<ApkgCreator, List<String>> {
         val creator = ApkgCreator().setFormat(format)
         val deckId = ApkgCreator.generateId()
-        val deck = ApkgCreator.Deck(id = deckId, name = "基础词汇")
+        val deck = Deck(id = deckId, name = "基础词汇")
         creator.addDeck(deck)
         val model = ApkgCreator.createBasicModel()
         creator.addModel(model)
         val words = listOf("apple", "banana", "cat")
         words.forEach { w ->
-            val note = ApkgCreator.Note(
+            val note = Note(
                 id = ApkgCreator.generateId(),
                 modelId = model.id,
                 fields = listOf(w, "$w-meaning"),
@@ -880,7 +880,7 @@ class ApkgCreatorTest {
 
     private fun setupAdvancedTestData(creator: ApkgCreator, format: ApkgFormat) {
         val deckId = ApkgCreator.generateId()
-        val deck = ApkgCreator.Deck(id = deckId, name = "高级词汇")
+        val deck = Deck(id = deckId, name = "高级词汇")
         creator.addDeck(deck)
         val model = ApkgCreator.createWordModel()
         creator.addModel(model)
@@ -890,7 +890,7 @@ class ApkgCreatorTest {
             WordData("fundamental", "基本的，根本的", "", "Education is fundamental to personal development.")
         )
         words.forEach { wd ->
-            val note = ApkgCreator.Note(
+            val note = Note(
                 id = ApkgCreator.generateId(),
                 modelId = model.id,
                 fields = listOf(

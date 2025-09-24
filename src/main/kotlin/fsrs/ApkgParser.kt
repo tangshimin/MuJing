@@ -22,11 +22,11 @@ class ApkgParser {
 
     // 解析结果使用 ApkgCreator 的数据类
     data class ParsedApkg(
-        val notes: List<ApkgCreator.Note>,
-        val cards: List<ApkgCreator.Card>,
-        val decks: List<ApkgCreator.Deck>,
-        val models: List<ApkgCreator.Model>,
-        val mediaFiles: List<ApkgCreator.MediaFile>,
+        val notes: List<Note>,
+        val cards: List<Card>,
+        val decks: List<Deck>,
+        val models: List<Model>,
+        val mediaFiles: List<MediaFile>,
         val databaseVersion: Int,
         val creationTime: Long,
         val format: ApkgFormat,

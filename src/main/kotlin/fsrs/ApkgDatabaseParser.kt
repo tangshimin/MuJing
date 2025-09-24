@@ -9,8 +9,8 @@ import java.sql.SQLException
  */
 internal class ApkgDatabaseParser(private val schemaVersion: Int) {
 
-    fun parseNotes(conn: Connection): List<ApkgCreator.Note> {
-        val notes = mutableListOf<ApkgCreator.Note>()
+    fun parseNotes(conn: Connection): List<Note> {
+        val notes = mutableListOf<Note>()
         
         val query = if (schemaVersion >= 18) {
             "SELECT id, guid, mid, mod, usn, tags, flds, sfld, csum, flags, data FROM notes"
@@ -25,7 +25,7 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
                         val fieldsString = rs.getString("flds")
                         val fields = fieldsString.split("\u001f")
                         
-                        notes.add(ApkgCreator.Note(
+                        notes.add(Note(
                             id = rs.getLong("id"),
                             modelId = rs.getLong("mid"),
                             fields = fields,
@@ -42,8 +42,8 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
         return notes
     }
 
-    fun parseCards(conn: Connection): List<ApkgCreator.Card> {
-        val cards = mutableListOf<ApkgCreator.Card>()
+    fun parseCards(conn: Connection): List<Card> {
+        val cards = mutableListOf<Card>()
         
         // 动态检测可用的列
         val availableColumns = getAvailableColumns(conn, "cards")
@@ -61,7 +61,7 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
             conn.createStatement().use { stmt ->
                 stmt.executeQuery(query).use { rs ->
                     while (rs.next()) {
-                        cards.add(ApkgCreator.Card(
+                        cards.add(Card(
                             id = rs.getLong("id"),
                             noteId = rs.getLong("nid"),
                             deckId = rs.getLong("did"),
@@ -106,8 +106,8 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
         return columns
     }
 
-    fun parseDecks(conn: Connection): List<ApkgCreator.Deck> {
-        val decks = mutableListOf<ApkgCreator.Deck>()
+    fun parseDecks(conn: Connection): List<Deck> {
+        val decks = mutableListOf<Deck>()
         
         try {
             conn.createStatement().use { stmt ->
@@ -129,7 +129,7 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
                                 val deck = deckData.jsonObject
                                 println("DEBUG: Parsing deck $deckId: ${deck["name"]?.jsonPrimitive?.content}")
                                 
-                                decks.add(ApkgCreator.Deck(
+                                decks.add(Deck(
                                     id = deckId.toLong(),
                                     name = deck["name"]?.jsonPrimitive?.content ?: "",
                                     description = deck["desc"]?.jsonPrimitive?.content ?: "",
@@ -164,8 +164,8 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
         return decks
     }
 
-    fun parseModels(conn: Connection): List<ApkgCreator.Model> {
-        val models = mutableListOf<ApkgCreator.Model>()
+    fun parseModels(conn: Connection): List<Model> {
+        val models = mutableListOf<Model>()
         
         try {
             conn.createStatement().use { stmt ->
@@ -186,7 +186,7 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
                                 val templates = parseTemplates(model["tmpls"]?.jsonArray)
                                 val fields = parseFields(model["flds"]?.jsonArray)
                                 
-                                models.add(ApkgCreator.Model(
+                                models.add(Model(
                                     id = modelId.toLong(),
                                     name = model["name"]?.jsonPrimitive?.content ?: "",
                                     type = model["type"]?.jsonPrimitive?.int ?: 0,
@@ -235,10 +235,10 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
         throw ApkgParseException("Collection information not found")
     }
 
-    private fun parseTemplates(templatesArray: JsonArray?): List<ApkgCreator.CardTemplate> {
+    private fun parseTemplates(templatesArray: JsonArray?): List<CardTemplate> {
         return templatesArray?.mapNotNull { templateElement ->
             val template = templateElement.jsonObject
-            ApkgCreator.CardTemplate(
+            CardTemplate(
                 name = template["name"]?.jsonPrimitive?.content ?: "",
                 ordinal = template["ord"]?.jsonPrimitive?.int ?: 0,
                 questionFormat = template["qfmt"]?.jsonPrimitive?.content ?: "",
@@ -252,10 +252,10 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
         } ?: emptyList()
     }
 
-    private fun parseFields(fieldsArray: JsonArray?): List<ApkgCreator.Field> {
+    private fun parseFields(fieldsArray: JsonArray?): List<Field> {
         return fieldsArray?.mapNotNull { fieldElement ->
             val field = fieldElement.jsonObject
-            ApkgCreator.Field(
+            Field(
                 name = field["name"]?.jsonPrimitive?.content ?: "",
                 ordinal = field["ord"]?.jsonPrimitive?.int ?: 0,
                 sticky = field["sticky"]?.jsonPrimitive?.boolean ?: false,

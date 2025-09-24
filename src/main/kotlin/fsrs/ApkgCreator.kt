@@ -1,5 +1,6 @@
 package fsrs
 
+import fsrs.ApkgCreator.Companion.generateGuid
 import fsrs.zstd.ZstdNative
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -24,90 +25,6 @@ class ApkgCreator {
         val meta: ApkgMeta
     )
 
-    data class Note(
-        val id: Long,
-        val modelId: Long,
-        val fields: List<String>,
-        val tags: String = "",
-        val guid: String = generateGuid()
-    )
-
-    data class Card(
-        val id: Long,
-        val noteId: Long,
-        val deckId: Long,
-        val templateOrdinal: Int,
-        val cardType: Int = 0, // 0=new, 1=learning, 2=review
-        val queueType: Int = 0, // same as type
-        val dueTime: Int = 1,
-        val interval: Int = 0,
-        val easeFactor: Int = 2500,
-        val repetitions: Int = 0,
-        val lapses: Int = 0,
-        val remainingSteps: Int = 0
-    )
-
-    data class Deck(
-        val id: Long,
-        val modificationTime: Long = 0,
-        val name: String,
-        val updateSequenceNumber: Int = 0,
-        val learnToday: List<Int> = listOf(0, 0),
-        val reviewToday: List<Int> = listOf(0, 0),
-        val newToday: List<Int> = listOf(0, 0),
-        val timeToday: List<Int> = listOf(0, 0),
-        val collapsed: Boolean = false,
-        val browserCollapsed: Boolean = true,
-        val description: String = "",
-        val isDynamic: Int = 0,
-        val configurationId: Long = 1,
-        val extendNew: Int = 0,
-        val extendRev: Int = 0,
-        val reviewLimit: Int? = null,
-        val newLimit: Int? = null,
-        val reviewLimitToday: Int? = null,
-        val newLimitToday: Int? = null
-    )
-
-    data class Model(
-        val id: Long,
-        val name: String,
-        val type: Int = 0,
-        val modificationTime: Long = java.time.Instant.now().epochSecond,
-        val updateSequenceNumber: Int = -1,
-        val sortField: Int = 0,
-        val deckId: Long? = null,
-        val templates: List<CardTemplate>,
-        val fields: List<Field>,
-        val css: String = ".card {\n font-family: arial;\n font-size: 20px;\n text-align: center;\n color: black;\n background-color: white;\n}"
-    )
-
-    data class CardTemplate(
-        val name: String,
-        val ordinal: Int,
-        val questionFormat: String,
-        val answerFormat: String,
-        val deckId: Long? = null,
-        val browserQuestionFormat: String = "",
-        val browserAnswerFormat: String = ""
-    )
-
-    data class Field(
-        val name: String,
-        val ordinal: Int,
-        val sticky: Boolean = false,
-        val rightToLeft: Boolean = false,
-        val font: String = "Arial",
-        val size: Int = 20
-    )
-
-    data class MediaFile(
-        val index: Int,
-        val filename: String,
-        val data: ByteArray,
-        val size: Int? = null,
-        val sha1: ByteArray? = null
-    )
 
     companion object {
         private var nextId = System.currentTimeMillis()
@@ -494,3 +411,90 @@ class ApkgCreator {
     }
 
 }
+
+
+
+data class Note(
+    val id: Long,
+    val modelId: Long,
+    val fields: List<String>,
+    val tags: String = "",
+    val guid: String = generateGuid()
+)
+
+data class Card(
+    val id: Long,
+    val noteId: Long,
+    val deckId: Long,
+    val templateOrdinal: Int,
+    val cardType: Int = 0, // 0=new, 1=learning, 2=review
+    val queueType: Int = 0, // same as type
+    val dueTime: Int = 1,
+    val interval: Int = 0,
+    val easeFactor: Int = 2500,
+    val repetitions: Int = 0,
+    val lapses: Int = 0,
+    val remainingSteps: Int = 0
+)
+
+data class Deck(
+    val id: Long,
+    val modificationTime: Long = 0,
+    val name: String,
+    val updateSequenceNumber: Int = 0,
+    val learnToday: List<Int> = listOf(0, 0),
+    val reviewToday: List<Int> = listOf(0, 0),
+    val newToday: List<Int> = listOf(0, 0),
+    val timeToday: List<Int> = listOf(0, 0),
+    val collapsed: Boolean = false,
+    val browserCollapsed: Boolean = true,
+    val description: String = "",
+    val isDynamic: Int = 0,
+    val configurationId: Long = 1,
+    val extendNew: Int = 0,
+    val extendRev: Int = 0,
+    val reviewLimit: Int? = null,
+    val newLimit: Int? = null,
+    val reviewLimitToday: Int? = null,
+    val newLimitToday: Int? = null
+)
+
+data class Model(
+    val id: Long,
+    val name: String,
+    val type: Int = 0,
+    val modificationTime: Long = java.time.Instant.now().epochSecond,
+    val updateSequenceNumber: Int = -1,
+    val sortField: Int = 0,
+    val deckId: Long? = null,
+    val templates: List<CardTemplate>,
+    val fields: List<Field>,
+    val css: String = ".card {\n font-family: arial;\n font-size: 20px;\n text-align: center;\n color: black;\n background-color: white;\n}"
+)
+
+data class CardTemplate(
+    val name: String,
+    val ordinal: Int,
+    val questionFormat: String,
+    val answerFormat: String,
+    val deckId: Long? = null,
+    val browserQuestionFormat: String = "",
+    val browserAnswerFormat: String = ""
+)
+
+data class Field(
+    val name: String,
+    val ordinal: Int,
+    val sticky: Boolean = false,
+    val rightToLeft: Boolean = false,
+    val font: String = "Arial",
+    val size: Int = 20
+)
+
+data class MediaFile(
+    val index: Int,
+    val filename: String,
+    val data: ByteArray,
+    val size: Int? = null,
+    val sha1: ByteArray? = null
+)

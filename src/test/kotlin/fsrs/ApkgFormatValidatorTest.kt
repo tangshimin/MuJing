@@ -33,7 +33,7 @@ class ApkgFormatValidatorTest {
         // 创建一个测试用的 APKG 文件（使用默认旧格式）
         val creator = ApkgCreator()
         val deckId = ApkgCreator.generateId()
-        val deck = ApkgCreator.Deck(
+        val deck = Deck(
             id = deckId,
             name = "格式验证测试牌组",
             description = "用于验证 APKG 格式正确性"
@@ -44,7 +44,7 @@ class ApkgFormatValidatorTest {
         creator.addModel(model)
 
         // 添加测试笔记
-        val note = ApkgCreator.Note(
+        val note = Note(
             id = ApkgCreator.generateId(),
             modelId = model.id,
             fields = listOf("test", "测试")
@@ -89,13 +89,13 @@ class ApkgFormatValidatorTest {
         
         val creator = ApkgCreator()
         val deckId = ApkgCreator.generateId()
-        val deck = ApkgCreator.Deck(id = deckId, name = "新格式测试牌组")
+        val deck = Deck(id = deckId, name = "新格式测试牌组")
         creator.addDeck(deck)
 
         val model = ApkgCreator.createBasicModel()
         creator.addModel(model)
 
-        val note = ApkgCreator.Note(
+        val note = Note(
             id = ApkgCreator.generateId(),
             modelId = model.id,
             fields = listOf("new", "格式")
@@ -129,13 +129,13 @@ class ApkgFormatValidatorTest {
         
         val creator = ApkgCreator()
         val deckId = ApkgCreator.generateId()
-        val deck = ApkgCreator.Deck(id = deckId, name = "双格式测试牌组")
+        val deck = Deck(id = deckId, name = "双格式测试牌组")
         creator.addDeck(deck)
 
         val model = ApkgCreator.createBasicModel()
         creator.addModel(model)
 
-        val note = ApkgCreator.Note(
+        val note = Note(
             id = ApkgCreator.generateId(),
             modelId = model.id,
             fields = listOf("dual", "格式")

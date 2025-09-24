@@ -16,10 +16,10 @@ internal class ApkgDatabaseCreator {
      */
     fun createDatabase(
         format: ApkgFormat,
-        notes: List<ApkgCreator.Note>,
-        cards: List<ApkgCreator.Card>,
-        decks: Map<Long, ApkgCreator.Deck>,
-        models: Map<Long, ApkgCreator.Model>,
+        notes: List<Note>,
+        cards: List<Card>,
+        decks: Map<Long, Deck>,
+        models: Map<Long, Model>,
         mediaFiles: Map<String, ByteArray>
     ): File {
         val dbFile = File.createTempFile("collection", ".${format.databaseFileName.substringAfterLast('.')}")
@@ -35,10 +35,10 @@ internal class ApkgDatabaseCreator {
     private fun createDatabaseContent(
         dbFile: File,
         format: ApkgFormat,
-        notes: List<ApkgCreator.Note>,
-        cards: List<ApkgCreator.Card>,
-        decks: Map<Long, ApkgCreator.Deck>,
-        models: Map<Long, ApkgCreator.Model>,
+        notes: List<Note>,
+        cards: List<Card>,
+        decks: Map<Long, Deck>,
+        models: Map<Long, Model>,
         mediaFiles: Map<String, ByteArray>
     ) {
         val url = "jdbc:sqlite:${dbFile.absolutePath}"
@@ -260,10 +260,10 @@ internal class ApkgDatabaseCreator {
     private fun insertData(
         conn: java.sql.Connection,
         format: ApkgFormat,
-        notes: List<ApkgCreator.Note>,
-        cards: List<ApkgCreator.Card>,
-        decks: Map<Long, ApkgCreator.Deck>,
-        models: Map<Long, ApkgCreator.Model>,
+        notes: List<Note>,
+        cards: List<Card>,
+        decks: Map<Long, Deck>,
+        models: Map<Long, Model>,
         mediaFiles: Map<String, ByteArray>
     ) {
         val now = Instant.now().epochSecond
@@ -277,8 +277,8 @@ internal class ApkgDatabaseCreator {
     private fun insertColData(
         conn: java.sql.Connection,
         format: ApkgFormat,
-        decks: Map<Long, ApkgCreator.Deck>,
-        models: Map<Long, ApkgCreator.Model>,
+        decks: Map<Long, Deck>,
+        models: Map<Long, Model>,
         now: Long
     ) {
         val colConfig = createColConfig(decks)
@@ -299,7 +299,7 @@ internal class ApkgDatabaseCreator {
         }
     }
 
-    private fun createColConfig(decks: Map<Long, ApkgCreator.Deck>): JsonObject {
+    private fun createColConfig(decks: Map<Long, Deck>): JsonObject {
         return JsonObject(mapOf(
             "nextPos" to JsonPrimitive(1),
             "estTimes" to JsonPrimitive(true),
@@ -317,7 +317,7 @@ internal class ApkgDatabaseCreator {
         ))
     }
 
-    private fun createModelsJson(models: Map<Long, ApkgCreator.Model>): JsonObject {
+    private fun createModelsJson(models: Map<Long, Model>): JsonObject {
         return JsonObject(models.mapKeys { it.key.toString() }.mapValues { (_, model) ->
             JsonObject(mapOf(
                 "id" to JsonPrimitive(model.id),
@@ -353,7 +353,7 @@ internal class ApkgDatabaseCreator {
         })
     }
 
-    private fun createDecksJson(decks: Map<Long, ApkgCreator.Deck>): JsonObject {
+    private fun createDecksJson(decks: Map<Long, Deck>): JsonObject {
         return JsonObject(decks.mapKeys { it.key.toString() }.mapValues { (_, deck) ->
             JsonObject(mapOf(
                 "id" to JsonPrimitive(deck.id),
@@ -499,7 +499,7 @@ internal class ApkgDatabaseCreator {
         stmt.setString(13, "{}")
     }
 
-    private fun insertNotesData(conn: java.sql.Connection, notes: List<ApkgCreator.Note>, now: Long) {
+    private fun insertNotesData(conn: java.sql.Connection, notes: List<Note>, now: Long) {
         conn.prepareStatement("INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").use { stmt ->
             notes.forEach { note ->
                 stmt.setLong(1, note.id)
@@ -520,7 +520,7 @@ internal class ApkgDatabaseCreator {
         }
     }
 
-    private fun insertCardsData(conn: java.sql.Connection, format: ApkgFormat, cards: List<ApkgCreator.Card>, now: Long) {
+    private fun insertCardsData(conn: java.sql.Connection, format: ApkgFormat, cards: List<Card>, now: Long) {
         if (format.schemaVersion >= 18) {
             conn.prepareStatement("INSERT INTO cards VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").use { stmt ->
                 cards.forEach { card ->
@@ -540,7 +540,7 @@ internal class ApkgDatabaseCreator {
         }
     }
 
-    private fun setCardDataV18(stmt: java.sql.PreparedStatement, card: ApkgCreator.Card, now: Long) {
+    private fun setCardDataV18(stmt: java.sql.PreparedStatement, card: Card, now: Long) {
         stmt.setLong(1, card.id)
         stmt.setLong(2, card.noteId)
         stmt.setLong(3, card.deckId)
@@ -565,7 +565,7 @@ internal class ApkgDatabaseCreator {
         stmt.setString(22, "")
     }
 
-    private fun setCardDataLegacy(stmt: java.sql.PreparedStatement, card: ApkgCreator.Card, now: Long) {
+    private fun setCardDataLegacy(stmt: java.sql.PreparedStatement, card: Card, now: Long) {
         stmt.setLong(1, card.id)
         stmt.setLong(2, card.noteId)
         stmt.setLong(3, card.deckId)
