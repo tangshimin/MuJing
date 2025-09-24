@@ -13,8 +13,9 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.material.icons.outlined.Check
+import androidx.compose.material.icons.outlined.ContentCopy
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
@@ -24,7 +25,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import data.Caption
-import state.ScreenType
 
 /**
  * 多行字幕工具栏组件
@@ -40,11 +40,14 @@ import state.ScreenType
  * - **工具提示**: 为每个按钮提供详细的操作说明
  * - **弹出动画**: 平滑的淡入淡出和缩放效果，提升用户体验
  * - **专业背景**: 使用 Surface 组件提供阴影、圆角和边框效果
+ * - **复制功能**: 复制所选字幕区域的文本内容
  *
  * ## 按钮功能
  * 1. **退出按钮** (Close): 退出多行字幕模式，快捷键 Esc
- * 2. **全选按钮** (Checklist): 选择当前显示的所有字幕行
- * 3. **播放按钮** (Play/Pause/Volume): 播放选中的字幕片段，快捷键 Tab
+ * 2. **循环按钮** (AB): 开启/关闭循环播放模式
+ * 3. **复制按钮** (ContentCopy): 复制所选字幕区域的文本内容
+ * 4. **全选按钮** (Checklist): 选择当前显示的所有字幕行
+ * 5. **播放按钮** (Play/Pause/Volume): 播放选中的字幕片段，快捷键 Tab
  *
  * ## 播放图标逻辑
  * - 音频媒体 + 未播放: VolumeDown 图标
@@ -65,9 +68,11 @@ import state.ScreenType
  * @param toolbarDisplayIndex 工具栏显示的位置索引，用于判断是否显示工具栏
  * @param multipleLines 多行字幕状态对象，包含启用状态、时间范围等信息
  * @param mediaType 媒体类型，"audio" 或 "video"，影响播放图标的显示
+ * @param captionList 字幕列表，用于获取选择的字幕文本
  * @param cancel 退出多行字幕模式的回调函数
  * @param selectAll 全选当前字幕的回调函数
  * @param playCaption 播放字幕片段的回调函数，接收 Caption 对象作为参数
+ * @param copySelectedText 复制所选字幕文本的回调函数，接收复制的文本作为参数
  *
  * @see MultipleLines 多行字幕状态管理类
  * @see Caption 字幕数据类
@@ -81,9 +86,11 @@ import state.ScreenType
  *     toolbarDisplayIndex = selectedIndex,
  *     multipleLines = multipleLines,
  *     mediaType = "video",
+ *     captionList = captionList,
  *     cancel = { multipleLines.enabled = false },
  *     selectAll = { selectAllSubtitles() },
- *     playCaption = { caption -> playSubtitleRange(caption) }
+ *     playCaption = { caption -> playSubtitleRange(caption) },
+ *     copySelectedText = { text -> copyToClipboard(text) }
  * )
  * ```
  *
@@ -106,10 +113,23 @@ fun MultipleLinesToolbar(
     toolbarDisplayIndex: Int,
     multipleLines: MultipleLines,
     mediaType: String,
+    captionList: List<Caption>,
     cancel:() -> Unit,
     selectAll:() -> Unit,
     playCaption:(Caption) ->Unit,
+    copySelectedText: (String) -> Unit,
 ) {
+    // 复制成功提示状态
+    var copySuccess by remember { mutableStateOf(false) }
+    
+    // 自动隐藏复制成功提示
+    LaunchedEffect(copySuccess) {
+        if (copySuccess) {
+            kotlinx.coroutines.delay(2000)
+            copySuccess = false
+        }
+    }
+    
     // 添加动画过渡效果
     AnimatedVisibility(
         visible = multipleLines.enabled && toolbarDisplayIndex == index,
@@ -144,7 +164,7 @@ fun MultipleLinesToolbar(
     ) {
         // 为工具栏添加背景和阴影效果
         Surface(
-            modifier = modifier.width(192.dp),
+            modifier = modifier.width(240.dp),
             elevation = 8.dp,  // 提供阴影效果，增强浮动感
             color = MaterialTheme.colors.surface,  // 使用主题的 surface 颜色
             shape = MaterialTheme.shapes.medium,  // 使用圆角形状
@@ -244,6 +264,47 @@ fun MultipleLinesToolbar(
                 }
 
 
+                // 复制按钮
+                TooltipArea(
+                    tooltip = {
+                        Surface(
+                            elevation = 4.dp,
+                            border = BorderStroke(
+                                1.dp,
+                                MaterialTheme.colors.onSurface.copy(alpha = 0.12f)
+                            ),
+                            shape = RectangleShape
+                        ) {
+                            Text(text = "复制", modifier = Modifier.padding(10.dp))
+                        }
+                    },
+                    delayMillis = 300,
+                    tooltipPlacement = TooltipPlacement.ComponentRect(
+                        anchor = Alignment.TopCenter,
+                        alignment = Alignment.TopCenter,
+                        offset = DpOffset.Zero
+                    )
+                ) {
+                    IconButton(
+                        onClick = {
+                            // 获取所选字幕区域的文本
+                            val selectedText = getSelectedCaptionsText(captionList, multipleLines)
+                            if (selectedText.isNotEmpty()) {
+                                copySelectedText(selectedText)
+                                // 显示成功提示
+                                copySuccess = true
+                            }
+                        }
+                    ) {
+                        Icon(
+                            if(copySuccess)Icons.Outlined.Check else Icons.Outlined.ContentCopy,
+                            contentDescription = "复制",
+                            tint = MaterialTheme.colors.onSurface
+                        )
+                    }
+                }
+
+
                 // 全选按钮
                 TooltipArea(
                     tooltip = {
@@ -313,4 +374,29 @@ fun MultipleLinesToolbar(
 
         }
     }
+}
+
+/**
+ * 获取所选字幕区域的文本内容
+ * 
+ * 根据多行字幕模式的选择范围，从字幕列表中提取对应的文本内容
+ * 
+ * @param captionList 完整的字幕列表
+ * @param multipleLines 多行字幕状态对象，包含选择范围信息
+ * @return 拼接后的字幕文本，用换行符分隔
+ */
+fun getSelectedCaptionsText(captionList: List<Caption>, multipleLines: MultipleLines): String {
+    val startIndex = multipleLines.startIndex
+    val endIndex = multipleLines.endIndex
+    
+    // 确保索引在有效范围内
+    if (startIndex < 0 || endIndex >= captionList.size || startIndex > endIndex) {
+        return ""
+    }
+    
+    // 提取所选范围内的字幕文本
+    val selectedCaptions = captionList.subList(startIndex, endIndex + 1)
+    
+    // 拼接文本，用换行符分隔
+    return selectedCaptions.joinToString("\n") { it.content }
 }

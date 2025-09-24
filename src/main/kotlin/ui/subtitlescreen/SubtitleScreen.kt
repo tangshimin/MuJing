@@ -22,7 +22,9 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.key.*
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -84,6 +86,7 @@ fun SubtitleScreen(
     var loading by remember { mutableStateOf(false) }
     var mediaType by remember { mutableStateOf(computeMediaType(subtitlesState.mediaPath)) }
     val audioPlayerComponent = LocalAudioPlayerComponent.current
+    val clipboardManager = LocalClipboardManager.current
     var charWidth by remember{ mutableStateOf(computeCharWidth(subtitlesState.trackDescription)) }
     /** 一次播放多条字幕 */
     val multipleLines = rememberMultipleLines()
@@ -849,6 +852,7 @@ fun SubtitleScreen(
                                     toolbarDisplayIndex = toolbarDisplayIndex,
                                     multipleLines = multipleLines,
                                     mediaType = mediaType,
+                                    captionList = captionList,
                                     cancel = {
                                         // 如果画中画窗口存在（无论是否正在播放），都要停止并关闭窗口
                                         if (pipWindow.isInPiPMode()) {
@@ -860,6 +864,11 @@ fun SubtitleScreen(
                                     },
                                     selectAll = selectAll,
                                     playCaption = playCaption,
+                                    copySelectedText = { text ->
+                                        scope.launch {
+                                            clipboardManager.setText(AnnotatedString(text))
+                                        }
+                                    }
                                 )
                             }
 
