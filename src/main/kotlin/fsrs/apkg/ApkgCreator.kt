@@ -1,12 +1,13 @@
-package fsrs
+package fsrs.apkg
 
-import fsrs.ApkgCreator.Companion.generateGuid
 import fsrs.zstd.ZstdNative
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.security.MessageDigest
+import java.time.Instant
 import java.util.zip.CRC32
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
@@ -347,7 +348,7 @@ class ApkgCreator {
 
     // 构建 LATEST 所需的 Protobuf(MediaEntries)
     private fun buildMediaEntriesProtobuf(mediaList: List<Pair<String, ByteArray>>): ByteArray {
-        val out = java.io.ByteArrayOutputStream()
+        val out = ByteArrayOutputStream()
         // MediaEntries: field 1 (entries), wire type 2 (length-delimited)
         mediaList.forEach { (filename, data) ->
             val entryBytes = encodeMediaEntry(
@@ -364,7 +365,7 @@ class ApkgCreator {
 
     // 编码单个 MediaEntry 子消息: name=1(string), size=2(uint32), sha1=3(bytes)
     private fun encodeMediaEntry(name: String, size: Int, sha1: ByteArray): ByteArray {
-        val out = java.io.ByteArrayOutputStream()
+        val out = ByteArrayOutputStream()
         val nameBytes = name.toByteArray(Charsets.UTF_8)
         // field 1: name (length-delimited)
         out.write(0x0A)
@@ -398,7 +399,7 @@ class ApkgCreator {
     }
 
     // Protobuf varint 编码（无符号）
-    private fun writeVarint(out: java.io.ByteArrayOutputStream, value: Long) {
+    private fun writeVarint(out: ByteArrayOutputStream, value: Long) {
         var v = value
         while (true) {
             if ((v and -128L) == 0L) {
@@ -419,7 +420,7 @@ data class Note(
     val modelId: Long,
     val fields: List<String>,
     val tags: String = "",
-    val guid: String = generateGuid()
+    val guid: String = ApkgCreator.Companion.generateGuid()
 )
 
 data class Card(
@@ -463,7 +464,7 @@ data class Model(
     val id: Long,
     val name: String,
     val type: Int = 0,
-    val modificationTime: Long = java.time.Instant.now().epochSecond,
+    val modificationTime: Long = Instant.now().epochSecond,
     val updateSequenceNumber: Int = -1,
     val sortField: Int = 0,
     val deckId: Long? = null,

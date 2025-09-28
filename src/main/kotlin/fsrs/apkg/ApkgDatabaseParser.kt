@@ -1,8 +1,9 @@
-package fsrs
+package fsrs.apkg
 
 import kotlinx.serialization.json.*
 import java.sql.Connection
 import java.sql.SQLException
+import java.time.Instant
 
 /**
  * 数据库解析器 - 负责解析 SQLite 数据库中的各种实体
@@ -190,7 +191,7 @@ internal class ApkgDatabaseParser(private val schemaVersion: Int) {
                                     id = modelId.toLong(),
                                     name = model["name"]?.jsonPrimitive?.content ?: "",
                                     type = model["type"]?.jsonPrimitive?.int ?: 0,
-                                    modificationTime = model["mod"]?.jsonPrimitive?.long ?: java.time.Instant.now().epochSecond,
+                                    modificationTime = model["mod"]?.jsonPrimitive?.long ?: Instant.now().epochSecond,
                                     updateSequenceNumber = model["usn"]?.jsonPrimitive?.int ?: -1,
                                     sortField = model["sortf"]?.jsonPrimitive?.int ?: 0,
                                     deckId = model["did"]?.let { 

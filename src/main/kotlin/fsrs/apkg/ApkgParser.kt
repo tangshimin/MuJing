@@ -1,4 +1,4 @@
-package fsrs
+package fsrs.apkg
 
 import java.util.zip.ZipFile
 

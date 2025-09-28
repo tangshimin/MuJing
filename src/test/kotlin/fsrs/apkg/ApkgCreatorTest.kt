@@ -1,4 +1,4 @@
-package fsrs
+package fsrs.apkg
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
@@ -14,6 +14,7 @@ import java.nio.charset.StandardCharsets
 import org.junit.jupiter.api.TestMethodOrder
 import org.junit.jupiter.api.MethodOrderer
 import fsrs.zstd.ZstdNative
+import java.sql.Connection
 
 /**
  * APKG 创建器功能测试
@@ -355,7 +356,7 @@ class ApkgCreatorTest {
             
             // 调试：检查数据库文件是否被压缩
             val apkgFile = File(outputPath)
-            val zipFile = java.util.zip.ZipFile(apkgFile)
+            val zipFile = ZipFile(apkgFile)
             val dbEntry = zipFile.getEntry(expectedDbName)
             if (dbEntry != null) {
                 val dbStream = zipFile.getInputStream(dbEntry)
@@ -620,7 +621,7 @@ class ApkgCreatorTest {
     /**
      * 执行数据库查询操作
      */
-    private fun <T> executeDatabaseQuery(tempDbFile: File, block: (java.sql.Connection) -> T): T {
+    private fun <T> executeDatabaseQuery(tempDbFile: File, block: (Connection) -> T): T {
         val url = "jdbc:sqlite:${tempDbFile.absolutePath}"
         DriverManager.getConnection(url).use { conn ->
             return block(conn)
@@ -630,7 +631,7 @@ class ApkgCreatorTest {
     /**
      * 执行数据库查询并自动清理临时文件
      */
-    private fun <T> withDatabase(apkgFile: File, dbName: String = "collection.anki2", block: (java.sql.Connection) -> T): T {
+    private fun <T> withDatabase(apkgFile: File, dbName: String = "collection.anki2", block: (Connection) -> T): T {
         val tempDbFile = extractDatabaseToTempFile(apkgFile, dbName)
         try {
             return executeDatabaseQuery(tempDbFile, block)

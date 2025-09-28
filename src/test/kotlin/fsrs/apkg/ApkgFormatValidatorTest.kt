@@ -1,4 +1,4 @@
-package fsrs
+package fsrs.apkg
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
@@ -9,6 +9,7 @@ import java.nio.file.Path
 import java.sql.DriverManager
 import java.util.zip.ZipFile
 import kotlinx.serialization.json.*
+import java.sql.Connection
 
 /**
  * APKG 格式验证测试套件
@@ -394,7 +395,7 @@ class ApkgFormatValidatorTest {
 
     // ===== 辅助方法 =====
 
-    private fun extractAndVerifyDatabase(apkgFile: File, verification: (java.sql.Connection) -> Unit) {
+    private fun extractAndVerifyDatabase(apkgFile: File, verification: (Connection) -> Unit) {
         ZipFile(apkgFile).use { zipFile ->
             // 尝试检测数据库文件格式（优先新格式，回退旧格式）
             val dbEntry = zipFile.getEntry("collection.anki21b") ?: 
@@ -420,7 +421,7 @@ class ApkgFormatValidatorTest {
         }
     }
 
-    private fun verifyTableSchema(conn: java.sql.Connection, tableName: String, expectedColumns: List<String>) {
+    private fun verifyTableSchema(conn: Connection, tableName: String, expectedColumns: List<String>) {
         val rs = conn.createStatement().executeQuery("PRAGMA table_info($tableName)")
         val actualColumns = mutableListOf<String>()
         

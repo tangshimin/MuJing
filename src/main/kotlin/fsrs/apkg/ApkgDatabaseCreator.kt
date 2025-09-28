@@ -1,8 +1,12 @@
-package fsrs
+package fsrs.apkg
 
+import fsrs.zstd.ZstdNative
 import kotlinx.serialization.json.*
 import java.io.File
+import java.sql.Connection
 import java.sql.DriverManager
+import java.sql.PreparedStatement
+import java.sql.Statement
 import java.time.Instant
 
 /**
@@ -48,7 +52,7 @@ internal class ApkgDatabaseCreator {
         }
     }
 
-    private fun createDatabaseStructure(conn: java.sql.Connection, format: ApkgFormat) {
+    private fun createDatabaseStructure(conn: Connection, format: ApkgFormat) {
         conn.createStatement().use { stmt ->
             stmt.execute("PRAGMA user_version = ${format.schemaVersion}")
             
@@ -62,7 +66,7 @@ internal class ApkgDatabaseCreator {
         }
     }
 
-    private fun createColTable(stmt: java.sql.Statement, format: ApkgFormat) {
+    private fun createColTable(stmt: Statement, format: ApkgFormat) {
         if (format.schemaVersion >= 18) {
             stmt.execute("""
                 CREATE TABLE col (
@@ -115,7 +119,7 @@ internal class ApkgDatabaseCreator {
         }
     }
 
-    private fun createNotesTable(stmt: java.sql.Statement) {
+    private fun createNotesTable(stmt: Statement) {
         stmt.execute("""
             CREATE TABLE notes (
                 id INTEGER PRIMARY KEY,
@@ -133,7 +137,7 @@ internal class ApkgDatabaseCreator {
         """)
     }
 
-    private fun createCardsTable(stmt: java.sql.Statement, format: ApkgFormat) {
+    private fun createCardsTable(stmt: Statement, format: ApkgFormat) {
         if (format.schemaVersion >= 18) {
             stmt.execute("""
                 CREATE TABLE cards (
@@ -187,13 +191,13 @@ internal class ApkgDatabaseCreator {
         }
     }
 
-    private fun createGravesTable(stmt: java.sql.Statement) {
+    private fun createGravesTable(stmt: Statement) {
         stmt.execute("""
             CREATE TABLE graves (usn INTEGER NOT NULL, oid INTEGER NOT NULL, type INTEGER NOT NULL, PRIMARY KEY (oid, type)) WITHOUT ROWID
         """)
     }
 
-    private fun createRevlogTable(stmt: java.sql.Statement, format: ApkgFormat) {
+    private fun createRevlogTable(stmt: Statement, format: ApkgFormat) {
         if (format.schemaVersion >= 18) {
             stmt.execute("""
                 CREATE TABLE revlog (
@@ -228,7 +232,7 @@ internal class ApkgDatabaseCreator {
         }
     }
 
-    private fun createAdditionalTables(stmt: java.sql.Statement, format: ApkgFormat) {
+    private fun createAdditionalTables(stmt: Statement, format: ApkgFormat) {
         if (format.schemaVersion >= 18) {
             stmt.execute("""
                 CREATE TABLE mediaMeta (
@@ -258,7 +262,7 @@ internal class ApkgDatabaseCreator {
     }
 
     private fun insertData(
-        conn: java.sql.Connection,
+        conn: Connection,
         format: ApkgFormat,
         notes: List<Note>,
         cards: List<Card>,
@@ -275,7 +279,7 @@ internal class ApkgDatabaseCreator {
     }
 
     private fun insertColData(
-        conn: java.sql.Connection,
+        conn: Connection,
         format: ApkgFormat,
         decks: Map<Long, Deck>,
         models: Map<Long, Model>,
@@ -439,7 +443,7 @@ internal class ApkgDatabaseCreator {
     }
 
     private fun setColDataV18(
-        stmt: java.sql.PreparedStatement,
+        stmt: PreparedStatement,
         format: ApkgFormat,
         colConfig: JsonObject,
         modelsJson: JsonObject,
@@ -476,7 +480,7 @@ internal class ApkgDatabaseCreator {
     }
 
     private fun setColDataLegacy(
-        stmt: java.sql.PreparedStatement,
+        stmt: PreparedStatement,
         format: ApkgFormat,
         colConfig: JsonObject,
         modelsJson: JsonObject,
@@ -499,7 +503,7 @@ internal class ApkgDatabaseCreator {
         stmt.setString(13, "{}")
     }
 
-    private fun insertNotesData(conn: java.sql.Connection, notes: List<Note>, now: Long) {
+    private fun insertNotesData(conn: Connection, notes: List<Note>, now: Long) {
         conn.prepareStatement("INSERT INTO notes VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").use { stmt ->
             notes.forEach { note ->
                 stmt.setLong(1, note.id)
@@ -520,7 +524,7 @@ internal class ApkgDatabaseCreator {
         }
     }
 
-    private fun insertCardsData(conn: java.sql.Connection, format: ApkgFormat, cards: List<Card>, now: Long) {
+    private fun insertCardsData(conn: Connection, format: ApkgFormat, cards: List<Card>, now: Long) {
         if (format.schemaVersion >= 18) {
             conn.prepareStatement("INSERT INTO cards VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").use { stmt ->
                 cards.forEach { card ->
@@ -540,7 +544,7 @@ internal class ApkgDatabaseCreator {
         }
     }
 
-    private fun setCardDataV18(stmt: java.sql.PreparedStatement, card: Card, now: Long) {
+    private fun setCardDataV18(stmt: PreparedStatement, card: Card, now: Long) {
         stmt.setLong(1, card.id)
         stmt.setLong(2, card.noteId)
         stmt.setLong(3, card.deckId)
@@ -565,7 +569,7 @@ internal class ApkgDatabaseCreator {
         stmt.setString(22, "")
     }
 
-    private fun setCardDataLegacy(stmt: java.sql.PreparedStatement, card: Card, now: Long) {
+    private fun setCardDataLegacy(stmt: PreparedStatement, card: Card, now: Long) {
         stmt.setLong(1, card.id)
         stmt.setLong(2, card.noteId)
         stmt.setLong(3, card.deckId)
@@ -586,7 +590,7 @@ internal class ApkgDatabaseCreator {
         stmt.setString(18, "")
     }
 
-    private fun insertMediaMetaData(conn: java.sql.Connection, format: ApkgFormat, mediaFiles: Map<String, ByteArray>, now: Long) {
+    private fun insertMediaMetaData(conn: Connection, format: ApkgFormat, mediaFiles: Map<String, ByteArray>, now: Long) {
         if (format.schemaVersion >= 18) {
             conn.prepareStatement("INSERT INTO mediaMeta VALUES (?, ?, ?, ?, ?)").use { stmt ->
                 mediaFiles.keys.forEach { filename ->
@@ -617,6 +621,6 @@ internal class ApkgDatabaseCreator {
     }
 
     private fun compressWithZstdJni(data: ByteArray): ByteArray {
-        return fsrs.zstd.ZstdNative().compress(data, 0)
+        return ZstdNative().compress(data, 0)
     }
 }

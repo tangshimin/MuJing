@@ -1,7 +1,8 @@
-package fsrs
+package fsrs.apkg
 
 import fsrs.zstd.ZstdNative
 import java.io.File
+import java.sql.Connection
 import java.sql.DriverManager
 import java.sql.SQLException
 import java.util.zip.ZipFile
@@ -51,7 +52,7 @@ internal class ApkgDatabaseHandler {
     /**
      * 检测数据库架构版本
      */
-    fun detectSchemaVersion(conn: java.sql.Connection): SchemaVersion {
+    fun detectSchemaVersion(conn: Connection): SchemaVersion {
         val userVersion = detectUserSchemaVersion(conn)
         val dbVersion = detectDatabaseSchemaVersion(conn)
         
@@ -61,7 +62,7 @@ internal class ApkgDatabaseHandler {
         return SchemaVersion(userVersion, dbVersion, effectiveVersion)
     }
 
-    private fun detectUserSchemaVersion(conn: java.sql.Connection): Int {
+    private fun detectUserSchemaVersion(conn: Connection): Int {
         try {
             conn.createStatement().use { stmt ->
                 stmt.executeQuery("PRAGMA user_version").use { rs ->
@@ -76,7 +77,7 @@ internal class ApkgDatabaseHandler {
         throw ApkgParseException("Cannot detect user schema version")
     }
 
-    private fun detectDatabaseSchemaVersion(conn: java.sql.Connection): Int {
+    private fun detectDatabaseSchemaVersion(conn: Connection): Int {
         try {
             conn.createStatement().use { stmt ->
                 stmt.executeQuery("SELECT ver FROM col WHERE id = 1").use { rs ->
@@ -96,7 +97,7 @@ internal class ApkgDatabaseHandler {
  * 数据库连接包装类
  */
 data class DatabaseConnection(
-    val connection: java.sql.Connection,
+    val connection: Connection,
     val tempFile: File,
     val format: ApkgFormat
 ) {

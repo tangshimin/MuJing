@@ -1,4 +1,4 @@
-package fsrs
+package fsrs.apkg
 
 /**
  * APKG 格式版本枚举
