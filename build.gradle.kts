@@ -6,6 +6,7 @@ import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import java.nio.file.Files
 import org.gradle.api.tasks.Exec
 import java.io.File
+import java.util.Locale
 
 plugins {
     // 版本设置在 settings.gradle.kts 的 plugins 块中
@@ -86,6 +87,14 @@ buildscript {
 
 tasks.withType<KotlinCompile>().configureEach {
     compilerOptions.freeCompilerArgs.add("-opt-in=kotlin.RequiresOptIn")
+}
+
+tasks.withType<Test> {
+    useJUnitPlatform()
+    systemProperty("file.encoding", "UTF-8")
+    if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) {
+        jvmArgs("-Dfile.encoding=UTF-8")
+    }
 }
 
 // 构建 Rust JNI 库 ---
