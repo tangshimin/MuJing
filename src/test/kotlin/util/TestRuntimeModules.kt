@@ -2,6 +2,11 @@ package util
 
 import org.junit.Test
 import org.junit.jupiter.api.condition.EnabledIf
+import org.junit.jupiter.api.TestMethodOrder
+import org.junit.jupiter.api.MethodOrderer
+import org.junit.jupiter.api.Order
+import org.junit.jupiter.api.TestClassOrder
+import org.junit.jupiter.api.ClassOrderer
 import player.isMacOS
 import player.isWindows
 import java.io.File
@@ -14,9 +19,13 @@ import kotlin.jvm.optionals.getOrNull
  * 有时候增加了一些代码，本地运行没有问题，但是打包后运行时会出现一些问题，比如找不到类，这时候可能是因为没有包含某些模块。
  * 这个测试用例会输出需要包含的模块, 如果模块不匹配，就修改 `build.gradle.kts` 中的 `nativeDistributions`
  */
+@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
+@TestClassOrder(ClassOrderer.OrderAnnotation::class)
+@Order(200) // 确保这个测试类在其他测试类之后执行
 class TestRuntimeModules {
 
     @Test
+    @Order(100) // 设置较高的数值，确保在其他测试之后执行
     fun `Test Native Distribution Modules`() {
         val workDir = File("").absolutePath
         val gradlewFile = File(workDir, "gradlew")
@@ -46,12 +55,14 @@ class TestRuntimeModules {
 
         println("Output:\n$output")
         assert(output.contains("Suggested runtime modules to include:"))
-        val expectModules = "modules(\"java.compiler\", \"java.instrument\", \"java.management\", \"java.prefs\", \"java.security.jgss\", \"java.sql\", \"java.xml.crypto\", \"jdk.unsupported\")"
+        val expectModules = "modules(\"java.compiler\", \"java.instrument\", \"java.management\", \"java.prefs\", \"java.security.jgss\", \"java.sql\", \"java.xml.crypto\", \"jdk.security.auth\", \"jdk.unsupported\")"
+//        val expectModules = "modules(\"java.compiler\", \"java.instrument\", \"java.management\", \"java.prefs\", \"java.security.jgss\", \"java.sql\", \"java.xml.crypto\", \"jdk.unsupported\")"
         assert(output.contains(expectModules)) { "Expect $expectModules in output" }
     }
 
     @Test
     @EnabledIf("isNotGitHubActionsWindows")
+    @Order(201) // 设置更高的数值，确保这个最后执行
     fun `Test Run Distributable`() {
         val workDir = File("").absolutePath
         val gradlewFile = File(workDir, "gradlew")
