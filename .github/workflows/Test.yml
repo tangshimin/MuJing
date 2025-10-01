@@ -38,6 +38,14 @@ jobs:
         if: runner.os != 'Windows'
         run: chmod +x ./gradlew
 
+      - name: Set UTF-8 encoding for Windows
+        if: runner.os == 'Windows'
+        run: |
+          # 设置 Gradle 的 JVM 参数，强制使用 UTF-8 编码
+          # 解决 Windows 环境下中文字符显示为问号的问题
+          echo "GRADLE_OPTS=-Dfile.encoding=UTF-8 -Dstdout.encoding=UTF-8 -Dstderr.encoding=UTF-8" >> $env:GITHUB_ENV
+
+
       - name: Run unit tests
         run: ./gradlew test
 
