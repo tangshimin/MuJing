@@ -85,7 +85,7 @@ jobs:
             --enable-static \
             --disable-shared \
             --disable-autodetect \
-            --enable-libwhisper \
+            --enable-whisper \
             --enable-filter=whisper \
             --enable-decoder=srt \
             --enable-decoder=movtext \
