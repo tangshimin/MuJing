@@ -62,8 +62,27 @@ jobs:
           
           PC_DIR="${PREFIX}/lib/pkgconfig"
           mkdir -p "$PC_DIR"
+          
+          # FFmpeg configure 期望的是 "whisper" 包名，不是 "libwhisper"
+          # 同时版本需要 >= 1.7.5
+          if [ ! -f "$PC_DIR/whisper.pc" ]; then
+            printf '%s\n' \
+              'prefix=${pcfiledir}/../..' \
+              'exec_prefix=${prefix}' \
+              'libdir=${exec_prefix}/lib' \
+              'includedir=${prefix}/include' \
+              '' \
+              'Name: whisper' \
+              'Description: whisper.cpp inference library' \
+              'Version: 1.8.0' \
+              'Libs: -L${libdir} -lwhisper -lggml' \
+              'Libs.private: -framework Accelerate -lc++' \
+              'Cflags: -I${includedir}' \
+              > "$PC_DIR/whisper.pc"
+          fi
+          
+          # 同时创建 libwhisper.pc 作为备用（某些工具可能需要）
           if [ ! -f "$PC_DIR/libwhisper.pc" ]; then
-            # 创建 pkg-config 文件，确保包含所有必要的静态链接标志
             printf '%s\n' \
               'prefix=${pcfiledir}/../..' \
               'exec_prefix=${prefix}' \
@@ -72,7 +91,7 @@ jobs:
               '' \
               'Name: libwhisper' \
               'Description: whisper.cpp inference library' \
-              'Version: 1.0' \
+              'Version: 1.8.0' \
               'Libs: -L${libdir} -lwhisper -lggml' \
               'Libs.private: -framework Accelerate -lc++' \
               'Cflags: -I${includedir}' \
@@ -80,9 +99,10 @@ jobs:
           fi
           
           echo '--- Validating pkg-config ---'
-          PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --modversion libwhisper || { echo 'libwhisper.pc validation failed'; exit 1; }
-          PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --cflags libwhisper
-          PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --libs --static libwhisper
+          PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --modversion whisper || { echo 'whisper.pc validation failed'; exit 1; }
+          PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --cflags whisper
+          PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --libs --static whisper
+          echo "Whisper version reported: $(PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --modversion whisper)"
 
       - name: Configure FFmpeg (detect whisper support)
         run: |
