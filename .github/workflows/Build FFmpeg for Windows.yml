@@ -22,6 +22,7 @@ jobs:
             zip
             nasm
             mingw-w64-x86_64-cmake
+            git
 
       - name: Download FFmpeg source code
         run: |
@@ -40,12 +41,18 @@ jobs:
                 -DWHISPER_BUILD_TESTS=OFF \
                 -DWHISPER_BUILD_EXAMPLES=OFF \
                 -DWHISPER_BUILD_SHARED_LIB=OFF \
+                -DGGML_SHARED=OFF \
+                -DWHISPER_NO_ACCELERATE=OFF \
                 -DBUILD_SHARED_LIBS=OFF \
                 ..
           cmake --build . --config Release -j $(nproc)
           cmake --install .
           
-          # Create pkg-config file
+          # 验证安装
+          echo "Installed static libraries:"
+          find "${PREFIX}/lib" -name "*.a" | sort || true
+          
+          # 创建正确的 whisper.pc 文件（解决版本问题的关键修复）
           PC_FILE="${PREFIX}/lib/pkgconfig/whisper.pc"
           mkdir -p "${PREFIX}/lib/pkgconfig"
           cat > "$PC_FILE" << EOF
@@ -57,7 +64,8 @@ jobs:
           Name: whisper
           Description: Port of OpenAI's Whisper model in C/C++
           Version: 1.8.0
-          Libs: -L\${libdir} -lwhisper -lggml
+          Libs: -L\${libdir} -lwhisper -lggml -lggml-cpu -lggml-blas -lggml-base
+          Libs.private: -lm -pthread -lstdc++
           Cflags: -I\${includedir}
           EOF
 
@@ -125,9 +133,13 @@ jobs:
           echo "=== 测试支持的编解码器 ==="
           /usr/local/bin/ffmpeg.exe -encoders | grep -E "(srt|subrip|movtext)" || echo "没找到字幕编码器"
           /usr/local/bin/ffmpeg.exe -decoders | grep -E "(srt|movtext|webvtt|ass|ssa)" || echo "没找到字幕解码器"
+          /usr/local/bin/ffmpeg.exe -decoders | grep -E "(mp3|aac|pcm_s16le)" || echo "没找到音频解码器"
           
           echo "=== 测试支持的格式 ==="
-          /usr/local/bin/ffmpeg.exe -formats | grep -E "(mov|matroska|srt)" || echo "没找到支持的格式"
+          /usr/local/bin/ffmpeg.exe -formats | grep -E "(mov|matroska|srt|wav|mp3|aac)" || echo "没找到支持的格式"
+          
+          echo "=== 测试 Whisper 过滤器 ==="
+          /usr/local/bin/ffmpeg.exe -hide_banner -filters | grep -i whisper || echo "Whisper 过滤器缺失"
 
       - name: Copy dependencies
         shell: msys2 {0}

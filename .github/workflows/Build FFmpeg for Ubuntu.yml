@@ -41,12 +41,18 @@ jobs:
                 -DWHISPER_BUILD_TESTS=OFF \
                 -DWHISPER_BUILD_EXAMPLES=OFF \
                 -DWHISPER_BUILD_SHARED_LIB=OFF \
+                -DGGML_SHARED=OFF \
+                -DWHISPER_NO_ACCELERATE=OFF \
                 -DBUILD_SHARED_LIBS=OFF \
                 ..
           cmake --build . --config Release -j $(nproc)
           sudo cmake --install .
           
-          # Create pkg-config file
+          # 验证安装
+          echo "Installed static libraries:"
+          find "${PREFIX}/lib" -name "*.a" | sort || true
+          
+          # 创建正确的 whisper.pc 文件（解决版本问题的关键修复）
           PC_FILE="${PREFIX}/lib/pkgconfig/whisper.pc"
           sudo mkdir -p "${PREFIX}/lib/pkgconfig"
           sudo bash -c "cat > \"$PC_FILE\" << EOF
@@ -58,7 +64,8 @@ jobs:
           Name: whisper
           Description: Port of OpenAI's Whisper model in C/C++
           Version: 1.8.0
-          Libs: -L\\\${libdir} -lwhisper -lggml
+          Libs: -L\\\${libdir} -lwhisper -lggml -lggml-cpu -lggml-blas -lggml-base
+          Libs.private: -lm -pthread -lstdc++
           Cflags: -I\\\${includedir}
           EOF"
 
@@ -109,9 +116,24 @@ jobs:
       - name: Build and install FFmpeg
         run: |
           cd ffmpeg
-          make
+          make -j $(nproc)
           sudo make install
 
+      - name: Verify static linking and whisper integration
+        run: |
+          ldd /usr/local/bin/ffmpeg || true
+          file /usr/local/bin/ffmpeg || true
+          /usr/local/bin/ffmpeg -hide_banner -filters | grep -i whisper || echo "Whisper filter not found"
+
+      - name: Basic Functional Tests (codecs + whisper presence)
+        run: |
+          set -euo pipefail
+          /usr/local/bin/ffmpeg -version
+          /usr/local/bin/ffmpeg -encoders | grep -E "(srt|subrip|movtext)" || echo "Subtitle encoders missing"
+          /usr/local/bin/ffmpeg -decoders | grep -E "(srt|movtext|webvtt|ass|ssa)" || echo "Subtitle decoders missing"
+          /usr/local/bin/ffmpeg -decoders | grep -E "(mp3|aac|pcm_s16le)" || echo "Audio decoders missing"
+          /usr/local/bin/ffmpeg -formats | grep -E "(mov|matroska|srt|wav|mp3|aac)" || echo "Some formats missing"
+          /usr/local/bin/ffmpeg -hide_banner -filters | grep -i whisper || echo "Whisper filter missing"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
