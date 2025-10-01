@@ -50,68 +50,24 @@ jobs:
           cmake --build . --config Release -j ${NPROC}
           cmake --install .
           
-          # 验证只有静态库被安装
-          echo "--- Installed libraries ---"
-          find "${PREFIX}/lib" -name "*.a" -o -name "*.dylib" -o -name "*.so" | sort
+          # 验证安装
+          echo "Installed static libraries:"
+          find "${PREFIX}/lib" -name "*.a" | sort
           
-          # 确保没有动态库
-          if find "${PREFIX}/lib" -name "*.dylib" -o -name "*.so" | head -1 | grep -q .; then
-            echo "ERROR: Found dynamic libraries, but we want static only!"
-            exit 1
-          fi
-          
-          PC_DIR="${PREFIX}/lib/pkgconfig"
-          mkdir -p "$PC_DIR"
-          
-          # FFmpeg configure 期望的是 "whisper" 包名，不是 "libwhisper"
-          # 同时版本需要 >= 1.7.5
-          if [ ! -f "$PC_DIR/whisper.pc" ]; then
-            printf '%s\n' \
-              'prefix=${pcfiledir}/../..' \
-              'exec_prefix=${prefix}' \
-              'libdir=${exec_prefix}/lib' \
-              'includedir=${prefix}/include' \
-              '' \
-              'Name: whisper' \
-              'Description: whisper.cpp inference library' \
-              'Version: 1.8.0' \
-              'Libs: -L${libdir} -lwhisper -lggml' \
-              'Libs.private: -framework Accelerate -lc++' \
-              'Cflags: -I${includedir}' \
-              > "$PC_DIR/whisper.pc"
-          fi
-          
-          # 同时创建 libwhisper.pc 作为备用（某些工具可能需要）
-          if [ ! -f "$PC_DIR/libwhisper.pc" ]; then
-            printf '%s\n' \
-              'prefix=${pcfiledir}/../..' \
-              'exec_prefix=${prefix}' \
-              'libdir=${exec_prefix}/lib' \
-              'includedir=${prefix}/include' \
-              '' \
-              'Name: libwhisper' \
-              'Description: whisper.cpp inference library' \
-              'Version: 1.8.0' \
-              'Libs: -L${libdir} -lwhisper -lggml' \
-              'Libs.private: -framework Accelerate -lc++' \
-              'Cflags: -I${includedir}' \
-              > "$PC_DIR/libwhisper.pc"
-          fi
-          
-          echo '--- Validating pkg-config ---'
+          # 验证 pkg-config
           PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --modversion whisper || { echo 'whisper.pc validation failed'; exit 1; }
-          PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --cflags whisper
-          PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --libs --static whisper
-          echo "Whisper version reported: $(PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --modversion whisper)"
+          echo "Whisper version: $(PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --modversion whisper)"
 
-      - name: Configure FFmpeg (detect whisper support)
+      - name: Configure FFmpeg (with whisper support)
         run: |
           set -euo pipefail
           cd ffmpeg
           PREFIX="$GITHUB_WORKSPACE/local"
           export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-          EXTRA_CFLAGS="-I${PREFIX}/include"
-          EXTRA_LDFLAGS="-L${PREFIX}/lib"
+          
+          # 验证 whisper 可用
+          pkg-config --exists whisper || { echo 'whisper package not found'; exit 1; }
+          
           ./configure --disable-everything \
             --disable-ffprobe \
             --enable-ffmpeg \
@@ -148,8 +104,8 @@ jobs:
             --enable-decoder=mp3 \
             --enable-decoder=aac \
             --pkg-config-flags="--static" \
-            --extra-cflags="$EXTRA_CFLAGS" \
-            --extra-ldflags="$EXTRA_LDFLAGS -framework Accelerate"
+            --extra-cflags="-I${PREFIX}/include" \
+            --extra-ldflags="-L${PREFIX}/lib -framework Accelerate"
 
       - name: Build & Install FFmpeg
         run: |
