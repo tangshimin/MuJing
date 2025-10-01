@@ -18,24 +18,75 @@ jobs:
             artifact_name: ffmpeg-macos-aarch64
 
     steps:
-      - name: Install dependencies
+      - name: Prepare tools & deps
         run: |
-          brew install automake libtool nasm pkg-config yasm
+          # Use brew to install build dependencies (add cmake for whisper.cpp)
+          brew update
+          brew install automake libtool nasm pkg-config yasm cmake
+          echo "NPROC=$(sysctl -n hw.ncpu)" >> $GITHUB_ENV
 
       - name: Download FFmpeg source code
         run: |
           git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
           cd ffmpeg
 
-      - name: Configure FFmpeg
+      - name: Clone & Build whisper.cpp (libwhisper static)
         run: |
+          set -euo pipefail
+          PREFIX="$GITHUB_WORKSPACE/local"
+          mkdir -p "$PREFIX"
+          git clone https://github.com/ggerganov/whisper.cpp.git
+          cd whisper.cpp
+          mkdir -p build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+                -DWHISPER_BUILD_TESTS=OFF \
+                -DWHISPER_BUILD_EXAMPLES=OFF \
+                -DWHISPER_BUILD_SHARED_LIB=OFF \
+                -DWHISPER_NO_ACCELERATE=OFF \
+                ..
+          cmake --build . --config Release -j ${NPROC}
+          cmake --install .
+          PC_DIR="${PREFIX}/lib/pkgconfig"
+          mkdir -p "$PC_DIR"
+          if [ ! -f "$PC_DIR/libwhisper.pc" ]; then
+            # 使用 printf 逐行写入，避免 heredoc 里冒号被某些 YAML 校验器误解析
+            printf '%s\n' \
+              'prefix=${pcfiledir}/../..' \
+              'exec_prefix=${prefix}' \
+              'libdir=${exec_prefix}/lib' \
+              'includedir=${prefix}/include' \
+              '' \
+              'Name: libwhisper' \
+              'Description: whisper.cpp inference library' \
+              'Version: 1.0' \
+              'Libs: -L${libdir} -lwhisper' \
+              'Cflags: -I${includedir}' \
+              > "$PC_DIR/libwhisper.pc"
+          fi
+
+      - name: Configure FFmpeg (minimal + subtitles + whisper)
+        run: |
+          set -euo pipefail
           cd ffmpeg
+          PREFIX="$GITHUB_WORKSPACE/local"
+          export PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+          EXTRA_CFLAGS="-I${PREFIX}/include"
+          EXTRA_LDFLAGS="-L${PREFIX}/lib"
           ./configure --disable-everything \
             --disable-ffprobe \
             --enable-ffmpeg \
-            --enable-avformat \
-            --enable-avcodec \
             --enable-avutil \
+            --enable-avcodec \
+            --enable-avformat \
+            --enable-avfilter \
+            --enable-swresample \
+            --enable-protocol=file \
+            --enable-static \
+            --disable-shared \
+            --disable-autodetect \
+            --enable-libwhisper \
+            --enable-filter=whisper \
             --enable-decoder=srt \
             --enable-decoder=movtext \
             --enable-decoder=webvtt \
@@ -51,41 +102,41 @@ jobs:
             --enable-demuxer=srt \
             --enable-demuxer=webvtt \
             --enable-muxer=srt \
-            --enable-protocol=file \
-            --enable-static \
-            --disable-shared \
-            --disable-autodetect \
-            --pkg-config-flags="--static"
+            --enable-demuxer=wav \
+            --enable-demuxer=mp3 \
+            --enable-demuxer=aac \
+            --enable-decoder=pcm_s16le \
+            --enable-decoder=mp3 \
+            --enable-decoder=aac \
+            --pkg-config-flags="--static" \
+            --extra-cflags="$EXTRA_CFLAGS" \
+            --extra-ldflags="$EXTRA_LDFLAGS"
 
-      - name: Build and install FFmpeg
+      - name: Build & Install FFmpeg
         run: |
+          set -euo pipefail
           cd ffmpeg
-          make -j$(nproc)
-          sudo make install
-
+            make -j ${NPROC}
+            sudo make install
 
       - name: Verify static linking
         run: |
-          echo "=== Dynamic dependencies ==="
-          otool -L /usr/local/bin/ffmpeg
-          echo "=== File info ==="
-          file /usr/local/bin/ffmpeg
+          otool -L /usr/local/bin/ffmpeg || true
+          file /usr/local/bin/ffmpeg || true
+          /usr/local/bin/ffmpeg -hide_banner -filters | grep -i whisper || echo "Whisper filter not found"
 
-      - name: Test FFmpeg functionality
+      - name: Basic Functional Tests (codecs + whisper presence)
         run: |
-          echo "=== 测试 FFmpeg 基本功能 ==="
+          set -euo pipefail
           /usr/local/bin/ffmpeg -version
-          
-          echo "=== 测试支持的编解码器 ==="
-          /usr/local/bin/ffmpeg -encoders | grep -E "(srt|subrip|movtext)" || echo "没找到字幕编码器"
-          /usr/local/bin/ffmpeg -decoders | grep -E "(srt|movtext|webvtt|ass|ssa)" || echo "没找到字幕解码器"
-          
-          echo "=== 测试支持的格式 ==="
-          /usr/local/bin/ffmpeg -formats | grep -E "(mov|matroska|srt)" || echo "没找到支持的格式"
+          /usr/local/bin/ffmpeg -encoders | grep -E "(srt|subrip|movtext)" || echo "Subtitle encoders missing"
+          /usr/local/bin/ffmpeg -decoders | grep -E "(srt|movtext|webvtt|ass|ssa)" || echo "Subtitle decoders missing"
+          /usr/local/bin/ffmpeg -decoders | grep -E "(mp3|aac|pcm_s16le)" || echo "Audio decoders missing"
+          /usr/local/bin/ffmpeg -formats | grep -E "(mov|matroska|srt|wav|mp3|aac)" || echo "Some formats missing"
+          /usr/local/bin/ffmpeg -hide_banner -filters | grep -i whisper || echo "Whisper filter missing"
 
-      - name: Upload artifact
+      - name: Upload artifact (ffmpeg binary only)
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: |
-            /usr/local/bin/ffmpeg
+          path: /usr/local/bin/ffmpeg
