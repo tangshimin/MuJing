@@ -356,16 +356,18 @@ class ApkgCreatorTest {
             
             // 调试：检查数据库文件是否被压缩
             val apkgFile = File(outputPath)
-            val zipFile = ZipFile(apkgFile)
-            val dbEntry = zipFile.getEntry(expectedDbName)
-            if (dbEntry != null) {
-                val dbStream = zipFile.getInputStream(dbEntry)
-                val dbData = dbStream.readBytes()
-                val isZstdCompressed = isZstdCompressed(dbData)
-                println("🔍 数据库 $expectedDbName Zstd 压缩检测: $isZstdCompressed, 数据大小: ${dbData.size} 字节")
-                
-                if (isZstdCompressed && formatVersion != ApkgFormat.LATEST) {
-                    println("❌ 错误: 非 LATEST 格式的数据库被压缩了!")
+            ZipFile(apkgFile).use { zipFile ->
+                val dbEntry = zipFile.getEntry(expectedDbName)
+                if (dbEntry != null) {
+                    zipFile.getInputStream(dbEntry).use { dbStream ->
+                        val dbData = dbStream.readBytes()
+                        val isZstdCompressed = isZstdCompressed(dbData)
+                        println("🔍 数据库 $expectedDbName Zstd 压缩检测: $isZstdCompressed, 数据大小: ${dbData.size} 字节")
+
+                        if (isZstdCompressed && formatVersion != ApkgFormat.LATEST) {
+                            println("❌ 错误: 非 LATEST 格式的数据库被压缩了!")
+                        }
+                    }
                 }
             }
             verifyMultipleDecks(File(outputPath), 2, expectedDbName)
