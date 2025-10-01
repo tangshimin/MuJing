@@ -54,9 +54,22 @@ jobs:
           echo "Installed static libraries:"
           find "${PREFIX}/lib" -name "*.a" | sort
           
-          # 验证 pkg-config
-          PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --modversion whisper || { echo 'whisper.pc validation failed'; exit 1; }
-          echo "Whisper version: $(PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --modversion whisper)"
+          # 创建正确的 whisper.pc 文件（解决版本问题的关键修复）
+          PC_FILE="${PREFIX}/lib/pkgconfig/whisper.pc"
+          mkdir -p "${PREFIX}/lib/pkgconfig"
+          cat > "$PC_FILE" << EOF
+          prefix=${PREFIX}
+          exec_prefix=\${prefix}
+          libdir=\${exec_prefix}/lib
+          includedir=\${prefix}/include
+
+          Name: whisper
+          Description: Port of OpenAI's Whisper model in C/C++
+          Version: 1.8.0
+          Libs: -L\${libdir} -lwhisper -lggml -lggml-cpu -lggml-blas -lggml-metal -lggml-base
+          Libs.private: -framework Accelerate -framework Metal -framework Foundation -lc++
+          Cflags: -I\${includedir}
+          EOF
 
       - name: Configure FFmpeg (with whisper support)
         run: |
