@@ -21,16 +21,52 @@ jobs:
             mingw-w64-x86_64-iconv
             zip
             nasm
+            mingw-w64-x86_64-cmake
 
       - name: Download FFmpeg source code
         run: |
           git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
-          cd ffmpeg
+
+      - name: Clone & Build whisper.cpp
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          PREFIX="/usr/local"
+          git clone https://github.com/ggerganov/whisper.cpp.git
+          cd whisper.cpp
+          mkdir -p build && cd build
+          cmake -DCMAKE_BUILD_TYPE=Release \
+                -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
+                -DWHISPER_BUILD_TESTS=OFF \
+                -DWHISPER_BUILD_EXAMPLES=OFF \
+                -DWHISPER_BUILD_SHARED_LIB=OFF \
+                -DBUILD_SHARED_LIBS=OFF \
+                ..
+          cmake --build . --config Release -j $(nproc)
+          cmake --install .
+          
+          # Create pkg-config file
+          PC_FILE="${PREFIX}/lib/pkgconfig/whisper.pc"
+          mkdir -p "${PREFIX}/lib/pkgconfig"
+          cat > "$PC_FILE" << EOF
+          prefix=${PREFIX}
+          exec_prefix=\${prefix}
+          libdir=\${exec_prefix}/lib
+          includedir=\${prefix}/include
+
+          Name: whisper
+          Description: Port of OpenAI's Whisper model in C/C++
+          Version: 1.8.0
+          Libs: -L\${libdir} -lwhisper -lggml
+          Cflags: -I\${includedir}
+          EOF
 
       - name: Configure FFmpeg
         shell: msys2 {0}
         run: |
           cd ffmpeg
+          export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
+          pkg-config --exists whisper || { echo 'whisper package not found'; exit 1; }
           ./configure --disable-everything \
             --enable-static \
             --disable-shared \
@@ -39,6 +75,11 @@ jobs:
             --enable-avformat \
             --enable-avcodec \
             --enable-avutil \
+            --enable-avfilter \
+            --enable-swresample \
+            --enable-protocol=file \
+            --enable-whisper \
+            --enable-filter=whisper \
             --enable-decoder=srt \
             --enable-decoder=movtext \
             --enable-decoder=webvtt \
@@ -53,8 +94,17 @@ jobs:
             --enable-demuxer=ass \
             --enable-demuxer=srt \
             --enable-demuxer=webvtt \
+            --enable-demuxer=wav \
+            --enable-demuxer=mp3 \
+            --enable-demuxer=aac \
+            --enable-decoder=pcm_s16le \
+            --enable-decoder=mp3 \
+            --enable-decoder=aac \
             --enable-muxer=srt \
             --enable-protocol=file \
+            --pkg-config-flags="--static" \
+            --extra-cflags="-I/usr/local/include" \
+            --extra-ldflags="-L/usr/local/lib"
 
       - name: Build and install FFmpeg
         shell: msys2 {0}
