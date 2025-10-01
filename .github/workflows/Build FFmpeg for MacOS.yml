@@ -30,7 +30,7 @@ jobs:
           git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
           cd ffmpeg
 
-      - name: Clone & Build whisper.cpp (libwhisper static)
+      - name: Clone & Build whisper.cpp (static only)
         run: |
           set -euo pipefail
           PREFIX="$GITHUB_WORKSPACE/local"
@@ -43,14 +43,27 @@ jobs:
                 -DWHISPER_BUILD_TESTS=OFF \
                 -DWHISPER_BUILD_EXAMPLES=OFF \
                 -DWHISPER_BUILD_SHARED_LIB=OFF \
+                -DGGML_SHARED=OFF \
                 -DWHISPER_NO_ACCELERATE=OFF \
+                -DBUILD_SHARED_LIBS=OFF \
                 ..
           cmake --build . --config Release -j ${NPROC}
           cmake --install .
+          
+          # 验证只有静态库被安装
+          echo "--- Installed libraries ---"
+          find "${PREFIX}/lib" -name "*.a" -o -name "*.dylib" -o -name "*.so" | sort
+          
+          # 确保没有动态库
+          if find "${PREFIX}/lib" -name "*.dylib" -o -name "*.so" | head -1 | grep -q .; then
+            echo "ERROR: Found dynamic libraries, but we want static only!"
+            exit 1
+          fi
+          
           PC_DIR="${PREFIX}/lib/pkgconfig"
           mkdir -p "$PC_DIR"
           if [ ! -f "$PC_DIR/libwhisper.pc" ]; then
-            # 使用 printf 逐行写入，避免 heredoc 里冒号被某些 YAML 校验器误解析
+            # 创建 pkg-config 文件，确保包含所有必要的静态链接标志
             printf '%s\n' \
               'prefix=${pcfiledir}/../..' \
               'exec_prefix=${prefix}' \
@@ -60,12 +73,18 @@ jobs:
               'Name: libwhisper' \
               'Description: whisper.cpp inference library' \
               'Version: 1.0' \
-              'Libs: -L${libdir} -lwhisper' \
+              'Libs: -L${libdir} -lwhisper -lggml' \
+              'Libs.private: -framework Accelerate -lc++' \
               'Cflags: -I${includedir}' \
               > "$PC_DIR/libwhisper.pc"
           fi
+          
+          echo '--- Validating pkg-config ---'
+          PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --modversion libwhisper || { echo 'libwhisper.pc validation failed'; exit 1; }
+          PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --cflags libwhisper
+          PKG_CONFIG_PATH="${PREFIX}/lib/pkgconfig" pkg-config --libs --static libwhisper
 
-      - name: Configure FFmpeg (minimal + subtitles + whisper)
+      - name: Configure FFmpeg (detect whisper support)
         run: |
           set -euo pipefail
           cd ffmpeg
@@ -110,7 +129,7 @@ jobs:
             --enable-decoder=aac \
             --pkg-config-flags="--static" \
             --extra-cflags="$EXTRA_CFLAGS" \
-            --extra-ldflags="$EXTRA_LDFLAGS"
+            --extra-ldflags="$EXTRA_LDFLAGS -framework Accelerate"
 
       - name: Build & Install FFmpeg
         run: |
