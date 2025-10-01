@@ -71,6 +71,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.9.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine:5.9.2")
 }
 
 buildscript {
@@ -109,7 +110,7 @@ val buildRustZstdJni by tasks.registering(Exec::class) {
 
     // 显式指定可执行文件与参数
     executable = cargoPath
-    args = listOf("build", "--release")
+    args("build", "--release")
 
     // 若 cargo 存在但构建失败，应当让任务失败以暴露错误
     isIgnoreExitValue = false
@@ -155,7 +156,7 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "幕境"
             packageVersion = version.toString()
-            modules("java.compiler","java.instrument","java.management","java.prefs", "java.security.jgss","java.sql", "jdk.unsupported","java.xml.crypto","jdk.accessibility", "java.naming" )
+            modules("java.compiler","java.instrument","java.management","java.prefs", "java.security.jgss","jdk.security.auth","java.sql", "jdk.unsupported","java.xml.crypto","jdk.accessibility", "java.naming" )
             appResourcesRootDir.set(project.layout.projectDirectory.dir("resources"))
             copyright = "Copyright 2023 Shimin Tang. All rights reserved."
             vendor = "深圳市龙华区幕境网络工作室"
@@ -181,14 +182,49 @@ tasks.withType(JavaCompile::class.java) {
 }
 
 // 第一次编译之前要解压缩词典文件
-tasks.named("compileKotlin") {
-    doFirst{
+val decompressDictionary by tasks.registering {
+    group = "build"
+    description = "Decompress ecdict database if missing"
+    doLast {
         val dictFile = layout.projectDirectory.dir("resources/common/dictionary/ecdict.db").asFile
         if (!dictFile.exists()) {
             println("解压缩词典文件")
             val input = layout.projectDirectory.dir("dict/ecdict.7z").asFile
             val destination = layout.projectDirectory.dir("resources/common/dictionary").asFile
             decompressDict(input, destination)
+        } else {
+            println("词典已存在，跳过解压缩")
+        }
+    }
+}
+
+tasks.named("compileKotlin") {
+    // 先确保解压缩，再准备 ffmpeg
+    dependsOn("prepareFfmpeg")
+}
+
+tasks.register("prepareFfmpeg") {
+    group = "verification"
+    description = "Fix permissions, remove quarantine"
+    // 依赖字典解压任务，确保顺序：先解压 -> 再准备 ffmpeg -> 再编译
+    dependsOn(decompressDictionary)
+    doLast {
+        if (!org.gradle.internal.os.OperatingSystem.current().isMacOsX) return@doLast
+        val arch = System.getProperty("os.arch").lowercase()
+        val ffmpegPath = if (arch == "arm" || arch == "aarch64")
+            "resources/macos-arm64/ffmpeg/ffmpeg"
+        else
+            "resources/macos-x64/ffmpeg/ffmpeg"
+        val f = file(ffmpegPath)
+        if (f.exists()) {
+            f.setExecutable(true)
+            fun run(vararg cmd: String) {
+                try { project.exec { commandLine(*cmd) } } catch (_: Exception) {}
+            }
+            run("xattr", "-dr", "com.apple.quarantine", f.absolutePath)
+            println("Prepared ffmpeg: $ffmpegPath")
+        } else {
+            println("ffmpeg not found at $ffmpegPath")
         }
     }
 }
@@ -203,10 +239,13 @@ tasks.named<Test>("test") {
     testClassesDirs = sourceSets["test"].output.classesDirs
     classpath = sourceSets["test"].runtimeClasspath
     exclude("**/ui/**")
-    
+
     // 启用 JUnit 5
     useJUnitPlatform()
     
+    // 配置测试执行顺序
+    systemProperty("junit.jupiter.testclass.order.default", "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation")
+
     // 测试日志配置
     testLogging {
         events("passed", "skipped", "failed")
