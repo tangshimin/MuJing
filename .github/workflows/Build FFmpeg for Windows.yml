@@ -116,35 +116,46 @@ jobs:
           DEST=/usr/local/bin/ffmpeg-build
           mkdir -p "$DEST"
           cp /usr/local/bin/ffmpeg.exe "$DEST/"
+          # Core runtime deps (some already mostly static but ensure presence)
           cp /mingw64/bin/libbz2-1.dll "$DEST/" || true
           cp /mingw64/bin/libiconv-2.dll "$DEST/" || true
           cp /mingw64/bin/liblzma-5.dll "$DEST/" || true
           cp /mingw64/bin/libwinpthread-1.dll "$DEST/" || true
           cp /mingw64/bin/zlib1.dll "$DEST/" || true
-          # 不再分发 whisper.pc（仅运行 ffmpeg 不需要 pkg-config 元数据）
+          # OpenMP / GCC C++ runtime dependencies
+          cp /mingw64/bin/libgomp-1.dll "$DEST/" || true
+          cp /mingw64/bin/libstdc++-6.dll "$DEST/" || true
+          cp /mingw64/bin/libgcc_s_seh-1.dll "$DEST/" || true
+          cp /mingw64/bin/libssp-0.dll "$DEST/" || true
+          # Do not distribute whisper.pc – not needed at runtime
           cat > "$DEST/README-whisper.txt" << 'R'
           FFmpeg + whisper filter (static build)
 
           This artifact contains:
-            - ffmpeg.exe (statically linked with whisper/ggml)
-            - required runtime DLLs (iconv, zlib, etc.)
+            - ffmpeg.exe (linked with whisper/ggml; OpenMP enabled)
+            - required runtime DLLs (C++ runtime, OpenMP, compression libs)
 
-          The pkg-config file (whisper.pc) is NOT included because it is only
-          useful when compiling other software against the whisper library.
-          Since this ffmpeg binary already links whisper statically, end users
-          do not need whisper.pc.
+          The pkg-config file (whisper.pc) is NOT included because it only
+          matters when compiling software against libwhisper. End users do not need it.
 
           Usage example:
             ffmpeg -i input.wav -filter:a "whisper=model=ggml-tiny.en.bin:task=transcribe" -f null -
 
-          Optional environment tuning:
+          Optional performance tuning:
             set OMP_NUM_THREADS=6   (Windows CMD)
             $env:OMP_NUM_THREADS=6  (PowerShell)
 
           Build flags summary:
-            --enable-whisper --enable-filter=whisper (static, OpenMP enabled)
-
+            --enable-whisper --enable-filter=whisper (OpenMP enabled)
           R
+
+      - name: Verify Packaged FFmpeg Runs
+        shell: msys2 {0}
+        run: |
+          DEST=/usr/local/bin/ffmpeg-build
+          echo "Verifying runtime dependencies in $DEST";
+          ls -1 "$DEST"
+          "$DEST/ffmpeg.exe" -hide_banner -version || (echo 'Packaged ffmpeg failed to run (likely missing DLL).' && exit 1)
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v4
