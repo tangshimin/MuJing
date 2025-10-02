@@ -5,8 +5,8 @@ on:
 
 jobs:
   build:
+    name: Windows
     runs-on: windows-latest
-
     steps:
       - name: Install MSYS2
         uses: msys2/setup-msys2@v2
@@ -24,16 +24,16 @@ jobs:
             mingw-w64-x86_64-cmake
             git
 
-      - name: Download FFmpeg source code
+      - name: Download FFmpeg source
         run: |
-          git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg
+          git clone https://git.ffmpeg.org/ffmpeg.git ffmpeg --depth 1
 
       - name: Clone & Build whisper.cpp
         shell: msys2 {0}
         run: |
           set -euo pipefail
-          PREFIX="/usr/local"
-          git clone https://github.com/ggerganov/whisper.cpp.git
+          PREFIX=/usr/local
+          git clone --depth 1 https://github.com/ggerganov/whisper.cpp.git
           cd whisper.cpp
           mkdir -p build && cd build
           cmake -DCMAKE_BUILD_TYPE=Release \
@@ -42,120 +42,112 @@ jobs:
                 -DWHISPER_BUILD_EXAMPLES=OFF \
                 -DWHISPER_BUILD_SHARED_LIB=OFF \
                 -DGGML_SHARED=OFF \
-                -DWHISPER_NO_ACCELERATE=OFF \
+                -DGGML_OPENMP=ON \
+                -DWHISPER_NO_ACCELERATE=ON \
                 -DBUILD_SHARED_LIBS=OFF \
                 ..
           cmake --build . --config Release -j $(nproc)
           cmake --install .
-          
-          # 验证安装
-          echo "Installed static libraries:"
-          find "${PREFIX}/lib" -name "*.a" | sort || true
-          
-          # 创建正确的 whisper.pc 文件（解决版本问题的关键修复）
-          PC_FILE="${PREFIX}/lib/pkgconfig/whisper.pc"
+          cd "${PREFIX}/lib"
+          if [ -f ggml.a ] && [ ! -f libggml.a ]; then mv ggml.a libggml.a; fi
+          for f in ggml-*.a; do [ -f "$f" ] && [ ! -f "lib$f" ] && mv "$f" "lib$f" || true; done
           mkdir -p "${PREFIX}/lib/pkgconfig"
-          cat > "$PC_FILE" << EOF
-          prefix=${PREFIX}
-          exec_prefix=\${prefix}
-          libdir=\${exec_prefix}/lib
-          includedir=\${prefix}/include
+          cat > "${PREFIX}/lib/pkgconfig/whisper.pc" << 'EOF'
+          prefix=/usr/local
+          exec_prefix=${prefix}
+          libdir=${exec_prefix}/lib
+          includedir=${prefix}/include
 
           Name: whisper
           Description: Port of OpenAI's Whisper model in C/C++
           Version: 1.8.0
-          Libs: -L\${libdir} -lwhisper -lggml -lggml-cpu -lggml-blas -lggml-base
-          Libs.private: -lm -pthread -lstdc++
-          Cflags: -I\${includedir}
+          Libs: -L${libdir} -lwhisper -lggml -lggml-cpu -lggml-base -lgomp
+          Libs.private: -lstdc++ -lm -lpthread -lgomp
+          Cflags: -I${includedir} -fopenmp
           EOF
+          cp "${PREFIX}/lib/pkgconfig/whisper.pc" "${PREFIX}/lib/pkgconfig/libwhisper.pc" || true
 
       - name: Configure FFmpeg
         shell: msys2 {0}
         run: |
+          set -euo pipefail
+          export PKG_CONFIG_PATH=/usr/local/lib/pkgconfig:$PKG_CONFIG_PATH
+          pkg-config --exists whisper || (echo 'whisper.pc missing' && exit 1)
+          echo "whisper version: $(pkg-config --modversion whisper)"
+          cat > test.c <<'EOF'
+          #include <whisper.h>
+          int main(void) {
+              (void) whisper_init_from_file_with_params;
+              return 0;
+          }
+          EOF
+          g++ $(pkg-config --cflags whisper) test.c $(pkg-config --libs whisper) -o /tmp/t || (echo 'link fail' && exit 1)
+          rm -f test.c /tmp/t
           cd ffmpeg
-          export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:${PKG_CONFIG_PATH:-}"
-          pkg-config --exists whisper || { echo 'whisper package not found'; exit 1; }
           ./configure --disable-everything \
-            --enable-static \
-            --disable-shared \
-            --disable-ffprobe \
-            --enable-ffmpeg \
-            --enable-avformat \
-            --enable-avcodec \
-            --enable-avutil \
-            --enable-avfilter \
-            --enable-swresample \
+            --enable-static --disable-shared \
+            --disable-ffprobe --enable-ffmpeg \
+            --enable-avcodec --enable-avformat --enable-avutil --enable-avfilter --enable-swresample \
             --enable-protocol=file \
-            --enable-whisper \
-            --enable-filter=whisper \
-            --enable-decoder=srt \
-            --enable-decoder=movtext \
-            --enable-decoder=webvtt \
-            --enable-decoder=ass \
-            --enable-decoder=ssa \
-            --enable-decoder=subrip \
-            --enable-encoder=srt \
-            --enable-encoder=subrip \
-            --enable-encoder=movtext \
-            --enable-demuxer=mov \
-            --enable-demuxer=matroska \
-            --enable-demuxer=ass \
-            --enable-demuxer=srt \
-            --enable-demuxer=webvtt \
-            --enable-demuxer=wav \
-            --enable-demuxer=mp3 \
-            --enable-demuxer=aac \
-            --enable-decoder=pcm_s16le \
-            --enable-decoder=mp3 \
-            --enable-decoder=aac \
+            --enable-whisper --enable-filter=whisper \
+            --enable-decoder=srt --enable-decoder=movtext --enable-decoder=webvtt \
+            --enable-decoder=ass --enable-decoder=ssa --enable-decoder=subrip \
+            --enable-encoder=srt --enable-encoder=subrip --enable-encoder=movtext \
+            --enable-demuxer=mov --enable-demuxer=matroska --enable-demuxer=ass \
+            --enable-demuxer=srt --enable-demuxer=webvtt \
+            --enable-demuxer=wav --enable-demuxer=mp3 --enable-demuxer=aac \
+            --enable-decoder=pcm_s16le --enable-decoder=mp3 --enable-decoder=aac \
             --enable-muxer=srt \
-            --enable-protocol=file \
             --pkg-config-flags="--static" \
             --extra-cflags="-I/usr/local/include" \
             --extra-ldflags="-L/usr/local/lib"
-
-      - name: Build and install FFmpeg
-        shell: msys2 {0}
-        run: |
-          cd ffmpeg
-          # 获取 CPU 核心数，fallback 到 4
-          CORES=$(nproc 2>/dev/null || echo 4)
-          echo "使用 $CORES 个核心进行编译"
-          make -j$CORES
+          make -j$(nproc)
           make install
 
-      - name: Test FFmpeg functionality
+      - name: Smoke Test
         shell: msys2 {0}
         run: |
-          echo "=== 测试 FFmpeg 基本功能 ==="
-          /usr/local/bin/ffmpeg.exe -version
-          
-          echo "=== 测试支持的编解码器 ==="
-          /usr/local/bin/ffmpeg.exe -encoders | grep -E "(srt|subrip|movtext)" || echo "没找到字幕编码器"
-          /usr/local/bin/ffmpeg.exe -decoders | grep -E "(srt|movtext|webvtt|ass|ssa)" || echo "没找到字幕解码器"
-          /usr/local/bin/ffmpeg.exe -decoders | grep -E "(mp3|aac|pcm_s16le)" || echo "没找到音频解码器"
-          
-          echo "=== 测试支持的格式 ==="
-          /usr/local/bin/ffmpeg.exe -formats | grep -E "(mov|matroska|srt|wav|mp3|aac)" || echo "没找到支持的格式"
-          
-          echo "=== 测试 Whisper 过滤器 ==="
-          /usr/local/bin/ffmpeg.exe -hide_banner -filters | grep -i whisper || echo "Whisper 过滤器缺失"
+          /usr/local/bin/ffmpeg.exe -hide_banner -filters | grep -i whisper || (echo 'Whisper filter missing' && exit 1)
+          /usr/local/bin/ffmpeg.exe -hide_banner -encoders | grep -E 'subrip' || echo 'subrip encoder missing'
 
-      - name: Copy dependencies
+      - name: Package Artifact
         shell: msys2 {0}
         run: |
-          mkdir -p /usr/local/bin/ffmpeg
-          cp /usr/local/bin/ffmpeg.exe /usr/local/bin/ffmpeg/
-          cp /mingw64/bin/libbz2-1.dll /usr/local/bin/ffmpeg/
-          cp /mingw64/bin/libiconv-2.dll /usr/local/bin/ffmpeg/
-          cp /mingw64/bin/liblzma-5.dll /usr/local/bin/ffmpeg/
-          cp /mingw64/bin/libwinpthread-1.dll /usr/local/bin/ffmpeg/
-          cp /mingw64/bin/zlib1.dll /usr/local/bin/ffmpeg/
-      
-      
+          DEST=/usr/local/bin/ffmpeg-build
+          mkdir -p "$DEST"
+          cp /usr/local/bin/ffmpeg.exe "$DEST/"
+          cp /mingw64/bin/libbz2-1.dll "$DEST/" || true
+          cp /mingw64/bin/libiconv-2.dll "$DEST/" || true
+          cp /mingw64/bin/liblzma-5.dll "$DEST/" || true
+          cp /mingw64/bin/libwinpthread-1.dll "$DEST/" || true
+          cp /mingw64/bin/zlib1.dll "$DEST/" || true
+          # 不再分发 whisper.pc（仅运行 ffmpeg 不需要 pkg-config 元数据）
+          cat > "$DEST/README-whisper.txt" << 'R'
+          FFmpeg + whisper filter (static build)
 
-      - name: Upload artifact
+          This artifact contains:
+            - ffmpeg.exe (statically linked with whisper/ggml)
+            - required runtime DLLs (iconv, zlib, etc.)
+
+          The pkg-config file (whisper.pc) is NOT included because it is only
+          useful when compiling other software against the whisper library.
+          Since this ffmpeg binary already links whisper statically, end users
+          do not need whisper.pc.
+
+          Usage example:
+            ffmpeg -i input.wav -filter:a "whisper=model=ggml-tiny.en.bin:task=transcribe" -f null -
+
+          Optional environment tuning:
+            set OMP_NUM_THREADS=6   (Windows CMD)
+            $env:OMP_NUM_THREADS=6  (PowerShell)
+
+          Build flags summary:
+            --enable-whisper --enable-filter=whisper (static, OpenMP enabled)
+
+          R
+
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: ffmpeg-windows
-          path: D:\a\_temp\msys64\usr\local\bin\ffmpeg
+          path: D:\a\_temp\msys64\usr\local\bin\ffmpeg-build
