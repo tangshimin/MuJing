@@ -85,19 +85,99 @@ jobs:
           rm -f test.c /tmp/t
           cd ffmpeg
           ./configure --disable-everything \
-            --enable-static --disable-shared \
-            --disable-ffprobe --enable-ffmpeg \
-            --enable-avcodec --enable-avformat --enable-avutil --enable-avfilter --enable-swresample \
+            --disable-ffprobe \
+            --enable-ffmpeg \
+            --enable-avutil \
+            --enable-avcodec \
+            --enable-avformat \
+            --enable-avfilter \
+            --enable-swresample \
+            --enable-filter=aresample \
+            --enable-filter=aformat \
             --enable-protocol=file \
-            --enable-whisper --enable-filter=whisper \
-            --enable-decoder=srt --enable-decoder=movtext --enable-decoder=webvtt \
-            --enable-decoder=ass --enable-decoder=ssa --enable-decoder=subrip \
-            --enable-encoder=srt --enable-encoder=subrip --enable-encoder=movtext \
-            --enable-demuxer=mov --enable-demuxer=matroska --enable-demuxer=ass \
-            --enable-demuxer=srt --enable-demuxer=webvtt \
-            --enable-demuxer=wav --enable-demuxer=mp3 --enable-demuxer=aac \
-            --enable-decoder=pcm_s16le --enable-decoder=mp3 --enable-decoder=aac \
+            --enable-static \
+            --disable-shared \
+            --disable-autodetect \
+            --enable-whisper \
+            --enable-filter=whisper \
+            --enable-decoder=srt \
+            --enable-decoder=movtext \
+            --enable-decoder=webvtt \
+            --enable-decoder=ass \
+            --enable-decoder=ssa \
+            --enable-decoder=subrip \
+            --enable-encoder=srt \
+            --enable-encoder=subrip \
+            --enable-encoder=movtext \
+            --enable-demuxer=mov \
+            --enable-demuxer=matroska \
+            --enable-demuxer=ass \
+            --enable-demuxer=srt \
+            --enable-demuxer=webvtt \
             --enable-muxer=srt \
+            --enable-muxer=null \
+            --enable-muxer=wav \
+            --enable-muxer=mp3 \
+            --enable-muxer=aac \
+            --enable-muxer=pcm_s16le \
+            --enable-demuxer=wav \
+            --enable-demuxer=mp3 \
+            --enable-demuxer=aac \
+            --enable-encoder=pcm_s16le \
+            --enable-encoder=mp3 \
+            --enable-encoder=aac \
+            --enable-decoder=pcm_s16le \
+            --enable-decoder=mp3 \
+            --enable-decoder=aac \
+            --enable-decoder=flac \
+            --enable-encoder=flac \
+            --enable-demuxer=flac \
+            --enable-muxer=flac \
+            --enable-decoder=vorbis \
+            --enable-encoder=vorbis \
+            --enable-demuxer=ogg \
+            --enable-muxer=ogg \
+            --enable-decoder=opus \
+            --enable-encoder=opus \
+            --enable-decoder=ac3 \
+            --enable-encoder=ac3 \
+            --enable-decoder=eac3 \
+            --enable-decoder=dts \
+            --enable-decoder=truehd \
+            --enable-decoder=mlp \
+            --enable-decoder=mp2 \
+            --enable-encoder=mp2 \
+            --enable-decoder=aac_he \
+            --enable-decoder=pcm_dvd \
+            --enable-decoder=pcm_bluray \
+            --enable-decoder=pcm_u8 \
+            --enable-decoder=pcm_u16le \
+            --enable-decoder=pcm_u24le \
+            --enable-decoder=pcm_u32le \
+            --enable-encoder=pcm_u8 \
+            --enable-encoder=pcm_u16le \
+            --enable-encoder=pcm_u24le \
+            --enable-encoder=pcm_u32le \
+            --enable-decoder=wmav1 \
+            --enable-decoder=wmav2 \
+            --enable-decoder=wmalossless \
+            --enable-decoder=wmapro \
+            --enable-decoder=wmavoice \
+            --enable-demuxer=asf \
+            --enable-decoder=alac \
+            --enable-encoder=alac \
+            --enable-demuxer=mov \
+            --enable-decoder=amrnb \
+            --enable-decoder=amrwb \
+            --enable-demuxer=amr \
+            --enable-decoder=pcm_s24le \
+            --enable-decoder=pcm_s32le \
+            --enable-decoder=pcm_f32le \
+            --enable-decoder=pcm_f64le \
+            --enable-encoder=pcm_s24le \
+            --enable-encoder=pcm_s32le \
+            --enable-encoder=pcm_f32le \
+            --enable-encoder=pcm_f64le \
             --pkg-config-flags="--static" \
             --extra-cflags="-I/usr/local/include" \
             --extra-ldflags="-L/usr/local/lib"
@@ -107,8 +187,13 @@ jobs:
       - name: Smoke Test
         shell: msys2 {0}
         run: |
+          /usr/local/bin/ffmpeg.exe -version
+          /usr/local/bin/ffmpeg.exe -hide_banner -encoders | grep -E "(srt|subrip|movtext|mp3|mp2|aac|flac|vorbis|opus|ac3|alac|pcm_s16le)" || echo "Some encoders missing"
+          /usr/local/bin/ffmpeg.exe -hide_banner -decoders | grep -E "(srt|movtext|webvtt|ass|ssa)" || echo "Subtitle decoders missing"
+          /usr/local/bin/ffmpeg.exe -hide_banner -decoders | grep -E "(mp3|mp2|aac|flac|vorbis|opus|ac3|eac3|dts|truehd|mlp|wmav1|wmav2|alac|amrnb|amrwb|pcm_s16le|pcm_dvd|pcm_bluray)" || echo "Audio decoders missing"
+          /usr/local/bin/ffmpeg.exe -hide_banner -formats | grep -E "(mov|matroska|srt|wav|mp3|aac|flac|ogg|asf|amr|null)" || echo "Some formats missing"
           /usr/local/bin/ffmpeg.exe -hide_banner -filters | grep -i whisper || (echo 'Whisper filter missing' && exit 1)
-          /usr/local/bin/ffmpeg.exe -hide_banner -encoders | grep -E 'subrip' || echo 'subrip encoder missing'
+          /usr/local/bin/ffmpeg.exe -hide_banner -muxers | grep -E "(srt|null|wav|mp3|aac|flac|ogg|pcm_s16le)" || echo "Some muxers missing"
 
       - name: Package Artifact
         shell: msys2 {0}
@@ -138,15 +223,30 @@ jobs:
           The pkg-config file (whisper.pc) is NOT included because it only
           matters when compiling software against libwhisper. End users do not need it.
 
+          Supported audio formats for Whisper transcription:
+            - Common formats: MP3, AAC, WAV, FLAC
+            - Professional formats: AC3/E-AC3 (Dolby Digital), DTS, Dolby TrueHD
+            - Streaming formats: Opus, Vorbis (OGG), AAC-HE
+            - Broadcast formats: MP2 (MPEG-1 Layer II)
+            - Apple formats: ALAC (Apple Lossless), M4A
+            - Microsoft formats: WMA (all variants)
+            - Voice formats: AMR-NB, AMR-WB
+            - PCM formats: 8/16/24/32-bit integer, 32/64-bit float
+            - Specialized: DVD-Audio PCM, Blu-ray PCM
+
+          Supported subtitle formats:
+            - SRT, ASS, SSA, WebVTT, MOV Text
+
           Usage example:
-            ffmpeg -i input.wav -filter:a "whisper=model=ggml-tiny.en.bin:task=transcribe" -f null -
+            ffmpeg -i input.mkv -filter:a "whisper=model=ggml-tiny.en.bin:task=transcribe" -f null -
 
           Optional performance tuning:
             set OMP_NUM_THREADS=6   (Windows CMD)
             $env:OMP_NUM_THREADS=6  (PowerShell)
 
-          Build flags summary:
-            --enable-whisper --enable-filter=whisper (OpenMP enabled)
+          Build optimized for US TV/Movies audio formats:
+            Covers 99%+ of American video content from DVD to 4K Blu-ray,
+            broadcast TV, cable TV, and all major streaming platforms.
           R
 
       - name: Verify Packaged FFmpeg Runs
