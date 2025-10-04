@@ -18,6 +18,7 @@ import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.text.font.FontWeight
@@ -173,6 +174,7 @@ fun MultipleLinesToolbar(
                 color = MaterialTheme.colors.onSurface.copy(alpha = 0.12f)  // 添加边框
             )
         ) {
+            val iconColor = if (MaterialTheme.colors.isLight) Color.DarkGray else MaterialTheme.colors.onBackground
             Row {
                 // 播放按钮
                 TooltipArea(
@@ -217,7 +219,7 @@ fun MultipleLinesToolbar(
                         Icon(
                             icon,
                             contentDescription = "播放字幕片段",
-                            tint = if(isPlaying) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface
+                            tint = if(isPlaying) MaterialTheme.colors.primary else iconColor
                         )
                     }
                 }
@@ -256,7 +258,7 @@ fun MultipleLinesToolbar(
                             style = MaterialTheme.typography.subtitle1,
                             fontWeight = FontWeight.Bold,
                             textAlign = TextAlign.Center,
-                            color = if (multipleLines.isLooping) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface,
+                            color = if (multipleLines.isLooping) MaterialTheme.colors.primary else iconColor,
                             modifier = Modifier.size(48.dp, 48.dp).padding(top = 12.dp, bottom = 12.dp)
                         )
                     }
@@ -299,7 +301,7 @@ fun MultipleLinesToolbar(
                         Icon(
                             if(copySuccess)Icons.Outlined.Check else Icons.Outlined.ContentCopy,
                             contentDescription = "复制",
-                            tint = MaterialTheme.colors.onSurface
+                            tint = iconColor
                         )
                     }
                 }
@@ -330,7 +332,7 @@ fun MultipleLinesToolbar(
                         Icon(
                             Icons.Filled.Checklist,
                             contentDescription = "全选字幕",
-                            tint = MaterialTheme.colors.onSurface
+                            tint = iconColor
                         )
                     }
                 }
@@ -366,7 +368,7 @@ fun MultipleLinesToolbar(
                         Icon(
                             Icons.Filled.Close,
                             contentDescription = "退出多行字幕模式",
-                            tint = MaterialTheme.colors.onSurface
+                            tint = iconColor
                         )
                     }
                 }
