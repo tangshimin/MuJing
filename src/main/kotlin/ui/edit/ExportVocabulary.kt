@@ -25,8 +25,12 @@ import data.MutableVocabulary
 import data.Vocabulary
 import data.VocabularyType
 import data.Word
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import org.apache.poi.ss.usermodel.FillPatternType
 import org.apache.poi.ss.usermodel.IndexedColors
@@ -41,11 +45,8 @@ import java.awt.event.WindowEvent
 import java.awt.event.WindowFocusListener
 import java.io.File
 import java.io.FileOutputStream
-import java.util.concurrent.FutureTask
-import javax.swing.JFileChooser
 import javax.swing.JFrame
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileSystemView
 
 /**
  * 编辑词库界面的导出词库功能，
@@ -54,7 +55,6 @@ import javax.swing.filechooser.FileSystemView
 fun exportVocabulary(
     vocabulary: Vocabulary,
     vocabularyPath:String,
-    futureFileChooser: FutureTask<JFileChooser>,
     close: () -> Unit,
     colors: Colors,
 ) {
@@ -76,7 +76,6 @@ fun exportVocabulary(
         ExportVocabulary(
             vocabulary = MutableVocabulary(vocabulary),
             vocabularyPath = vocabularyPath,
-            futureFileChooser = futureFileChooser,
             parentWindow = window,
             colors = colors,
             close = {
@@ -94,7 +93,6 @@ fun exportVocabulary(
 fun ExportVocabulary(
     vocabulary: MutableVocabulary,
     vocabularyPath:String,
-    futureFileChooser: FutureTask<JFileChooser>,
     parentWindow:JFrame,
     close: () -> Unit,
     colors: Colors,
@@ -117,37 +115,21 @@ fun ExportVocabulary(
             ) {
                 window.isAlwaysOnTop = true
 
-                val vocabularyDir by remember { mutableStateOf(File(vocabularyPath).parentFile) }
+
                 val fileName by remember { mutableStateOf(File(vocabularyPath).nameWithoutExtension) }
                 val cellVisible by remember{ mutableStateOf(CellVisibleState(CellVisible())) }
                 var format by remember { mutableStateOf("xlsx") }
-
-                val export = {
-                    val fileChooser = futureFileChooser.get()
-                    fileChooser.dialogType = JFileChooser.SAVE_DIALOG
-                    fileChooser.dialogTitle = "保存词库"
-                    fileChooser.selectedFile = File(vocabularyDir, "${fileName}.${format}")
-                    val userSelection = fileChooser.showSaveDialog(window)
-                    if (userSelection == JFileChooser.APPROVE_OPTION) {
-                        val fileToSave = fileChooser.selectedFile
-                        if(format == "xlsx"){
-                            val workbook = createWorkbook(vocabulary.wordList,vocabulary.type, cellVisible)
-                            try{
-                                if (fileToSave.exists()) {
-                                    // 是-0,否-1，取消-2
-                                    val answer =
-                                        JOptionPane.showConfirmDialog(window, "${fileName}.${format} 已存在。\n要替换它吗？")
-                                    if (answer == 0) {
-                                        FileOutputStream(fileToSave).use { out ->
-                                            workbook.write(out)
-                                        }
-                                        notification(
-                                            text = "导出成功",
-                                            close = {  },
-                                            colors = colors
-                                        )
-                                    }
-                                } else {
+                val scope = rememberCoroutineScope()
+                /** 选择文件对话框 */
+                val fileSaver = rememberFileSaverLauncher(
+                    dialogSettings = FileKitDialogSettings.createDefault()
+                ) {  platformFile ->
+                    scope.launch (Dispatchers.IO){
+                        platformFile?.let{
+                            val fileToSave = platformFile.file
+                            if(format == "xlsx"){
+                                val workbook = createWorkbook(vocabulary.wordList,vocabulary.type, cellVisible)
+                                try{
                                     FileOutputStream(fileToSave).use { out ->
                                         workbook.write(out)
                                     }
@@ -156,48 +138,31 @@ fun ExportVocabulary(
                                         close = {  },
                                         colors = colors
                                     )
+                                }catch (e:Exception){
+                                    e.printStackTrace()
+                                    JOptionPane.showMessageDialog(window,"导出失败,错误信息：\n${e.message}")
                                 }
-                            }catch (e:Exception){
-                                e.printStackTrace()
-                                JOptionPane.showMessageDialog(window,"导出失败,错误信息：\n${e.message}")
-                            }
-
-
-
-                        }else{
-                            val text = createText(vocabulary.wordList)
-                            try{
-                                if (fileToSave.exists()) {
-                                    // 是-0,否-1，取消-2
-                                    val answer =
-                                        JOptionPane.showConfirmDialog(window, "${fileName}.${format} 已存在。\n要替换它吗？")
-                                    if (answer == 0) {
-                                        fileToSave.writeText(text)
-                                        notification(
-                                            text = "导出成功",
-                                            close = {  },
-                                            colors = colors
-                                        )
-                                    }
-                                } else {
+                            }else{
+                                val text = createText(vocabulary.wordList)
+                                try{
                                     fileToSave.writeText(text)
                                     notification(
                                         text = "导出成功",
                                         close = {  },
                                         colors = colors
                                     )
+                                }catch (e:Exception){
+                                    e.printStackTrace()
+                                    JOptionPane.showMessageDialog(window,"导出失败,错误信息：\n${e.message}")
                                 }
-                            }catch (e:Exception){
-                                e.printStackTrace()
-                                JOptionPane.showMessageDialog(window,"导出失败,错误信息：\n${e.message}")
+
+
                             }
-
-
+                            close()
                         }
-                        close()
                     }
-                }
 
+                }
 
                 Box(Modifier.fillMaxSize()){
                     Column(
@@ -386,7 +351,9 @@ fun ExportVocabulary(
                         horizontalArrangement = Arrangement.End,
                         modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(10.dp)
                     ){
-                        OutlinedButton(onClick = {export()}) {
+                        OutlinedButton(onClick = {
+                            fileSaver.launch(fileName, format)
+                        }) {
                             Text("导出")
                         }
                         Spacer(modifier = Modifier.width(10.dp))
@@ -439,7 +406,6 @@ fun SaveOtherVocabulary(
     fileName:String,
     close: () -> Unit,
     colors: Colors,
-    futureFileChooser: FutureTask<JFileChooser>,
 ){
     MaterialTheme(colors = colors) {
         val windowState = rememberDialogState(
@@ -452,64 +418,62 @@ fun SaveOtherVocabulary(
             state = windowState,
             alwaysOnTop = true
         ) {
-
+            val scope = rememberCoroutineScope()
             var format by remember { mutableStateOf("xlsx") }
             val cellVisible by remember{ mutableStateOf(CellVisibleState(CellVisible())) }
-            val save = {
-                val fileChooser = futureFileChooser.get()
-                fileChooser.dialogType = JFileChooser.SAVE_DIALOG
-                fileChooser.dialogTitle = "保存词库"
-                val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                fileChooser.selectedFile = File("$myDocuments${File.separator}$fileName.${format}")
-                val userSelection = fileChooser.showSaveDialog(window)
-                if (userSelection == JFileChooser.APPROVE_OPTION) {
-                    val fileToSave = fileChooser.selectedFile
-                    if(format == "xlsx"){
-                        val workbook = createWorkbook(wordList, vocabularyType,cellVisible)
-                        try{
-                            if (fileToSave.exists()) {
-                                // 是-0,否-1，取消-2
-                                val answer =
-                                    JOptionPane.showConfirmDialog(window, "${fileToSave.nameWithoutExtension}.${format} 已存在。\n要替换它吗？")
-                                if (answer == 0) {
+            val launcher = rememberFileSaverLauncher(
+                dialogSettings = FileKitDialogSettings.createDefault()
+            ) {  platformFile ->
+                scope.launch(Dispatchers.IO){
+                    platformFile?.let{
+                        val fileToSave = platformFile.file
+                        if(format == "xlsx"){
+                            val workbook = createWorkbook(wordList, vocabularyType,cellVisible)
+                            try{
+                                if (fileToSave.exists()) {
+                                    // 是-0,否-1，取消-2
+                                    val answer =
+                                        JOptionPane.showConfirmDialog(window, "${fileToSave.nameWithoutExtension}.${format} 已存在。\n要替换它吗？")
+                                    if (answer == 0) {
+                                        FileOutputStream(fileToSave).use { out ->
+                                            workbook.write(out)
+                                        }
+                                    }
+                                } else {
                                     FileOutputStream(fileToSave).use { out ->
                                         workbook.write(out)
                                     }
                                 }
-                            } else {
-                                FileOutputStream(fileToSave).use { out ->
-                                    workbook.write(out)
-                                }
+                            }catch (e:Exception){
+                                e.printStackTrace()
+                                JOptionPane.showMessageDialog(window,"保存失败,错误信息：\n${e.message}")
                             }
-                        }catch (e:Exception){
-                            e.printStackTrace()
-                            JOptionPane.showMessageDialog(window,"保存失败,错误信息：\n${e.message}")
-                        }
 
 
 
-                    }else{
-                        val text = createText(wordList)
-                        try{
-                            if (fileToSave.exists()) {
-                                // 是-0,否-1，取消-2
-                                val answer =
-                                    JOptionPane.showConfirmDialog(window, "${fileToSave.nameWithoutExtension}.${format} 已存在。\n要替换它吗？")
-                                if (answer == 0) {
+                        }else{
+                            val text = createText(wordList)
+                            try{
+                                if (fileToSave.exists()) {
+                                    // 是-0,否-1，取消-2
+                                    val answer =
+                                        JOptionPane.showConfirmDialog(window, "${fileToSave.nameWithoutExtension}.${format} 已存在。\n要替换它吗？")
+                                    if (answer == 0) {
+                                        fileToSave.writeText(text)
+                                    }
+                                } else {
                                     fileToSave.writeText(text)
                                 }
-                            } else {
-                                fileToSave.writeText(text)
+                            }catch (e:Exception){
+                                e.printStackTrace()
+                                JOptionPane.showMessageDialog(window,"保存失败,错误信息：\n${e.message}")
                             }
-                        }catch (e:Exception){
-                            e.printStackTrace()
-                            JOptionPane.showMessageDialog(window,"保存失败,错误信息：\n${e.message}")
+
                         }
-
-
+                        close()
                     }
-                    close()
                 }
+
             }
 
             Surface(
@@ -693,7 +657,9 @@ fun SaveOtherVocabulary(
                         horizontalArrangement = Arrangement.End,
                         modifier = Modifier.align(Alignment.BottomCenter).fillMaxWidth().padding(10.dp)
                     ){
-                        OutlinedButton(onClick = {save()}) {
+                        OutlinedButton(onClick = {
+                            launcher.launch(fileName, format)
+                        }) {
                             Text("保存")
                         }
                         Spacer(modifier = Modifier.width(10.dp))

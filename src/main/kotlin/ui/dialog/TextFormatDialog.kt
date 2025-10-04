@@ -18,24 +18,22 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ui.window.windowBackgroundFlashingOnCloseFixHack
 import util.createDragAndDropTarget
 import util.shouldStartDragAndDrop
 import java.io.File
-import java.util.concurrent.FutureTask
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileNameExtensionFilter
-import javax.swing.filechooser.FileSystemView
 
 @Composable
 fun TextFormatDialog(
     close: () -> Unit,
-    futureFileChooser: FutureTask<JFileChooser>,
-    openLoadingDialog: () -> Unit,
-    closeLoadingDialog: () -> Unit,
 ) {
     DialogWindow(
         title = "文本格式化",
@@ -84,47 +82,27 @@ fun TextFormatDialog(
 
 
         /** 打开文件对话框 */
-        /** 打开文件对话框 */
-        val openFileChooser: () -> Unit = {
-            // 打开 windows 的文件选择器很慢，有时候会等待超过2秒
-            openLoadingDialog()
-            scope.launch (Dispatchers.IO){
-                val fileChooser = futureFileChooser.get()
-                fileChooser.dialogTitle = "选择文本"
-                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
-                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                fileChooser.isAcceptAllFileFilterUsed = false
-                val fileFilter = FileNameExtensionFilter(" ", "txt")
-                fileChooser.addChoosableFileFilter(fileFilter)
-                fileChooser.selectedFile = null
-                if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
-                    val file = fileChooser.selectedFile
-                    setFile(file)
-                    closeLoadingDialog()
-                } else {
-                    closeLoadingDialog()
+        val singleLauncher = rememberFilePickerLauncher(
+            title = "选择文本",
+            type = FileKitType.File(extensions = listOf("txt")),
+            mode = FileKitMode.Single,
+        ) { file ->
+            scope.launch(Dispatchers.IO){
+                file?.let {
+                    setFile(file.file)
                 }
-                fileChooser.selectedFile = null
-                fileChooser.isMultiSelectionEnabled = false
-                fileChooser.removeChoosableFileFilter(fileFilter)
             }
 
         }
 
-        /** 保存文件对话框 */
-        /** 保存文件对话框 */
-        val saveFileChooser: () -> Unit = {
-            scope.launch (Dispatchers.IO){
-                val fileChooser = futureFileChooser.get()
-                fileChooser.dialogType = JFileChooser.SAVE_DIALOG
-                fileChooser.dialogTitle = "保存文本"
-                val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                fileChooser.selectedFile = File("$myDocuments${File.separator}*.txt")
-                val userSelection = fileChooser.showSaveDialog(window)
-                if (userSelection == JFileChooser.APPROVE_OPTION) {
-                    val fileToSave = fileChooser.selectedFile
 
+        /** 保存文件对话框 */
+        val fileSaver = rememberFileSaverLauncher(
+            dialogSettings = FileKitDialogSettings.createDefault()
+        ) {  platformFile ->
+            scope.launch(Dispatchers.IO){
+                platformFile?.let{
+                    val fileToSave = platformFile.file
                     File(fileToSave.absolutePath).bufferedWriter().use { writer ->
                         saveList.forEach { line ->
                             writer.write(line)
@@ -132,15 +110,16 @@ fun TextFormatDialog(
                         }
                         saveList.clear()
                     }
-                    fileChooser.selectedFile = null
+
                     fileName = ""
                     formatEnable = false
                     saveEnable = false
                     successful = false
                 }
-
             }
+
         }
+
         val formatText: () -> Unit = {
             scope.launch {
                 val file = File(path)
@@ -231,7 +210,7 @@ fun TextFormatDialog(
                         )
                     }
                     Row {
-                        OutlinedButton(onClick = { openFileChooser() }) {
+                        OutlinedButton(onClick = { singleLauncher.launch() }) {
                             Text("打开")
                         }
                         Spacer(Modifier.width(28.dp))
@@ -243,7 +222,7 @@ fun TextFormatDialog(
                         }
                         Spacer(Modifier.width(28.dp))
                         OutlinedButton(
-                            onClick = { saveFileChooser() },
+                            onClick = {fileSaver.launch("$fileName-formatted","txt") },
                             enabled = saveEnable
                         ) {
                             Text("保存")
@@ -252,8 +231,7 @@ fun TextFormatDialog(
                         OutlinedButton(
                             onClick = { close() },
                         ) {
-                            Text("取消")
-                        }
+                            Text(if (fileName.isEmpty()) "关闭" else "取消")                        }
                     }
                 }
             }
@@ -303,7 +281,6 @@ fun FormatDialog(
     changeTextPath: (File) -> Unit,
     row: Int,
     formatPath: String,
-    futureFileChooser: FutureTask<JFileChooser>,
 ) {
     DialogWindow(
         title = "消息",
@@ -315,18 +292,13 @@ fun FormatDialog(
         ),
     ) {
         val scope = rememberCoroutineScope()
-        /** 保存文件 */
-        val saveFile: () -> Unit = {
-            scope.launch (Dispatchers.IO){
-                val fileChooser = futureFileChooser.get()
-                fileChooser.dialogType = JFileChooser.SAVE_DIALOG
-                fileChooser.dialogTitle = "保存文本"
-                val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                val formatFile = File(formatPath)
-                fileChooser.selectedFile = File("$myDocuments${File.separator}${formatFile.nameWithoutExtension}-formatted.txt")
-                val userSelection = fileChooser.showSaveDialog(window)
-                if (userSelection == JFileChooser.APPROVE_OPTION) {
-                    val fileToSave = fileChooser.selectedFile
+        val formatFile = File(formatPath)
+        val fileSaver = rememberFileSaverLauncher(
+            dialogSettings = FileKitDialogSettings.createDefault()
+        ) {  platformFile ->
+            scope.launch(Dispatchers.IO){
+                platformFile?.let{
+                    val fileToSave = platformFile.file
                     val saveList = mutableListOf<String>()
                     if (formatFile.exists()) {
                         formatFile.useLines { lines ->
@@ -348,13 +320,14 @@ fun FormatDialog(
                         }
                         saveList.clear()
                     }
-                    fileChooser.selectedFile = null
+
                     changeTextPath(fileToSave)
                     close()
                 }
-
             }
+
         }
+
 
         Surface(
             elevation = 5.dp,
@@ -368,11 +341,11 @@ fun FormatDialog(
                     modifier = Modifier.fillMaxSize().padding(start = 10.dp,end = 10.dp)
                 ) {
                     Text("文本的第 $row 行超过了 75 个字母，抄写时不能完全显示。\n" +
-                            "格式化文本，不会覆盖原文件，会生成一个新文件。")
+                            "需要格式化文本才能正确显示，格式化不会覆盖原文件，会生成一个新文件。")
                     Spacer(Modifier.height(10.dp))
                     Row {
                         OutlinedButton(onClick = {
-                            saveFile()
+                           fileSaver.launch("${formatFile.nameWithoutExtension}-formatted","txt")
                         }) {
                             Text("格式化文本")
                         }

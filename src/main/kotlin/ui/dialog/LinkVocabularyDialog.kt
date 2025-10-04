@@ -28,6 +28,8 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import data.*
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -35,16 +37,13 @@ import player.MediaInfo
 import player.PlayerBox
 import player.isMacOS
 import state.AppState
-import state.getResourcesFile
 import ui.edit.computeNameMap
 import ui.window.windowBackgroundFlashingOnCloseFixHack
 import util.createDragAndDropTarget
 import util.shouldStartDragAndDrop
 import java.io.File
 import java.util.*
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileSystemView
 
 /**
  * 链接字幕词库窗口
@@ -66,17 +65,10 @@ fun LinkVocabularyDialog(
      */
     var vocabulary by remember{ mutableStateOf<MutableVocabulary?>(null) }
 
-
-
     /**
      * 选择的字幕词库所在的文件夹的绝对路径
      */
     var vocabularyDir by remember { mutableStateOf("") }
-
-    /**
-     * 要链接的词库所在的文件夹的绝对路径,比如要给四级词库链接字幕，这个地址就是四级词库所在的文件夹
-     */
-    var directoryPath by remember { mutableStateOf("") }
 
     /**
      * 当前词库链接到字幕词库的字幕的数量
@@ -93,8 +85,6 @@ fun LinkVocabularyDialog(
      * 字幕名称
      */
     var subtitlesName by remember { mutableStateOf("") }
-
-    var vocabularyType by remember { mutableStateOf(VocabularyType.DOCUMENT) }
     var vocabularyWrong by remember { mutableStateOf(false) }
     var extractCaptionResultInfo by remember { mutableStateOf("") }
     var saveEnable by remember { mutableStateOf(false) }
@@ -121,8 +111,6 @@ fun LinkVocabularyDialog(
         subtitlesName = ""
         extractCaptionResultInfo = ""
         vocabularyWrong = false
-        vocabularyType = VocabularyType.DOCUMENT
-
     }
 
     /**
@@ -132,14 +120,13 @@ fun LinkVocabularyDialog(
         scope.launch (Dispatchers.Default){
                 val selectedVocabulary = loadVocabulary(it.absolutePath)
                 subtitlesName = if (selectedVocabulary.type == VocabularyType.SUBTITLES) selectedVocabulary.name else ""
-                vocabularyType = selectedVocabulary.type
                 var linkedCounter = 0
 
                 // 字幕词库或 MKV 词库，字幕保存在单词的 captions 属性中
                 if (selectedVocabulary.type != VocabularyType.DOCUMENT) {
                     val wordCaptionsMap = HashMap<String, List<Caption>>()
                     selectedVocabulary.wordList.forEach { word ->
-                        wordCaptionsMap.put(word.value, word.captions)
+                        wordCaptionsMap[word.value] = word.captions
                     }
                     vocabulary?.wordList?.forEach { word ->
                         if (wordCaptionsMap.containsKey(word.value.lowercase(Locale.getDefault()))) {
@@ -191,7 +178,7 @@ fun LinkVocabularyDialog(
                                 }
                             }
                             if (links.isNotEmpty()) {
-                                prepareLinks.put(word.value, links)
+                                prepareLinks[word.value] = links
                                 linkCounter += links.size
                             }
 
@@ -202,13 +189,13 @@ fun LinkVocabularyDialog(
                     // 文档词库，字幕保存在单词的 externalCaptions 属性中
                     val wordCaptionsMap = HashMap<String, List<ExternalCaption>>()
                     selectedVocabulary.wordList.forEach { word ->
-                        wordCaptionsMap.put(word.value, word.externalCaptions)
+                        wordCaptionsMap[word.value] = word.externalCaptions
                     }
                     vocabulary?.wordList?.forEach { word ->
                         if (wordCaptionsMap.containsKey(word.value.lowercase(Locale.getDefault()))) {
                             val externalCaptions = wordCaptionsMap[word.value]
                             val links = mutableListOf<ExternalCaption>()
-//                        // 用于预览
+                            // 用于预览
                             // 字幕最多3条，这个 counter 是剩余的数量
                             var counter = 3 - word.externalCaptions.size
                             if (counter in 1..3) {
@@ -234,7 +221,7 @@ fun LinkVocabularyDialog(
                                 }
                             }
                             if (links.isNotEmpty()) {
-                                prepareLinks.put(word.value, links)
+                                prepareLinks[word.value] = links
                                 linkCounter += links.size
                             }
 
@@ -273,7 +260,7 @@ fun LinkVocabularyDialog(
             }else{
                 vocabulary = newVocabulary
             }
-            directoryPath = file.parentFile.absolutePath
+
             // 选择字幕词库
         }else{
             vocabularyDir = file.parentFile.absolutePath
@@ -312,39 +299,28 @@ fun LinkVocabularyDialog(
             }
         }
 
-
         /** 保存词库 */
-        val save:() -> Unit = {
-            scope.launch (Dispatchers.IO){
-
-                val fileChooser = appState.futureFileChooser.get()
-                fileChooser.dialogType = JFileChooser.SAVE_DIALOG
-                fileChooser.dialogTitle = "保存词库"
-                val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                val appVocabulary = getResourcesFile("vocabulary")
-                val parent = if (directoryPath.startsWith(appVocabulary.absolutePath)) {
-                    myDocuments
-                } else directoryPath
-                fileChooser.selectedFile = File("$parent${File.separator}${vocabulary?.name}.json")
-                val userSelection = fileChooser.showSaveDialog(window)
-                if (userSelection == JFileChooser.APPROVE_OPTION) {
-                    val fileToSave = fileChooser.selectedFile
+        val fileSaver = rememberFileSaverLauncher(
+            dialogSettings = FileKitDialogSettings.createDefault()
+        ) {  platformFile ->
+            scope.launch(Dispatchers.IO){
+                platformFile?.let{
+                    val fileToSave = platformFile.file
                     try{
                         if (vocabulary != null) {
                             vocabulary!!.name = fileToSave.nameWithoutExtension
                             saveVocabulary(vocabulary!!.serializeVocabulary, fileToSave.absolutePath)
                         }
                         vocabulary = null
-                        fileChooser.selectedFile = null
                         clear()
                         close()
                     }catch(e:Exception){
                         e.printStackTrace()
                         JOptionPane.showMessageDialog(window,"保存词库失败,错误信息：\n${e.message}")
                     }
-
                 }
             }
+
         }
 
         WindowDraggableArea {
@@ -503,7 +479,9 @@ fun LinkVocabularyDialog(
                                     Text("2 选择字幕词库")
                                 }
                                 Spacer(Modifier.width(20.dp))
-                                OutlinedButton(onClick = { save() }, enabled = saveEnable) {
+                                OutlinedButton(onClick = {
+                                    fileSaver.launch("${vocabulary?.name}","json")
+                                }, enabled = saveEnable) {
                                     Text("保存")
                                 }
                                 Spacer(Modifier.width(20.dp))

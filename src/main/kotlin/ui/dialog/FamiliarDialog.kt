@@ -14,22 +14,22 @@ import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.*
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import ui.window.windowBackgroundFlashingOnCloseFixHack
 import util.createDragAndDropTarget
 import util.shouldStartDragAndDrop
 import java.io.File
-import java.util.concurrent.FutureTask
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileNameExtensionFilter
-import javax.swing.filechooser.FileSystemView
 
 /**
  * 导入词库到熟悉词库
  */
 @Composable
 fun FamiliarDialog(
-    futureFileChooser: FutureTask<JFileChooser>,
     close: () -> Unit
 ){
     DialogWindow(
@@ -45,8 +45,8 @@ fun FamiliarDialog(
         windowBackgroundFlashingOnCloseFixHack()
         var importing by remember { mutableStateOf(false) }
         var processingFile by remember { mutableStateOf("") }
+        val scope = rememberCoroutineScope()
 
-        /** 熟悉词库 */
         /** 熟悉词库 */
         val familiarVocabulary = loadMutableVocabularyByName("FamiliarVocabulary")
 
@@ -129,27 +129,22 @@ fun FamiliarDialog(
 
             }
         }
-
-        /** 打开文件对话框 */
-        /** 打开文件对话框 */
-        val openFileChooser:()-> Unit = {
-                val fileChooser = futureFileChooser.get()
-                fileChooser.dialogTitle = "选择词库"
-                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                fileChooser.isAcceptAllFileFilterUsed = false
-                fileChooser.isMultiSelectionEnabled = true
-                val fileFilter = FileNameExtensionFilter("词库", "json")
-                fileChooser.addChoosableFileFilter(fileFilter)
-                fileChooser.selectedFile = null
-                if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                    val files = fileChooser.selectedFiles.toList()
+        /** 文件选择器 */
+        val multipleLauncher = rememberFilePickerLauncher(
+            title = "选择词库",
+            type = FileKitType.File(extensions = listOf("json")),
+            mode = FileKitMode.Multiple(maxItems = 50)
+        ) { files ->
+            scope.launch(Dispatchers.IO){
+                files?.let{
                     importing = true
-                    import(files)
+                    val files = files.map { it.file }
+                    scope.launch(Dispatchers.Default) {
+                        import(files)
+                    }
                 }
-                fileChooser.selectedFile = null
-                fileChooser.isMultiSelectionEnabled = false
-                fileChooser.removeChoosableFileFilter(fileFilter)
+            }
+
         }
 
         // 拖放处理函数
@@ -188,7 +183,7 @@ fun FamiliarDialog(
                     }
                     Row{
                         OutlinedButton(
-                            onClick = { openFileChooser() },
+                            onClick = {multipleLauncher.launch() },
                         ){
                             Text("导入")
                         }

@@ -16,6 +16,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import lyric.FileManager
@@ -24,18 +29,11 @@ import ui.window.windowBackgroundFlashingOnCloseFixHack
 import util.createDragAndDropTarget
 import util.shouldStartDragAndDrop
 import java.io.File
-import java.util.concurrent.FutureTask
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileNameExtensionFilter
-import javax.swing.filechooser.FileSystemView
 
 @Composable
 fun LyricToSubtitlesDialog(
     close: () -> Unit,
-    futureFileChooser: FutureTask<JFileChooser>,
-    openLoadingDialog: () -> Unit,
-    closeLoadingDialog: () -> Unit,
 ){
     DialogWindow(
         title = "歌词转字幕",
@@ -81,33 +79,18 @@ fun LyricToSubtitlesDialog(
             }
         }
 
-
         /** 打开文件对话框 */
-        /** 打开文件对话框 */
-        val openFileChooser: () -> Unit = {
-            // 打开 windows 的文件选择器很慢，有时候会等待超过2秒
-            openLoadingDialog()
-            scope.launch (Dispatchers.IO){
-                val fileChooser = futureFileChooser.get()
-                fileChooser.dialogTitle = "选择 LRC 格式的歌词"
-                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
-                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                fileChooser.isAcceptAllFileFilterUsed = false
-                val fileFilter = FileNameExtensionFilter(" ", "lrc")
-                fileChooser.addChoosableFileFilter(fileFilter)
-                fileChooser.selectedFile = null
-                if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
-                    val file = fileChooser.selectedFile
-                    setFile(file)
-                    closeLoadingDialog()
-                } else {
-                    closeLoadingDialog()
+        val singleLauncher = rememberFilePickerLauncher(
+            title = "选择 LRC 格式的歌词",
+            type = FileKitType.File(extensions = listOf("lrc")),
+            mode = FileKitMode.Single,
+        ) { file ->
+            scope.launch(Dispatchers.IO){
+                file?.let {
+                    setFile(file.file)
                 }
-                fileChooser.selectedFile = null
-                fileChooser.isMultiSelectionEnabled = false
-                fileChooser.removeChoosableFileFilter(fileFilter)
             }
+
         }
 
         val convert: () -> Unit = {
@@ -121,29 +104,25 @@ fun LyricToSubtitlesDialog(
             }
         }
 
+
         /** 保存文件对话框 */
-        /** 保存文件对话框 */
-        val saveFile: () -> Unit = {
-            scope.launch (Dispatchers.IO){
-                val fileChooser = futureFileChooser.get()
-                fileChooser.dialogType = JFileChooser.SAVE_DIALOG
-                fileChooser.dialogTitle = "保存字幕"
-                val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                fileChooser.selectedFile = File("$myDocuments${File.separator}*.srt")
-                val userSelection = fileChooser.showSaveDialog(window)
-                if (userSelection == JFileChooser.APPROVE_OPTION) {
-                    val fileToSave = fileChooser.selectedFile
+        val fileSaver = rememberFileSaverLauncher(
+            dialogSettings = FileKitDialogSettings.createDefault()
+        ) {  platformFile ->
+            scope.launch(Dispatchers.IO){
+                platformFile?.let{
+                    val fileToSave = platformFile.file
                     FileManager.writeSRT(songLyric, fileToSave.absolutePath)
                     songLyric.song.clear()
-                    fileChooser.selectedFile = null
                     fileName = ""
                     convertEnable = false
                     saveEnable = false
                     successful = false
                 }
-
             }
+
         }
+
 
         Surface(
             elevation = 5.dp,
@@ -171,7 +150,7 @@ fun LyricToSubtitlesDialog(
                 }
 
                 Row(horizontalArrangement = Arrangement.Center){
-                    OutlinedButton(onClick = {openFileChooser()}){
+                    OutlinedButton(onClick = {singleLauncher.launch()}){
                         Text("打开")
                     }
                     Spacer(Modifier.width(10.dp))
@@ -183,7 +162,7 @@ fun LyricToSubtitlesDialog(
                     }
                     Spacer(Modifier.width(10.dp))
                     OutlinedButton(
-                        onClick = {saveFile()},
+                        onClick = {fileSaver.launch(fileName,"srt")},
                         enabled = saveEnable
                     ){
                         Text("保存")

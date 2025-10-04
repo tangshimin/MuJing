@@ -21,6 +21,11 @@ import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
 import data.*
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ui.window.windowBackgroundFlashingOnCloseFixHack
@@ -28,16 +33,11 @@ import util.createDragAndDropTarget
 import util.shouldStartDragAndDrop
 import java.io.File
 import java.util.*
-import java.util.concurrent.FutureTask
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileNameExtensionFilter
-import javax.swing.filechooser.FileSystemView
 import kotlin.concurrent.schedule
 
 @Composable
 fun MergeVocabularyDialog(
-    futureFileChooser: FutureTask<JFileChooser>,
     saveToRecentList: (String, String) -> Unit,
     close: () -> Unit
 ) {
@@ -55,36 +55,29 @@ fun MergeVocabularyDialog(
         val scope = rememberCoroutineScope()
 
         /** 是否启用合并按钮 */
-        /** 是否启用合并按钮 */
         var mergeEnabled by remember { mutableStateOf(false) }
 
-        /** 选择的词库列表 */
         /** 选择的词库列表 */
         val selectedFileList = remember { mutableStateListOf<File>() }
 
         /** 合并后的新词库 */
-        /** 合并后的新词库 */
         var newVocabulary by remember { mutableStateOf<Vocabulary?>(null) }
 
-        /** 合并词库的数量限制 */
         /** 合并词库的数量限制 */
         var isOutOfRange by remember { mutableStateOf(false) }
 
         /** 单词的总数 */
-        /** 单词的总数 */
         var size by remember { mutableStateOf(0) }
 
         /** 正在读取的词库名称 */
-        /** 正在读取的词库名称 */
         var fileName by remember { mutableStateOf("") }
 
-        /** 更新单词的总数的回调函数 */
         /** 更新单词的总数的回调函数 */
         val updateSize: (Int) -> Unit = {
             size = it
         }
 
-        /** 更新正在读取的词库名称的回调函数 */
+
         /** 更新正在读取的词库名称的回调函数 */
         val updateFileName: (String) -> Unit = {
             fileName = it
@@ -216,20 +209,17 @@ fun MergeVocabularyDialog(
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
                     ) {
-                        OutlinedButton(onClick = {
-                            scope.launch (Dispatchers.IO){
-                                val fileChooser = futureFileChooser.get()
-                                fileChooser.dialogTitle = "选择词库"
-                                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                                fileChooser.isAcceptAllFileFilterUsed = false
-                                fileChooser.isMultiSelectionEnabled = true
-                                val fileFilter = FileNameExtensionFilter("词库", "json")
-                                fileChooser.addChoosableFileFilter(fileFilter)
-                                fileChooser.selectedFile = null
-                                if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                                    fileChooser.selectedFiles.forEach { file ->
+                        /** 文件选择器 */
+                        val multipleLauncher = rememberFilePickerLauncher(
+                            title = "选择词库",
+                            type = FileKitType.File(extensions = listOf("json")),
+                            mode = FileKitMode.Multiple(maxItems = 50)
+                        ) { files ->
+                            scope.launch(Dispatchers.Default) {
+                                files?.let{
+                                    files.forEach {
                                         if (selectedFileList.size + 1 < 100) {
+                                            val file = it.file
                                             if (!selectedFileList.contains(file)) {
                                                 selectedFileList.add(file)
                                             }
@@ -239,14 +229,16 @@ fun MergeVocabularyDialog(
                                     }
 
                                     mergeEnabled = selectedFileList.size > 1
-                                    if (fileChooser.selectedFiles.isNotEmpty()) {
+                                    if (files.isNotEmpty()) {
                                         updateSize(0)
                                     }
                                 }
-                                fileChooser.selectedFile = null
-                                fileChooser.isMultiSelectionEnabled = false
-                                fileChooser.removeChoosableFileFilter(fileFilter)
                             }
+
+                        }
+
+                        OutlinedButton(onClick = {
+                            multipleLauncher.launch()
                         }, modifier = Modifier.padding(end = 10.dp)) {
                             Text("添加词库")
                         }
@@ -331,35 +323,34 @@ fun MergeVocabularyDialog(
                         ) {
                             Text("合并词库")
                         }
+                        val fileSaver = rememberFileSaverLauncher(
+                            dialogSettings = FileKitDialogSettings.createDefault()
+                        ) {  platformFile ->
+                            scope.launch(Dispatchers.IO){
+                                platformFile?.let{
+                                    val fileToSave = platformFile.file
+                                    if (newVocabulary != null) {
+                                        newVocabulary!!.name = fileToSave.nameWithoutExtension
+                                        try{
+                                            saveVocabulary(newVocabulary!!, fileToSave.absolutePath)
+                                            saveToRecentList(fileToSave.nameWithoutExtension, fileToSave.absolutePath)
+                                        }catch(e: Exception){
+                                            e.printStackTrace()
+                                            JOptionPane.showMessageDialog(window, "保存词库失败,错误信息：\n${e.message}")
+                                        }
+
+                                    }
+                                    newVocabulary = null
+                                    close()
+                                }
+                            }
+
+                        }
+
                         OutlinedButton(
                             enabled = !merging && size > 0,
                             onClick = {
-                                scope.launch (Dispatchers.IO){
-                                    val fileChooser = futureFileChooser.get()
-                                    fileChooser.dialogType = JFileChooser.SAVE_DIALOG
-                                    fileChooser.dialogTitle = "保存词库"
-                                    val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                                    fileChooser.selectedFile = File("$myDocuments${File.separator}*.json")
-                                    val userSelection = fileChooser.showSaveDialog(window)
-                                    if (userSelection == JFileChooser.APPROVE_OPTION) {
-                                        val fileToSave = fileChooser.selectedFile
-                                        if (newVocabulary != null) {
-                                            newVocabulary!!.name = fileToSave.nameWithoutExtension
-                                            try{
-                                                saveVocabulary(newVocabulary!!, fileToSave.absolutePath)
-                                                saveToRecentList(fileToSave.nameWithoutExtension, fileToSave.absolutePath)
-                                            }catch(e: Exception){
-                                                e.printStackTrace()
-                                                JOptionPane.showMessageDialog(window, "保存词库失败,错误信息：\n${e.message}")
-                                            }
-
-                                        }
-                                        newVocabulary = null
-                                        fileChooser.selectedFile = null
-                                        close()
-                                    }
-
-                                }
+                                fileSaver.launch("newVocabulary - ${newVocabulary?.size}","json")
                             }) {
                             Text("保存词库")
                         }

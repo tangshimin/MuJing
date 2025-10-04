@@ -54,9 +54,9 @@ import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
 import io.github.vinceglb.filekit.dialogs.FileKitMode
 import io.github.vinceglb.filekit.dialogs.FileKitType
 import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.isWindows
 import player.parseTrackList
@@ -74,11 +74,7 @@ import java.awt.Desktop
 import java.io.File
 import java.net.URI
 import java.nio.file.Paths
-import java.util.concurrent.FutureTask
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileNameExtensionFilter
-import javax.swing.filechooser.FileSystemView
 import kotlin.math.max
 import kotlin.math.min
 
@@ -822,7 +818,6 @@ fun GenerateVocabularyDialog(
                             },
                         )
                         VocabularyFilter(
-                            futureFileChooser = state.futureFileChooser,
                             vocabularyFilterList = vocabularyFilterList,
                             vocabularyFilterListAdd = {
                                 if (!vocabularyFilterList.contains(it)) {
@@ -1082,85 +1077,77 @@ fun GenerateVocabularyDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth().height(60.dp)
                 ) {
-                    SaveButton(
-                        enabled = saveEnabled,
-                        saveClick = {
-                            scope.launch(Dispatchers.Default) {
-                                val fileChooser =
-                                    withContext(Dispatchers.IO) {
-                                        state.futureFileChooser.get()
-                                    }
-                                fileChooser.dialogType = JFileChooser.SAVE_DIALOG
-                                fileChooser.dialogTitle = "保存词库"
-                                val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                                if (state.filterVocabulary && File(selectedFilePath).nameWithoutExtension == "FamiliarVocabulary") {
-                                    fileChooser.selectedFile = File(selectedFilePath)
+
+                    val launcher = rememberFileSaverLauncher(
+                        dialogSettings = FileKitDialogSettings.createDefault()
+                    ) {  platformFile ->
+                        scope.launch(Dispatchers.IO){
+                            platformFile?.let{
+                                val selectedFile = platformFile.file
+                                val vocabularyDirPath = Paths.get(getResourcesFile("vocabulary").absolutePath)
+                                val savePath = Paths.get(selectedFile.absolutePath)
+                                if (savePath.startsWith(vocabularyDirPath)) {
+                                    JOptionPane.showMessageDialog(
+                                        null,
+                                        "不能把词库保存到应用程序安装目录，因为软件更新或卸载时，生成的词库会被删除"
+                                    )
                                 } else {
-                                    fileChooser.selectedFile = File("$myDocuments${File.separator}$fileName.json")
-                                }
-                                val userSelection = fileChooser.showSaveDialog(window)
-                                if (userSelection == JFileChooser.APPROVE_OPTION) {
-                                    val selectedFile = fileChooser.selectedFile
-                                    val vocabularyDirPath = Paths.get(getResourcesFile("vocabulary").absolutePath)
-                                    val savePath = Paths.get(selectedFile.absolutePath)
-                                    if (savePath.startsWith(vocabularyDirPath)) {
+                                    val vocabulary = Vocabulary(
+                                        name = selectedFile.nameWithoutExtension,
+                                        type = vType,
+                                        language = "english",
+                                        size = previewList.size,
+                                        relateVideoPath = relateVideoPath,
+                                        subtitlesTrackId = selectedTrackId,
+                                        wordList = previewList
+                                    )
+                                    try {
+                                        saveVocabulary(vocabulary, selectedFile.absolutePath)
+                                        state.saveToRecentList(vocabulary.name, selectedFile.absolutePath, 0)
+
+                                        // 清理状态
+                                        selectedFileList.clear()
+                                        started = false
+                                        showTaskList = false
+                                        tasksState.clear()
+                                        currentTask = null
+                                        errorMessages.clear()
+                                        selectedFilePath = ""
+                                        selectedSubtitlesName = ""
+                                        previewList.clear()
+                                        parsedList.clear()
+                                        relateVideoPath = ""
+                                        selectedTrackId = 0
+                                        filteringType = DOCUMENT
+                                        trackList.clear()
+                                        filterState = Idle
+                                        vocabularyFilterList.clear()
+                                        numberFilter = false
+                                        frqNumFilter = false
+                                        bncNumberFilter = false
+                                        bncZeroFilter = false
+                                        frqZeroFilter = false
+                                        replaceToLemma = false
+                                    } catch (e: Exception) {
+                                        e.printStackTrace()
                                         JOptionPane.showMessageDialog(
-                                            null,
-                                            "不能把词库保存到应用程序安装目录，因为软件更新或卸载时，生成的词库会被删除"
+                                            window,
+                                            "保存词库失败,错误信息：\n${e.message}"
                                         )
-                                    } else {
-                                        val vocabulary = Vocabulary(
-                                            name = selectedFile.nameWithoutExtension,
-                                            type = vType,
-                                            language = "english",
-                                            size = previewList.size,
-                                            relateVideoPath = relateVideoPath,
-                                            subtitlesTrackId = selectedTrackId,
-                                            wordList = previewList
-                                        )
-                                        try {
-                                            saveVocabulary(vocabulary, selectedFile.absolutePath)
-                                            state.saveToRecentList(vocabulary.name, selectedFile.absolutePath, 0)
-
-                                            // 清理状态
-                                            selectedFileList.clear()
-                                            started = false
-                                            showTaskList = false
-                                            tasksState.clear()
-                                            currentTask = null
-                                            errorMessages.clear()
-                                            selectedFilePath = ""
-                                            selectedSubtitlesName = ""
-                                            previewList.clear()
-                                            parsedList.clear()
-                                            relateVideoPath = ""
-                                            selectedTrackId = 0
-                                            filteringType = DOCUMENT
-                                            trackList.clear()
-                                            filterState = Idle
-                                            vocabularyFilterList.clear()
-                                            numberFilter = false
-                                            frqNumFilter = false
-                                            bncNumberFilter = false
-                                            bncZeroFilter = false
-                                            frqZeroFilter = false
-                                            replaceToLemma = false
-                                        } catch (e: Exception) {
-                                            e.printStackTrace()
-                                            JOptionPane.showMessageDialog(
-                                                window,
-                                                "保存词库失败,错误信息：\n${e.message}"
-                                            )
-                                        }
-
-
                                     }
 
 
                                 }
                             }
+                        }
+
+                    }
 
 
+                    SaveButton(
+                        enabled = saveEnabled,
+                        saveClick = {
+                            launcher.launch(fileName, "json")
                         },
                         otherClick = { saveOtherFormats = true }
                     )
@@ -1178,7 +1165,6 @@ fun GenerateVocabularyDialog(
                         fileName = fileName,
                         wordList = previewList,
                         vocabularyType = vType,
-                        futureFileChooser = state.futureFileChooser,
                         colors = state.colors,
                         close = { saveOtherFormats = false }
                     )
@@ -1784,7 +1770,6 @@ fun BasicFilter(
 
 @Composable
 fun VocabularyFilter(
-    futureFileChooser: FutureTask<JFileChooser>,
     vocabularyFilterList: List<File>,
     vocabularyFilterListAdd: (File) -> Unit,
     vocabularyFilterListRemove: (File) -> Unit,
@@ -1851,7 +1836,6 @@ fun VocabularyFilter(
             var showDialog by remember { mutableStateOf(false) }
             if (showDialog) {
                 FamiliarDialog(
-                    futureFileChooser = futureFileChooser,
                     close = {
                         showDialog = false
                         updateFamiliarVocabulary()
@@ -1968,29 +1952,25 @@ fun VocabularyFilter(
                     }
                 }
             }
+            val singleLauncher = rememberFilePickerLauncher(
+                title = "选择词库",
+                type = FileKitType.File(extensions = listOf("json")),
+                mode = FileKitMode.Single,
+            ) { file ->
+                scope.launch(Dispatchers.IO){
+                    file?.let {
+                        vocabularyFilterListAdd(file.file)
+                    }
+                }
+
+            }
+
             Row(
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth().height(40.dp)
                     .clickable {
-                        scope.launch(Dispatchers.Default) {
-                            val fileChooser = withContext(Dispatchers.IO) {
-                                futureFileChooser.get()
-                            }
-                            fileChooser.dialogTitle = "选择词库"
-                            fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                            fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                            fileChooser.isAcceptAllFileFilterUsed = false
-                            val fileFilter = FileNameExtensionFilter("词库", "json")
-                            fileChooser.addChoosableFileFilter(fileFilter)
-                            fileChooser.selectedFile = null
-                            if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                                val file = fileChooser.selectedFile
-                                vocabularyFilterListAdd(File(file.absolutePath))
-                            }
-                            fileChooser.selectedFile = null
-                            fileChooser.removeChoosableFileFilter(fileFilter)
-                        }
+                        singleLauncher.launch()
                     }
             ) {
                 Text("选择词库", color = MaterialTheme.colors.onBackground)

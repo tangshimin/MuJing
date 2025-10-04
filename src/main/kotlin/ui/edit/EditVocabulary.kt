@@ -21,7 +21,6 @@ import data.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import state.getResourcesFile
@@ -34,7 +33,6 @@ import java.awt.event.KeyListener
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.io.File
-import java.io.InputStream
 import java.util.*
 import java.util.regex.Pattern
 import java.util.regex.PatternSyntaxException
@@ -360,7 +358,6 @@ fun Table(
             exportVocabulary(
                 vocabulary = vocabulary,
                 vocabularyPath = vocabularyPath,
-                futureFileChooser = appState.futureFileChooser,
                 close = { showExportScreen = false },
                 colors = appState.colors
             )

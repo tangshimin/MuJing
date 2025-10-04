@@ -18,14 +18,11 @@ import player.isLinux
 import player.isMacOS
 import player.isWindows
 import theme.createColors
-import ui.flatlaf.initializeFileChooser
 import ui.wordscreen.MemoryStrategy
 import ui.wordscreen.WordScreenState
 import java.io.File
 import java.time.LocalDateTime
-import java.util.concurrent.FutureTask
 import javax.imageio.ImageIO
-import javax.swing.JFileChooser
 import javax.swing.JFrame
 import javax.swing.JOptionPane
 
@@ -41,9 +38,6 @@ class AppState {
 
     /** 一个后台窗口，用于放置 VLC 组件在后台解析字幕列表  */
     var videoPlayerWindow = createVideoPlayerWindow()
-
-    /** 文件选择器，如果不提前加载反应会很慢 */
-    var futureFileChooser: FutureTask<JFileChooser> = initializeFileChooser(global.isDarkTheme,global.isFollowSystemTheme)
 
     /** 困难词库 */
     var hardVocabulary = loadMutableVocabularyByName("HardVocabulary")

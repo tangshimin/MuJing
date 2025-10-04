@@ -24,18 +24,15 @@ import data.Dictionary
 import data.Vocabulary
 import data.VocabularyType
 import data.saveVocabulary
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import ui.window.windowBackgroundFlashingOnCloseFixHack
-import java.io.File
-import java.util.concurrent.FutureTask
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileSystemView
 
 @Composable
 fun WordFrequencyDialog(
-    futureFileChooser: FutureTask<JFileChooser>,
     saveToRecentList: (String, String) -> Unit,
     close: () -> Unit
 ){
@@ -56,7 +53,6 @@ fun WordFrequencyDialog(
         ) {
             var selectState by remember { mutableStateOf("Idle") }
 
-            /** 新词库 */
             /** 新词库 */
             var newVocabulary by remember { mutableStateOf<Vocabulary?>(null) }
             var start by remember { mutableStateOf(1) }
@@ -96,16 +92,13 @@ fun WordFrequencyDialog(
                 }
             }
 
-            val save:() -> Unit = {
-                scope.launch (Dispatchers.IO){
-                    val fileChooser = futureFileChooser.get()
-                    fileChooser.dialogType = JFileChooser.SAVE_DIALOG
-                    fileChooser.dialogTitle = "保存词库"
-                    val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                    fileChooser.selectedFile = File("$myDocuments${File.separator}$selectState list $start - $end.json")
-                    val userSelection = fileChooser.showSaveDialog(window)
-                    if (userSelection == JFileChooser.APPROVE_OPTION) {
-                        val fileToSave = fileChooser.selectedFile
+
+            val fileSaver = rememberFileSaverLauncher(
+                dialogSettings = FileKitDialogSettings.createDefault()
+            ) {  platformFile ->
+                scope.launch(Dispatchers.IO){
+                    platformFile?.let{
+                        val fileToSave = platformFile.file
                         if (newVocabulary != null) {
                             newVocabulary!!.name = fileToSave.nameWithoutExtension
                             try{
@@ -118,12 +111,13 @@ fun WordFrequencyDialog(
 
                         }
                         newVocabulary = null
-                        fileChooser.selectedFile = null
+
                         close()
                     }
-
                 }
+
             }
+
             Box(Modifier.fillMaxSize()){
                 if(selectState == "Idle"){
                     val bncText =
@@ -236,7 +230,11 @@ fun WordFrequencyDialog(
                             Text("开始")
                         }
                         Spacer(Modifier.width(20.dp))
-                        OutlinedButton(onClick = {save()}, enabled = saveEnable){
+                        OutlinedButton(onClick = {
+                            fileSaver.launch("$selectState list $start - $end","json")
+                        },
+                            enabled = saveEnable
+                        ){
                             Text("保存")
                         }
                     }

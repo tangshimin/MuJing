@@ -35,6 +35,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import player.isMacOS
@@ -54,11 +57,7 @@ import util.shouldStartDragAndDrop
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.Paths
-import java.util.concurrent.FutureTask
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileNameExtensionFilter
-import javax.swing.filechooser.FileSystemView
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -71,9 +70,6 @@ fun TextScreen(
     saveTextState: () -> Unit,
     isOpenSettings: Boolean,
     setIsOpenSettings: (Boolean) -> Unit,
-    futureFileChooser: FutureTask<JFileChooser>,
-    openLoadingDialog: () -> Unit,
-    closeLoadingDialog: () -> Unit,
     openSearch: () -> Unit,
     showVideoPlayer :(Boolean) -> Unit,
     setVideoPath:(String) -> Unit,
@@ -132,7 +128,6 @@ fun TextScreen(
             close = {showFormatDialog = false},
             row = row,
             formatPath = formatPath,
-            futureFileChooser = futureFileChooser,
             changeTextPath = {changeTextPath(it)}
         )
     }
@@ -171,37 +166,24 @@ fun TextScreen(
         }
     }
 
-    /** 打开文件对话框 */
-    val openFileChooser: () -> Unit = {
-        // 打开 windows 的文件选择器很慢，有时候会等待超过2秒
-        openLoadingDialog()
-        scope.launch(Dispatchers.IO) {
-            val fileChooser = futureFileChooser.get()
-            fileChooser.dialogTitle = "打开文本"
-            fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-            fileChooser.currentDirectory = FileSystemView.getFileSystemView().defaultDirectory
-            fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-            fileChooser.isAcceptAllFileFilterUsed = false
-            val fileFilter = FileNameExtensionFilter(" ", "txt")
-            fileChooser.addChoosableFileFilter(fileFilter)
-            fileChooser.selectedFile = null
-            if (fileChooser.showOpenDialog(window) == JFileChooser.APPROVE_OPTION) {
-                val file = fileChooser.selectedFile
-                parseImportFile(listOf(file), OpenMode.Open)
-                closeLoadingDialog()
-            } else {
-                closeLoadingDialog()
+    val singleLauncher = rememberFilePickerLauncher(
+        title = "打开文本",
+        type = FileKitType.File(extensions = listOf("txt")),
+        mode = FileKitMode.Single,
+    ) { file ->
+        scope.launch (Dispatchers.IO){
+            file?.let {
+                parseImportFile(listOf(file.file), OpenMode.Open)
             }
-            fileChooser.selectedFile = null
-            fileChooser.isMultiSelectionEnabled = false
-            fileChooser.removeChoosableFileFilter(fileFilter)
         }
+
     }
+
     /** 当前界面的快捷键 */
     val boxKeyEvent: (KeyEvent) -> Boolean = { keyEvent ->
         when {
             (keyEvent.isCtrlPressed && keyEvent.key == Key.O && keyEvent.type == KeyEventType.KeyUp) -> {
-                openFileChooser()
+                singleLauncher.launch()
                 true
             }
             (keyEvent.isCtrlPressed && keyEvent.key == Key.F && keyEvent.type == KeyEventType.KeyUp) -> {
@@ -238,7 +220,7 @@ fun TextScreen(
         Row(Modifier.fillMaxSize()){
             TextSidebar(
                 isOpen = isOpenSettings,
-                openFileChooser = { openFileChooser() },
+                openFileChooser = {  singleLauncher.launch() },
             )
             val topPadding = if (isMacOS()) 78.dp else 40.dp
             if (isOpenSettings) {
@@ -674,7 +656,7 @@ fun TextScreen(
                     offset = DpOffset.Zero
                 )
             ) {
-                IconButton(onClick = { openFileChooser() },
+                IconButton(onClick = { singleLauncher.launch() },
                     modifier = Modifier.padding(top = if (isMacOS()) 44.dp else 0.dp)) {
                     Icon(
                         Icons.Filled.Folder,

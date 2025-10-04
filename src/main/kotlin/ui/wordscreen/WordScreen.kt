@@ -46,6 +46,8 @@ import com.darkrockstudios.libraries.mpfilepicker.FilePicker
 import data.*
 import event.EventBus
 import event.WordScreenEventType
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -70,10 +72,7 @@ import java.io.File
 import java.nio.file.Paths
 import java.time.Duration
 import java.util.*
-import java.util.concurrent.FutureTask
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileSystemView
 import kotlin.concurrent.schedule
 
 /**
@@ -206,7 +205,6 @@ fun WordScreen(
                         generateVocabulary = {generateVocabularyListVisible = true},
                         openDocument = {documentWindowVisible = true},
                         parentWindow = window,
-                        futureFileChooser = appState.futureFileChooser,
                         openChooseVocabulary = openChooseVocabulary
                     )
                 }
@@ -303,7 +301,6 @@ fun WordScreen(
             show = showBuiltInVocabulary,
             close = {showBuiltInVocabulary = false},
             openChooseVocabulary = openChooseVocabulary,
-            futureFileChooser = appState.futureFileChooser
         )
 
         GenerateVocabularyListDialog(
@@ -1326,6 +1323,51 @@ fun MainContent(
                 }
             }
 
+            /** 文件选择器 */
+            val launcher = rememberFileSaverLauncher(
+                dialogSettings = FileKitDialogSettings.createDefault()
+            ) {  platformFile ->
+                platformFile?.let{
+                    val selectedFile = platformFile.file
+                    val vocabularyDirPath =  Paths.get(getResourcesFile("vocabulary").absolutePath)
+                    val savePath = Paths.get(selectedFile.absolutePath)
+                    if(savePath.startsWith(vocabularyDirPath)){
+                        JOptionPane.showMessageDialog(null,"不能把词库保存到应用程序安装目录，因为软件更新或卸载时，词库会被重置或者被删除")
+                    }else{
+                        wordScreenState.vocabulary.wordList.shuffle()
+                        val shuffledList = wordScreenState.vocabulary.wordList
+                        val vocabulary = Vocabulary(
+                            name = selectedFile.nameWithoutExtension,
+                            type = VocabularyType.DOCUMENT,
+                            language = "english",
+                            size = wordScreenState.vocabulary.size,
+                            relateVideoPath = wordScreenState.vocabulary.relateVideoPath,
+                            subtitlesTrackId = wordScreenState.vocabulary.subtitlesTrackId,
+                            wordList = shuffledList
+                        )
+
+                        try {
+                            saveVocabulary(vocabulary, selectedFile.absolutePath)
+                            appState.changeVocabulary(selectedFile, wordScreenState, 0)
+                            // changeVocabulary 会把内置词库保存到最近列表，
+                            // 保存后，如果再切换列表，就会有两个名字相同的词库，
+                            // 所以需要把刚刚添加的词库从最近列表删除
+                            for (i in 0 until appState.recentList.size) {
+                                val recentItem = appState.recentList[i]
+                                if (recentItem.name == wordScreenState.vocabulary.name) {
+                                    appState.removeRecentItem(recentItem)
+                                    break
+                                }
+                            }
+                        } catch (e: Exception) {
+                            e.printStackTrace()
+                            JOptionPane.showMessageDialog(window, "保存词库失败,错误信息:\n${e.message}")
+                        }
+
+
+                    }
+                }
+            }
 
             /**
              * 重置索引
@@ -1339,53 +1381,8 @@ fun MainContent(
                     // 如果要打乱的词库是内置词库，要选择一个地址，保存打乱后的词库，
                     // 如果不选择地址的话，软件升级后词库会被重置。
                     if(wordScreenState.vocabularyPath.startsWith(path)){
-                        val fileChooser = appState.futureFileChooser.get()
-                        fileChooser.dialogType = JFileChooser.SAVE_DIALOG
-                        fileChooser.dialogTitle = "保存重置后的词库"
-                        val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
                         val fileName = File(wordScreenState.vocabularyPath).nameWithoutExtension
-                        fileChooser.selectedFile = File("$myDocuments${File.separator}$fileName.json")
-                        val userSelection = fileChooser.showSaveDialog(window)
-                        if (userSelection == JFileChooser.APPROVE_OPTION) {
-                            val selectedFile = fileChooser.selectedFile
-                            val vocabularyDirPath =  Paths.get(getResourcesFile("vocabulary").absolutePath)
-                            val savePath = Paths.get(selectedFile.absolutePath)
-                            if(savePath.startsWith(vocabularyDirPath)){
-                                JOptionPane.showMessageDialog(null,"不能把词库保存到应用程序安装目录，因为软件更新或卸载时，词库会被重置或者被删除")
-                            }else{
-                                wordScreenState.vocabulary.wordList.shuffle()
-                                val shuffledList = wordScreenState.vocabulary.wordList
-                                val vocabulary = Vocabulary(
-                                    name = selectedFile.nameWithoutExtension,
-                                    type = VocabularyType.DOCUMENT,
-                                    language = "english",
-                                    size = wordScreenState.vocabulary.size,
-                                    relateVideoPath = wordScreenState.vocabulary.relateVideoPath,
-                                    subtitlesTrackId = wordScreenState.vocabulary.subtitlesTrackId,
-                                    wordList = shuffledList
-                                )
-
-                                try {
-                                    saveVocabulary(vocabulary, selectedFile.absolutePath)
-                                    appState.changeVocabulary(selectedFile, wordScreenState, 0)
-                                    // changeVocabulary 会把内置词库保存到最近列表，
-                                    // 保存后，如果再切换列表，就会有两个名字相同的词库，
-                                    // 所以需要把刚刚添加的词库从最近列表删除
-                                    for (i in 0 until appState.recentList.size) {
-                                        val recentItem = appState.recentList[i]
-                                        if (recentItem.name == wordScreenState.vocabulary.name) {
-                                            appState.removeRecentItem(recentItem)
-                                            break
-                                        }
-                                    }
-                                } catch (e: Exception) {
-                                    e.printStackTrace()
-                                    JOptionPane.showMessageDialog(window, "保存词库失败,错误信息:\n${e.message}")
-                                }
-
-
-                            }
-                        }
+                        launcher.launch(fileName, "json")
                     }else{
                         try{
                             wordScreenState.vocabulary.wordList.shuffle()
@@ -1877,7 +1874,7 @@ fun VocabularyEmpty(
     generateVocabulary: () -> Unit = {},
     openDocument: () -> Unit = {},
     parentWindow : ComposeWindow,
-    futureFileChooser: FutureTask<JFileChooser>,
+//    futureFileChooser: FutureTask<JFileChooser>,
     openChooseVocabulary: (String) -> Unit = {},
 ) {
     Surface(Modifier.fillMaxSize()) {
@@ -1948,49 +1945,28 @@ fun VocabularyEmpty(
                     }
                     val scope = rememberCoroutineScope()
                     AnimatedVisibility(visible = visible){
-
-                        /** 保存词库 */
-                        val save:(File) -> Unit = {file ->
-                            scope.launch(Dispatchers.IO) {
-                                val name = file.nameWithoutExtension
-                                val fileChooser = futureFileChooser.get()
-                                fileChooser.dialogType = JFileChooser.SAVE_DIALOG
-                                fileChooser.dialogTitle = "保存词库"
-                                val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                                fileChooser.selectedFile = File("$myDocuments${File.separator}${name}.json")
-                                val userSelection = fileChooser.showSaveDialog(parentWindow)
-                                if (userSelection == JFileChooser.APPROVE_OPTION) {
-
-                                    val fileToSave = fileChooser.selectedFile
-                                    if (fileToSave.exists()) {
-                                        // 是-0,否-1，取消-2
-                                        val answer =
-                                            JOptionPane.showConfirmDialog(parentWindow, "${name}.json 已存在。\n要替换它吗？")
-                                        if (answer == 0) {
-                                            try{
-                                                fileToSave.writeBytes(file.readBytes())
-                                                openChooseVocabulary(fileToSave.absolutePath)
-                                            }catch (e:Exception){
-                                                e.printStackTrace()
-                                                JOptionPane.showMessageDialog(parentWindow,"保存失败，错误信息：\n${e.message}")
-                                            }
-
-                                        }
-                                    } else {
+                        var selectedFile by remember { mutableStateOf<File?>(null) }
+                        // 文件选择器
+                        val launcher = rememberFileSaverLauncher(
+                            dialogSettings = FileKitDialogSettings.createDefault()
+                        ) {  platformFile ->
+                            scope.launch (Dispatchers.IO){
+                                platformFile?.let{
+                                    val fileToSave = platformFile.file
+                                    selectedFile?.let {
                                         try{
-                                            fileToSave.writeBytes(file.readBytes())
+                                            fileToSave.writeBytes(selectedFile!!.readBytes())
                                             openChooseVocabulary(fileToSave.absolutePath)
                                         }catch (e:Exception){
                                             e.printStackTrace()
                                             JOptionPane.showMessageDialog(parentWindow,"保存失败，错误信息：\n${e.message}")
                                         }
-
                                     }
 
                                 }
                             }
-                        }
 
+                        }
                         Row(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically,
@@ -2001,7 +1977,8 @@ fun VocabularyEmpty(
                                 color = MaterialTheme.colors.primary,
                                 modifier = Modifier.clickable(onClick = {
                                     val file = getResourcesFile("vocabulary/大学英语/四级.json")
-                                    save(file)
+                                    selectedFile = file
+                                    launcher.launch(file.name,"json")
                                 })
                                     .padding(5.dp)
                             )
@@ -2011,8 +1988,8 @@ fun VocabularyEmpty(
                                 color = MaterialTheme.colors.primary,
                                 modifier = Modifier.clickable(onClick = {
                                     val file = getResourcesFile("vocabulary/大学英语/六级.json")
-                                    save(file)
-                                })
+                                    selectedFile = file
+                                    launcher.launch(file.name,"json")                                })
                                     .padding(5.dp)
                             )
                             Spacer(modifier = Modifier.width(10.dp))
@@ -2021,8 +1998,8 @@ fun VocabularyEmpty(
                                 color = MaterialTheme.colors.primary,
                                 modifier = Modifier.clickable(onClick = {
                                     val file = getResourcesFile("vocabulary/牛津核心词/The_Oxford_3000.json")
-                                    save(file)
-                                })
+                                    selectedFile = file
+                                    launcher.launch(file.name,"json")                                })
                                     .padding(5.dp)
                             )
                             Spacer(modifier = Modifier.width(10.dp))

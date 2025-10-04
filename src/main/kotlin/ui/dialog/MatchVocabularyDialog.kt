@@ -24,22 +24,21 @@ import data.Vocabulary
 import data.Word
 import data.loadVocabulary
 import data.saveVocabulary
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.FileKitMode
+import io.github.vinceglb.filekit.dialogs.FileKitType
+import io.github.vinceglb.filekit.dialogs.compose.rememberFilePickerLauncher
+import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import state.getResourcesFile
 import ui.window.windowBackgroundFlashingOnCloseFixHack
-import java.io.File
 import java.nio.file.Paths
-import java.util.concurrent.FutureTask
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileNameExtensionFilter
-import javax.swing.filechooser.FileSystemView
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun MatchVocabularyDialog(
-    futureFileChooser: FutureTask<JFileChooser>,
     close: () -> Unit
 ) {
     DialogWindow(
@@ -58,7 +57,7 @@ fun MatchVocabularyDialog(
         ) {
             windowBackgroundFlashingOnCloseFixHack()
             Box {
-                /** 协程构建器 */
+
                 /** 协程构建器 */
                 val scope = rememberCoroutineScope()
                 Divider(Modifier.align(Alignment.TopCenter))
@@ -71,7 +70,6 @@ fun MatchVocabularyDialog(
                     var matchLemma by remember{ mutableStateOf(true) }
                     var baseline :Vocabulary? by remember { mutableStateOf(null) }
                     var comparison  :Vocabulary? by remember { mutableStateOf(null) }
-                    var comparisonDir by remember{ mutableStateOf("") }
                     var result  :Vocabulary? by remember { mutableStateOf(null) }
                     val match:() -> Unit = {
                         if(comparison != null && baseline != null){
@@ -128,17 +126,13 @@ fun MatchVocabularyDialog(
 
                     }
 
-                    val save:() -> Unit = {
-                        scope.launch (Dispatchers.IO){
-                            val fileChooser = futureFileChooser.get()
-                            fileChooser.dialogType = JFileChooser.SAVE_DIALOG
-                            fileChooser.dialogTitle = "保存词库"
-                            val fileFilter = FileNameExtensionFilter("词库", "json")
-                            fileChooser.addChoosableFileFilter(fileFilter)
-                            fileChooser.selectedFile = File("$comparisonDir${File.separator}${comparison!!.name + " - " + result!!.size}.json")
-                            val userSelection = fileChooser.showSaveDialog(window)
-                            if (userSelection == JFileChooser.APPROVE_OPTION) {
-                                val selectedFile = fileChooser.selectedFile
+
+                    val fileSaver = rememberFileSaverLauncher(
+                        dialogSettings = FileKitDialogSettings.createDefault()
+                    ) {  platformFile ->
+                        scope.launch(Dispatchers.IO){
+                            platformFile?.let{
+                                val selectedFile = platformFile.file
                                 val vocabularyDirPath =  Paths.get(getResourcesFile("vocabulary").absolutePath)
                                 val savePath = Paths.get(selectedFile.absolutePath)
                                 if(savePath.startsWith(vocabularyDirPath)){
@@ -153,11 +147,11 @@ fun MatchVocabularyDialog(
                                     }
 
                                 }
-
                             }
-                            fileChooser.removeChoosableFileFilter(fileFilter)
                         }
+
                     }
+
                     Row(
                         horizontalArrangement = Arrangement.Center,
                         modifier = Modifier.fillMaxWidth()
@@ -187,30 +181,25 @@ fun MatchVocabularyDialog(
                             )
                         ) {
                             Box{
-                            var isHover by remember { mutableStateOf(false) }
+                                var isHover by remember { mutableStateOf(false) }
+                                val singleLauncher = rememberFilePickerLauncher(
+                                    title = "选择基准词库",
+                                    type = FileKitType.File(extensions = listOf("json")),
+                                    mode = FileKitMode.Single,
+                                ) { file ->
+                                    scope.launch(Dispatchers.IO){
+                                        file?.let {
+                                            baseline = loadVocabulary(file.file.absolutePath)
+                                        }
+                                    }
+
+                                }
                             Column (
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 verticalArrangement = Arrangement.Top,
                                 modifier = Modifier.width(165.dp).height(200.dp)
                                     .clickable {
-                                        scope.launch (Dispatchers.IO){
-                                            val fileChooser = futureFileChooser.get()
-                                            fileChooser.dialogTitle = "选择基准词库"
-                                            fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                                            fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                                            fileChooser.isAcceptAllFileFilterUsed = false
-                                            val fileFilter = FileNameExtensionFilter("词库", "json")
-                                            fileChooser.addChoosableFileFilter(fileFilter)
-                                            fileChooser.selectedFile = null
-                                            if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                                                val path = fileChooser.selectedFile.absolutePath
-                                                baseline = loadVocabulary(path)
-
-                                            }
-                                            fileChooser.selectedFile = null
-
-                                            fileChooser.removeChoosableFileFilter(fileFilter)
-                                        }
+                                        singleLauncher.launch()
                                     }
                                     .onPointerEvent(PointerEventType.Enter){isHover = true}
                                     .onPointerEvent(PointerEventType.Exit){isHover = false}
@@ -275,30 +264,24 @@ fun MatchVocabularyDialog(
                         ) {
                             Box{
                                 var isHover by remember { mutableStateOf(false) }
+                                val singleLauncher = rememberFilePickerLauncher(
+                                    title = "选择对比词库",
+                                    type = FileKitType.File(extensions = listOf("json")),
+                                    mode = FileKitMode.Single,
+                                ) { file ->
+                                    scope.launch(Dispatchers.IO){
+                                        file?.let {
+                                            comparison = loadVocabulary(file.file.absolutePath)
+                                        }
+                                    }
+
+                                }
                                 Column(
                                     horizontalAlignment = Alignment.CenterHorizontally,
                                     verticalArrangement = Arrangement.Center,
                                     modifier = Modifier.width(165.dp).height(200.dp)
                                         .clickable {
-                                            scope.launch (Dispatchers.IO){
-                                                val fileChooser = futureFileChooser.get()
-                                                fileChooser.dialogTitle = "选择对比词库"
-                                                fileChooser.fileSystemView = FileSystemView.getFileSystemView()
-                                                fileChooser.fileSelectionMode = JFileChooser.FILES_ONLY
-                                                fileChooser.isAcceptAllFileFilterUsed = false
-                                                val fileFilter = FileNameExtensionFilter("词库", "json")
-                                                fileChooser.addChoosableFileFilter(fileFilter)
-                                                fileChooser.selectedFile = null
-                                                if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION) {
-                                                    val path = fileChooser.selectedFile.absolutePath
-                                                    comparisonDir = fileChooser.selectedFile.parent
-                                                    comparison = loadVocabulary(path)
-
-                                                }
-                                                fileChooser.selectedFile = null
-
-                                                fileChooser.removeChoosableFileFilter(fileFilter)
-                                            }
+                                            singleLauncher.launch()
                                         }
                                         .onPointerEvent(PointerEventType.Enter){isHover = true}
                                         .onPointerEvent(PointerEventType.Exit){isHover = false}
@@ -389,7 +372,7 @@ fun MatchVocabularyDialog(
                         OutlinedButton(
                             enabled = result != null && result!!.size>0,
                             modifier = Modifier.padding(start = 10.dp),
-                            onClick = {save()}) {
+                            onClick = {fileSaver.launch(comparison!!.name + " - " + result!!.size,"json")}) {
                             Text("保存")
                         }
                     }

@@ -22,23 +22,21 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogWindow
 import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.rememberDialogState
+import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
+import io.github.vinceglb.filekit.dialogs.compose.rememberFileSaverLauncher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import state.getResourcesFile
 import ui.window.windowBackgroundFlashingOnCloseFixHack
 import java.io.File
-import java.util.concurrent.FutureTask
-import javax.swing.JFileChooser
 import javax.swing.JOptionPane
-import javax.swing.filechooser.FileSystemView
 
 @Composable
 fun BuiltInVocabularyDialog(
     show: Boolean,
     close: () -> Unit,
     openChooseVocabulary: (String) -> Unit = {},
-    futureFileChooser: FutureTask<JFileChooser>
 ) {
     if(show){
         DialogWindow(
@@ -60,106 +58,54 @@ fun BuiltInVocabularyDialog(
                     .background(color = MaterialTheme.colors.background)
 
                 ){
-                    var finish by remember{ mutableStateOf(false)}
-                    var waiting by remember{ mutableStateOf(false)}
-                    val scope = rememberCoroutineScope()
-                    /** 保存词库 */
-                    val save:(File) -> Unit = { file ->
-                        waiting = true
-                        scope.launch(Dispatchers.IO) {
-                            var name = file.nameWithoutExtension
-                            if (file.parentFile.nameWithoutExtension == "人教版英语" ||
-                                file.parentFile.nameWithoutExtension == "外研版英语" ||
-                                file.parentFile.nameWithoutExtension == "北师大版高中英语"
-                            ) {
-                                if (name.contains(" ")) {
-                                    name = name.split(" ")[1]
-                                }
-                            }
-                            val fileChooser = futureFileChooser.get()
-                            fileChooser.dialogType = JFileChooser.SAVE_DIALOG
-                            fileChooser.dialogTitle = "保存词库"
-                            val myDocuments = FileSystemView.getFileSystemView().defaultDirectory.path
-                            fileChooser.selectedFile = File("$myDocuments${File.separator}${name}.json")
-                            val userSelection = fileChooser.showSaveDialog(window)
-                            if (userSelection == JFileChooser.APPROVE_OPTION) {
-
-                                val fileToSave = fileChooser.selectedFile
-                                if (fileToSave.exists()) {
-                                    // 是-0,否-1，取消-2
-                                    val answer =
-                                        JOptionPane.showConfirmDialog(window, "${name}.json 已存在。\n要替换它吗？")
-                                    if (answer == 0) {
-                                        try{
-                                            fileToSave.writeBytes(file.readBytes())
-                                            finish = true
-                                            close()
-                                            openChooseVocabulary(fileToSave.absolutePath)
-                                        }catch (e:Exception){
-                                            e.printStackTrace()
-                                            JOptionPane.showMessageDialog(window,"保存失败，错误信息：\n${e.message}")
-                                        }
-
-                                    }
-                                } else {
-                                    try{
-                                        fileToSave.writeBytes(file.readBytes())
-                                        finish = true
-                                        close()
-                                        openChooseVocabulary(fileToSave.absolutePath)
-                                    }catch (e:Exception){
-                                        e.printStackTrace()
-                                        JOptionPane.showMessageDialog(window,"保存失败，错误信息：\n${e.message}")
-                                    }
-
-                                }
-
-                            }
-                            waiting = false
-                        }
-                    }
-
+                    var success by remember{ mutableStateOf(false)}
                     val stateVertical = rememberScrollState(0)
                     Box(Modifier.fillMaxSize().verticalScroll(stateVertical)){
                         Column (Modifier.padding(10.dp)){
                             VocabularyCategory(
                                 directory = getResourcesFile("vocabulary/大学英语"),
-                                save = save
+                                success = { success = true },
+                                openChooseVocabulary = openChooseVocabulary
                             )
                             VocabularyCategory(
                                 directory = getResourcesFile("vocabulary/出国"),
-                                save = save
+                                success = { success = true },
+                                openChooseVocabulary = openChooseVocabulary
                             )
                             VocabularyCategory(
                                 directory = getResourcesFile("vocabulary/牛津核心词"),
-                                save = save
+                                success = { success = true },
+                                openChooseVocabulary = openChooseVocabulary
                             )
                             VocabularyCategory(
                                 directory = getResourcesFile("vocabulary/北师大版高中英语"),
-                                save = save
+                                success = { success = true },
+                                openChooseVocabulary = openChooseVocabulary
                             )
                             VocabularyCategory(
                                 directory = getResourcesFile("vocabulary/人教版英语"),
-                                save = save
+                                success = { success = true },
+                                openChooseVocabulary = openChooseVocabulary
                             )
                             VocabularyCategory(
                                 directory = getResourcesFile("vocabulary/外研版英语"),
-                                save = save
+                                success = { success = true },
+                                openChooseVocabulary = openChooseVocabulary
                             )
                             VocabularyCategory(
                                 directory = getResourcesFile("vocabulary/新概念英语"),
-                                save = save
+                                success = { success = true },
+                                openChooseVocabulary = openChooseVocabulary
                             )
                             VocabularyCategory(
                                 directory = getResourcesFile("vocabulary/商务英语"),
-                                save = save
+                                success = { success = true },
+                                openChooseVocabulary = openChooseVocabulary
                             )
                         }
                     }
-                    if(waiting){
-                        CircularProgressIndicator(Modifier.align(Alignment.Center).size(150.dp))
-                    }
-                    if(finish){
+
+                    if(success){
                         Surface (Modifier.size(206.dp,83.dp)
                             .align(Alignment.Center)
                             .border(BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f)))
@@ -183,7 +129,8 @@ fun BuiltInVocabularyDialog(
                             }
                             LaunchedEffect(Unit){
                                 delay(2000)
-                                finish = false
+                                success = false
+                                close()
                             }
                         }
                     }
@@ -204,8 +151,36 @@ fun BuiltInVocabularyDialog(
 @Composable
 fun VocabularyCategory(
     directory: File,
-    save:(File)->Unit
+    success:()->Unit = {},
+    openChooseVocabulary: (String) -> Unit = {},
 ){
+    val scope = rememberCoroutineScope()
+    var selectedFile by remember { mutableStateOf<File?>(null) }
+    // 文件选择器
+    val launcher = rememberFileSaverLauncher(
+        dialogSettings = FileKitDialogSettings.createDefault()
+    ) {  platformFile ->
+        scope.launch (Dispatchers.IO){
+            platformFile?.let{
+                selectedFile?.let {
+                    val fileToSave = platformFile.file
+                    try{
+                        fileToSave.writeBytes(selectedFile!!.readBytes())
+                        openChooseVocabulary(fileToSave.absolutePath)
+                        success()
+                    }catch (e:Exception){
+                        e.printStackTrace()
+                        JOptionPane.showMessageDialog(null,"保存失败，错误信息：\n${e.message}")
+                    }
+                }
+
+            }
+        }
+
+
+    }
+
+
     Column (Modifier.fillMaxWidth()
         .heightIn(min = 100.dp,max = 500.dp)
         .padding(bottom = 30.dp)){
@@ -228,33 +203,37 @@ fun VocabularyCategory(
                 state = listState
             ) {
 
-                    items(files){file ->
-                        Card(
-                            modifier = Modifier
-                                .padding(7.5.dp)
-                                .clickable {save(file)},
-                            backgroundColor = MaterialTheme.colors.surface,
-                            elevation = 3.dp
-                        ) {
-                            Box(Modifier.size(width = 160.dp, height = 65.dp)) {
-                                var name = file.nameWithoutExtension
-                                if(directory.nameWithoutExtension == "人教版英语" ||
-                                    directory.nameWithoutExtension == "外研版英语"||
-                                    directory.nameWithoutExtension == "北师大版高中英语"){
-                                    if(name.contains(" ")){
-                                        name = name.split(" ")[1]
-                                    }
+                items(files){file ->
 
-                                }
-                                Text(
-                                    text = name,
-                                    color = MaterialTheme.colors.onBackground,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.align(Alignment.Center)
-                                )
-                            }
+                    var name = file.nameWithoutExtension
+                    if(directory.nameWithoutExtension == "人教版英语" ||
+                        directory.nameWithoutExtension == "外研版英语"||
+                        directory.nameWithoutExtension == "北师大版高中英语"){
+                        if(name.contains(" ")){
+                            name = name.split(" ")[1]
                         }
                     }
+
+                    Card(
+                        modifier = Modifier
+                            .padding(7.5.dp)
+                            .clickable {
+                                selectedFile = file
+                                launcher.launch(name,"json")
+                            },
+                        backgroundColor = MaterialTheme.colors.surface,
+                        elevation = 3.dp
+                    ) {
+                        Box(Modifier.size(width = 160.dp, height = 65.dp)) {
+                            Text(
+                                text = name,
+                                color = MaterialTheme.colors.onBackground,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.align(Alignment.Center)
+                            )
+                        }
+                    }
+                }
             }
         }
 

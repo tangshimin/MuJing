@@ -48,16 +48,11 @@ import state.AppState
 import state.ScreenType
 import state.computeFontSize
 import state.rememberAppState
-import theme.CustomLocalProvider
-import theme.IDEADarkThemeOnBackground
-import theme.rememberCustomSelectionColors
-import theme.scrollbarStyle
-import theme.toAwt
+import theme.*
 import ui.dialog.*
 import ui.edit.ChooseEditVocabulary
 import ui.edit.EditVocabulary
 import ui.edit.checkVocabulary
-import ui.flatlaf.setupFileChooser
 import ui.flatlaf.updateFlatLaf
 import ui.search.Search
 import ui.subtitlescreen.SubtitleScreen
@@ -214,9 +209,6 @@ fun App(
                                             saveTextState = { textState.saveTypingTextState() },
                                             isOpenSettings = appState.openSidebar,
                                             setIsOpenSettings = {appState.openSidebar = it},
-                                            futureFileChooser = appState.futureFileChooser,
-                                            openLoadingDialog = { appState.openLoadingDialog()},
-                                            closeLoadingDialog = { appState.loadingFileChooserVisible = false },
                                             openSearch = appState.openSearch,
                                             showVideoPlayer = {playerState.showPlayer(wordState)},
                                             setVideoPath = playerState.videoPathChanged,
@@ -347,7 +339,7 @@ fun App(
             background = appState.global.backgroundColor.toAwt(),
             onBackground = appState.global.onBackgroundColor.toAwt()
         )
-        appState.futureFileChooser = setupFileChooser()
+
     }
 }
 
@@ -534,7 +526,6 @@ private fun FrameWindowScope.WindowMenuBar(
         BuiltInVocabularyDialog(
             show = showBuiltInVocabulary,
             close = {showBuiltInVocabulary = false},
-            futureFileChooser = appState.futureFileChooser
         )
         Item("熟悉词库${if(isWindows) "(F)" else ""}", mnemonic = 'F',onClick = {
             val file = getFamiliarVocabularyFile()
@@ -577,7 +568,6 @@ private fun FrameWindowScope.WindowMenuBar(
         })
         if(matchVocabulary){
             MatchVocabularyDialog(
-                futureFileChooser = appState.futureFileChooser,
                 close = {matchVocabulary = false}
             )
         }
@@ -605,7 +595,6 @@ private fun FrameWindowScope.WindowMenuBar(
         Item("根据词频生成词库${if(isWindows) "(C)" else ""}", mnemonic = 'C', onClick = {showWordFrequency = true })
         if(showWordFrequency){
             WordFrequencyDialog(
-                futureFileChooser = appState.futureFileChooser,
                 saveToRecentList = { name, path ->
                     appState.saveToRecentList(name, path,0)
                 },
@@ -655,9 +644,6 @@ private fun FrameWindowScope.WindowMenuBar(
         if(showLyricDialog){
             LyricToSubtitlesDialog(
                 close = {showLyricDialog = false},
-                futureFileChooser = appState.futureFileChooser,
-                openLoadingDialog = {appState.loadingFileChooserVisible = true},
-                closeLoadingDialog = {appState.loadingFileChooserVisible = false}
             )
         }
         Item(
@@ -680,9 +666,6 @@ private fun FrameWindowScope.WindowMenuBar(
         if(showTextFormatDialog){
             TextFormatDialog(
                 close = {showTextFormatDialog = false},
-                futureFileChooser= appState.futureFileChooser,
-                openLoadingDialog = {appState.loadingFileChooserVisible = true},
-                closeLoadingDialog = {appState.loadingFileChooserVisible = false},
             )
         }
         Item(
@@ -756,7 +739,6 @@ fun MenuDialogs(state: AppState) {
     }
     if (state.mergeVocabulary) {
         MergeVocabularyDialog(
-            futureFileChooser = state.futureFileChooser,
             saveToRecentList = { name, path ->
                 state.saveToRecentList(name, path,0)
             },
@@ -771,7 +753,6 @@ fun MenuDialogs(state: AppState) {
     }
     if (state.importFamiliarVocabulary) {
         FamiliarDialog(
-            futureFileChooser = state.futureFileChooser,
             close = { state.importFamiliarVocabulary = false }
         )
     }
