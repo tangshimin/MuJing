@@ -58,3 +58,6 @@ bin/
 /rust-zstd-jni/target/
 /test-output/
 /rust-zstd-jni/Cargo.lock
+
+### Whisper 模型文件 ###
+/src/test/resources/whisper/

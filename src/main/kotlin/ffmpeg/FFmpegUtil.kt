@@ -129,6 +129,89 @@ fun hasRichText(content: String): Boolean {
 
 
 /**
+ * 使用 Whisper 模型生成 SRT 字幕
+ * @param input 输入视频/音频文件路径
+ * @param output 输出 SRT 文件路径
+ * @param modelPath Whisper 模型文件的绝对路径（必需参数）
+ * @param language 语言代码 (例如 "en", "zh", "auto")
+ * @param queue 队列大小，控制处理延迟和准确性的平衡
+ * @return Result<Unit> 成功时返回 Result.success()，失败时返回 Result.failure()
+ */
+fun generateSrtWithWhisper(
+    input: String,
+    output: String,
+    modelPath: String,
+    language: String = "en",
+    queue: Int = 3
+): Result<Unit> {
+    return try {
+        val ffmpeg = FFmpeg(findFFmpegPath())
+
+        // 检查模型文件是否存在
+        val modelFile = File(modelPath)
+        if (!modelFile.exists()) {
+            val error = "Whisper 模型文件不存在: $modelPath\n" +
+                    "请运行 './gradlew downloadWhisperModels' 下载模型文件"
+            println("错误: $error")
+            return Result.failure(IllegalArgumentException(error))
+        }
+
+        // 将路径转换为绝对路径并统一为 Unix 风格
+        val normalizedModelPath = modelFile.absolutePath.replace("\\", "/")
+        val normalizedOutput = File(output).absolutePath.replace("\\", "/")
+
+        val escapedModelPath = escapeFilterPath(normalizedModelPath)
+        val escapedOutput = escapeFilterPath(normalizedOutput)
+
+        // 构建 whisper 滤镜参数
+        val whisperFilter = "whisper=model=$escapedModelPath:language=$language:queue=$queue:destination=$escapedOutput:format=srt"
+
+        // 确保输出目录存在
+        val outputFile = File(output)
+        outputFile.parentFile?.mkdirs()
+
+        val builder = FFmpegBuilder()
+            .setVerbosity(Verbosity.INFO)
+            .setInput(input)
+            .addOutput(output)
+            .addExtraArgs("-vn") // 禁用视频流
+            .addExtraArgs("-af", whisperFilter)
+            .addExtraArgs("-f", "null") // 输出格式为 null，因为实际输出由 whisper 滤镜处理
+            .done()
+
+        val executor = FFmpegExecutor(ffmpeg)
+        val job = executor.createJob(builder)
+        job.run()
+
+        if (job.state == FFmpegJob.State.FINISHED) {
+            // 检查输出文件是否生成成功
+            val outputFile = File(output)
+            if (outputFile.exists() && outputFile.length() > 0) {
+                Result.success(Unit)
+            } else {
+                val error = "生成字幕文件失败，文件为空或不存在: $output"
+                println("错误: $error")
+                Result.failure(RuntimeException(error))
+            }
+        } else {
+            val error = "使用 Whisper 生成字幕失败，FFmpeg 任务状态: ${job.state}"
+            println("错误: $error")
+            Result.failure(RuntimeException(error))
+        }
+    } catch (e: Exception) {
+        println("使用 Whisper 生成字幕时出现错误:")
+        e.printStackTrace()
+        Result.failure(e)
+    }
+}
+
+// 在 FFmpeg 滤镜参数中，需要转义冒号
+// Windows 路径中的盘符冒号需要转义为 \\:
+fun escapeFilterPath(path: String): String {
+    return path.replace(":", "\\\\:")
+}
+
+/**
  * 提取选择的字幕到用户目录,字幕浏览器界面使用
  * */
 fun writeSubtitleToFile(

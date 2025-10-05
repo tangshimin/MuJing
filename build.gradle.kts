@@ -6,6 +6,8 @@ import org.apache.commons.compress.archivers.sevenz.SevenZFile
 import java.nio.file.Files
 import org.gradle.api.tasks.Exec
 import java.io.File
+import java.net.URL
+import java.io.InputStream
 
 plugins {
     // 版本设置在 settings.gradle.kts 的 plugins 块中
@@ -200,7 +202,7 @@ val decompressDictionary by tasks.registering {
 }
 
 tasks.named("compileKotlin") {
-    // 先确保解压缩，再准备 ffmpeg
+    // 移除模型下载依赖，只保留 ffmpeg 准备
     dependsOn("prepareFfmpeg")
 }
 
@@ -230,9 +232,58 @@ tasks.register("prepareFfmpeg") {
     }
 }
 
-// 确保测试前已构建 Rust JNI 库
+// 解压缩 7z 文件
+@Throws(IOException::class)
+fun decompressDict(input: File, destination: File) {
+    SevenZFile.builder()
+        .setSeekableByteChannel(Files.newByteChannel(input.toPath()))
+        .get().use { sevenZFile ->
+
+        val entry = sevenZFile.nextEntry
+        if (entry != null && !entry.isDirectory) {
+            val outFile = File(destination, entry.name)
+            outFile.parentFile.mkdirs()
+
+            FileOutputStream(outFile).use { out ->
+                val content = ByteArray(entry.size.toInt())
+                sevenZFile.read(content, 0, content.size)
+                out.write(content)
+            }
+        }
+    }
+}
+
+// 下载 Whisper 模型文件到测试资源目录
+val downloadWhisperModels by tasks.registering {
+    group = "verification"
+    description = "Download Whisper model files for testing if missing"
+
+    doLast {
+        // 修改为测试资源目录下的 whisper 文件夹
+        val modelsDir = layout.projectDirectory.dir("src/test/resources/whisper").asFile
+        if (!modelsDir.exists()) {
+            modelsDir.mkdirs()
+        }
+
+        // 需要下载的模型列表
+        val models = listOf("base.en")
+
+        for (model in models) {
+            val modelFile = File(modelsDir, "ggml-$model.bin")
+            if (!modelFile.exists()) {
+                println("下载 Whisper 模型到测试资源目录: $model")
+                downloadWhisperModel(model, modelsDir)
+            } else {
+                println("测试用 Whisper 模型 $model 已存在，跳过下载")
+            }
+        }
+    }
+}
+
+// 确保测试前已构建 Rust JNI 库和下载测试模型
 tasks.named<Test>("test") {
     dependsOn(buildRustZstdJni)
+    dependsOn("downloadWhisperModels")  // 添加模型下载依赖
     // 排除 JNI 端到端测试，避免在无 cargo 环境失败
     exclude("**/fsrs/zstd/**")
     description = "Runs unit tests."
@@ -321,31 +372,6 @@ project.afterEvaluate {
 
 apply(from = "wix.gradle.kts")
 
-
-/**
- * 解压缩 7z 文件
- */
-@Throws(IOException::class)
-fun decompressDict(input: File, destination: File) {
-    SevenZFile.builder()
-        .setSeekableByteChannel(Files.newByteChannel(input.toPath()))
-        .get().use { sevenZFile ->
-
-        val entry = sevenZFile.nextEntry
-        if (entry != null && !entry.isDirectory) {
-            val outFile = File(destination, entry.name)
-            outFile.parentFile.mkdirs()
-
-            FileOutputStream(outFile).use { out ->
-                val content = ByteArray(entry.size.toInt())
-                sevenZFile.read(content, 0, content.size)
-                out.write(content)
-            }
-        }
-    }
-}
-
-
 // 解析 cargo 路径（优先级：-PcargoPath > CARGO 环境变量 > 常见安装路径列表 > PATH 中的 cargo）
 fun resolveCargoPath(): String {
     // 允许通过 -PcargoPath 显式指定
@@ -370,4 +396,67 @@ fun resolveCargoPath(): String {
 
     // 回退到 PATH 中的 cargo（若存在）
     return "cargo"
+}
+
+/**
+ * 下载 Whisper 模型文件
+ * 参考 whisper.cpp 的下载脚本
+ */
+fun downloadWhisperModel(model: String, modelsDir: File) {
+    val src = "https://huggingface.co/ggerganov/whisper.cpp"
+    val pfx = "resolve/main/ggml"
+    val url = "$src/$pfx-$model.bin"
+    val outputFile = File(modelsDir, "ggml-$model.bin")
+
+    println("正在从 '$src' 下载 ggml 模型 $model ...")
+
+    try {
+        // 使用 Java 的 URL 类进行下载
+        val connection = URL(url).openConnection()
+        connection.setRequestProperty("User-Agent", "Mozilla/5.0 (compatible; Gradle)")
+
+        connection.getInputStream().use { input: InputStream ->
+            outputFile.outputStream().use { output ->
+                val buffer = ByteArray(8192)
+                var totalBytes = 0L
+                val contentLength = connection.contentLengthLong
+                var lastProgress = -1
+
+                var bytesRead = input.read(buffer)
+                while (bytesRead != -1) {
+                    output.write(buffer, 0, bytesRead)
+                    totalBytes += bytesRead
+
+                    // 显示下载进度 - 单行更新
+                    if (contentLength > 0) {
+                        val progress = (totalBytes * 100L / contentLength).toInt()
+                        if (progress != lastProgress && progress % 5 == 0) {
+                            val mbTotal = contentLength / 1024L / 1024L
+                            val mbDownloaded = totalBytes / 1024L / 1024L
+                            print("\r下载进度: ${mbDownloaded}MB / ${mbTotal}MB ($progress%)")
+                            System.out.flush()
+                            lastProgress = progress
+                        }
+                    }
+                    bytesRead = input.read(buffer)
+                }
+            }
+        }
+
+        // 下载完成后换行
+        println("\n完成！模型 '$model' 已保存到 '${outputFile.absolutePath}'")
+
+    } catch (e: Exception) {
+        // 出错时也换行，确保错误信息显示正确
+        println("\n下载 ggml 模型 $model 失败")
+        println("错误信息: ${e.message}")
+        println("请稍后重试或手动下载原始 Whisper 模型文件并转换。")
+
+        // 删除可能不完整的文件
+        if (outputFile.exists()) {
+            outputFile.delete()
+        }
+
+        throw e
+    }
 }

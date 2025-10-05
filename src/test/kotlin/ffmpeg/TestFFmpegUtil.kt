@@ -194,10 +194,108 @@ class TestFFmpegUtil {
 
     }
 
+    @Test
+    fun `Test Generate SRT with Whisper from MP3`() {
+        val input = "src/test/resources/Sintel.2010.480.mp3"
+        val srtFile = File("$subtitlesFolder/Sintel.2010.480.mp3.whisper.srt")
 
+        // 使用固定的模型文件绝对路径
+        val modelPath = File("src/test/resources/whisper/ggml-base.en.bin").absolutePath
+
+        val result = generateSrtWithWhisper(
+            input = input,
+            output = srtFile.absolutePath,
+            modelPath = modelPath,
+            language = "en",
+            queue = 3
+        )
+
+        assert(result.isSuccess)
+        assert(srtFile.exists())
+
+        // Verify the SRT file has content
+        val content = srtFile.readText()
+        assert(content.isNotBlank())
+
+        // Verify SRT format (should contain timestamps and subtitle numbers)
+        assert(content.contains("-->"))
+        assert(content.contains("\n\n"))
+    }
+
+
+    @Test
+    fun `Test Generate SRT with Whisper from MP4`() {
+        val input = "src/test/resources/Sintel.2010.480.mp4"
+        val srtFile = File("$subtitlesFolder/Sintel.2010.480.whisper.srt")
+
+        // 使用固定的模型文件绝对路径
+        val modelPath = File("src/test/resources/whisper/ggml-base.en.bin").absolutePath
+
+        val result = generateSrtWithWhisper(
+            input = input,
+            output = srtFile.absolutePath,
+            modelPath = modelPath,
+            language = "en",
+            queue = 3
+        )
+
+        assert(result.isSuccess)
+        assert(srtFile.exists())
+
+        // Verify the SRT file has content
+        val content = srtFile.readText()
+        assert(content.isNotBlank())
+
+        // Verify SRT format (should contain timestamps and subtitle numbers)
+        assert(content.contains("-->"))
+        assert(content.contains("\n\n"))
+    }
+
+    @Test
+    fun `Test Generate SRT with Whisper from MKV`() {
+        val input = "src/test/resources/Sintel.2010.480.mkv"
+        val srtFile = File("$subtitlesFolder/Sintel.2010.480.mkv.whisper.srt")
+
+        // 使用固定的模型文件绝对路径
+        val modelPath = File("src/test/resources/whisper/ggml-base.en.bin").absolutePath
+
+        val result = generateSrtWithWhisper(
+            input = input,
+            output = srtFile.absolutePath,
+            modelPath = modelPath,
+            language = "en",
+            queue = 5
+        )
+
+        assert(result.isSuccess)
+        assert(srtFile.exists())
+
+        val content = srtFile.readText()
+        assert(content.isNotBlank())
+        assert(content.contains("-->"))
+    }
+
+    @Test
+    fun `Test Generate SRT with Whisper with invalid model`() {
+        val input = "src/test/resources/Sintel.2010.480.mp4"
+        val srtFile = File("$subtitlesFolder/invalid_model.srt")
+
+        // 使用不存在的模型文件路径进行测试
+        val invalidModelPath = File("nonexistent.bin").absolutePath
+
+        val result = generateSrtWithWhisper(
+            input = input,
+            output = srtFile.absolutePath,
+            modelPath = invalidModelPath,
+            language = "en",
+            queue = 3
+        )
+
+        assert(result.isFailure)
+    }
 
     @After
     fun clean() {
-        subtitlesFolder.deleteRecursively()
+//        subtitlesFolder.deleteRecursively()
     }
 }
