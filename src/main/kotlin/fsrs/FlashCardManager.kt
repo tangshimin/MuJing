@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2025 tang shimin
+ * Copyright (c) 2023-2025 tang shimin
  *
  * This file is part of MuJing, which is licensed under GPL v3.
  */

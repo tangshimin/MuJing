@@ -1,3 +1,24 @@
+/*
+ * Copyright (c) 2023-2025 tang shimin
+ *
+ * This file is part of MuJing, which is licensed under GPL v3.
+ *
+ * This file contains vector graphics generated from SF Symbols
+ * (https://developer.apple.com/sf-symbols/)
+ * Original symbols Copyright by Apple Inc.
+ *
+ * SF Symbols are subject to Apple's SF Symbols License:
+ * You may use SF Symbols only for developing or running software applications
+ * for iOS, iPadOS, macOS, tvOS, visionOS or watchOS.
+ *
+ * This icon has been converted to vector format for use in this application.
+ * The converted code itself is part of MuJing and licensed under GPL v3,
+ * but usage may be subject to Apple's SF Symbols License terms.
+ *
+ * For more information, see:
+ * https://developer.apple.com/terms/
+ */
+
 package icons
 
 import androidx.compose.ui.graphics.Color
