@@ -10,12 +10,12 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, macos-13, macos-latest]
+        os: [windows-latest, macos-15, macos-latest]
         include:
           - os: windows-latest
             arch: x64
             name: Windows x86_64
-          - os: macos-13
+          - os: macos-15
             arch: x64
             name: macOS x86_64
           - os: macos-latest
