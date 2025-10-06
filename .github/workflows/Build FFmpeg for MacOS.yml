@@ -38,6 +38,16 @@ jobs:
           git clone https://github.com/ggerganov/whisper.cpp.git
           cd whisper.cpp
           mkdir -p build && cd build
+          
+          # 根据架构设置不同的 Metal 支持选项
+          if [ "${{ matrix.arch }}" = "x86_64" ]; then
+            # Intel Mac: 禁用 Metal，只使用 Accelerate
+            METAL_FLAG="-DGGML_METAL=OFF"
+          else
+            # ARM64 Mac: 启用 Metal
+            METAL_FLAG="-DGGML_METAL=ON"
+          fi
+          
           cmake -DCMAKE_BUILD_TYPE=Release \
                 -DCMAKE_INSTALL_PREFIX="${PREFIX}" \
                 -DWHISPER_BUILD_TESTS=OFF \
@@ -45,6 +55,7 @@ jobs:
                 -DWHISPER_BUILD_SHARED_LIB=OFF \
                 -DGGML_SHARED=OFF \
                 -DWHISPER_NO_ACCELERATE=OFF \
+                ${METAL_FLAG} \
                 -DBUILD_SHARED_LIBS=OFF \
                 ..
           cmake --build . --config Release -j ${NPROC}
@@ -54,10 +65,29 @@ jobs:
           echo "Installed static libraries:"
           find "${PREFIX}/lib" -name "*.a" | sort
           
-          # 创建正确的 whisper.pc 文件（解决版本问题的关键修复）
+          # 创建正确的 whisper.pc 文件（根据架构调整库列表）
           PC_FILE="${PREFIX}/lib/pkgconfig/whisper.pc"
           mkdir -p "${PREFIX}/lib/pkgconfig"
-          cat > "$PC_FILE" << EOF
+          
+          # 根据架构设置不同的库依赖
+          if [ "${{ matrix.arch }}" = "x86_64" ]; then
+            # Intel Mac: 不包含 Metal 库
+            cat > "$PC_FILE" << EOF
+          prefix=${PREFIX}
+          exec_prefix=\${prefix}
+          libdir=\${exec_prefix}/lib
+          includedir=\${prefix}/include
+
+          Name: whisper
+          Description: Port of OpenAI's Whisper model in C/C++
+          Version: 1.8.0
+          Libs: -L\${libdir} -lwhisper -lggml -lggml-cpu -lggml-blas -lggml-base
+          Libs.private: -framework Accelerate -framework Foundation -lc++
+          Cflags: -I\${includedir}
+          EOF
+          else
+            # ARM64 Mac: 包含 Metal 库
+            cat > "$PC_FILE" << EOF
           prefix=${PREFIX}
           exec_prefix=\${prefix}
           libdir=\${exec_prefix}/lib
@@ -70,6 +100,7 @@ jobs:
           Libs.private: -framework Accelerate -framework Metal -framework Foundation -lc++
           Cflags: -I\${includedir}
           EOF
+          fi
 
       - name: Configure FFmpeg (with whisper support)
         run: |
