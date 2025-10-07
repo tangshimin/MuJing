@@ -11,7 +11,7 @@
             "usphone": "ə; e",
             "ukphone": "ei",
             "definition": "n. the 1st letter of the Roman alphabet\nn. the blood group whose red cells carry the A antigen",
-            "translation": "第一个字母 A; 一个; 第一的\\r\nart. [计] 累加器, 加法器, 地址, 振幅, 模拟, 区域, 面积, 汇编, 组件, 异步",
+            "translation": "第一个字母 A; 一个; 第一的\nart. [计] 累加器, 加法器, 地址, 振幅, 模拟, 区域, 面积, 汇编, 组件, 异步",
             "pos": "",
             "collins": 5,
             "oxford": true,
@@ -25,7 +25,7 @@
         {
             "value": "a.m.",
             "usphone": "",
-            "ukphone": "//",
+            "ukphone": "",
             "definition": "s before noon\nr before noon",
             "translation": "上午, 午前",
             "pos": "",
@@ -48425,7 +48425,7 @@
         {
             "value": "side road",
             "usphone": "",
-            "ukphone": "//",
+            "ukphone": "",
             "definition": "",
             "translation": "旁路",
             "pos": "",
@@ -58649,7 +58649,7 @@
         {
             "value": "vcd",
             "usphone": "",
-            "ukphone": "//",
+            "ukphone": "",
             "definition": "",
             "translation": "[电] 可变电容二极体的简写",
             "pos": "",
