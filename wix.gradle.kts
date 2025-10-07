@@ -142,8 +142,8 @@ project.tasks.register<Exec>("light") {
 project.tasks.register<Zip>("packagePortable") {
     group = "compose wix"
     description = "Create a portable zip package"
-    val renameApp = tasks.named("renameApp")
-    dependsOn(renameApp)
+    val createRemoveConfigExe = tasks.named("createRemoveConfigExe")
+    dependsOn(createRemoveConfigExe)
 
     archiveFileName.set("MuJing-${project.version}.zip")
     destinationDirectory.set(appDir.asFile)
