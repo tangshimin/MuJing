@@ -97,6 +97,11 @@ fun BuiltInVocabularyDialog(
                                 openChooseVocabulary = openChooseVocabulary
                             )
                             VocabularyCategory(
+                                directory = getResourcesFile("vocabulary/高中英语"),
+                                success = { success = true },
+                                openChooseVocabulary = openChooseVocabulary
+                            )
+                            VocabularyCategory(
                                 directory = getResourcesFile("vocabulary/北师大版高中英语"),
                                 success = { success = true },
                                 openChooseVocabulary = openChooseVocabulary
@@ -233,6 +238,11 @@ fun VocabularyCategory(
                         }
                     }
 
+                    var disPlayName = name
+                    if(name == "高中英语"){
+                        disPlayName = "高中英语 3500"
+                    }
+
                     Card(
                         modifier = Modifier
                             .padding(7.5.dp)
@@ -245,7 +255,7 @@ fun VocabularyCategory(
                     ) {
                         Box(Modifier.size(width = 160.dp, height = 65.dp)) {
                             Text(
-                                text = name,
+                                text = disPlayName,
                                 color = MaterialTheme.colors.onBackground,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.align(Alignment.Center)
