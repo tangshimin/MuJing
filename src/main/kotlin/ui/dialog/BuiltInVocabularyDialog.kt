@@ -239,8 +239,11 @@ fun VocabularyCategory(
                     }
 
                     var disPlayName = name
+
                     if(name == "高中英语"){
                         disPlayName = "高中英语 3500"
+                    }else if(name == "高中英语-乱序版") {
+                        disPlayName = "高中英语3500-乱序版"
                     }
 
                     Card(
