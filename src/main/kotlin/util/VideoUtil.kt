@@ -151,7 +151,7 @@ fun computeVideoBounds(
     if (openSettings) {
         // 根据分辨率调整设置面板打开时的偏移量
         val settingsOffset = when {
-            mainWidth > 2560 -> 150 // 在高分��率下增加偏移
+            mainWidth > 2560 -> 150 // 在高分辨率下增加偏移
             mainWidth > 1920 -> 130
             else -> 109 // 保持原来的偏移
         }

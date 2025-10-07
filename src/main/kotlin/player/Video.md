@@ -53,7 +53,7 @@
 在视频播放器中，`videoPlayer.status().time()` 获取的是视频的**播放时间位置**，这个时间与帧率有着密切的关系：
 
 ```kotlin
-val time = videoPlayer.status().time() // 获取��前播放时间（毫秒）
+val time = videoPlayer.status().time() // 获取当前播放时间（毫秒）
 ```
 
 ### 时间与帧率的关系
@@ -116,7 +116,7 @@ timeProgress.times(videoDuration).toInt().milliseconds.toComponents { hours, min
 
 ### 注意事项
 
-1. **时间不连续性**: 由于帧率限制，时间可能出现小幅跳���
+1. **时间不连续性**: 由于帧率限制，时间可能出现小幅跳动
 2. **解码延迟**: 高帧率视频的解码可能影响时间准确性  
 3. **系统性能**: 低性能设备可能导致时间更新不稳定
 4. **可变帧率**: VFR视频的时间间隔不固定
