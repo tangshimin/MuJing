@@ -506,7 +506,7 @@ private fun FrameWindowScope.WindowMenuBar(
             Item("清除最近列表", onClick = {
                 appState.clearRecentList()
             })
-
+            Separator()
             for (i in 0 until appState.recentList.size){
                 val recentItem = appState.recentList.getOrNull(i)
                 if(recentItem!= null){
