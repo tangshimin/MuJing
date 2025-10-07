@@ -1,23 +1,35 @@
-name: Build MacOS Package
+name: Build Package
 
 on:
   workflow_dispatch: # Manual trigger
 
 
 jobs:
-  create-mac-package:
+  create-package:
     name: Create Package On ${{ matrix.os }} - ${{ matrix.arch }}
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ macos-15, macos-latest ]
+        os: [ windows-latest, macos-15, macos-latest ]
         include:
+          - os: windows-latest
+            arch: x64
+            name: Windows x86_64
+            packageTask: light
+            artifactPath: build/compose/binaries/main/app/*.msi
+            artifactName: windows-package-x64
           - os: macos-15
             arch: x64
             name: macOS x86_64
+            packageTask: packageDmg
+            artifactPath: build/compose/binaries/main/dmg/*.dmg
+            artifactName: macos-package-x64
           - os: macos-latest
             arch: aarch64
             name: macOS aarch64
+            packageTask: packageDmg
+            artifactPath: build/compose/binaries/main/dmg/*.dmg
+            artifactName: macos-package-aarch64
     permissions:
       contents: write
     steps:
@@ -45,6 +57,7 @@ jobs:
 
       # Add execute permissions to gradlew
       - name: Set execute permissions on gradlew
+        if: runner.os != 'Windows'
         run: chmod +x ./gradlew
 
       - name: Set UTF-8 encoding for Windows
@@ -57,7 +70,12 @@ jobs:
 
       # Build Desktop Packaged application
       - name: Desktop App Package
-        run: ./gradlew packageDmg
+        run: ./gradlew ${{ matrix.packageTask }}
+
+      # Build Windows Portable version
+      - name: Build Windows Portable Package
+        if: runner.os == 'Windows'
+        run: ./gradlew packagePortable
 
       # Get the latest tag
       - name: Get latest tag
@@ -65,13 +83,21 @@ jobs:
         run: |
           TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "1.0.0")
           echo "TAG=$TAG" >> $GITHUB_ENV
+        shell: bash
 
       - name: Upload Artifact
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
-          name: macos-package-${{ matrix.arch }}
-          path: build/compose/binaries/main/dmg/*.dmg
+          name: ${{ matrix.artifactName }}
+          path: ${{ matrix.artifactPath }}
+
+      - name: Upload Windows Portable Artifact
+        if: runner.os == 'Windows' && github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-portable-x64
+          path: build/compose/binaries/main/app/*.zip
 
       - name: Draft Release
         if: github.event_name != 'workflow_dispatch'
@@ -81,5 +107,5 @@ jobs:
           allowUpdates: true
           generateReleaseNotes: false  #自动生成发行说明。
           tag: "${{ env.TAG }}"
-          artifacts: "${{ github.workspace }}/build/compose/binaries/main/dmg/*.dmg"
+          artifacts: "${{ runner.os == 'Windows' && 'build/compose/binaries/main/app/*.msi\nbuild/compose/binaries/main/app/*.zip' || matrix.artifactPath }}"
           token: ${{ steps.generate-token.outputs.token }}

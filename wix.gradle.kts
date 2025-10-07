@@ -139,7 +139,18 @@ project.tasks.register<Exec>("light") {
     commandLine(light, "-ext", "WixUIExtension", "-cultures:zh-CN", "-spdb","-nologo", "MuJing.wixobj", "-o", "MuJing-${project.version}.msi")
 }
 
+project.tasks.register<Zip>("packagePortable") {
+    group = "compose wix"
+    description = "Create a portable zip package"
+    val renameApp = tasks.named("renameApp")
+    dependsOn(renameApp)
 
+    archiveFileName.set("MuJing-${project.version}.zip")
+    destinationDirectory.set(appDir.asFile)
+
+    from(appDir.dir("MuJing"))
+    into("MuJing")
+}
 
 
 private fun editWixTask(
