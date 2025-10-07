@@ -72,10 +72,20 @@ jobs:
       - name: Desktop App Package
         run: ./gradlew ${{ matrix.packageTask }}
 
-      # Build Windows Portable version
-      - name: Build Windows Portable Package
+      # Create Windows Portable version by zipping the MuJing folder
+      - name: Create Windows Portable Package
         if: runner.os == 'Windows'
-        run: ./gradlew packagePortable
+        run: |
+          $version = "${{ github.ref_name }}"
+          if ($version -eq "" -or $version -eq "refs/heads/main") {
+            $version = (Get-Content gradle.properties | Select-String "version=" | ForEach-Object { $_.ToString().Split('=')[1].Trim() })
+          }
+          $zipFile = "build/compose/binaries/main/app/MuJing-$version.zip"
+          Write-Host "Creating portable package: $zipFile"
+          Compress-Archive -Path "build/compose/binaries/main/app/MuJing/*" -DestinationPath $zipFile -Force
+          Write-Host "Portable package created successfully"
+          Get-Item $zipFile
+        shell: pwsh
 
       # Get the latest tag
       - name: Get latest tag
