@@ -40,7 +40,6 @@ dependencies {
     implementation(compose.desktop.currentOs)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.3.2")
     implementation ("org.jetbrains.compose.material:material-icons-extended:1.0.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     implementation("io.github.microutils:kotlin-logging:2.1.21")
     implementation("uk.co.caprica:vlcj:4.11.0")
     implementation("com.formdev:flatlaf:3.6.1")
