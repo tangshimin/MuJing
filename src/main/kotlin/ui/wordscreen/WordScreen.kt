@@ -1997,7 +1997,8 @@ fun VocabularyEmpty(
                                 modifier = Modifier.clickable(onClick = {
                                     val file = getResourcesFile("vocabulary/大学英语/六级.json")
                                     selectedFile = file
-                                    launcher.launch(file.nameWithoutExtension,"json")                                })
+                                    launcher.launch(file.nameWithoutExtension,"json")
+                                })
                                     .padding(5.dp)
                             )
                             Spacer(modifier = Modifier.width(10.dp))
@@ -2007,7 +2008,8 @@ fun VocabularyEmpty(
                                 modifier = Modifier.clickable(onClick = {
                                     val file = getResourcesFile("vocabulary/牛津核心词/The_Oxford_3000.json")
                                     selectedFile = file
-                                    launcher.launch(file.nameWithoutExtension,"json")                                })
+                                    launcher.launch(file.nameWithoutExtension,"json")
+                                })
                                     .padding(5.dp)
                             )
                             Spacer(modifier = Modifier.width(10.dp))
@@ -2017,7 +2019,8 @@ fun VocabularyEmpty(
                                 modifier = Modifier.clickable(onClick = {
                                     val file = getResourcesFile("vocabulary/高中英语/高中英语-乱序版.json")
                                     selectedFile = file
-                                    launcher.launch(file.nameWithoutExtension,"json")                                })
+                                    launcher.launch(file.nameWithoutExtension,"json")
+                                })
                                     .padding(5.dp)
                             )
                             Spacer(modifier = Modifier.width(10.dp))
