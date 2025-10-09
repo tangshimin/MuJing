@@ -45,7 +45,6 @@ enum class PlayerEventType {
     NEXT_CAPTION, // 下一句字幕
     REPEAT_CAPTION,// 重复字幕
     AUTO_PAUSE, // 自动暂停
-    OPEN_SEARCH,// 打开搜索
     TOGGLE_FIRST_CAPTION, // 隐藏-显示第一语言字幕
     TOGGLE_SECOND_CAPTION,// 隐藏-显示第二语言字幕
 }
@@ -65,7 +64,6 @@ enum class WordScreenEventType {
     SHOW_SENTENCES, // 显示例句
     SHOW_SUBTITLES, // 显示字幕
     PLAY_AUDIO, // 播放音频
-    OPEN_SEARCH, // 打开搜索
     OPEN_VOCABULARY, // 打开词库
     DELETE_WORD, // 删除单词
     ADD_TO_FAMILIAR, // 加入熟词库

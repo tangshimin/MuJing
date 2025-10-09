@@ -1392,9 +1392,6 @@ fun VideoPlayer(
                                 windowState.placement = WindowPlacement.Floating
                             }
                         }
-                        PlayerEventType.OPEN_SEARCH -> {
-                            openSearch()
-                        }
                         PlayerEventType.FULL_SCREEN -> {
                             fullscreen()
                         }

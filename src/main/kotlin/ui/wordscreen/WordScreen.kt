@@ -872,9 +872,6 @@ fun MainContent(
 
                         }
 
-                        WordScreenEventType.OPEN_SEARCH -> {
-                            appState.openSearch()
-                        }
 
                         WordScreenEventType.PLAY_AUDIO -> {
                             val audioPath = getAudioPath(
