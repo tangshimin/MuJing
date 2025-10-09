@@ -634,9 +634,12 @@ fun SubtitleScreen(
                     val endPadding = 10.dp
                     val indexWidth = (captionList.size.toString().length * 14).dp + 144.dp
                     val buttonWidth = 48.dp
-                    var rowWidth = indexWidth + startPadding + (subtitlesState.sentenceMaxLength * charWidth).dp +  endPadding + buttonWidth
+                    // 限制最大字幕长度，防止异常长的字幕导致布局崩溃
+                    val maxAllowedLength = 100
+                    val actualLength = subtitlesState.sentenceMaxLength.coerceAtMost(maxAllowedLength)
+                    var rowWidth = indexWidth + startPadding + (actualLength * charWidth).dp +  endPadding + buttonWidth
 
-                    if(subtitlesState.sentenceMaxLength < 50) rowWidth += 120.dp
+                    if(actualLength < 50) rowWidth += 120.dp
 
                     LazyColumn(
                         state = listState,

@@ -87,8 +87,8 @@ class SubtitlesState(dataSubtitlesState: DataSubtitlesState) {
     /** 抄写字幕时屏幕顶部的行索引  */
     var firstVisibleItemIndex by mutableStateOf(dataSubtitlesState.firstVisibleItemIndex)
 
-    /** 字幕的最大长度，用来计算字幕的宽度  */
-    var sentenceMaxLength by mutableStateOf(dataSubtitlesState.sentenceMaxLength)
+    /** 字幕的最大长度，用来计算字幕的宽度，限制最大值为 100 防止布局崩溃  */
+    var sentenceMaxLength by mutableStateOf(dataSubtitlesState.sentenceMaxLength.coerceAtMost(100))
 
     /** 是否抄写字幕 */
     var transcriptionCaption by mutableStateOf(dataSubtitlesState.transcriptionCaption)
@@ -123,7 +123,7 @@ class SubtitlesState(dataSubtitlesState: DataSubtitlesState) {
                     trackSize,
                     currentIndex,
                     firstVisibleItemIndex,
-                    sentenceMaxLength,
+                    sentenceMaxLength.coerceAtMost(100), // 限制最大值为 100，防止保存异常数据
                     transcriptionCaption,
                     currentCaptionVisible,
                     notWroteCaptionVisible,

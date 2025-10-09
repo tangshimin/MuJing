@@ -282,13 +282,20 @@ fun parseSubtitles(
                 content = removeItalicSymbol(content)
                 content = removeNewLine(content)
 
+                // 限制字幕内容的最大长度为 100，防止异常数据导致布局崩溃
+                if (content.length > 100) {
+                    content = content.take(100)
+                }
+
                 val newCaption = Caption(
                     start = caption.start.getTime("hh:mm:ss,ms"),
                     end = caption.end.getTime("hh:mm:ss,ms"),
                     content = content
                 )
-                if (caption.content.length > maxLength) {
-                    maxLength = caption.content.length
+                // 限制单条字幕的长度最大为 100，防止异常数据导致布局崩溃
+                val limitedLength = content.length.coerceAtMost(100)
+                if (limitedLength > maxLength) {
+                    maxLength = limitedLength
                 }
                 captionList.add(newCaption)
             }
@@ -662,13 +669,21 @@ fun parseSubtitles(subtitlesPath: String):List<PlayerCaption>{
                 }
                 content = removeItalicSymbol(content)
                 content = replaceNewLine(content)
+
+                // 限制字幕内容的最大长度为 100，防止异常数据导致布局崩溃
+                if (content.length > 100) {
+                    content = content.take(100)
+                }
+
                 val newCaption = PlayerCaption(
                     start = convertTimeToMilliseconds(caption.start.getTime("hh:mm:ss,ms")),
                     end = convertTimeToMilliseconds(caption.end.getTime("hh:mm:ss,ms")),
                     content = content
                 )
-                if (caption.content.length > maxLength) {
-                    maxLength = caption.content.length
+                // 限制单条字幕的长度最大为 100，防止异常数据导致布局崩溃（虽然这里不返回 maxLength）
+                val limitedLength = content.length.coerceAtMost(100)
+                if (limitedLength > maxLength) {
+                    maxLength = limitedLength
                 }
                 captionList.add(newCaption)
             }
@@ -844,4 +859,3 @@ fun getLanguageLabel(description: String): String {
         else -> description // 如果无法识别，则返回原始描述
     }
 }
-
