@@ -66,6 +66,7 @@ import player.*
 import state.AppState
 import state.ScreenType
 import state.computeFontSize
+import state.openVocabularyFile
 import state.rememberAppState
 import theme.*
 import ui.dialog.*
@@ -545,6 +546,9 @@ private fun FrameWindowScope.WindowMenuBar(
         BuiltInVocabularyDialog(
             show = showBuiltInVocabulary,
             close = {showBuiltInVocabulary = false},
+            openChooseVocabulary = { path ->
+                openVocabularyFile(path, appState, wordScreenState)
+            }
         )
         Item("熟悉词库${if(isWindows) "(F)" else ""}", mnemonic = 'F',onClick = {
             val file = getFamiliarVocabularyFile()

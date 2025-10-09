@@ -190,8 +190,8 @@ fun VocabularyCategory(
                     val fileToSave = platformFile.file
                     try{
                         fileToSave.writeBytes(selectedFile!!.readBytes())
-                        openChooseVocabulary(fileToSave.absolutePath)
                         success()
+                        openChooseVocabulary(fileToSave.absolutePath)
                     }catch (e:Exception){
                         e.printStackTrace()
                         JOptionPane.showMessageDialog(null,"保存失败，错误信息：\n${e.message}")

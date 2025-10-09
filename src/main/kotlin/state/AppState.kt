@@ -430,3 +430,28 @@ fun getResourcesFile(path: String): File {
     }
     return file
 }
+
+/**
+ * 从内置词库选择词库后，打开词库文件
+ * @param path 词库文件路径
+ * @param appState 全局状态
+ * @param wordScreenState 单词界面状态
+ */
+@OptIn(ExperimentalSerializationApi::class)
+fun openVocabularyFile(
+    path: String,
+    appState: AppState,
+    wordScreenState: WordScreenState,
+) {
+    val file = File(path)
+    val index = appState.findVocabularyIndex(file)
+    val changed = appState.changeVocabulary(
+        vocabularyFile = file,
+        wordScreenState = wordScreenState,
+        index = index
+    )
+    if (changed) {
+        appState.global.type = ScreenType.WORD
+        appState.saveGlobalState()
+    }
+}

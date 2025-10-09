@@ -72,8 +72,8 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import player.*
 import state.AppState
-import state.ScreenType
 import state.getResourcesFile
+import state.openVocabularyFile
 import theme.LocalCtrl
 import tts.AzureTTS
 import tts.rememberAzureTTS
@@ -178,17 +178,7 @@ fun WordScreen(
         var documentWindowVisible by remember { mutableStateOf(false) }
         var generateVocabularyListVisible by remember { mutableStateOf(false) }
         val openChooseVocabulary:(String) ->Unit = { path ->
-            val file = File(path)
-            val index = appState.findVocabularyIndex(file)
-            val changed = appState.changeVocabulary(
-                vocabularyFile = file,
-                wordScreenState,
-                index
-            )
-            if(changed){
-                appState.global.type = ScreenType.WORD
-                appState.saveGlobalState()
-            }
+            openVocabularyFile(path, appState, wordScreenState)
         }
 
         Row {
