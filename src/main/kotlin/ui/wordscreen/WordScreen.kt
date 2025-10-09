@@ -1893,7 +1893,6 @@ fun VocabularyEmpty(
     generateVocabulary: () -> Unit = {},
     openDocument: () -> Unit = {},
     parentWindow : ComposeWindow,
-//    futureFileChooser: FutureTask<JFileChooser>,
     openChooseVocabulary: (String) -> Unit = {},
 ) {
     Surface(Modifier.fillMaxSize()) {
@@ -1902,7 +1901,7 @@ fun VocabularyEmpty(
             Column(
                 verticalArrangement = Arrangement.Center,
                 modifier = Modifier.align(Alignment.Center)
-                    .width(300.dp)
+                    .width(450.dp)
             ) {
                 Row(
                     horizontalArrangement = Arrangement.Center,
@@ -1997,7 +1996,7 @@ fun VocabularyEmpty(
                                 modifier = Modifier.clickable(onClick = {
                                     val file = getResourcesFile("vocabulary/大学英语/四级.json")
                                     selectedFile = file
-                                    launcher.launch(file.name,"json")
+                                    launcher.launch(file.nameWithoutExtension,"json")
                                 })
                                     .padding(5.dp)
                             )
@@ -2008,7 +2007,7 @@ fun VocabularyEmpty(
                                 modifier = Modifier.clickable(onClick = {
                                     val file = getResourcesFile("vocabulary/大学英语/六级.json")
                                     selectedFile = file
-                                    launcher.launch(file.name,"json")                                })
+                                    launcher.launch(file.nameWithoutExtension,"json")                                })
                                     .padding(5.dp)
                             )
                             Spacer(modifier = Modifier.width(10.dp))
@@ -2018,7 +2017,17 @@ fun VocabularyEmpty(
                                 modifier = Modifier.clickable(onClick = {
                                     val file = getResourcesFile("vocabulary/牛津核心词/The_Oxford_3000.json")
                                     selectedFile = file
-                                    launcher.launch(file.name,"json")                                })
+                                    launcher.launch(file.nameWithoutExtension,"json")                                })
+                                    .padding(5.dp)
+                            )
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Text(
+                                text = "高中词库乱序版",
+                                color = MaterialTheme.colors.primary,
+                                modifier = Modifier.clickable(onClick = {
+                                    val file = getResourcesFile("vocabulary/高中英语/高中英语-乱序版.json")
+                                    selectedFile = file
+                                    launcher.launch(file.nameWithoutExtension,"json")                                })
                                     .padding(5.dp)
                             )
                             Spacer(modifier = Modifier.width(10.dp))
