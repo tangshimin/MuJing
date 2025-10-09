@@ -279,6 +279,9 @@ fun parseSubtitles(
             var maxLength = 0
             for (caption in captions.values) {
                 var content = removeLocationInfo(caption.content)
+                if(hasRichText(content)){
+                    content = removeRichText(content)
+                }
                 content = removeItalicSymbol(content)
                 content = removeNewLine(content)
 
