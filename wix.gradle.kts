@@ -363,6 +363,48 @@ private fun editWixTask(
     installComponent.appendChild(installRegistry)
     installDirElement.appendChild(installComponent)
 
+    // 添加一个 SetProperty CustomAction 来设置 VLC plugins 文件夹路径
+    // 这样可以在卸载时删除 plugins.dat 文件
+    val setPluginsDirProperty = doc.createElement("SetProperty").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "VLCPluginsDir" })
+        setAttributeNode(doc.createAttribute("Value").also { it.value = "[INSTALLDIR]app\\resources\\VLC\\plugins\\" })
+        setAttributeNode(doc.createAttribute("Sequence").also { it.value = "execute" })
+        setAttributeNode(doc.createAttribute("Before").also { it.value = "RemoveFiles" })
+    }
+    productElement.appendChild(setPluginsDirProperty)
+
+    // 添加一个组件，用于在卸载时删除 VLC plugins.dat 文件
+    // <Component Guid="{GUID}" Id="RemovePluginsDatComponent">
+    //    <RemoveFile Id="RemovePluginsDat" On="uninstall" Name="plugins.dat" Property="VLCPluginsDir"/>
+    //    <RegistryValue Root="HKCU" Key="Software\MuJing" Name="PluginsDat" Type="string" Value="" KeyPath="yes"/>
+    // </Component>
+    val removePluginsDatGuid = createNameUUID("RemovePluginsDatComponent")
+    val removePluginsDatComponent = componentBuilder(doc, id = "RemovePluginsDatComponent", guid = removePluginsDatGuid)
+    
+    // 创建 RemoveFile 元素来删除 plugins.dat
+    // 使用 Property 属性指向 VLC plugins 目录
+    val removePluginsDatFile = doc.createElement("RemoveFile").apply{
+        setAttributeNode(doc.createAttribute("Id").also { it.value = "RemovePluginsDat" })
+        setAttributeNode(doc.createAttribute("On").also { it.value = "uninstall" })
+        setAttributeNode(doc.createAttribute("Name").also { it.value = "plugins.dat" })
+        // 使用 Property 属性引用 SetProperty 定义的路径
+        setAttributeNode(doc.createAttribute("Property").also { it.value = "VLCPluginsDir" })
+    }
+    
+    // 添加一个 RegistryValue 作为 KeyPath（WiX 组件必须有 KeyPath）
+    val pluginsDatRegistry = doc.createElement("RegistryValue").apply{
+        setAttributeNode(doc.createAttribute("Root").also { it.value = "HKCU" })
+        setAttributeNode(doc.createAttribute("Key").also { it.value = "Software\\MuJing" })
+        setAttributeNode(doc.createAttribute("Name").also { it.value = "PluginsDat" })
+        setAttributeNode(doc.createAttribute("Type").also { it.value = "string" })
+        setAttributeNode(doc.createAttribute("Value").also { it.value = "" })
+        setAttributeNode(doc.createAttribute("KeyPath").also { it.value = "yes" })
+    }
+    
+    removePluginsDatComponent.appendChild(removePluginsDatFile)
+    removePluginsDatComponent.appendChild(pluginsDatRegistry)
+    installDirElement.appendChild(removePluginsDatComponent)
+
 
     // 设置所有组件的架构为 64 位
     val components = doc.documentElement.getElementsByTagName("Component")
@@ -480,10 +522,12 @@ private fun editWixTask(
     val programMenuDirRef = componentRefBuilder(doc, "programMenuDirComponent")
     val removeShortcutRef = componentRefBuilder(doc, "RemoveShortcutComponent")
     val installProductRef = componentRefBuilder(doc, "installProduct")
+    val removePluginsDatRef = componentRefBuilder(doc, "RemovePluginsDatComponent")
     componentGroup.appendChild(desktopShortcuRef)
     componentGroup.appendChild(programMenuDirRef)
     componentGroup.appendChild(installProductRef)
     componentGroup.appendChild(removeShortcutRef)
+    componentGroup.appendChild(removePluginsDatRef)
 
     generateXml(doc, wixFile)
 }
