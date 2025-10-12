@@ -51,15 +51,19 @@ import ui.window.windowBackgroundFlashingOnCloseFixHack
  */
 @ExperimentalComposeUiApi
 @Composable
-fun ConfirmDialog(message: String, confirm: () -> Unit, close: () -> Unit) {
+fun ConfirmDialog(
+    title:String = "删除",
+    message: String,
+    confirm: () -> Unit,
+    close: () -> Unit) {
     DialogWindow(
-        title = "删除",
+        title = title,
         onCloseRequest = { close() },
         undecorated = true,
         resizable = false,
         state = rememberDialogState(
             position = WindowPosition(Alignment.Center),
-            size = DpSize(400.dp, 300.dp)
+            size = DpSize(500.dp, 300.dp)
         ),
     ) {
         window.isAlwaysOnTop = true

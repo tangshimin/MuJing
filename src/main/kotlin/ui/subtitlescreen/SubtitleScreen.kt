@@ -45,8 +45,12 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogWindow
+import androidx.compose.ui.window.WindowPosition
+import androidx.compose.ui.window.rememberDialogState
 import data.Caption
 import ffmpeg.writeSubtitleToFile
 import io.github.vinceglb.filekit.dialogs.FileKitDialogSettings
@@ -61,9 +65,13 @@ import theme.LocalCtrl
 import ui.components.MacOSTitle
 import ui.components.RemoveButton
 import ui.components.Toolbar
+import ui.dialog.ConfirmDialog
+import ui.dialog.GenerateSrtDialog
+import ui.window.windowBackgroundFlashingOnCloseFixHack
 import ui.wordscreen.playSound
 import util.computeMediaType
 import util.createDragAndDropTarget
+import util.findSubtitleFiles
 import util.parseSubtitles
 import util.shouldStartDragAndDrop
 import java.awt.Rectangle
@@ -111,12 +119,17 @@ fun SubtitleScreen(
     val multipleLines = rememberMultipleLines()
     /** 启动播放多行字幕后，多行工具栏显示的位置索引 */
     var toolbarDisplayIndex by remember{mutableStateOf(0)}
-
     // 添加 PiP 相关状态
     val pipWindow = remember {
         PiPVideoWindow(onClose = { isPlaying = false })
     }
 
+    /** 导入一个无字幕的视频时，显示一个选项问用户是否使用 Whisper 生成字幕 **/
+    var showGenSubOptions by remember { mutableStateOf(false) }
+    var showGenerateSrtDialog by remember { mutableStateOf(false) }
+
+    var showExtSubOptions by remember { mutableStateOf(false) }
+    val extSubList = remember { mutableStateListOf<Pair<String, File>>() }
 
 
     val startPiPPlayback: (MediaInfo) -> Unit = { playMedia ->
@@ -226,7 +239,22 @@ fun SubtitleScreen(
                                 window,
                                 playerWindow,
                                 file.absolutePath,
-                                setTrackList = { setTrackList(it) },
+                                setTrackList = {
+                                    if(it.isNotEmpty()){
+                                        setTrackList(it)
+                                    }else{
+                                        // 自动探测外部字幕
+                                        val subtitleFiles = findSubtitleFiles(file.absolutePath)
+                                        if(subtitleFiles.isNotEmpty()) {
+                                            showExtSubOptions = true
+                                            extSubList.addAll(subtitleFiles)
+                                        } else {
+//                                            // 视频没有字幕轨道
+                                            showGenSubOptions = true
+                                        }
+
+                                    }
+                                },
                             )
                             if (showOpenFile) showOpenFile = false
                         } else {
@@ -974,6 +1002,49 @@ fun SubtitleScreen(
                         Modifier.width(60.dp).align(Alignment.Center).padding(bottom = 200.dp)
                     )
                 }
+
+                if(showExtSubOptions){
+                    ChooseExtSubDialog(
+                        title = "选择外部字幕",
+                        message = "当前视频没有内嵌字幕轨道，但是有可选的外部字幕，是否需要选择一个？",
+                        updateSubPath = {
+                            val srtFile = File(it)
+                            val mediaFile = File(selectedPath)
+                            selectedPath = ""
+                            parseImportFile(listOf(srtFile,mediaFile), OpenMode.Drag)
+                            showExtSubOptions = false
+                            extSubList.clear()
+                        },
+                        trackList = extSubList,
+                        close = { showExtSubOptions = false }
+                    )
+                }
+
+                if(showGenSubOptions){
+                    ConfirmDialog(
+                        title = "生成字幕选项",
+                        message = "当前视频没有内嵌字幕轨道，是否需要生成一个新的字幕？",
+                        confirm = {
+                            showGenSubOptions = false
+                            // 生成字幕
+                            showGenerateSrtDialog = true
+                        },
+                        close = { showGenSubOptions = false }
+                    )
+                }
+                if(showGenerateSrtDialog){
+                    GenerateSrtDialog(
+                        close = { showGenerateSrtDialog = false },
+                        videoPath = selectedPath,
+                        updateStrPath = {
+                            val srtFile = File(it)
+                            val mediaFile = File(selectedPath)
+                            selectedPath = ""
+                            parseImportFile(listOf(srtFile,mediaFile), OpenMode.Drag)
+                        },
+                        triggeredFrom = "subtitleScreen",
+                    )
+                }
             }
 
         }
@@ -1233,4 +1304,102 @@ private fun validateAndGetVideoBounds(b: Rectangle): Rectangle{
 
 
     return b
+}
+
+
+@ExperimentalComposeUiApi
+@Composable
+fun ChooseExtSubDialog(
+    title:String = "选择外部字幕",
+    message: String,
+    updateSubPath: (String) -> Unit,
+    trackList: List<Pair<String, File>>,
+    close: () -> Unit) {
+
+    DialogWindow(
+        title = title,
+        onCloseRequest = { close() },
+        undecorated = true,
+        resizable = false,
+        state = rememberDialogState(
+            position = WindowPosition(Alignment.Center),
+            size = DpSize(500.dp, 300.dp)
+        ),
+    ) {
+        window.isAlwaysOnTop = true
+        windowBackgroundFlashingOnCloseFixHack()
+        Surface(
+            elevation = 5.dp,
+            shape = RectangleShape,
+            border = BorderStroke(1.dp, MaterialTheme.colors.onSurface.copy(alpha = 0.12f))
+        ) {
+            Column(
+                modifier = Modifier.fillMaxSize().padding(20.dp),
+
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(message)
+                }
+                Row (
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ){
+
+                    if (trackList.isNotEmpty()) {
+                        var expanded by remember { mutableStateOf(false) }
+                        val scope = rememberCoroutineScope()
+                        Box(Modifier.width(IntrinsicSize.Max).padding(end = 20.dp)) {
+                            OutlinedButton(
+                                onClick = { expanded = true },
+                                modifier = Modifier
+                                    .width(282.dp)
+                                    .background(Color.Transparent)
+                                    .border(1.dp, Color.Transparent)
+                            ) {
+                                Icon(
+                                    Icons.Default.ExpandMore, contentDescription = "Localized description",
+                                    modifier = Modifier.size(20.dp, 20.dp)
+                                )
+                            }
+                            val dropdownMenuHeight = (trackList.size * 40 + 20).dp
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false },
+                                modifier = Modifier.width(282.dp)
+                                    .height(dropdownMenuHeight)
+                            ) {
+                                trackList.forEach { (lang, extSub) ->
+                                    DropdownMenuItem(
+                                        onClick = {
+                                            println(extSub.absolutePath)
+                                            expanded = false
+                                            updateSubPath(extSub.absolutePath)
+                                        },
+                                        modifier = Modifier.width(282.dp).height(40.dp)
+                                    ) {
+                                        Text(
+                                            text = "$lang ", fontSize = 12.sp,
+                                            modifier = Modifier.fillMaxWidth()
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                    }
+
+
+                    Spacer(Modifier.width(20.dp))
+                    OutlinedButton(onClick = { close() }) {
+                        Text("取消")
+                    }
+                }
+            }
+
+        }
+    }
 }

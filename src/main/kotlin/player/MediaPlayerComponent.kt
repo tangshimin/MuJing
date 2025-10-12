@@ -169,7 +169,7 @@ fun parseTrackList(
                     }
                 }
                 mediaPlayer.controls().pause()
-                playerWindow.isAlwaysOnTop = true
+                playerWindow.isAlwaysOnTop = false
                 playerWindow.title = "视频播放窗口"
                 playerWindow.isVisible = false
                 setTrackList(list)

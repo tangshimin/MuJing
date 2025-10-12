@@ -28,7 +28,9 @@ import player.isWindows
 import state.getResourcesFile
 import state.getSettingsDirectory
 import ui.dialog.replaceNewLine
+import java.io.BufferedReader
 import java.io.File
+import java.io.InputStreamReader
 import javax.swing.JOptionPane
 
 fun findFFmpegPath(): String {
@@ -161,7 +163,9 @@ fun generateSrtWithWhisper(
     output: String,
     modelPath: String,
     language: String = "en",
-    queue: Int = 3
+    queue: Int = 3,
+    useGpu: Boolean = true,
+    gpuDevice: Int = 0,
 ): Result<Unit> {
     return try {
         val ffmpeg = FFmpeg(findFFmpegPath())
@@ -183,7 +187,12 @@ fun generateSrtWithWhisper(
         val escapedOutput = escapeFilterPath(normalizedOutput)
 
         // 构建 whisper 滤镜参数
-        val whisperFilter = "whisper=model=$escapedModelPath:language=$language:queue=$queue:destination=$escapedOutput:format=srt"
+        val whisperFilter = buildString {
+            append("whisper=model=$escapedModelPath:language=$language:queue=$queue")
+            append(":use_gpu=").append(if (useGpu) "true" else "false")
+            append(":gpu_device=").append(gpuDevice)
+            append(":destination=$escapedOutput:format=srt")
+        }
 
         // 确保输出目录存在
         val outputFile = File(output)
@@ -204,8 +213,8 @@ fun generateSrtWithWhisper(
 
         if (job.state == FFmpegJob.State.FINISHED) {
             // 检查输出文件是否生成成功
-            val outputFile = File(output)
-            if (outputFile.exists() && outputFile.length() > 0) {
+            val outputFile2 = File(output)
+            if (outputFile2.exists() && outputFile2.length() > 0) {
                 Result.success(Unit)
             } else {
                 val error = "生成字幕文件失败，文件为空或不存在: $output"
@@ -224,10 +233,15 @@ fun generateSrtWithWhisper(
     }
 }
 
-// 在 FFmpeg 滤镜参数中，需要转义冒号
+// 在 FFmpeg 滤镜参数中，需要转义某些特殊字符
 // Windows 路径中的盘符冒号需要转义为 \\:
 fun escapeFilterPath(path: String): String {
-    return path.replace(":", "\\\\:")
+    return path
+        .replace(":", "\\\\:")
+        .replace("[", "\\[")
+        .replace("]", "\\]")
+        .replace("'", "\\'")
+        .replace("\"", "\\\"")
 }
 
 /**
@@ -250,5 +264,106 @@ fun writeSubtitleToFile(
         return subtitleFile
     }else{
         return null
+    }
+}
+
+/**
+ * 启动一个可中断的 Whisper 生成字幕进程（非阻塞）。
+ * 返回 Process 用于外部中断；完成与否需调用方等待 process.waitFor() 后自判输出文件。
+ * @param onProgress 解析 FFmpeg 日志后的进度回调 (timeSec, totalSec, speed)
+ */
+fun startWhisperSrt(
+    input: String,
+    output: String,
+    modelPath: String,
+    language: String = "en",
+    queue: Int = 3,
+    useGpu: Boolean = true,
+    gpuDevice: Int = 0,
+    onProgress: (Double?, Double?, String?) -> Unit = { _, _, _ -> }
+): Result<Process> {
+    return try {
+        val modelFile = File(modelPath)
+        if (!modelFile.exists()) {
+            return Result.failure(IllegalArgumentException("Whisper 模型文件不存在: $modelPath"))
+        }
+        File(output).parentFile?.mkdirs()
+
+        val ffmpegPath = findFFmpegPath()
+        val normalizedModelPath = modelFile.absolutePath.replace("\\", "/")
+        val normalizedOutput = File(output).absolutePath.replace("\\", "/")
+        val escapedModelPath = escapeFilterPath(normalizedModelPath)
+        val escapedOutput = escapeFilterPath(normalizedOutput)
+        val whisperFilter = buildString {
+            append("whisper=model=$escapedModelPath:language=$language:queue=$queue")
+            append(":use_gpu=").append(if (useGpu) "true" else "false")
+            append(":gpu_device=").append(gpuDevice)
+            append(":destination=$escapedOutput:format=srt")
+        }
+
+        val command = listOf(
+            ffmpegPath,
+            "-y",
+            "-loglevel", "info",
+            "-vn",
+            "-i", input,
+            "-af", whisperFilter,
+            "-f", "null",
+            "-"
+        )
+        val builder = ProcessBuilder(command)
+        builder.redirectErrorStream(true)
+        val process = builder.start()
+
+        // 解析日志，提取 Duration 与 time/speed
+        Thread {
+            var totalSec: Double? = null
+            val durationRegex = Regex("Duration: (\\d+):(\\d+):(\\d+\\.?\\d*)")
+            val timeRegex = Regex("time=(\\d+):(\\d+):(\\d+\\.?\\d*)")
+            val speedRegex = Regex("speed=([0-9.]+)x")
+            try {
+                BufferedReader(InputStreamReader(process.inputStream)).use { reader ->
+                    var line: String?
+                    while (reader.readLine().also { line = it } != null) {
+                        val l = line!!
+                        println(l)
+                        if (totalSec == null) {
+                            val dm = durationRegex.find(l)
+                            if (dm != null) {
+                                val h = dm.groupValues[1].toDouble()
+                                val m = dm.groupValues[2].toDouble()
+                                val s = dm.groupValues[3].toDouble()
+                                totalSec = h * 3600 + m * 60 + s
+                            }
+                        }
+                        val tm = timeRegex.find(l)
+                        val sm = speedRegex.find(l)
+                        if (tm != null || sm != null) {
+                            val timeSec = if (tm != null) {
+                                val h = tm.groupValues[1].toDouble()
+                                val m = tm.groupValues[2].toDouble()
+                                val s = tm.groupValues[3].toDouble()
+                                h * 3600 + m * 60 + s
+                            } else null
+                            val speed = sm?.groupValues?.get(1)?.let { it + "x" }
+                            try {
+                                onProgress(timeSec, totalSec, speed)
+                            } catch (e: Exception) {
+                                e.printStackTrace()
+                            }
+                        }
+                    }
+                }
+
+
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }.start()
+
+        Result.success(process)
+    } catch (e: Exception) {
+        e.printStackTrace()
+        Result.failure(e)
     }
 }

@@ -144,6 +144,21 @@ fun DocumentWindow(
                                 Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
                             }
                         }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp)
+                                .background( if(currentPage == "GenerateSrtHelp")selectedColor else MaterialTheme.colors.background )
+                                .clickable {  setCurrentPage("GenerateSrtHelp")}) {
+                            Text("生成字幕", modifier = Modifier.padding(start = 16.dp))
+                            if( currentPage == "GenerateSrtHelp"){
+                                Spacer(Modifier.fillMaxHeight().width(2.dp).background(MaterialTheme.colors.primary))
+                            }
+                        }
+
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween,
@@ -261,6 +276,9 @@ fun DocumentWindow(
                         }
                         "linkCaptions" -> {
                             LinkCaptionsPage()
+                        }
+                        "GenerateSrtHelp" -> {
+                            GenerateSrtHelpPage()
                         }
                     }
                 }
@@ -1112,6 +1130,77 @@ fun LinkCaptionsPage(){
 
         }
 
+        VerticalScrollbar(
+            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+            adapter = rememberScrollbarAdapter(stateVertical)
+        )
+    }
+}
+
+@Composable
+fun GenerateSrtHelpPage() {
+    val theme = if (MaterialTheme.colors.isLight) "light" else "dark"
+    val blueColor = if (MaterialTheme.colors.isLight) Color.Blue else Color(41, 98, 255)
+    val uriHandler = LocalUriHandler.current
+    val ctrl = LocalCtrl.current
+    Box(Modifier.fillMaxSize()) {
+        val stateVertical = rememberScrollState(0)
+        Column(
+            Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp).verticalScroll(stateVertical)
+        ) {
+            Text("""
+
+1. 打开“生成字幕”窗口：
+   - 在菜单栏选择“字幕” > “生成字幕”，或在相关界面点击“生成字幕”按钮。
+
+2. 选择视频或音频文件：
+   - 点击“输入视频/音频”右侧的文件夹按钮，选择本地视频或音频文件（支持 mp4、mkv、mp3、wav、aac 等格式）。
+
+3. 选择 Whisper 模型文件：
+   - 点击“Whisper 模型文件”右侧的下拉框，选择已下载的模型。
+   - 如本地无模型，可点击文件夹按钮选择，或点击“下载”按钮在线下载官方模型（推荐 large-v3、medium、small 等）。
+
+4. 设置参数（可选）：
+   - 语言：可选 auto（自动识别）、en（英文）、zh（中文）。
+   - 音频队列时长 queue：影响识别延迟与稳定性，建议 3～8 秒。
+   - GPU 加速：如有可用 GPU，建议开启以提升速度。
+   - GPU 设备索引：多 GPU 环境下可指定设备编号。
+
+5. 设置输出路径：
+   - “输出 SRT 字幕”会自动生成推荐路径，也可手动修改。
+
+6. 开始生成：
+   - 检查所有必填项后，点击“开始生成”按钮。
+   - 进度条显示处理进度，支持中途“停止”。
+   - 生成完成后可直接打开输出目录或“使用此字幕”。
+
+【常见问题与提示】
+- 若提示模型文件为空，请先下载或选择本地模型。
+- GPU 加速需显卡支持，若不可用可关闭。
+- 输出文件建议与视频同目录，便于后续管理。
+- 识别质量与模型大小、音频清晰度有关。
+
+更多信息可参考 FFmpeg Whisper 滤镜官方文档：
+""".trimIndent())
+            val annotatedString = buildAnnotatedString {
+                pushStringAnnotation(tag = "whisper", annotation = "https://ffmpeg.org/ffmpeg-filters.html#whisper-1")
+                withStyle(style = SpanStyle(color = blueColor)) {
+                    append("hhttps://ffmpeg.org/ffmpeg-filters.html#whisper-1")
+                }
+                pop()
+            }
+            ClickableText(
+                text = annotatedString,
+                style = MaterialTheme.typography.body1,
+                modifier = Modifier.pointerHoverIcon(Hand),
+                onClick = { offset ->
+                    annotatedString.getStringAnnotations(tag = "whisper", start = offset, end = offset).firstOrNull()?.let {
+                        uriHandler.openUri(it.item)
+                    }
+                }
+            )
+            Spacer(Modifier.height(16.dp))
+        }
         VerticalScrollbar(
             modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
             adapter = rememberScrollbarAdapter(stateVertical)

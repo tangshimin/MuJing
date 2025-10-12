@@ -662,6 +662,19 @@ private fun FrameWindowScope.WindowMenuBar(
                 appState.saveGlobalState()
             },
         )
+        var showGenerateSrtDialog by remember { mutableStateOf(false) }
+        Item(
+            "生成字幕${if(isWindows) "(G)" else ""}", mnemonic = 'G',
+            enabled = true,
+            onClick = { showGenerateSrtDialog = true },
+        )
+        if(showGenerateSrtDialog){
+            GenerateSrtDialog(
+                close = { showGenerateSrtDialog = false },
+                videoPath = "",
+                triggeredFrom = "menu"
+            )
+        }
 
         var showLyricDialog by remember{ mutableStateOf(false) }
         if(showLyricDialog){
@@ -801,6 +814,13 @@ fun MenuDialogs(state: AppState) {
             type = VocabularyType.MKV
         )
     }
+//    if (state.showGenerateSrtDialog) {
+//        GenerateSrtDialog(
+//            close = { state.showGenerateSrtDialog = false },
+//            videoPath = state.generateSrtVideoPath,
+////            updateStrPath = {  }
+//        )
+//    }
 
     if(state.showUpdateDialog){
         UpdateDialog(

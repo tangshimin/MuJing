@@ -96,6 +96,9 @@ class AppState {
     /** 是否显示【用视频生成词库】 窗口 */
     var generateVocabularyFromVideo by mutableStateOf(false)
 
+    var showGenerateSrtDialog by mutableStateOf(false)
+    var generateSrtVideoPath by mutableStateOf("")
+
     /** 显示软件更新对话框 */
     var showUpdateDialog by mutableStateOf(false)
 
