@@ -44,6 +44,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -1041,7 +1042,7 @@ fun SubtitleAndAudioSelector(
             }
         }
 
-        var height = ((subtitleTrackList.size + extSubList.size) * 40 + 100).dp
+        var height = ((subtitleTrackList.size + extSubList.size) * 40 + 175).dp
         if(height > 740.dp) height = 740.dp
 
         DropdownMenu(
@@ -1057,169 +1058,174 @@ fun SubtitleAndAudioSelector(
             offset = DpOffset(x = 141.dp, y = (-20).dp),
         ) {
             var state by remember { mutableStateOf(0) }
-            TabRow(
-                selectedTabIndex = state,
-                backgroundColor = Color.Transparent,
-                modifier = Modifier.width(282.dp).height(40.dp)
-            ) {
-                Tab(
-                    text = { Text(text = "字幕",color = MaterialTheme.colors.onSurface) },
-                    selected = state == 0,
-                    onClick = { state = 0 }
-                )
-                Tab(
-                    text = { Text("声音",color = MaterialTheme.colors.onSurface) },
-                    selected = state == 1,
-                    onClick = { state = 1 }
-                )
-            }
-            when (state) {
-                0 -> {
-                    Column(Modifier.width(282.dp).height(height)) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clickable(onClick = onShowSubtitlePicker)
-                                .width(282.dp).height(40.dp)
-                        ){
-                            Text(
-                                text = "添加字幕",
-                                color = MaterialTheme.colors.onSurface,
-                                fontSize = 12.sp,
-                                modifier = Modifier.padding(start = 12.dp)
-                            )
-                        }
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier
-                                .clickable(onClick = {
-                                    onShowSubtitleMenuChanged(false)
-                                    onSubTrackChanged(-1,"关闭字幕")
-                                })
-                                .width(282.dp).height(40.dp)
-                        ){
-                            val color = if(currentSubtitleTrack == -1)
-                                MaterialTheme.colors.primary else Color.Transparent
-                            Spacer(Modifier
-                                .background(color)
-                                .height(16.dp)
-                                .width(2.dp)
-                            )
-                            Text(
-                                text = "关闭字幕",
-                                color = if(currentSubtitleTrack == -1)
-                                    MaterialTheme.colors.primary else  MaterialTheme.colors.onSurface,
-                                fontSize = 12.sp,
-                                modifier = Modifier.padding(start = 12.dp)
-                            )
-                        }
-                        Divider()
-                        Box(Modifier.width(282.dp).height(height)) {
-                            val scrollState = rememberLazyListState()
-                            LazyColumn(Modifier.fillMaxSize(), scrollState) {
-                                items(subtitleTrackList) { (trackId, description) ->
+           Column {
+               TabRow(
+                   selectedTabIndex = state,
+                   backgroundColor = Color.Transparent,
+                   modifier = Modifier.width(282.dp).height(40.dp)
+               ) {
+                   Tab(
+                       text = { Text(text = "字幕",color = MaterialTheme.colors.onSurface) },
+                       selected = state == 0,
+                       onClick = { state = 0 }
+                   )
+                   Tab(
+                       text = { Text("声音",color = MaterialTheme.colors.onSurface) },
+                       selected = state == 1,
+                       onClick = { state = 1 }
+                   )
+               }
 
-                                    if(description != "Disable" && trackId != -1){
-                                        Row(
-                                            verticalAlignment = Alignment.CenterVertically,
-                                            modifier = Modifier
-                                                .clickable(onClick = {
-                                                    onShowSubtitleMenuChanged(false)
-                                                    onSubTrackChanged(trackId,description)
-                                                })
-                                                .width(282.dp).height(40.dp)
-                                        ) {
-                                            val color = if(currentSubtitleTrack == trackId)
-                                                MaterialTheme.colors.primary else Color.Transparent
-                                            Spacer(Modifier
-                                                .background(color)
-                                                .height(16.dp)
-                                                .width(2.dp)
-                                            )
-                                            Text(
-                                                text = description,
-                                                color = if(currentSubtitleTrack == trackId)
-                                                    MaterialTheme.colors.primary else  MaterialTheme.colors.onSurface,
-                                                fontSize = 12.sp,
-                                                modifier = Modifier.padding(start = 10.dp)
-                                            )
+               when (state) {
+                   0 -> {
+                       Column(Modifier.width(282.dp).height(height)) {
+                           Row(
+                               verticalAlignment = Alignment.CenterVertically,
+                               modifier = Modifier
+                                   .clickable(onClick = onShowSubtitlePicker)
+                                   .width(282.dp).height(40.dp)
+                           ){
+                               Text(
+                                   text = "添加字幕",
+                                   color = MaterialTheme.colors.onSurface,
+                                   fontSize = 12.sp,
+                                   modifier = Modifier.padding(start = 12.dp)
+                               )
+                           }
+                           Row(
+                               verticalAlignment = Alignment.CenterVertically,
+                               modifier = Modifier
+                                   .clickable(onClick = {
+                                       onShowSubtitleMenuChanged(false)
+                                       onSubTrackChanged(-1,"关闭字幕")
+                                   })
+                                   .width(282.dp).height(40.dp)
+                           ){
+                               val color = if(currentSubtitleTrack == -1)
+                                   MaterialTheme.colors.primary else Color.Transparent
+                               Spacer(Modifier
+                                   .background(color)
+                                   .height(16.dp)
+                                   .width(2.dp)
+                               )
+                               Text(
+                                   text = "关闭字幕",
+                                   color = if(currentSubtitleTrack == -1)
+                                       MaterialTheme.colors.primary else  MaterialTheme.colors.onSurface,
+                                   fontSize = 12.sp,
+                                   modifier = Modifier.padding(start = 12.dp)
+                               )
+                           }
+                           Divider()
+                           Box(Modifier.width(282.dp).height(height)) {
+                               val scrollState = rememberLazyListState()
+                               LazyColumn(Modifier.fillMaxSize(), scrollState) {
+                                   items(subtitleTrackList) { (trackId, description) ->
 
-
-                                        }
-                                    }
-                                }
+                                       if(description != "Disable" && trackId != -1){
+                                           Row(
+                                               verticalAlignment = Alignment.CenterVertically,
+                                               modifier = Modifier
+                                                   .clickable(onClick = {
+                                                       onShowSubtitleMenuChanged(false)
+                                                       onSubTrackChanged(trackId,description)
+                                                   })
+                                                   .width(282.dp).height(40.dp)
+                                           ) {
+                                               val color = if(currentSubtitleTrack == trackId)
+                                                   MaterialTheme.colors.primary else Color.Transparent
+                                               Spacer(Modifier
+                                                   .background(color)
+                                                   .height(16.dp)
+                                                   .width(2.dp)
+                                               )
+                                               Text(
+                                                   text = description,
+                                                   color = if(currentSubtitleTrack == trackId)
+                                                       MaterialTheme.colors.primary else  MaterialTheme.colors.onSurface,
+                                                   fontSize = 12.sp,
+                                                   modifier = Modifier.padding(start = 10.dp)
+                                               )
 
 
-                                itemsIndexed(extSubList) { index,(lang,file) ->
-                                    if(subtitleTrackList.isNotEmpty() && index == 0){
-                                        Divider()
-                                    }
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier
-                                            .clickable(onClick = {
-                                                setExternalSubtitle(index,file,lang)
-                                                onShowSubtitleMenuChanged(false)
-                                            })
-                                            .width(282.dp).height(40.dp)
-                                    ) {
-                                        Text(
-                                            text = lang,
-                                            color = if(extSubIndex == index) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface,
-                                            fontSize = 12.sp,
-                                            modifier = Modifier.padding(start = 10.dp)
-                                        )
-                                    }
-                                }
-                            }
-                            VerticalScrollbar(
-                                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                                adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                            )
-                        }
-                    }
-                }
-                1 -> {
-                    Box(Modifier.width(282.dp).height(height)) {
-                        val scrollState = rememberLazyListState()
-                        LazyColumn(Modifier.fillMaxSize(), scrollState) {
-                            items(audioTrackList) { (track, description) ->
-                                DropdownMenuItem(
-                                    onClick = {
-                                        onShowSubtitleMenuChanged(false)
-                                        onAudioTrackChanged(track)
-                                    },
-                                    modifier = Modifier.width(282.dp).height(40.dp)
-                                ) {
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        modifier = Modifier.fillMaxWidth()
-                                    ) {
-                                        val color = if(currentAudioTrack == track)
-                                            MaterialTheme.colors.primary else MaterialTheme.colors.onSurface
-                                        Spacer(Modifier
-                                            .background(color)
-                                            .height(16.dp)
-                                            .width(2.dp)
-                                        )
-                                        Text(
-                                            text = description,
-                                            color = if(currentAudioTrack == track)
-                                                MaterialTheme.colors.primary else MaterialTheme.colors.onSurface,
-                                            fontSize = 12.sp,
-                                            modifier = Modifier.padding(start = 10.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                        VerticalScrollbar(
-                            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                            adapter = rememberScrollbarAdapter(scrollState = scrollState),
-                        )
-                    }
-                }
-            }
+                                           }
+                                       }
+                                   }
+
+
+                                   itemsIndexed(extSubList) { index,(lang,file) ->
+                                       if(subtitleTrackList.isNotEmpty() && index == 0){
+                                           Divider()
+                                       }
+                                       Row(
+                                           verticalAlignment = Alignment.CenterVertically,
+                                           modifier = Modifier
+                                               .clickable(onClick = {
+                                                   setExternalSubtitle(index,file,lang)
+                                                   onShowSubtitleMenuChanged(false)
+                                               })
+                                               .width(282.dp).height(40.dp)
+                                       ) {
+                                           Text(
+                                               text = lang,
+                                               color = if(extSubIndex == index) MaterialTheme.colors.primary else MaterialTheme.colors.onSurface,
+                                               fontSize = 12.sp,
+                                               modifier = Modifier.padding(start = 10.dp)
+                                           )
+                                       }
+                                   }
+                               }
+                               VerticalScrollbar(
+                                   modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                                   adapter = rememberScrollbarAdapter(scrollState = scrollState),
+                               )
+                           }
+                       }
+                   }
+                   1 -> {
+                       Box(Modifier.width(282.dp).height(height)) {
+                           val scrollState = rememberLazyListState()
+                           LazyColumn(Modifier.fillMaxSize(), scrollState) {
+                               items(audioTrackList) { (track, description) ->
+                                   DropdownMenuItem(
+                                       onClick = {
+                                           onShowSubtitleMenuChanged(false)
+                                           onAudioTrackChanged(track)
+                                       },
+                                       modifier = Modifier.width(282.dp).height(40.dp)
+                                   ) {
+                                       Row(
+                                           verticalAlignment = Alignment.CenterVertically,
+                                           modifier = Modifier.fillMaxWidth()
+                                       ) {
+                                           val color = if(currentAudioTrack == track)
+                                               MaterialTheme.colors.primary else MaterialTheme.colors.onSurface
+                                           Spacer(Modifier
+                                               .background(color)
+                                               .height(16.dp)
+                                               .width(2.dp)
+                                           )
+                                           Text(
+                                               text = description,
+                                               color = if(currentAudioTrack == track)
+                                                   MaterialTheme.colors.primary else MaterialTheme.colors.onSurface,
+                                               fontSize = 12.sp,
+                                               modifier = Modifier.padding(start = 10.dp)
+                                           )
+                                       }
+                                   }
+                               }
+                           }
+                           VerticalScrollbar(
+                               modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                               adapter = rememberScrollbarAdapter(scrollState = scrollState),
+                           )
+                       }
+                   }
+               }
+           }
+
+
         }
     }
 
