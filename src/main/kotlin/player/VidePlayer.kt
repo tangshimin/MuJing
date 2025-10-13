@@ -677,6 +677,7 @@ fun VideoPlayer(
         Row(Modifier.fillMaxSize()){
             // 视频播放器区域
             Box(Modifier
+                .background(Color.Black)
                 .weight(1f)
                 .onClick(
                     matcher = PointerMatcher.mouse(PointerButton.Secondary), // add onClick for every required PointerButton
@@ -849,7 +850,7 @@ fun VideoPlayer(
                 Column(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(bottom = 5.dp)
+                    modifier = Modifier.align(Alignment.BottomCenter)
                 ) {
 
                     var prevPlayState by remember { mutableStateOf<Boolean?>(null) }
@@ -1051,7 +1052,11 @@ fun VideoPlayer(
                         Row(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 20.dp)
+                            modifier = Modifier
+                                .background(Color.Black)
+                                .height(48.dp)
+                                .fillMaxWidth()
+                                .padding(horizontal = 20.dp)
                         ) {
                             Row(verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.Start,
