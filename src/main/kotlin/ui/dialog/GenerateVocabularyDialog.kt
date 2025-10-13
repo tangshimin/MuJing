@@ -338,6 +338,11 @@ fun GenerateVocabularyDialog(
                                                     selectedFilePath = file.absolutePath
                                                     relateVideoPath = file.absolutePath
                                                     selectedSubtitlesName = "    "
+                                                }else{
+                                                    JOptionPane.showMessageDialog(
+                                                        window,
+                                                        "这个视频没有字幕轨道，无法生成词库"
+                                                    )
                                                 }
                                             }
                                         )
