@@ -2,7 +2,9 @@ name: Build Package
 
 on:
   workflow_dispatch: # Manual trigger
-
+  push: # Tag-based trigger
+    tags:
+      - '*'
 
 jobs:
   create-package:
@@ -80,6 +82,7 @@ jobs:
           if ($version -eq "" -or $version -eq "refs/heads/main") {
             $version = (Get-Content gradle.properties | Select-String "version=" | ForEach-Object { $_.ToString().Split('=')[1].Trim() })
           }
+          # 统一命名为 MuJing-版本号.zip
           $zipFile = "build/compose/binaries/main/app/MuJing-$version.zip"
           Write-Host "Creating portable package: $zipFile"
           Compress-Archive -Path "build/compose/binaries/main/app/MuJing/*" -DestinationPath $zipFile -Force
@@ -87,35 +90,64 @@ jobs:
           Get-Item $zipFile
         shell: pwsh
 
-      # Get the latest tag
-      - name: Get latest tag
-        id: latesttag
-        run: |
-          TAG=$(git describe --tags $(git rev-list --tags --max-count=1) 2>/dev/null || echo "1.0.0")
-          echo "TAG=$TAG" >> $GITHUB_ENV
-        shell: bash
-
       - name: Upload Artifact
-        if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifactName }}
           path: ${{ matrix.artifactPath }}
 
       - name: Upload Windows Portable Artifact
-        if: runner.os == 'Windows' && github.event_name == 'workflow_dispatch'
+        if: runner.os == 'Windows'
         uses: actions/upload-artifact@v4
         with:
           name: windows-package-portable-x64
           path: build/compose/binaries/main/app/*.zip
 
+  draft-release:
+    name: Draft Release
+    needs: create-package
+    runs-on: ubuntu-latest
+    if: github.event_name != 'workflow_dispatch'
+    permissions:
+      contents: write
+    steps:
+      - name: Generate a token
+        id: generate-token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/
+
+      - name: Get Tag
+        id: get_tag
+        run: echo "TAG=${{ github.ref_name }}" >> $GITHUB_ENV
+
       - name: Draft Release
-        if: github.event_name != 'workflow_dispatch'
         uses: ncipollo/release-action@v1
         with:
           draft: true
           allowUpdates: true
-          generateReleaseNotes: false  #自动生成发行说明。
-          tag: "${{ env.TAG }}"
-          artifacts: "${{ runner.os == 'Windows' && 'build/compose/binaries/main/app/*.msi\nbuild/compose/binaries/main/app/*.zip' || matrix.artifactPath }}"
+          generateReleaseNotes: false
+          name: ${{ env.TAG }} # 设置 Release 的标题为 Tag 名称
+          tag: ${{ env.TAG }}
           token: ${{ steps.generate-token.outputs.token }}
+          body: |
+            ---
+            ### Windows 版本下载
+            - [Windows 安装包 (MSI)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG }}/MuJing-${{ env.TAG }}.msi)
+            - [Windows 绿色版 (ZIP)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG }}/MuJing-${{ env.TAG }}.zip)
+            ### macOS 版本下载
+            - [macOS x86_64 Intel 芯片(DMG)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG }}/MuJing-${{ env.TAG }}-x64.dmg)
+            - [macOS aarch64 M 芯片(DMG)](https://github.com/${{ github.repository }}/releases/download/${{ env.TAG }}/MuJing-${{ env.TAG }}-aarch64.dmg)
+          artifactErrorsFailBuild: false # 如果某个附件找不到，不要让整个 workflow 失败
+          # 'assets' 字段需要是多行字符串格式
+          assets: |
+            artifacts/windows-package-x64/*.msi:MuJing-${{ env.TAG }}.msi
+            artifacts/windows-package-portable-x64/*.zip:MuJing-${{ env.TAG }}.zip
+            artifacts/macos-package-x64/*.dmg:MuJing-${{ env.TAG }}-x64.dmg
+            artifacts/macos-package-aarch64/*.dmg:MuJing-${{ env.TAG }}-aarch64.dmg
