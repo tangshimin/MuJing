@@ -2,6 +2,11 @@ package util
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.ClassOrderer
+import org.junit.jupiter.api.MethodOrderer
+import org.junit.jupiter.api.Order
+import org.junit.jupiter.api.TestClassOrder
+import org.junit.jupiter.api.TestMethodOrder
 import player.isMacOS
 import player.isWindows
 import java.io.File
@@ -78,6 +83,9 @@ import java.io.File
  * 5. 如果发现不一致，输出详细的差异信息
  *
  */
+@TestClassOrder(ClassOrderer.OrderAnnotation::class)
+//@Order(Int.MAX_VALUE)
+@Order(201)
 class TestRemoveConfigDependencies {
 
     @Test

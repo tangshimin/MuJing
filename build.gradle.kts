@@ -291,10 +291,14 @@ tasks.named<Test>("test") {
     classpath = sourceSets["test"].runtimeClasspath
     exclude("**/ui/**")
 
-    // 启用 JUnit 5
+    // 将需要最后执行的测试类从默认 test 任务中排除
+    exclude("**/util/TestRemoveConfigDependencies*")
+    exclude("**/util/TestRuntimeModules*")
+
+    // 启用 JUnit 5（包含 Vintage 引擎时也可运行 JUnit 4）
     useJUnitPlatform()
     
-    // 配置测试执行顺序
+    // 配置测试执行顺序（Jupiter）
     systemProperty("junit.jupiter.testclass.order.default", "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation")
 
     // 测试日志配置
@@ -304,17 +308,40 @@ tasks.named<Test>("test") {
     }
 }
 
-// 为 UI 测试注册任务，并同样添加依赖（可选）
-tasks.register<Test>("uiTest") {
-    dependsOn(buildRustZstdJni)
-    description = "Runs UI tests."
+// 新增一个只运行“最后执行”的测试类的任务，并让其在 test 任务之后执行
+val testLast by tasks.registering(Test::class) {
+    description = "Runs tests that must execute last."
     group = "verification"
+
+    // 复用测试编译产物与依赖
     testClassesDirs = sourceSets["test"].output.classesDirs
     classpath = sourceSets["test"].runtimeClasspath
-    include("**/ui/**")
 
-    // UI 测试使用 JUnit 4
-    useJUnit()
+    // 仅包含需要最后执行的测试类
+    include("**/util/TestRemoveConfigDependencies*")
+    include("**/util/TestRuntimeModules*")
+
+    // 使用 JUnit Platform（同时覆盖 JUnit 5 与 Vintage）
+    useJUnitPlatform()
+
+    // 确保类级别顺序按 @Order 注解执行
+    systemProperty("junit.jupiter.testclass.order.default", "org.junit.jupiter.api.ClassOrderer\$OrderAnnotation")
+
+    // 与默认 test 任务保持一致的日志配置
+    testLogging {
+        events("passed", "skipped", "failed")
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
+}
+
+// 当执行 `gradlew test` 时，确保上述两个测试在最后执行
+tasks.named("test") {
+    finalizedBy(testLast)
+}
+
+// 让 `check` 任务覆盖到最后执行的测试（通过 finalizedBy 已涵盖，这里显式依赖更清晰）
+tasks.named("check") {
+    dependsOn(testLast)
 }
 
 project.afterEvaluate {

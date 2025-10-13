@@ -19,10 +19,8 @@
 
 package util
 
-import org.junit.Test
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIf
-import org.junit.jupiter.api.TestMethodOrder
-import org.junit.jupiter.api.MethodOrderer
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.TestClassOrder
 import org.junit.jupiter.api.ClassOrderer
@@ -38,13 +36,21 @@ import kotlin.jvm.optionals.getOrNull
  * 有时候增加了一些代码，本地运行没有问题，但是打包后运行时会出现一些问题，比如找不到类，这时候可能是因为没有包含某些模块。
  * 这个测试用例会输出需要包含的模块, 如果模块不匹配，就修改 `build.gradle.kts` 中的 `nativeDistributions`
  */
-@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 @TestClassOrder(ClassOrderer.OrderAnnotation::class)
 @Order(200) // 确保这个测试类在其他测试类之后执行
 class TestRuntimeModules {
 
+    companion object {
+        @JvmStatic
+        @Suppress("unused")
+        fun isNotGitHubActionsWindows(): Boolean {
+            val isWindows = System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")
+            val isGitHubActions = System.getenv("GITHUB_ACTIONS")?.toBoolean() ?: false
+            return !(isWindows && isGitHubActions)
+        }
+    }
+
     @Test
-    @Order(100) // 设置较高的数值，确保在其他测试之后执行
     fun `Test Native Distribution Modules`() {
         val workDir = File("").absolutePath
         val gradlewFile = File(workDir, "gradlew")
@@ -81,7 +87,6 @@ class TestRuntimeModules {
 
     @Test
     @EnabledIf("isNotGitHubActionsWindows")
-    @Order(201) // 设置更高的数值，确保这个最后执行
     fun `Test Run Distributable`() {
         val workDir = File("").absolutePath
         val gradlewFile = File(workDir, "gradlew")
@@ -167,15 +172,4 @@ fun findProcessByName(processName: String): ProcessHandle? {
     return ProcessHandle.allProcesses()
         .filter { it.info().command().orElse("").contains(processName) }
         .findFirst().getOrNull()
-}
-
-/**
- * 如果不是 GitHub Actions Windows 环境，返回 true
- * 用于在 GitHub Actions Windows 环境下跳过某些测试用例
- */
-@Suppress("unused")
-fun isNotGitHubActionsWindows(): Boolean {
-    val isWindows = System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")
-    val isGitHubActions = System.getenv("GITHUB_ACTIONS")?.toBoolean() ?: false
-    return !(isWindows && isGitHubActions)
 }
