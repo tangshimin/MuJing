@@ -600,7 +600,6 @@ fun GenerateVocabularyDialog(
         val analysis: (String, Int) -> Unit = { pathName, trackId ->
             started = true
             filterState = Parsing
-            vocabularyFilterList.clear()
             previewList.clear()
             parsedList.clear()
             scope.launch(Dispatchers.Default) {
@@ -661,7 +660,6 @@ fun GenerateVocabularyDialog(
         /** 批量分析文件 MKV 视频里的单词 */
         val batchAnalysis: (String) -> Unit = { language ->
             started = true
-            vocabularyFilterList.clear()
             previewList.clear()
             parsedList.clear()
             scope.launch(Dispatchers.Default) {
