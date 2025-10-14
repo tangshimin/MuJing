@@ -569,7 +569,6 @@ fun GenerateVocabularyDialog(
                 selectedFileList.remove(file)
                 tasksState.remove(file)
                 errorMessages.remove(file)
-                checkedFileMap[file] = false
                 if (currentTask == file) {
                     currentTask = null
                 }
@@ -3021,7 +3020,7 @@ fun TaskList(
     checkedChange: (Pair<File, Boolean>) -> Unit,
 ) {
     val viewList = selectedFileList.map { it }
-    var items by remember { mutableStateOf(viewList) }
+    var items by remember (viewList){ mutableStateOf(viewList) }
     val lazyListState = rememberLazyListState()
     val state = rememberReorderableLazyListState(lazyListState){from,to ->
         items = items.toMutableList().apply {
