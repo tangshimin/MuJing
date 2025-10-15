@@ -149,15 +149,13 @@ fun GenerateSrtDialog(
                     queueText = s.queue.coerceIn(1, 64).toString()
                     useGpu = s.useGpu
                     gpuDeviceText = s.gpuDevice.coerceAtLeast(0).toString()
-                    s.modelFileName?.takeIf { it.isNotBlank() }?.let { name ->
-                        val dir = getWhisperModelsDir()
-                        val candidate = File(dir, name)
-                        if (candidate.exists() && candidate.isFile) {
-                            modelPath = TextFieldValue(candidate.absolutePath)
+                    // 只恢复绝对路径
+                    if (!s.modelFilePath.isNullOrBlank()) {
+                        val file = File(s.modelFilePath)
+                        if (file.exists() && file.isFile) {
+                            modelPath = TextFieldValue(file.absolutePath)
                         }
                     }
-
-                    // if model path is empty, show download dialog
                     modelIsEmpty = modelPath.text.isBlank()
                     if (modelIsEmpty) showDownloadDialog = true
 
@@ -169,10 +167,10 @@ fun GenerateSrtDialog(
                     if (!settingsLoaded) return@LaunchedEffect
                     val queue = queueText.toIntOrNull()?.coerceIn(1, 64) ?: 3
                     val gpu = gpuDeviceText.toIntOrNull()?.coerceAtLeast(0) ?: 0
-                    val name = File(modelPath.text).name.takeIf { it.isNotBlank() }
+                    val absPath = modelPath.text.takeIf { it.isNotBlank() }
                     saveGenerateSrtSettings(
                         GenerateSrtSettings(
-                            modelFileName = name,
+                            modelFilePath = absPath,
                             language = language,
                             queue = queue,
                             useGpu = useGpu,
@@ -787,7 +785,7 @@ fun CustomTextField(
 
 @Serializable
 private data class GenerateSrtSettings(
-    val modelFileName: String? = null,
+    val modelFilePath: String? = null,
     val language: String = "en",
     val queue: Int = 3,
     val useGpu: Boolean = true,
